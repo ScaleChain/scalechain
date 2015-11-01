@@ -1,18 +1,6 @@
 # Introduction
 Let's try to analyze the first block file.
 
-# Source codes 
-
-## Entry point of bitcoind 
-```
-bool AppInit(int argc, char* argv[])
-```
-## Initialization
-
-Setting up signal handlers, parsing parameters, reading config files, etc.
-```
-AppInit2 in init.cpp
-```
 ## Block file header?
 
 Following wiki describes the block file header. The magic number matches the one on the block file in little endian.
@@ -72,7 +60,8 @@ The following file contains the first 128K bytes of the blk00000.dat file.
 data/blk00000-128k.dat
 ```
 
-# The data from the first block file, blk00000.dat
+# Analysis
+## The data from the first block file, blk00000.dat
 ```
 0000000 f9 be b4 d9 1d 01 00 00 01 00 00 00 00 00 00 00
         |---------|             |==> block header(80 bytes) starts from here.
@@ -152,27 +141,6 @@ Block header until here <=====|        /-> transaction version(1, in little endi
 0000140 4f 93 1e 83 65 e1 5a 08 9c 68 d6 19 00 00 00 00
 0000150 00 98 20 51 fd 1e 4b a7 44 bb be 68 0e 1f ee 14
 0000160 67 7b a1 a3 c3 54 0b f7 b1 cd b6 06 e8 57 23 3e
-```
-
-# The data from the second block file, blk00001.dat
-```
-0000000 f9 be b4 d9 35 0e 00 00 01 00 00 00 d8 be bc a4
-        |---------|             |--> block header starts from here.
-        magic value(LE)                     |========== continued
-                    |---------| |---------|
-                    block size  Block version number(1)
-                                                                           
-0000010 8e 6c 45 8a 6e c2 fc 4a dc 74 96 4b d8 6c 6a 35
-        =============================================== continued
-0000020 cb c3 15 88 c5 39 00 00 00 00 00 00 a2 b9 59 41
-        ===================================| hashPrevBlock(32 bytes)
-                                            |==========
-0000030 96 b2 f1 54 10 a8 a7 16 e1 a5 b0 ce 7f 48 4e 69
-        =============================================== continued
-0000040 35 ce 98 74 d2 73 04 05 e5 15 ee f2 87 b5 b4 4d
-        ===================================| hashMerkleRoot(32 bytes)
-                                            |=========| unix timestamp (1303688583, 2011-04-25 08:43:03)
-0000050 ac b5 00 1b ef 81 d2 21 0c 01 00 00 00 01 00 00
 ```
 
 # Tools
