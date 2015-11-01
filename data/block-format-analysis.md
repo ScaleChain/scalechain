@@ -145,6 +145,7 @@ Block header until here <=====|        /-> transaction version(1, in little endi
 
 # Tools
 ## Eclipse CDT
-Let's use it!!
-To go to the definition of a function, you can press cmd + left click on Mac OS. 
+I am going to use Eclipse CDT for analyzing C++ source code of the Bitcoin reference client.
+
+To go to the definition of a function, you can simply press cmd + left click on Mac OS. 
 
