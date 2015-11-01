@@ -67,12 +67,10 @@ print(
 This file is the first block of Bitcoin blockchain.
 copied it from ~/Library/Application Support/Bitcoin/ after installing and synching full blocks w/ the Bitcoin core reference implementation.
 
+The following file contains the first 128K bytes of the blk00000.dat file.
 ```
-data/blk00001-128k.dat
+data/blk00000-128k.dat
 ```
-# The size of genesis block
-0xe35(3637)
-
 
 # The data from the first block file, blk00000.dat
 ```
@@ -178,11 +176,6 @@ Block header until here <=====|        /-> transaction version(1, in little endi
 ```
 
 # Tools
-## CLion
-For analysing Bitcoin reference source code written in C++.
-This tool has a nice feature that allows me to follow function definitions from the source code.
-But it is not free, so I am going to use Eclipse CDT.
-
 ## Eclipse CDT
 Let's use it!!
 To go to the definition of a function, you can press cmd + left click on Mac OS. 
