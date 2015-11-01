@@ -1,4 +1,4 @@
-package com.example
+package io.scalechain
 
 import akka.actor.{Actor, ActorLogging, Props}
 
