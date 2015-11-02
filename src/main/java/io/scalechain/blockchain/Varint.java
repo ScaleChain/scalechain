@@ -1,42 +1,5 @@
-# Introduction
+package io.scalechain.blockchain;
 
-Block file reader reads blocks from blkxxx.dat files. 
-
-# The block format
-The following wiki describes the format of a block in blkxxx.dat files.
-
-https://en.bitcoin.it/wiki/Block
-
-# Procedure
-1. Read magic value
-1. Read block size
-1. Read block header
-1. Read transactions
-1. Read lock value
-
-# Code snippets
-## Iterating files
-We need to list all files matching the pattern blocks/blkNNNNN.dat.
-
-```
-import scala.collection.JavaConversions._
-for(file <- myDirectory.listFiles if file.getName starts With "blk" && file.getName endsWith ".dat"){
-   // process the file
-}
-```
-
-## Read a binary file
-We will use FileInputStream to read a file as a stream of bytes.
-```
-val bis = new BufferedInputStream(new FileInputStream(fileName))
-```
-
-## Read VarInt values
-We nned to read VarInt values from disk. Ex> block size.
-Use the following source code for reading VarInt values to focus on developing reading blocks.
-
-For reading VarInt values, we can use readUnsignedVarInt(DataInput in). So we have to create a DataInput using DataInputStream(InputStream in) from the input stream for a block file. 
-```
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -54,13 +17,9 @@ For reading VarInt values, we can use readUnsignedVarInt(DataInput in). So we ha
  * limitations under the License.
  */
 
-package com.clearspring.analytics.util;
-
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
 
 /**
  * <p>Encodes signed and unsigned values using a common variable-length
@@ -260,8 +219,4 @@ public final class Varint {
         }
         return value | (rb << i);
     }
-
 }
-```
-
-from : https://github.com/addthis/stream-lib/blob/master/src/main/java/com/clearspring/analytics/util/Varint.java

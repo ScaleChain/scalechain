@@ -1,0 +1,37 @@
+@startuml
+'hide footbox
+
+actor Caller
+
+User -> QueryProcessor : query
+QueryProcessor -> QueryProcessor : prepare
+
+note left
+  tokenize2
+  stopping
+  stemming
+  create plan
+end note
+
+QueryProcessor -> QueryExecutor : query plan
+
+opt for each term
+  QueryExecutor -> InvertedIndex : scan
+  opt for each document
+     QueryExecutor -> Document : assign score
+  end
+end
+
+QueryExecutor -> Document : get top N docs
+Document --> QueryExecutor : top N docs
+
+QueryExecutor -> SnippetGenerator : generate snippet
+SnippetGenerator --> QueryExecutor : snippets
+
+QueryExecutor --> QueryProcessor : (url, title, snippet)*
+
+QueryProcessor -> QueryProcessor : render results
+
+QueryProcessor --> User : results
+
+@enduml
