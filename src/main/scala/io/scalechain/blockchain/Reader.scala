@@ -22,7 +22,11 @@ class TransactionOutput {
 }
 
 
-case class Block(val size:Long, val header:BlockHeader, val transactionCount:Int, val transactions : Array[Transaction], val previousBlock : Block ) {
+case class Block(val size:Long,
+                 val header:BlockHeader,
+                 val transactionCount:Int,
+                 val transactions : Array[Transaction],
+                 val previousBlock : Block ) {
 
 }
 

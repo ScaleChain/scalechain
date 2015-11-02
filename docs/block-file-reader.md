@@ -33,8 +33,9 @@ val bis = new BufferedInputStream(new FileInputStream(fileName))
 
 ## Read VarInt values
 We nned to read VarInt values from disk. Ex> block size.
-I am going to use the following source code for reading VarInt values to focus on developing reading blocks.
+Use the following source code for reading VarInt values to focus on developing reading blocks.
 
+For reading VarInt values, we can use readUnsignedVarInt(DataInput in). So we have to create a DataInput using DataInputStream(InputStream in) from the input stream for a block file. 
 ```
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
