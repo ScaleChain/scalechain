@@ -19,8 +19,8 @@ Following wiki describes the block file header. The magic number matches the one
 https://en.bitcoin.it/wiki/Block
 
 ## VarInt
-Int fields are encoded as VarInt.
-CVarInt (serialize.h)
+Some Int fields are encoded as VarInt.
+CVarInt (serialize.h in the reference implementation)
 
 To see the format of VarInt, see WriteVarInt  
 
