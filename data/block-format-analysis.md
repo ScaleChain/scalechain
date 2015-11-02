@@ -4,7 +4,10 @@ Let's try to analyze the first block file.
 ## Block file header?
 
 Following wiki describes the block file header. The magic number matches the one on the block file in little endian.
+
 https://en.bitcoin.it/wiki/Block
+
+https://en.bitcoin.it/wiki/Transaction
 
 ## VarInt
 Int fields are encoded as VarInt.
