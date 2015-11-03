@@ -86,6 +86,17 @@ These are quite random. Might be hard to compress anymore.
 - BlockHeader.prevBlockHash ( need it as an index key to look up a block by block hash )
 - BlockHeader.nonce
 
+### Data that can be compressed using cryptograph
+We can think about writing only X value of public key and a flag indicating if Y value is above the X axis or not. 
+On disk, we can write the compact format, and we will have to reconstruct the full public key in memory whenever it is necessary. Ex> To calculate script hash. A public key is in unlocking scripts of P2PKH. Also multiple public keys are in redeeming script of P2SH.
+```
+Compressed public keys
+
+Compressed public keys were introduced to bitcoin to reduce the size of transactions and conserve disk space on nodes that store the bitcoin blockchain database. Most transactions include the public key, required to validate the owner’s credentials and spend the bitcoin. Each public key requires 520 bits (prefix \+ x \+ y), which when multiplied by several hundred transactions per block, or tens of thousands of transactions per day, adds a significant amount of data to the blockchain.
+
+As we saw in the section Public Keys, a public key is a point (x,y) on an elliptic curve. Because the curve expresses a mathematical function, a point on the curve represents a solution to the equation and, therefore, if we know the x coordinate we can calculate the y coordinate by solving the equation y2 mod p = (x3 + 7) mod p. That allows us to store only the x coordinate of the public key point, omitting the y coordinate and reducing the size of the key and the space required to store it by 256 bits. An almost 50% reduction in size in every transaction adds up to a lot of data saved over time!
+```
+
 ### Extract common data patterns
 - LockingScript, UnlockingScript ( these have similar patterns. Most of them are P2PKH. Some of them are P2SH )
 
