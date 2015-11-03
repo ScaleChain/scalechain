@@ -1,21 +1,9 @@
 # Introduction
 Let's try to analyze the first block file.
 
-# Source codes 
+# Block file header?
 
-## Entry point of bitcoind 
-```
-bool AppInit(int argc, char* argv[])
-```
-## Initialization
-
-Setting up signal handlers, parsing parameters, reading config files, etc.
-```
-AppInit2 in init.cpp
-```
-## Block file header?
-
-Following wiki describes the block file header. The magic number matches the one on the block file in little endian.
+The following wiki describes the block file header. The magic number matches the one on the block file in little endian.
 https://en.bitcoin.it/wiki/Block
 
 ## VarInt
@@ -65,7 +53,7 @@ print(
 
 # Files
 This file is the first block of Bitcoin blockchain.
-copied it from ~/Library/Application Support/Bitcoin/ after installing and synching full blocks w/ the Bitcoin core reference implementation.
+copied it from ~/Library/Application Support/Bitcoin/ after installing and downloading full blocks w/ the Bitcoin core reference implementation.
 
 The following file contains the first 128K bytes of the blk00000.dat file.
 ```
@@ -143,7 +131,7 @@ Block header until here <=====|        /-> transaction version(1, in little endi
 0000110 5c 38 4d f7 ba 0b 8d 57 8a 4c 70 2b 6b f1 1d 5f
         |=============================================|
 0000120 ac 00 00 00 00 f9 be b4 d9 d7 00 00 00 01 00 00
-        ==| until here. 67 bytes of tx-out script.
+        ==| until here. 67 bytes of the tx-out script.
            |---------| lock time. (4 bytes). 0 means no lock time.
                        |----------|
                         magic value(LE)
@@ -177,6 +165,6 @@ Block header until here <=====|        /-> transaction version(1, in little endi
 
 # Tools
 ## Eclipse CDT
-Let's use it!!
+Let's use it for analyzing the Bitcoin reference client.
 To go to the definition of a function, you can press cmd + left click on Mac OS. 
 
