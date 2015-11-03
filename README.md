@@ -5,11 +5,13 @@ How : Compress blockchain data, but still provide fast lookup on the blockchain.
 
 Current status
 ==============
-Investigation done for the blkxxx.dat file format.
+- Investigation done for the blkxxx.dat file format.
+- Write a Scala program that reads the blkxxx.dat file. Write a block reader for it.
 
 TODO
 ====
-Write a Scala program that reads the blkxxx.dat file.
+- Run the block reader to get statistics on blockchain data. Ex> What percentage of transaction hashes are written more than once? (to replace redundant transaction hash to a shorter one) 
+- Write a prototype that writes blockchain data in columnar layout to compress data using delta encoding, bitmaps, etc.
 
 Video
 =====
