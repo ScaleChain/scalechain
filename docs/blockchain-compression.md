@@ -139,13 +139,13 @@ OP_HASH160 <20-byte hash of redeem script> OP_EQUAL
 <Sig1> <Sig2> <redeem script>
 ```
 
-# Plan
+# Plans
 ## Replace redudant data with a shorter symbols.
-There are some redundant data in Bitcoin blockchain. 
+There are redundant data in Bitcoin blockchain such as transaction hash. Find out how many redundant data we have today, and see if there is any feasible solution to reduce blockchain size. 
 
 ## Write block data in columnar layout.
 Currently, blockchain data is written in row wise layout. 
-Ex> A block comes and another block comes. A transaction comes, and then another transaction comes.
+Ex> A block come and another block comes on a block file. A transaction comes, and then another transaction comes in a block.
 
 I am thinking about writing data in columnar layout to compress data. 
 
@@ -157,6 +157,6 @@ Compare 600 with 1446513430, which is current timestamp. We can compress data by
 
 # FAQ
 ## Does this replace the blockchain implementation by Bitcoin reference client?
-No, this is an experimental project to give light to Bitcoin developers.
+No, this is an experimental project to find out an optimal storage size using columnar layout for blockchain storage.
 
 
