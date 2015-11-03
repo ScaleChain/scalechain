@@ -19,7 +19,7 @@ object DumpChain {
     val blockListener = new BlockListener()
     val reader = new BlockDirectoryReader(blockListener)
 
-    reader.readFrom("/Users/kangmo/crypto/scalachain/src/test/resources/blocks")
+    reader.readFrom(blocksPath)
   }
 
   /** The main method of this program. Get the path to directory that has blkNNNNN.dat files, and dump all blocks to stdout.
@@ -29,13 +29,14 @@ object DumpChain {
   def main(args:Array[String]) : Unit = {
     if (args.length != 1) {
       printUsage();
-    }
-    val blocksPath = args(0)
+    } else {
+      val blocksPath = args(0)
 
-    dumpBlocks(blocksPath)
+      dumpBlocks(blocksPath)
+    }
   }
 
   def printUsage(): Unit = {
-    "DumpChain <path to the blocks folder which has blkNNNNN.dat files>"
+    println("DumpChain <path to the blocks folder which has blkNNNNN.dat files>");
   }
 }

@@ -59,6 +59,11 @@ With a full node running at Nov 1 2015, the size is as follows.
 ### blocks/index        :     60,516
 ### chainstate/         :  1,172,796
 
+## Compression using tar cvfz
+Tried to compress 10 files from blk00350.dat to blk00359.dat.
+### Original size   : 1,306,716,000
+### Compressed size : 1,055,568,201
+                        350,000,000
 ## Blockchain data analysis
 ### Redundant data
 - NormalTransactionInput.transactionHash( can come multiple times if a transaction has multiple outputs. Each of the output is spent, we have the same tranasction hash ) 
@@ -70,7 +75,7 @@ With a full node running at Nov 1 2015, the size is as follows.
 - BlockHeader.MerkleRootHash ( We can calculate the hash by using list of transactions in the block. )
 
 ### Data that can be compressed by writing in columnar layout.
-- BlockHeader.version ( Currently 1 or 2. We can think about using bitmap. )
+- BlockHeader.version ( delta encoding; Does not change for a long time with lots of blocks. )
 - BlockHeader.timestamp (delta encoding; timestamp monotonously increases. )
 - BlockHeader.target (delta encoding; difficulty changes for every 2016 blocks. )
 - Transaction.locktime ( in most cases this value is 0. )

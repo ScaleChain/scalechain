@@ -94,8 +94,8 @@ data/blk00000-128k.dat
                                             |=========| unix timestamp (1231006505, 2009-01-04 03:15:05)
 
 0000050 ff ff 00 1d 1d ac 2b 7c 01 01 00 00 00 01 00 00
-        |---------|                |===> transaction starts from here.
-         Bits, see https://en.bitcoin.it/wiki/Target. Current target in compact format
+        |---------|                |===> a transaction starts from here.
+         target, see https://en.bitcoin.it/wiki/Target. Current target in compact format
                     |---------|
                      Nonce(2083236893)
 Block header until here <=====|        /-> transaction version(1, in little endian)       
