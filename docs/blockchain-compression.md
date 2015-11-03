@@ -155,6 +155,13 @@ Because bitcoin blocks are mined approximately every 10 minutes, in most cases, 
 
 Compare 600 with 1446513430, which is current timestamp. We can compress data by writing a smaller value.
 
+# References
+## C-Store : A Column-oriented DBMS 
+http://db.csail.mit.edu/projects/cstore/vldb.pdf
+
+## monetdb : An open source columnar database engine.
+https://www.monetdb.org/Home
+
 # FAQ
 ## Does this replace the blockchain implementation by Bitcoin reference client?
 No, this is an experimental project to find out an optimal storage size using columnar layout for blockchain storage.
