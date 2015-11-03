@@ -70,17 +70,55 @@ With a full node running at Nov 1 2015, the size is as follows.
 - BlockHeader.MerkleRootHash ( We can calculate the hash by using list of transactions in the block. )
 
 ### Data that can be compressed by writing in columnar layout.
-- BlockHeader.version
-- BlockHeader.timestamp (delta encoding; timestamp monotonously increases.)
-- BlockHeader.target (delta encoding; difficulty changes for every 2016 blocks)
-- Transaction.locktime ( in most cases this value is 0 )
+- BlockHeader.version ( Currently 1 or 2. We can think about using bitmap. )
+- BlockHeader.timestamp (delta encoding; timestamp monotonously increases. )
+- BlockHeader.target (delta encoding; difficulty changes for every 2016 blocks. )
+- Transaction.locktime ( in most cases this value is 0. )
 
 ### Data that can not be compressed any more.
+These are quite random. Might be hard to compress anymore.
 - BlockHeader.prevBlockHash ( need it as an index key to look up a block by block hash )
 - BlockHeader.nonce
 
-### Need investigation
-- Locking script, unlocking script.
+### Extract common data patterns
+- LockingScript, UnlockingScript ( these have similar patterns. Most of them are P2PKH. Some of them are P2SH )
+
+# Extract Script Patterns
+I believe that most bitcoin locking scripts are P2SH or P2PKH. Obviously, these transactions have patterns.
+We can think about creating templates for P2SH, P2PKH, and any other common type of transactions.
+Then, what we have to write for each transaction is the part that is different from the P2SH or P2PKH Script template.
+
+Following examples (from Andreas's Mastering Bitcoin book) shows patterns on P2SH and P2PKH scripts.
+For these examples, only values in enclosed with < and > are changing. 
+But these values are quite long, so extracting patterns might not be very helpful for compressing blockchain data.
+## P2PKH patterns
+### Locking Script
+```
+DUP
+HASH160
+<hash of public key of bitcoin address>
+EQUALVERIFY
+CHECKSIG
+```
+### Unlocking Script
+```
+<signiture> 
+<public key of bitcoin address>
+```
+
+## P2SH patterns
+### Redeem Script
+```
+<2> <PubKey1> <PubKey2> <PubKey3> <PubKey4> <PubKey5> <5> OP_CHECKMULTISIG
+```
+### Locking Script
+```
+OP_HASH160 <20-byte hash of redeem script> OP_EQUAL
+```
+### Unlocking Script
+```
+<Sig1> <Sig2> <redeem script>
+```
 
 # Plan
 ## Replace redudant data with a shorter symbols.
