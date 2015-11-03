@@ -172,13 +172,10 @@ No, this is an experimental project to find out an optimal storage size using co
 2. Debugging the block reader for the analysis of block chain.
 3. Testing compression of blk00350.dat ~ blk00359.dat
 
-https://www.livecoding.tv/video/blockchain-scalechainio-29/
-
-https://www.livecoding.tv/video/blockchain-scalechainio-30/
-
-... and more videos. change the number at the end of url from 29 to 50 ...
-
 https://www.livecoding.tv/video/blockchain-scalechainio-50/
+
+And more videos. Just change the number at the end of url from 29 to 50.
+
 
 
 
