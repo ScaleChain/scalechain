@@ -140,7 +140,7 @@ OP_HASH160 <20-byte hash of redeem script> OP_EQUAL
 ```
 
 # Plans
-## Replace redudant data with a shorter symbols.
+## Replace redundant data with a shorter symbols.
 There are redundant data in Bitcoin blockchain such as transaction hash. Find out how many redundant data we have today, and see if there is any feasible solution to reduce blockchain size. 
 
 ## Write block data in columnar layout.
