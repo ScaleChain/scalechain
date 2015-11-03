@@ -337,6 +337,7 @@ public final class Varint {
 from : https://github.com/addthis/stream-lib/blob/master/src/main/java/com/clearspring/analytics/util/Varint.java
 
 # Live Coding Videos
+## BlockDirectoryReader implemented, but not tested.
 https://www.livecoding.tv/video/blockchain-scalechainio-7/
 https://www.livecoding.tv/video/blockchain-scalechainio-8/
 https://www.livecoding.tv/video/blockchain-scalechainio-9/
@@ -347,3 +348,15 @@ https://www.livecoding.tv/video/blockchain-scalechainio-15/
 https://www.livecoding.tv/video/blockchain-scalechainio-16/
 https://www.livecoding.tv/video/blockchain-scalechainio-17/
 https://www.livecoding.tv/video/blockchain-scalechainio-19/
+
+## BlockDirectoryReader tested and documented.
+https://www.livecoding.tv/video/blockchain-scalechainio-20/
+https://www.livecoding.tv/video/blockchain-scalechainio-21/
+https://www.livecoding.tv/video/blockchain-scalechainio-22/
+https://www.livecoding.tv/video/blockchain-scalechainio-23/
+https://www.livecoding.tv/video/blockchain-scalechainio-24/
+https://www.livecoding.tv/video/blockchain-scalechainio-25/
+https://www.livecoding.tv/video/blockchain-scalechainio-26/
+https://www.livecoding.tv/video/blockchain-scalechainio-27/
+https://www.livecoding.tv/video/blockchain-scalechainio-28/
+
