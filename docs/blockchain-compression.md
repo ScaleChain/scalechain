@@ -1,6 +1,7 @@
 # Introduction
-Compress Blockchain supporting minimal cost of decompression. 
-Ex> Use VarInt, replace redundant data such as transaction id to a shorter one.
+Compress Blockchain data using columnar layout with delta encoding and bitmaps to minimize the cost of decompression. We can use VarInt also like Bitcoin reference client does.
+
+We can replace redundant data such as transaction id to a shorter one. If a transaction has 100 outputs, we need to write the same 32 byte transaction hash of the transaction, whenever we want to spend each of the outputs. We can try replacing the long transcation hash to a shorter string maintaining a map from the short string to the actual transaction hash value.
 
 # Goal
 ## Blockchain compression
