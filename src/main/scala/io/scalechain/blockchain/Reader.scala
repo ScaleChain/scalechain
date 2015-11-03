@@ -187,7 +187,8 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
   def readFrom(path : String) {
     val directory = new File(path);
     // For each file in the path
-    for (file <- directory.listFiles.sortBy(_.getName()) if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) ) {
+    for (file <- directory.listFiles.sortBy(_.getName())
+         if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) ) {
       val fileReader = new  BlockFileReader(blockListener);
       fileReader.readFully(file)
     }
