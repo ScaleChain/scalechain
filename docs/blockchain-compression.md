@@ -64,7 +64,7 @@ With a full node running at Nov 1 2015, the size is as follows.
 Tried to compress 10 files from blk00350.dat to blk00359.dat.
 ### Original size   : 1,306,716,000
 ### Compressed size : 1,055,568,201
-                        350,000,000
+                       
 ## Blockchain data analysis
 ### Redundant data
 - NormalTransactionInput.transactionHash( can come multiple times if a transaction has multiple outputs. Each of the output is spent, we have the same tranasction hash ) 
