@@ -14,6 +14,43 @@ https://en.bitcoin.it/wiki/Block
 1. Read transactions
 1. Read lock value
 
+# Sequence Diagram
+The BlockDirectoryReader lists each file with pattern "blk*.dat" on a given path, and then creates BlockFileReader for each of them.
+BlockFileReader then fully reads all blocks in a blkNNNNN.dat file. It reads blocks one by one using BlockParser.
+BlockParser knows all about the blockchain data format. It reads block size, magic value, block header, transactions, etc.
+For each block produced by the parser, we call BlockReadListener's onBlock method. 
+```
+        ,-.                                                                                                                           
+        `-'                                                                                                                           
+        /|\                                                                                                                           
+         |             ,--------------------.          ,---------------.          ,-----------.          ,-----------------.          
+        / \            |BlockDirectoryReader|          |BlockFileReader|          |BlockParser|          |BlockReadListener|          
+      Caller           `---------+----------'          `-------+-------'          `-----+-----'          `--------+--------'          
+        |        readFrom        |                             |                        |                         |                   
+        | ----------------------->                             |                        |                         |                   
+        |                        |                             |                        |                         |                   
+   ,--------------------------!. |          readFully          |                        |                         |                   
+   |iterates each blkNNNNN.dat|_\| --------------------------->|                        |                         |                   
+   |file in the path.           ||                             |                        |                         |                   
+   `----------------------------'|                             |                        |                         |                   
+        |                        |                             |         parse          |                         |                   
+        |                        |                             |----------------------->|                         |                   
+        |                        |                             |                        |                         |                   
+        |                        |                             |                        |                         |                   
+        |                        |                             |        _____________________________________________________________ 
+        |                        |                             |        ! OPT  /  for each block                  |                  !
+        |                        |                             |        !_____/         |                         |                  !
+        |                        |                             |        !               |        onBlock          |                  !
+        |                        |                             |        !               |------------------------>|                  !
+        |                        |                             |        !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+      Caller           ,---------+----------.          ,-------+-------.          ,-----+-----.          ,--------+--------.          
+        ,-.            |BlockDirectoryReader|          |BlockFileReader|          |BlockParser|          |BlockReadListener|          
+        `-'            `--------------------'          `---------------'          `-----------'          `-----------------'          
+        /|\                                                                                                                           
+         |                                                                                                                            
+        / \                                                                                                                           
+```
+
 # Code snippets
 ## Iterating files
 We need to list all files matching the pattern blocks/blkNNNNN.dat.

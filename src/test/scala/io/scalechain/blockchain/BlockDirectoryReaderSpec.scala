@@ -5,7 +5,7 @@ import org.scalatest._
 /**
  * Created by kangmo on 11/2/15.
  */
-trait BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with PrivateMethodTester with ShouldMatchers {
+class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with PrivateMethodTester with ShouldMatchers {
   this: Suite =>
 
   override def beforeEach() {
@@ -21,8 +21,10 @@ trait BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Pri
     //
   }
 
+
+
   "readFrom" should "read all blocks in a file" in {
-    val READ_BLOCKS_UP_TO = 10
+    val READ_BLOCKS_UP_TO = 100
     val blocks = new Array[Block](READ_BLOCKS_UP_TO)
     var blocksRead = 0
 
@@ -46,6 +48,10 @@ trait BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Pri
     val source = Source.fromURL(getClass.getResource("/data.xml"))     *
     */
     reader.readFrom("/Users/kangmo/crypto/scalachain/src/test/resources/blocks")
-    assert(blocks.length == READ_BLOCKS_UP_TO)
+
+    for (b : Block <- blocks) {
+      println("Block : " + b.toString())
+    }
+    assert(blocksRead == READ_BLOCKS_UP_TO)
   }
 }

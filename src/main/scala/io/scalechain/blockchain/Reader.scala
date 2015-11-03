@@ -3,6 +3,8 @@ package io.scalechain.blockchain
 import java.io.{FileInputStream, BufferedInputStream, DataInputStream, File}
 
 
+import io.scalechain.util.HexUtil
+
 import scala.collection.JavaConversions._
 
 /**
@@ -11,7 +13,7 @@ import scala.collection.JavaConversions._
 
 case class Timestamp(val unixTimestamp : Int)
 
-case class Hash(val hash : Array[Byte])
+abstract class Hash(private val hash : Array[Byte])
 {
   def isAllZero() = {
     // BUGBUG : Dirty code. make it cleaner!
@@ -24,34 +26,98 @@ case class Hash(val hash : Array[Byte])
   }
 }
 
+case class BlockHash(val hash : Array[Byte]) extends Hash(hash) {
+  override def toString() : String = {
+    s"BlockHash(size:${hash.length}, ${HexUtil.prettyHex(hash)})"
+  }
+}
+case class MerkleRootHash(val hash : Array[Byte]) extends Hash(hash) {
+  override def toString() : String = {
+    s"MerkleRootHash(size:${hash.length}, ${HexUtil.prettyHex(hash)})"
+  }
+}
 
-case class BlockHeader(val version : Int, hashPrevBlock : Hash, hashMerkleRoot : Hash, time : Timestamp, target : Int, nonce : Int)
+case class TransactionHash(val hash : Array[Byte]) extends Hash(hash) {
+  override def toString() : String = {
+    s"TransactionHash(size:${hash.length}, ${HexUtil.prettyHex(hash)})"
+  }
+}
 
-case class CoinbaseData(data: Array[Byte])
+
+
+
+case class BlockHeader(val version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, time : Timestamp, target : Int, nonce : Int) {
+  override def toString() : String = {
+    s"BlockHeader(version:$version, $hashPrevBlock, $hashMerkleRoot, $time, target:$target, nonce:$nonce)"
+  }
+}
+
+case class CoinbaseData(data: Array[Byte]) {
+  override def toString() : String = {
+    s"CoinbaseData(size:${data.length}, ${HexUtil.prettyHex(data)})"
+  }
+}
 
 
 
 class TransactionInput
 
-case class NormalTransactionInput(transactionHash : Hash, outputIndex : Int, unlockingScript : Script, sequenceNumber : Int) extends TransactionInput
+case class NormalTransactionInput(transactionHash : TransactionHash, outputIndex : Int, unlockingScript : UnlockingScript, sequenceNumber : Int) extends TransactionInput {
+  override def toString(): String = {
+    s"NormalTransactionInput($transactionHash, outputIndex:$outputIndex, $unlockingScript, sequenceNumber:$sequenceNumber)"
+  }
+}
 
-case class GenerationTransactionInput(transactionHash : Hash,
+case class GenerationTransactionInput(transactionHash : TransactionHash,
                                       outputIndex : Int,
                                       coinbaseData : CoinbaseData,
-                                      sequenceNumber : Int) extends TransactionInput
+                                      sequenceNumber : Int) extends TransactionInput {
+  override def toString(): String = {
+    s"GenerationTransactionInput($transactionHash, outputIndex:$outputIndex, $coinbaseData, sequenceNumber:$sequenceNumber)"
+  }
+}
 
-case class Script(data:Array[Byte])
 
-case class TransactionOutput(value : Long, txOutScript : Script)
+
+abstract class Script(private val data:Array[Byte])
+
+case class LockingScript(val data:Array[Byte]) extends Script(data) {
+  override def toString(): String = {
+    s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+  }
+}
+
+case class UnlockingScript(val data:Array[Byte]) extends Script(data) {
+  override def toString(): String = {
+    s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+  }
+}
+
+
+case class TransactionOutput(value : Long, lockingScript : LockingScript) {
+  override def toString(): String = {
+    s"TransactionOutput(value : $value, $lockingScript)"
+  }
+}
 
 case class Transaction(version : Int,
                        inputs : Array[TransactionInput],
                        outputs : Array[TransactionOutput],
-                       lockTime : Int)
+                       lockTime : Int) {
+  override def toString() : String = {
+    s"Transaction(version:$version, [${inputs.mkString(",")}], [${outputs.mkString(",")}], lockTime:$lockTime)"
+  }
+}
 
 case class Block(val size:Long,
                  val header:BlockHeader,
-                 val transactions : Array[Transaction])
+                 val transactions : Array[Transaction]) {
+
+
+  override def toString() : String = {
+    s"Block(size:$size, $header, [${transactions.mkString(",")}])"
+  }
+}
 
 /** For each block read by the block reader, we will have a function call.
  *
@@ -80,7 +146,9 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     var stream : BlockDataInputStream= null
     try {
       stream = new BlockDataInputStream( new DataInputStream( new BufferedInputStream (new FileInputStream(blockFile))) );
-      stream
+      while( readBlock(stream) ) {
+        // do nothing
+      }
     } finally {
       stream.close();
     }
@@ -92,8 +160,8 @@ class BlockFileReader(val blockListener : BlockReadListener) {
    * @return True if a block was read, False if we met EOF of the input block file.
    */
   def readBlock(stream : BlockDataInputStream): Boolean = {
-    val parser = new BlockParser()
-    val blockOption = parser.parse(stream);
+    val parser = new BlockParser(stream)
+    val blockOption = parser.parse();
     if (blockOption.isDefined) {
       blockListener.onBlock(blockOption.get)
       true
@@ -119,7 +187,7 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
   def readFrom(path : String) {
     val directory = new File(path);
     // For each file in the path
-    for (file <- directory.listFiles if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) ) {
+    for (file <- directory.listFiles.sortBy(_.getName()) if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) ) {
       val fileReader = new  BlockFileReader(blockListener);
       fileReader.readFully(file)
     }

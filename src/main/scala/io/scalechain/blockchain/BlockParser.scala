@@ -1,11 +1,13 @@
 package io.scalechain.blockchain
 
-import java.io.DataInputStream
+import java.io.{EOFException, DataInputStream}
 
 /**
  * Parse a block from a byte array stream.
+ *
+ * @param stream The stream where we read block data.
  */
-class BlockParser {
+class BlockParser(val stream : BlockDataInputStream) {
   /** Parse the byte array stream to get a block.
     *
     * This function reads the following fields.
@@ -16,24 +18,27 @@ class BlockParser {
     * transactions : the (non empty) list of transactions, <Transaction counter>-many transactions
     *
     * Source : https://en.bitcoin.it/wiki/Block
-    * @param stream The stream where we read block data.
     *
     * @return Some(Block) if we successfully read a block. None otherwise.
     */
-  def parse(stream : BlockDataInputStream) : Option[Block] = {
-    val magic            = stream.readLittleEndianInt()
+  def parse() : Option[Block] = {
+    try {
+      val magic            = stream.readLittleEndianInt()
 
-    // BUGBUG : Does this work even though the integer we read is a signed int?
-    if (magic != 0xD9B4BEF9)
-      throw new FatalException(ErrorCode.InvalidBlockMagic)
+      // BUGBUG : Does this work even though the integer we read is a signed int?
+      if (magic != 0xD9B4BEF9)
+        throw new FatalException(ErrorCode.InvalidBlockMagic)
 
-    val blockSize        = stream.readLittleEndianInt()
-    val blockHeader      = readBlockHeader(stream);
-    val transactionCount = stream.readVarInt()
-    val transactions     = readTransactions(stream, transactionCount);
+      val blockSize        = stream.readLittleEndianInt()
+      val blockHeader      = readBlockHeader();
+      val transactionCount = stream.readVarInt()
+      val transactions     = readTransactions(transactionCount);
 
-    val block = Block(blockSize, blockHeader, transactions)
-    Some(block)
+      val block = Block(blockSize, blockHeader, transactions)
+      Some(block)
+    } catch {
+      case e : EOFException => None
+    }
   }
 
 
@@ -49,15 +54,12 @@ class BlockParser {
    *
    * Source : https://en.bitcoin.it/wiki/Block_hashing_algorithm
    *
-   * @param stream The stream where we read data.
-   *
    * @return Return the block header we read.
    */
-  def readBlockHeader(stream : BlockDataInputStream) : BlockHeader = {
-    assert(false);
+  def readBlockHeader() : BlockHeader = {
     val version         = stream.readLittleEndianInt()
-    val hashPrevBlock   = Hash( stream.readBytes(32) )
-    val hashMerkleRoot  = Hash( stream.readBytes(32) )
+    val hashPrevBlock   = BlockHash( stream.readBytes(32) )
+    val hashMerkleRoot  = MerkleRootHash( stream.readBytes(32) )
     val timestamp       = Timestamp( stream.readLittleEndianInt() )
     val target          = stream.readLittleEndianInt()
     val nonce           = stream.readLittleEndianInt()
@@ -66,14 +68,13 @@ class BlockParser {
 
   /** Read N transactions in a block
    *
-   * @param stream The stream where we read data.
    * @param count The number of transactions we need to read.
    * @return Return an array of transactions we read.
    */
-  def readTransactions(stream : BlockDataInputStream, count : Int) : Array[Transaction] = {
+  def readTransactions(count : Int) : Array[Transaction] = {
     val transactions = new Array[Transaction](count);
     for ( i <- 0 until count ) {
-      transactions(i) = readTransaction(stream)
+      transactions(i) = readTransaction()
     }
     transactions
   }
@@ -92,30 +93,28 @@ class BlockParser {
    *
    * Source : https://en.bitcoin.it/wiki/Transaction
    *
-   * @param stream The stream where we read data.
    * @return The transaction we read.
    */
-  def readTransaction(stream : BlockDataInputStream) : Transaction = {
+  def readTransaction() : Transaction = {
     val version = stream.readLittleEndianInt()
     val inputCount = stream.readVarInt()
-    val inputs = readTransactionInputs(stream, inputCount)
+    val inputs = readTransactionInputs(inputCount)
     val outputCount = stream.readVarInt()
-    val outputs = readTransactionOutputs(stream, outputCount)
+    val outputs = readTransactionOutputs(outputCount)
     val lockTime = stream.readLittleEndianInt()
     Transaction(version, inputs, outputs, lockTime)
   }
 
   /** Read N transaction inputs.
    *
-   * @param stream The stream where we read data.
    * @param inputCount the number of transaction inputs to read.
    * @return the transaction inputs we read.
    */
-  def readTransactionInputs(stream : BlockDataInputStream, inputCount : Int) : Array[TransactionInput] = {
+  def readTransactionInputs(inputCount : Int) : Array[TransactionInput] = {
     val transactionInputs = new Array[TransactionInput](inputCount)
 
     for( i <- 0 until inputCount) {
-      transactionInputs(i) = readTransactionInput(stream)
+      transactionInputs(i) = readTransactionInput()
     }
 
     transactionInputs
@@ -123,15 +122,14 @@ class BlockParser {
 
   /** Read N transaction outputs.
    *
-   * @param stream The stream where we read data.
    * @param outputCount the number of transaction outputs to read.
    * @return the transaction outputs we read.
    */
-  def readTransactionOutputs(stream : BlockDataInputStream, outputCount : Int) : Array[TransactionOutput] = {
+  def readTransactionOutputs(outputCount : Int) : Array[TransactionOutput] = {
     val transactionOutputs = new Array[TransactionOutput](outputCount)
 
     for( i <- 0 until outputCount) {
-      transactionOutputs(i) = readTransactionOutput(stream)
+      transactionOutputs(i) = readTransactionOutput()
     }
 
     transactionOutputs
@@ -140,17 +138,16 @@ class BlockParser {
 
   /** Read either a generation transaction input or a normal transaction input.
    *
-   * @param stream The stream where we read data.
    * @return the transaction input we read.
    */
-  def readTransactionInput(stream : BlockDataInputStream) : TransactionInput = {
+  def readTransactionInput() : TransactionInput = {
 
-    val transactionHash = Hash( stream.readBytes(32) );
+    val transactionHash = TransactionHash( stream.readBytes(32) );
 
     if (transactionHash.isAllZero()) {
-      readGenerationTranasctionInput(stream, transactionHash)
+      readGenerationTranasctionInput(transactionHash)
     } else {
-      readNormalTransactionInput(stream, transactionHash)
+      readNormalTransactionInput(transactionHash)
     }
   }
 
@@ -165,11 +162,10 @@ class BlockParser {
    *
    * Source : https://github.com/aantonop/bitcoinbook/blob/develop/ch08.asciidoc
    *
-   * @param stream The stream where we read data.
    * @param transactionHash The transaction hash, which is already read.
    * @return the generation transaction input we read.
    */
-  def readGenerationTranasctionInput(stream : BlockDataInputStream, transactionHash : Hash) : TransactionInput = {
+  def readGenerationTranasctionInput(transactionHash : TransactionHash) : TransactionInput = {
 
     // Note : The transaction hash is already read to branch our code to read which kind of transaction input.
     val outputIndex = stream.readLittleEndianInt()
@@ -190,15 +186,14 @@ class BlockParser {
    *
    * Source : https://github.com/aantonop/bitcoinbook/blob/develop/ch08.asciidoc
    *
-   * @param stream The stream where we read data.
    * @param transactionHash The transaction hash, which is already read.
    * @return the normal transaction input we read.
    */
-  def readNormalTransactionInput(stream : BlockDataInputStream, transactionHash : Hash) : TransactionInput = {
+  def readNormalTransactionInput(transactionHash : TransactionHash) : TransactionInput = {
     // Note : The transaction hash is already read to branch our code to read which kind of transaction input.
     val outputIndex = stream.readLittleEndianInt()
     val unlockingScriptSize = stream.readVarInt()
-    val unlockingScript = readScript(stream, unlockingScriptSize)
+    val unlockingScript = readUnlockingScript(unlockingScriptSize)
     val sequenceNumber = stream.readLittleEndianInt()
 
     NormalTransactionInput(transactionHash, outputIndex, unlockingScript, sequenceNumber)
@@ -214,26 +209,35 @@ class BlockParser {
    * Txout-script : <out-script length>-many bytes
    *
    * Source : https://en.bitcoin.it/wiki/Transaction#general_format_.28inside_a_block.29_of_each_output_of_a_transaction_-_Txout
-   * @param stream The stream where we read data.
    * @return the transction output we read.
    */
-  def readTransactionOutput(stream : BlockDataInputStream) : TransactionOutput = {
+  def readTransactionOutput() : TransactionOutput = {
     val value = stream.readLittleEndianLong()
     val txOutScriptLength = stream.readVarInt()
-    val txOutScript = readScript(stream, txOutScriptLength)
+    val txOutScript = readLockingScript(txOutScriptLength)
     TransactionOutput(value, txOutScript)
   }
 
 
-  /** Read script from a byte stream.
+  /** Read a locking script from a byte stream.
    *
    * Source : https://en.bitcoin.it/wiki/Script
    *
-   * @param stream The stream where we read data.
    * @return the script we read.
    */
-  def readScript(stream : BlockDataInputStream, scriptLength : Int ) : Script = {
-    Script( stream.readBytes(scriptLength) )
+  def readLockingScript(scriptLength : Int ) : LockingScript = {
+    LockingScript( stream.readBytes(scriptLength) )
   }
+
+  /** Read a locking script from a byte stream.
+    *
+    * Source : https://en.bitcoin.it/wiki/Script
+    *
+    * @return the script we read.
+    */
+  def readUnlockingScript(scriptLength : Int ) : UnlockingScript = {
+    UnlockingScript( stream.readBytes(scriptLength) )
+  }
+
 }
 

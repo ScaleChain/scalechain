@@ -3,35 +3,18 @@
 
 actor Caller
 
-User -> QueryProcessor : query
-QueryProcessor -> QueryProcessor : prepare
+Caller -> BlockDirectoryReader : readFrom
+BlockDirectoryReader -> BlockFileReader : readFully
 
 note left
-  tokenize2
-  stopping
-  stemming
-  create plan
+  iterates each blkNNNNN.dat
+  file in the path.
 end note
 
-QueryProcessor -> QueryExecutor : query plan
+BlockFileReader -> BlockParser : parse
 
-opt for each term
-  QueryExecutor -> InvertedIndex : scan
-  opt for each document
-     QueryExecutor -> Document : assign score
-  end
+opt for each block
+  BlockParser -> BlockReadListener : onBlock
 end
-
-QueryExecutor -> Document : get top N docs
-Document --> QueryExecutor : top N docs
-
-QueryExecutor -> SnippetGenerator : generate snippet
-SnippetGenerator --> QueryExecutor : snippets
-
-QueryExecutor --> QueryProcessor : (url, title, snippet)*
-
-QueryProcessor -> QueryProcessor : render results
-
-QueryProcessor --> User : results
 
 @enduml
