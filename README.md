@@ -1,7 +1,7 @@
 Introduction
 ============
-- Goal : Minimize disk usage of blockchain data from 45G to half of it.
-- How : Compress blockchain data, but still provide fast lookup on the blockchain.
+- Goal: Minimize disk usage of blockchain data from 45G to half of it.
+- How: Compress blockchain data, but still provide fast lookup on the blockchain.
 
 Current status
 ==============
@@ -27,9 +27,9 @@ https://www.livecoding.tv/video/blockchain-scalechainio-3/
 
 Analysis of the genesis block on blk00000.dat : 
 
-A : https://www.livecoding.tv/video/blockchain-scalechainio-5/
+A: https://www.livecoding.tv/video/blockchain-scalechainio-5/
 
-B : https://www.livecoding.tv/video/blockchain-scalechainio-5/
+B: https://www.livecoding.tv/video/blockchain-scalechainio-5/
 
 See from 58:30 of A to save your time. Nothing much before the time. 
 
