@@ -265,3 +265,15 @@ public final class Varint {
 ```
 
 from : https://github.com/addthis/stream-lib/blob/master/src/main/java/com/clearspring/analytics/util/Varint.java
+
+# Live Coding Videos
+https://www.livecoding.tv/video/blockchain-scalechainio-7/
+https://www.livecoding.tv/video/blockchain-scalechainio-8/
+https://www.livecoding.tv/video/blockchain-scalechainio-9/
+https://www.livecoding.tv/video/blockchain-scalechainio-10/
+https://www.livecoding.tv/video/blockchain-scalechainio-11/
+https://www.livecoding.tv/video/blockchain-scalechainio-12/
+https://www.livecoding.tv/video/blockchain-scalechainio-15/
+https://www.livecoding.tv/video/blockchain-scalechainio-16/
+https://www.livecoding.tv/video/blockchain-scalechainio-17/
+https://www.livecoding.tv/video/blockchain-scalechainio-19/

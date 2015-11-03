@@ -32,7 +32,7 @@ class BlockParser {
     val transactionCount = stream.readVarInt()
     val transactions     = readTransactions(stream, transactionCount);
 
-    val block = Block(blockSize, blockHeader, transactionCount, transactions)
+    val block = Block(blockSize, blockHeader, transactions)
     Some(block)
   }
 
@@ -102,7 +102,7 @@ class BlockParser {
     val outputCount = stream.readVarInt()
     val outputs = readTransactionOutputs(stream, outputCount)
     val lockTime = stream.readLittleEndianInt()
-    Transaction(version, inputCount, inputs, outputCount, outputs, lockTime)
+    Transaction(version, inputs, outputs, lockTime)
   }
 
   /** Read N transaction inputs.

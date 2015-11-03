@@ -45,15 +45,12 @@ case class Script(data:Array[Byte])
 case class TransactionOutput(value : Long, txOutScript : Script)
 
 case class Transaction(version : Int,
-                       inputcount : Int,
                        inputs : Array[TransactionInput],
-                       outputCount : Int,
                        outputs : Array[TransactionOutput],
                        lockTime : Int)
 
 case class Block(val size:Long,
                  val header:BlockHeader,
-                 val transactionCount:Int,
                  val transactions : Array[Transaction])
 
 /** For each block read by the block reader, we will have a function call.
