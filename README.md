@@ -1,7 +1,7 @@
 Introduction
 ============
-Goal : Minimize disk usage of blockchain data from 45G to half of it.
-How : Compress blockchain data, but still provide fast lookup on the blockchain.
+- Goal : Minimize disk usage of blockchain data from 45G to half of it.
+- How : Compress blockchain data, but still provide fast lookup on the blockchain.
 
 Current status
 ==============
