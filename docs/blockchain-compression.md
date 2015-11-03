@@ -86,9 +86,11 @@ These are quite random. Might be hard to compress anymore.
 - BlockHeader.prevBlockHash ( need it as an index key to look up a block by block hash )
 - BlockHeader.nonce
 
-### Data that can be compressed using cryptograph
+### Data that can be compressed using cryptography
 We can think about writing only X value of public key and a flag indicating if Y value is above the X axis or not. 
 On disk, we can write the compact format, and we will have to reconstruct the full public key in memory whenever it is necessary. Ex> To calculate script hash. A public key is in unlocking scripts of P2PKH. Also multiple public keys are in redeeming script of P2SH.
+
+From Andreas's Mastering Bitcoin:
 ```
 Compressed public keys
 
