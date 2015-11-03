@@ -62,19 +62,23 @@ With a full node running at Nov 1 2015, the size is as follows.
 ## Blockchain data analysis
 ### Redundant data
 - NormalTransactionInput.transactionHash( can come multiple times if a transaction has multiple outputs. Each of the output is spent, we have the same tranasction hash ) 
+
 ### Unnecessary data
 - GenerationTransactionInput.transactionHash( all bits are zero )
 - GenerationTransactionInput.outputIndex( all bits are one )
 - GenerationTransactionInput.sequenceNumber( all bits are one )
 - BlockHeader.MerkleRootHash ( We can calculate the hash by using list of transactions in the block. )
+
 ### Data that can be compressed by writing in columnar layout.
 - BlockHeader.version
 - BlockHeader.timestamp (delta encoding; timestamp monotonously increases.)
 - BlockHeader.target (delta encoding; difficulty changes for every 2016 blocks)
 - Transaction.locktime ( in most cases this value is 0 )
+
 ### Data that can not be compressed any more.
 - BlockHeader.prevBlockHash ( need it as an index key to look up a block by block hash )
 - BlockHeader.nonce
+
 ### Need investigation
 - Locking script, unlocking script.
 
