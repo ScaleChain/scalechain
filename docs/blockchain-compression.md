@@ -174,7 +174,7 @@ No, this is an experimental project to find out an optimal storage size using co
 
 https://www.livecoding.tv/video/blockchain-scalechainio-50/
 
-And more videos. Just change the number at the end of url from 29 to 50.
+And more videos. Just change the number at the end of url from 29 to 52.
 
 
 
