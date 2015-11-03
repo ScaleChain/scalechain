@@ -166,4 +166,19 @@ https://www.monetdb.org/Home
 ## Does this replace the blockchain implementation by Bitcoin reference client?
 No, this is an experimental project to find out an optimal storage size using columnar layout for blockchain storage.
 
+# Live Coding Videos
+## List of videos
+1. Writing and describing this document
+2. Debugging the block reader for the analysis of block chain.
+3. Testing compression of blk00350.dat ~ blk00359.dat
+
+https://www.livecoding.tv/video/blockchain-scalechainio-29/
+
+https://www.livecoding.tv/video/blockchain-scalechainio-30/
+
+... and more videos. change the number at the end of url from 29 to 50 ...
+
+https://www.livecoding.tv/video/blockchain-scalechainio-50/
+
+
 
