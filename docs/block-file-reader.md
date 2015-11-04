@@ -15,7 +15,7 @@ https://en.bitcoin.it/wiki/Block
 1. Read lock value
 
 # Sequence Diagram
-The BlockDirectoryReader lists each file with pattern "blk*.dat" on a given path, and then creates BlockFileReader for each of them.
+The BlockDirectoryReader lists each file with pattern "blk*.dat" on a given path and then creates BlockFileReader for each of them.
 BlockFileReader then fully reads all blocks in a blkNNNNN.dat file. It reads blocks one by one using BlockParser.
 BlockParser knows all about the blockchain data format. It reads block size, magic value, block header, transactions, etc.
 For each block produced by the parser, we call BlockReadListener's onBlock method. 
@@ -108,12 +108,8 @@ val bis = new BufferedInputStream(new FileInputStream(fileName))
 ```
 
 ## Read VarInt values
-We nned to read VarInt values from disk. Ex> block size.
-Use the following source code for reading VarInt values to focus on developing reading blocks.
-
-For reading VarInt values, we can use following srouce code. Varint.readUnsignedVarInt(DataInput in). So we have to create a DataInput using DataInputStream(InputStream in) from the input stream for a block file. 
-
-https://github.com/addthis/stream-lib/blob/master/src/main/java/com/clearspring/analytics/util/Varint.java
+We need to read VarInt values from disk. Ex> block size.
+I used Mike Hearn's bitcoinj code.
 
 # Live Coding Videos
 ## BlockDirectoryReader implemented, but not tested.

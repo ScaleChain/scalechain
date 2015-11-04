@@ -1,6 +1,7 @@
 # Introduction
-Compress Blockchain supporting minimal cost of decompression. 
-Ex> Use VarInt, replace redundant data such as transaction id to a shorter one.
+Compress Blockchain data using columnar layout with delta encoding and bitmaps to minimize the cost of decompression. We can use VarInt also like Bitcoin reference client does.
+
+We can replace redundant data such as transaction id to a shorter one. If a transaction has 100 outputs, we need to write the same 32-byte transaction hash of the transaction, whenever we want to spend each of the outputs. We can try replacing the long transaction hash to a shorter string maintaining a map from the short string to the actual transaction hash value.
 
 # Goal
 ## Blockchain compression
@@ -66,7 +67,7 @@ Tried to compress 10 files from blk00350.dat to blk00359.dat.
 
 ## Blockchain data analysis
 ### Redundant data
-- NormalTransactionInput.transactionHash( can come multiple times if a transaction has multiple outputs. Each of the output is spent, we have the same tranasction hash ) 
+- NormalTransactionInput.transactionHash( can come multiple times if a transaction has multiple outputs. Each of the output is spent, we have the same transaction hash ) 
 
 ### Unnecessary data
 - GenerationTransactionInput.transactionHash( all bits are zero )
@@ -74,16 +75,29 @@ Tried to compress 10 files from blk00350.dat to blk00359.dat.
 - GenerationTransactionInput.sequenceNumber( all bits are one )
 - BlockHeader.MerkleRootHash ( We can calculate the hash by using list of transactions in the block. )
 
-### Data that can be compressed by writing in columnar layout.
+### Data that can be compressed by writing in a columnar layout.
 - BlockHeader.version ( delta encoding; Does not change for a long time with lots of blocks. )
 - BlockHeader.timestamp (delta encoding; timestamp monotonously increases. )
 - BlockHeader.target (delta encoding; difficulty changes for every 2016 blocks. )
 - Transaction.locktime ( in most cases this value is 0. )
 
-### Data that can not be compressed any more.
+### Data that can not be compressed anymore.
 These are quite random. Might be hard to compress anymore.
 - BlockHeader.prevBlockHash ( need it as an index key to look up a block by block hash )
 - BlockHeader.nonce
+
+### Data that can be compressed using cryptography
+We can think about writing only X value of a public key and a flag indicating if Y value is above the X axis or not.
+On disk, we can write the compact format, and we will have to reconstruct the full public key in memory whenever it is necessary. Ex> To calculate script hash. A public key is in unlocking scripts of P2PKH. Also, multiple public keys can be in a redeem script of P2SH.
+
+From Andreas's Mastering Bitcoin:
+```
+Compressed public keys
+
+Compressed public keys were introduced to bitcoin to reduce the size of transactions and conserve disk space on nodes that store the bitcoin blockchain database. Most transactions include the public key, required to validate the owner’s credentials and spend the bitcoin. Each public key requires 520 bits (prefix \+ x \+ y), which when multiplied by several hundred transactions per block, or tens of thousands of transactions per day, adds a significant amount of data to the blockchain.
+
+As we saw in the section Public Keys, a public key is a point (x,y) on an elliptic curve. Because the curve expresses a mathematical function, a point on the curve represents a solution to the equation and, therefore, if we know the x coordinate we can calculate the y coordinate by solving the equation y2 mod p = (x3 + 7) mod p. That allows us to store only the x coordinate of the public key point, omitting the y coordinate and reducing the size of the key and the space required to store it by 256 bits. An almost 50% reduction in size in every transaction adds up to a lot of data saved over time!
+```
 
 ### Extract common data patterns
 - LockingScript, UnlockingScript ( these have similar patterns. Most of them are P2PKH. Some of them are P2SH )
@@ -125,24 +139,43 @@ OP_HASH160 <20-byte hash of redeem script> OP_EQUAL
 <Sig1> <Sig2> <redeem script>
 ```
 
-# Plan
-## Replace redudant data with a shorter symbols.
-There are some redundant data in Bitcoin blockchain. 
+# Plans
+## Replace redundant data with a shorter symbols.
+There are redundant data in Bitcoin blockchain such as transaction hash. Find out how many redundant data we have today, and see if there is any feasible solution to reduce blockchain size. 
 
-## Write block data in columnar layout.
+## Write block data in a columnar layout.
 Currently, blockchain data is written in row wise layout. 
-Ex> A block comes and another block comes. A transaction comes, and then another transaction comes.
+Ex> A block come and another block comes on a block file. A transaction comes, and then another transaction comes in a block.
 
 I am thinking about writing data in columnar layout to compress data. 
 
-For example, timestamps of all blocks will be written continuously. We don't need to write full 4 byte timestamp.
+For example, timestamps of all blocks will be written continuously. We don't need to write a full 4-byte timestamp.
 But we can write the delta value(the seconds elapsed since the previous block timestamp). 
 Because bitcoin blocks are mined approximately every 10 minutes, in most cases, we need to write an integer around 60 seconds * 10 min = 600 seconds.
 
-Compare 600 with 1446513430, which is current timestamp. We can compress data by writing a smaller value.
+Compare 600 with 1446513430, which is the current timestamp. We can compress data by writing a smaller value.
+
+# References
+## C-Store : A Column-oriented DBMS 
+http://db.csail.mit.edu/projects/cstore/vldb.pdf
+
+## monetdb : An open source columnar database engine.
+https://www.monetdb.org/Home
 
 # FAQ
 ## Does this replace the blockchain implementation by Bitcoin reference client?
-No, this is an experimental project to give light to Bitcoin developers.
+No, this is an experimental project to find out an optimal storage size using columnar layout for blockchain storage.
+
+# Live Coding Videos
+## List of videos
+1. Writing and describing this document
+2. Debugging the block reader for the analysis of block chain.
+3. Testing compression of blk00350.dat ~ blk00359.dat
+
+https://www.livecoding.tv/video/blockchain-scalechainio-50/
+
+And more videos. Just change the number at the end of URL from 29 to 52.
+
+
 
 
