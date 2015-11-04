@@ -23,15 +23,15 @@ class BlockParser(val stream : BlockDataInputStream) {
     */
   def parse() : Option[Block] = {
     try {
-      val magic            = stream.readLittleEndianInt()
+      val magic            = stream.readLittleEndianInt("magic")
 
       // BUGBUG : Does this work even though the integer we read is a signed int?
       if (magic != 0xD9B4BEF9)
         throw new FatalException(ErrorCode.InvalidBlockMagic)
 
-      val blockSize        = stream.readLittleEndianInt()
+      val blockSize        = stream.readLittleEndianInt("blockSize")
       val blockHeader      = readBlockHeader()
-      val transactionCount = stream.readVarInt().toInt
+      val transactionCount = stream.readVarInt("transactionCount").toInt
       val transactions     = readTransactions(transactionCount)
 
       val block = Block(blockSize, blockHeader, transactions)
@@ -56,12 +56,12 @@ class BlockParser(val stream : BlockDataInputStream) {
    * @return Return the block header we read.
    */
   def readBlockHeader() : BlockHeader = {
-    val version         = stream.readLittleEndianInt()
-    val hashPrevBlock   = BlockHash( stream.readBytes(32) )
-    val hashMerkleRoot  = MerkleRootHash( stream.readBytes(32) )
-    val timestamp       = Timestamp( stream.readLittleEndianInt() )
-    val target          = stream.readLittleEndianInt()
-    val nonce           = stream.readLittleEndianInt()
+    val version         = stream.readLittleEndianInt("version")
+    val hashPrevBlock   = BlockHash( stream.readBytes(32, "hashPrevBlock") )
+    val hashMerkleRoot  = MerkleRootHash( stream.readBytes(32, "hashMerkleRoot") )
+    val timestamp       = Timestamp( stream.readLittleEndianInt("timestamp") )
+    val target          = stream.readLittleEndianInt("target")
+    val nonce           = stream.readLittleEndianInt("nonce")
     BlockHeader(version, hashPrevBlock, hashMerkleRoot, timestamp, target, nonce)
   }
 
@@ -95,12 +95,12 @@ class BlockParser(val stream : BlockDataInputStream) {
    * @return The transaction we read.
    */
   def readTransaction() : Transaction = {
-    val version = stream.readLittleEndianInt()
-    val inputCount = stream.readVarInt().toInt
+    val version = stream.readLittleEndianInt("version")
+    val inputCount = stream.readVarInt("inputCount").toInt
     val inputs = readTransactionInputs(inputCount)
-    val outputCount = stream.readVarInt().toInt
+    val outputCount = stream.readVarInt("outputCount").toInt
     val outputs = readTransactionOutputs(outputCount)
-    val lockTime = stream.readLittleEndianInt()
+    val lockTime = stream.readLittleEndianInt("lockTime")
     Transaction(version, inputs, outputs, lockTime)
   }
 
@@ -141,7 +141,7 @@ class BlockParser(val stream : BlockDataInputStream) {
    */
   def readTransactionInput() : TransactionInput = {
 
-    val transactionHash = TransactionHash( stream.readBytes(32) );
+    val transactionHash = TransactionHash( stream.readBytes(32, "transactionHash") );
 
     if (transactionHash.isAllZero()) {
       readGenerationTranasctionInput(transactionHash)
@@ -167,10 +167,10 @@ class BlockParser(val stream : BlockDataInputStream) {
   def readGenerationTranasctionInput(transactionHash : TransactionHash) : TransactionInput = {
 
     // Note : The transaction hash is already read to branch our code to read which kind of transaction input.
-    val outputIndex = stream.readLittleEndianInt()
-    val coinbaseDataSize = stream.readVarInt().toInt
-    val coinbaseData = CoinbaseData(stream.readBytes(coinbaseDataSize))
-    val sequenceNumber = stream.readLittleEndianInt()
+    val outputIndex = stream.readLittleEndianInt("outputIndex")
+    val coinbaseDataSize = stream.readVarInt("coinbaseDataSize").toInt
+    val coinbaseData = CoinbaseData(stream.readBytes(coinbaseDataSize, "coinbaseData"))
+    val sequenceNumber = stream.readLittleEndianInt("sequenceNumber")
     GenerationTransactionInput(transactionHash, outputIndex, coinbaseData, sequenceNumber)
   }
 
@@ -190,10 +190,10 @@ class BlockParser(val stream : BlockDataInputStream) {
    */
   def readNormalTransactionInput(transactionHash : TransactionHash) : TransactionInput = {
     // Note : The transaction hash is already read to branch our code to read which kind of transaction input.
-    val outputIndex = stream.readLittleEndianInt()
-    val unlockingScriptSize = stream.readVarInt().toInt
+    val outputIndex = stream.readLittleEndianInt("outputIndex")
+    val unlockingScriptSize = stream.readVarInt("unlockingScriptSize").toInt
     val unlockingScript = readUnlockingScript(unlockingScriptSize)
-    val sequenceNumber = stream.readLittleEndianInt()
+    val sequenceNumber = stream.readLittleEndianInt("sequenceNumber")
 
     NormalTransactionInput(transactionHash, outputIndex, unlockingScript, sequenceNumber)
   }
@@ -211,8 +211,8 @@ class BlockParser(val stream : BlockDataInputStream) {
    * @return the transction output we read.
    */
   def readTransactionOutput() : TransactionOutput = {
-    val value = stream.readLittleEndianLong()
-    val txOutScriptLength = stream.readVarInt().toInt
+    val value = stream.readLittleEndianLong("value")
+    val txOutScriptLength = stream.readVarInt("txOutScriptLength").toInt
     val txOutScript = readLockingScript(txOutScriptLength)
     TransactionOutput(value, txOutScript)
   }
@@ -225,7 +225,7 @@ class BlockParser(val stream : BlockDataInputStream) {
    * @return the script we read.
    */
   def readLockingScript(scriptLength : Int ) : LockingScript = {
-    LockingScript( stream.readBytes(scriptLength) )
+    LockingScript( stream.readBytes(scriptLength, "lockingScript") )
   }
 
   /** Read a locking script from a byte stream.
@@ -235,7 +235,7 @@ class BlockParser(val stream : BlockDataInputStream) {
     * @return the script we read.
     */
   def readUnlockingScript(scriptLength : Int ) : UnlockingScript = {
-    UnlockingScript( stream.readBytes(scriptLength) )
+    UnlockingScript( stream.readBytes(scriptLength, "unlockingScript") )
   }
 
 }
