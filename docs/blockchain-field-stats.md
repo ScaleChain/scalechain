@@ -2,6 +2,7 @@
 See how much space is used by each field on blockchain.
 
 #Result
+The amount of space used by each field, for blocks in blk00350.dat ~ blk00359.dat.
 ```
 lockingScript       -> 156,085,127
 lockingScriptSize   ->   6,233,743
