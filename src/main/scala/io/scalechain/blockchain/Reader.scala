@@ -24,6 +24,10 @@ abstract class Hash(private val hash : Array[Byte])
     }
     (countOfZero == hash.length)
   }
+
+  def toHex() : String = {
+    s"${HexUtil.prettyHex(hash.reverse)}"
+  }
 }
 
 case class BlockHash(val hash : Array[Byte]) extends Hash(hash) {
@@ -60,18 +64,18 @@ case class CoinbaseData(data: Array[Byte]) {
 
 
 
-class TransactionInput
+class TransactionInput(val transactionHash : TransactionHash)
 
-case class NormalTransactionInput(transactionHash : TransactionHash, outputIndex : Int, unlockingScript : UnlockingScript, sequenceNumber : Int) extends TransactionInput {
+case class NormalTransactionInput(override val transactionHash : TransactionHash, outputIndex : Int, unlockingScript : UnlockingScript, sequenceNumber : Int) extends TransactionInput(transactionHash) {
   override def toString(): String = {
     s"NormalTransactionInput($transactionHash, outputIndex:$outputIndex, $unlockingScript, sequenceNumber:$sequenceNumber)"
   }
 }
 
-case class GenerationTransactionInput(transactionHash : TransactionHash,
+case class GenerationTransactionInput(override val transactionHash : TransactionHash,
                                       outputIndex : Int,
                                       coinbaseData : CoinbaseData,
-                                      sequenceNumber : Int) extends TransactionInput {
+                                      sequenceNumber : Int) extends TransactionInput(transactionHash) {
   override def toString(): String = {
     s"GenerationTransactionInput($transactionHash, outputIndex:$outputIndex, $coinbaseData, sequenceNumber:$sequenceNumber)"
   }
