@@ -217,13 +217,12 @@ class BlockParser(val stream : BlockDataInputStream) {
     TransactionOutput(value, txOutScript)
   }
 
-
   /** Read a locking script from a byte stream.
-   *
-   * Source : https://en.bitcoin.it/wiki/Script
-   *
-   * @return the script we read.
-   */
+    *
+    * Source : https://en.bitcoin.it/wiki/Script
+    *
+    * @return the script we read.
+    */
   def readLockingScript(scriptLength : Int ) : LockingScript = {
     LockingScript( stream.readBytes(scriptLength) )
   }
