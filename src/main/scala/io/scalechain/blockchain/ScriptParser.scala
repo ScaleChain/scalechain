@@ -10,6 +10,8 @@ import io.scalechain.blockchain.script.ScriptOp
  */
 class ScriptParser(val script : Array[Byte]) {
   def parse(): Array[ScriptOp]  = {
-
+    // BUGBUG : Implement
+    assert(false)
+    Array()
   }
 }
