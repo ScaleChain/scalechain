@@ -6,49 +6,48 @@ trait FlowControl extends ScriptOp
   *
   */
 case class OpFlowNop() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
-    assert(false);
-    // TODO : Implement
+  def execute(env : ScriptEnvironment): Unit = {
+    // Do nothing.
   }
 }
 
 case class OpIf() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 case class OpNotIf() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 case class OpElse() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 case class OpEndIf() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 case class OpVerify() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
-case class OpReturn() extends FlowControl {
-  def execute(stack : ScriptStack): Unit = {
+case class OpReturn() extends FlowControl with InvalidScriptOpIfExecuted {
+  override def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }

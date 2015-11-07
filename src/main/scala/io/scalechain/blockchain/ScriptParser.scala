@@ -3,15 +3,16 @@ package io.scalechain.blockchain
 import io.scalechain.blockchain.script.ScriptOp
 
 
+case class ParsedScript(val bytes : Array[Byte])
+
 /**
  * Parse byte array and produce list of script operations.
  *
- * @param script The bytes
+ * @param rawScript The raw bytes of script that we did not parse yet.
  */
-class ScriptParser(val script : Array[Byte]) {
-  def parse(): Array[ScriptOp]  = {
-    // BUGBUG : Implement
-    assert(false)
-    Array()
+class ScriptParser(val rawScript : Array[Byte]) {
+  def parse(): ParsedScript  = {
+    // BUGBUG : Implement validation.
+    ParsedScript(rawScript)
   }
 }

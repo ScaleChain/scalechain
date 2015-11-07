@@ -12,16 +12,14 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Pri
     // set-up code
     //
 
-    super.beforeEach();
+    super.beforeEach()
   }
 
   override def afterEach() {
-    super.afterEach();
+    super.afterEach()
     // tear-down code
     //
   }
-
-
 
   "readFrom" should "read all blocks in a file" in {
     val READ_BLOCKS_UP_TO = 100

@@ -2,24 +2,24 @@ package io.scalechain.blockchain.script
 
 trait Splice extends ScriptOp
 
-case class Opcat() extends Splice {
-  def execute(stack : ScriptStack): Unit = {
+case class OpCat() extends Splice with DisabledScriptOp {
+  override def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 
-case class OpSubstr() extends Splice {
-  def execute(stack : ScriptStack): Unit = {
+case class OpSubstr() extends Splice with DisabledScriptOp {
+  override def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
 }
 
 
-case class OpLeft() extends Splice {
-  def execute(stack : ScriptStack): Unit = {
+case class OpLeft() extends Splice with DisabledScriptOp {
+  override def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
@@ -27,8 +27,8 @@ case class OpLeft() extends Splice {
 
 
 
-case class OpRight() extends Splice {
-  def execute(stack : ScriptStack): Unit = {
+case class OpRight() extends Splice with DisabledScriptOp {
+  override def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
@@ -37,7 +37,7 @@ case class OpRight() extends Splice {
 
 
 case class OpSize() extends Splice {
-  def execute(stack : ScriptStack): Unit = {
+  def execute(env : ScriptEnvironment): Unit = {
     assert(false);
     // TODO : Implement
   }
