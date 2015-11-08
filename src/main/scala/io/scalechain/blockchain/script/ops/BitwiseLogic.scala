@@ -1,6 +1,10 @@
 package io.scalechain.blockchain.script.ops
 
-import io.scalechain.blockchain.script.ScriptEnvironment
+import java.math.BigInteger
+
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
+import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
+import io.scalechain.blockchain.util.Utils
 
 trait BitwiseLogic extends ScriptOp
 
@@ -24,8 +28,15 @@ case class OpXor() extends BitwiseLogic with DisabledScriptOp
   */
 case class OpEqual() extends BitwiseLogic {
   def execute(env : ScriptEnvironment): Int = {
-    // TODO : Implement
-    assert(false);
+
+    binaryOperation(env, (value1, value2) => {
+      if ( value1.value sameElements( value2.value)) {
+        ScriptValue.valueOf(1L)
+      } else {
+        ScriptValue.valueOf(0L)
+      }
+    })
+
     0
   }
 }
@@ -34,8 +45,14 @@ case class OpEqual() extends BitwiseLogic {
   */
 case class OpEqualVerify() extends BitwiseLogic {
   def execute(env : ScriptEnvironment): Int = {
-    // TODO : Implement
-    assert(false);
+    binaryOperation(env, (value1, value2) => {
+      if ( value1.value sameElements( value2.value)) {
+        ScriptValue.valueOf(1L)
+      } else {
+        throw new ScriptEvalException(ErrorCode.InvalidTransaction)
+      }
+    })
+
     0
   }
 }

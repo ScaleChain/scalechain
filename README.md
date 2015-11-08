@@ -16,7 +16,7 @@ TODO
 
 References 
 ==========
-- Mastering Bitcoin boot. We also copied some text from the book to write comments on methods and classes.
+- Mastering Bitcoin book. We also copied some text from the book to write comments on methods and classes.
 
 Video
 =====
