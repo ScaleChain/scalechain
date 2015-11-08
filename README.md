@@ -3,6 +3,10 @@ Introduction
 A customizable blockchain implementation for private blockchains.
 Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
 
+For the avoidance of doubt, this particular copy of the software is released under the version 2 of the GNU General Public License. It is brought to you by ScaleChain.
+
+Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
+
 Why ScalaChain?
 ===============
 1. Easy to use, easy to integrate.
