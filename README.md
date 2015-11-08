@@ -15,7 +15,7 @@ Supported Features
 
 Planned release date
 ====================
-2015/11/30 ; Beta release
+November 30, 2015 ; Beta release
 
 Use Cases
 =========
