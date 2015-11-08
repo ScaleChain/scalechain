@@ -1,6 +1,6 @@
 package io.scalechain.blockchain
 
-import io.scalechain.blockchain.script.ScriptOp
+import io.scalechain.blockchain.script.ops.ScriptOp
 
 
 case class ParsedScript(val bytes : Array[Byte])

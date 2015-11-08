@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script
 
+import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode, ParsedScript}
 
 import scala.collection.immutable.HashMap
@@ -184,6 +185,8 @@ object ScriptOperations {
     (0xad, OpCheckSigVerify()),
     (0xae, OpCheckMultiSig()),
     (0xaf, OpCheckMultiSigVerify()),
+    (0xf9, OpSmallData()),
+    (0xfa, OpSmallInteger()),
     (0xfd, OpPubKeyHash()),
     (0xfe, OpPubKey()),
     (0xff, OpInvalidOpCode()),
@@ -226,21 +229,24 @@ class ScriptEnvironment(parsedScript : ParsedScript) {
 /**
  * Created by kangmo on 11/6/15.
  */
-class ScriptExecutor {
+class ScriptEval {
   /** Execute a parsed script. Return the value on top of the stack after the script execution.
    *
    * @param parsedScript A chunk of byte array after we get from ScriptParser.
    * @return the value on top of the stack after the script execution.
    */
-  def evaluate(parsedScript : ParsedScript) : ScriptValue = {
+  def eval(parsedScript : ParsedScript) : ScriptValue = {
     val executionEnvironment = new ScriptEnvironment(parsedScript)
     while ( executionEnvironment.cursor < parsedScript.bytes.length) {
       val opCode = parsedScript.bytes(executionEnvironment.cursor)
       val scriptOpOption = ScriptOperations.get(opCode)
       if (scriptOpOption.isDefined) {
-        scriptOpOption.get.execute(executionEnvironment)
+        // A script operation can consume bytes in the script chunk.
+        val bytesConsumed : Int = scriptOpOption.get.execute(executionEnvironment)
+        // Move the cursor to the next script operation we want to execute.
+        executionEnvironment.cursor += (bytesConsumed + 1)
       } else {
-        throw new ScriptEvalException(ErrorCode.InvalidSriptOperation)
+        throw new ScriptEvalException(ErrorCode.InvalidScriptOperation)
       }
     }
 

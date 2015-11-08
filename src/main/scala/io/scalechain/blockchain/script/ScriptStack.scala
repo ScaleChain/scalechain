@@ -4,17 +4,20 @@ import java.math.BigInteger
 
 import io.scalechain.blockchain.util.Utils
 
+
+import scala.collection.mutable
+
 /** Script Execution Stack. It holds data that Bitcoin Scripts push and pop.
  * Ex> OP_ADD pops two integer values from the stack, and pushes the result, which is an integer value that adds the two integers on to the stack.
  */
 class ScriptStack {
+  val stack = new mutable.Stack[ScriptValue]
   /** Push a ScriptValue on to the top of the stack.
    *
    * @param value
    */
   def push(value : ScriptValue ): Unit = {
-    // TODO : Implement it
-    assert(false);
+    stack.push(value);
   }
 
   /** Pop a ScriptValue from the top of the stack.
@@ -22,10 +25,7 @@ class ScriptStack {
    * @return
    */
   def pop() : ScriptValue = {
-    // TODO : impplement
-    assert(false);
-
-    null
+    stack.pop();
   }
 
   /** Push an integer value on to the top of the stack.
