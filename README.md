@@ -7,7 +7,7 @@ For the avoidance of doubt, this particular copy of the software is released und
 
 Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
-Why ScalaChain?
+Why ScaleChain?
 ===============
 1. Easy to use, easy to integrate.
 2. Easy to add a customized script operation.
