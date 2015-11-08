@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.{ErrorCode, FatalException}
+import io.scalechain.blockchain.{ScriptEvalException, ErrorCode, FatalException}
 
 trait ScriptOp {
   def execute(env : ScriptEnvironment) : Unit
@@ -8,7 +8,7 @@ trait ScriptOp {
 
 trait DisabledScriptOp {
   def execute(env : ScriptEnvironment) : Unit = {
-    throw new FatalException(ErrorCode.DisabledScriptOperation)
+    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation)
   }
 }
 
@@ -25,7 +25,7 @@ trait AlwaysInvalidScriptOp {
 
 trait InvalidScriptOpIfExecuted {
   def execute(env : ScriptEnvironment) : Unit = {
-    throw new FatalException(ErrorCode.DisabledScriptOperation)
+    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation)
   }
 }
 

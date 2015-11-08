@@ -1,11 +1,11 @@
 package io.scalechain.blockchain.script
 
-trait ScriptValue
-
-case class NumberValue(value : Int) extends ScriptValue
+case class ScriptValue(value : Array[Byte])
 {
   def isTrue(): Boolean = {
-    value != 0
+    // TODO : Implement it.
+    assert(false);
+    false
   }
 }
 

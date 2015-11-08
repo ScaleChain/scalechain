@@ -6,6 +6,8 @@ object ErrorCode {
   val InvalidSriptOperation = ErrorCode("invalid_script_operation")
   val ScriptTypeMismatch = ErrorCode("script_type_mismatch")
   val DisabledScriptOperation = ErrorCode("disabled_script_operation")
+  // We expect script numbers on stack are up to 4 bytes. In case hitting any number encoded in more than 4 bytes, raise this error.
+  val TooBigScriptInteger = ErrorCode("too_big_script_integer")
 }
 
 case class ErrorCode(val code:String)
@@ -16,3 +18,5 @@ case class ErrorCode(val code:String)
 class FatalException(code:ErrorCode) extends Exception {
 }
 
+class ScriptEvalException(code:ErrorCode) extends Exception {
+}

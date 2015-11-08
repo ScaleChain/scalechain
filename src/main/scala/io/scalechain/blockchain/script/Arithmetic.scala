@@ -1,60 +1,66 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.{ErrorCode, FatalException}
+import java.math.BigInteger
+
+import io.scalechain.blockchain.util.Utils
+import io.scalechain.blockchain.{ScriptEvalException, ErrorCode, FatalException}
 
 trait Arithmetic extends ScriptOp
 {
-  def unaryOperation(env : ScriptEnvironment, mutate : (Int) => (Int) ): Unit = {
-    val value : ScriptValue = env.stack.pop()
-    if (value.isInstanceOf[NumberValue]) {
-      val newValue = NumberValue( mutate(value.asInstanceOf[NumberValue].value ) )
-      env.stack.push( newValue )
-    } else {
-      throw new FatalException(ErrorCode.ScriptTypeMismatch)
-    }
+  def unaryOperation(env : ScriptEnvironment, mutate : (Long) => (Long) ): Unit = {
+    val value : BigInteger = env.stack.popInt()
+
+    val result = BigInteger.valueOf(
+      mutate(
+        value.longValue()
+      )
+    )
+
+    env.stack.pushInt( result )
   }
 
-  def binaryOperation(env : ScriptEnvironment, mutate : (Int, Int) => (Int) ): Unit = {
-    val value2 : ScriptValue = env.stack.pop()
-    val value1 : ScriptValue = env.stack.pop()
-    if (value1.isInstanceOf[NumberValue] && value2.isInstanceOf[NumberValue]) {
-      val newValue = NumberValue(
-                       mutate(
-                         value1.asInstanceOf[NumberValue].value,
-                         value2.asInstanceOf[NumberValue].value ) )
-      env.stack.push( newValue )
-    } else {
-      throw new FatalException(ErrorCode.ScriptTypeMismatch)
-    }
+  def binaryOperation(env : ScriptEnvironment, mutate : (Long, Long) => (Long) ): Unit = {
+    val value2 : BigInteger = env.stack.popInt()
+    val value1 : BigInteger = env.stack.popInt()
+
+    val result = BigInteger.valueOf (
+       mutate(
+         value1.longValue(),
+         value2.longValue()
+       )
+     )
+
+
+    env.stack.pushInt( result )
   }
 
-  def ternaryOperation(env : ScriptEnvironment, mutate : (Int, Int, Int) => (Int) ): Unit = {
-    val value3 : ScriptValue = env.stack.pop()
-    val value2 : ScriptValue = env.stack.pop()
-    val value1 : ScriptValue = env.stack.pop()
-    if (value1.isInstanceOf[NumberValue] && value2.isInstanceOf[NumberValue] && value3.isInstanceOf[NumberValue]) {
-      val newValue = NumberValue(
-        mutate(
-          value1.asInstanceOf[NumberValue].value,
-          value2.asInstanceOf[NumberValue].value,
-          value3.asInstanceOf[NumberValue].value) )
-      env.stack.push( newValue )
-    } else {
-      throw new FatalException(ErrorCode.ScriptTypeMismatch)
-    }
+  def ternaryOperation(env : ScriptEnvironment, mutate : (Long, Long, Long) => (Long) ): Unit = {
+    val value3 : BigInteger = env.stack.popInt()
+    val value2 : BigInteger = env.stack.popInt()
+    val value1 : BigInteger = env.stack.popInt()
+
+    val result = BigInteger.valueOf (
+      mutate(
+        value1.longValue(),
+        value2.longValue(),
+        value3.longValue()
+      )
+    )
+
+    env.stack.pushInt( result )
   }
 
 }
 
 case class Op1Add() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    unaryOperation(env, _ + 1 )
+    unaryOperation(env, _ + 1L )
   }
 }
 
 case class Op1Sub() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    unaryOperation(env, _ - 1 )
+    unaryOperation(env, _ - 1L )
   }
 }
 
@@ -93,12 +99,12 @@ case class OpNot() extends Arithmetic {
     unaryOperation(
       env,
       (value) =>
-        if (value == 0) {
-          1
-        } else if (value == 1) {
-          0
+        if (value == 0L) {
+          1L
+        } else if (value == 1L) {
+          0L
         } else {
-          0
+          0L
         }
     )
   }
@@ -109,7 +115,7 @@ case class OpNot() extends Arithmetic {
  */
 case class Op0NotEqual() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    unaryOperation(env, (value) => (if (value == 0) 0 else 1 ) )
+    unaryOperation(env, (value) => (if (value == 0L) 0L else 1L ) )
   }
 }
 
@@ -162,19 +168,19 @@ case class OpRShift() extends Arithmetic with DisabledScriptOp {
 
 case class OpBoolAnd() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l!=0 && r!=0) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l!=0L && r!=0L) 1L else 0L) )
   }
 }
 
 case class OpBoolOr() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l!=0 || r!=0) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l!=0L || r!=0L) 1L else 0L) )
   }
 }
 
 case class OpNumEqual() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l == r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l == r) 1L else 0L) )
   }
 }
 
@@ -183,11 +189,11 @@ case class OpNumEqual() extends Arithmetic {
  */
 case class OpNumEqualVerify() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l == r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l == r) 1L else 0L) )
 
     // BUGBUG : This code is likely to be duplicated with the OP_VERIFY code
     // OP_VERIFY : Marks transaction as invalid if top stack value is not true.
-    unaryOperation( env, ((value) => if (value !=0) value else throw new FatalException(ErrorCode.InvalidSriptOperation)) )
+    unaryOperation( env, ((value) => if (value !=0L) value else throw new FatalException(ErrorCode.InvalidSriptOperation)) )
     assert(false);
     // TODO : Implement
   }
@@ -195,35 +201,35 @@ case class OpNumEqualVerify() extends Arithmetic {
 
 case class OpNumNotEqual() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l != r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l != r) 1L else 0L) )
   }
 }
 
 
 case class OpLessThan() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l < r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l < r) 1L else 0L) )
   }
 }
 
 
 case class OpGreaterThan() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l > r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l > r) 1L else 0L) )
   }
 }
 
 
 case class OpLessThanOrEqual() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l <= r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l <= r) 1L else 0L) )
   }
 }
 
 
 case class OpGreaterThanOrEqual() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    binaryOperation( env, ((l,r) => if (l >= r) 1 else 0) )
+    binaryOperation( env, ((l,r) => if (l >= r) 1L else 0L) )
   }
 }
 
@@ -241,6 +247,6 @@ case class OpMax() extends Arithmetic {
 
 case class OpWithin() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
-    ternaryOperation( env, ((x,min,max) => if ((min<=x) && (x<=max)) 1 else 0) )
+    ternaryOperation( env, ((x,min,max) => if ((min<=x) && (x<=max)) 1L else 0L) )
   }
 }

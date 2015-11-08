@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.{FatalException, ErrorCode, ParsedScript}
+import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode, ParsedScript}
 
 import scala.collection.immutable.HashMap
 
@@ -232,7 +232,7 @@ class ScriptExecutor {
    * @param parsedScript A chunk of byte array after we get from ScriptParser.
    * @return the value on top of the stack after the script execution.
    */
-  def execute(parsedScript : ParsedScript) : ScriptValue = {
+  def evaluate(parsedScript : ParsedScript) : ScriptValue = {
     val executionEnvironment = new ScriptEnvironment(parsedScript)
     while ( executionEnvironment.cursor < parsedScript.bytes.length) {
       val opCode = parsedScript.bytes(executionEnvironment.cursor)
@@ -240,7 +240,7 @@ class ScriptExecutor {
       if (scriptOpOption.isDefined) {
         scriptOpOption.get.execute(executionEnvironment)
       } else {
-        throw new FatalException(ErrorCode.InvalidSriptOperation)
+        throw new ScriptEvalException(ErrorCode.InvalidSriptOperation)
       }
     }
 
