@@ -188,7 +188,7 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[Long], operation : ScriptOp, expectation : Either[ErrorCode,Long] )  =>
       // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
-      val env = new ScriptEnvironment(null)
+      val env = new ScriptEnvironment()
 
       for ( input : Long <-inputValues) {
         env.stack.pushInt( BigInteger.valueOf(input) )
@@ -238,7 +238,7 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
 
   "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
     forAll(disabledOperations) { (operation : ScriptOp) =>
-      val env = new ScriptEnvironment(null)
+      val env = new ScriptEnvironment()
 
       val thrown = the[ScriptEvalException] thrownBy {
         operation.execute(env)

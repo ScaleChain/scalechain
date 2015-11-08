@@ -218,8 +218,7 @@ object ScriptOperations {
   }
 }
 
-class ScriptEnvironment(parsedScript : ParsedScript) {
-  var cursor = 0
+class ScriptEnvironment() {
   val stack = new ScriptStack()
   // The altStack is necessary to support OP_TOALTSTACK and OP_FROMALTSTACK,
   // which moves items on top of the stack and the alternative stack.
@@ -236,20 +235,12 @@ class ScriptEval {
    * @return the value on top of the stack after the script execution.
    */
   def eval(parsedScript : ParsedScript) : ScriptValue = {
-    val executionEnvironment = new ScriptEnvironment(parsedScript)
-    while ( executionEnvironment.cursor < parsedScript.bytes.length) {
-      val opCode = parsedScript.bytes(executionEnvironment.cursor)
-      val scriptOpOption = ScriptOperations.get(opCode)
-      if (scriptOpOption.isDefined) {
-        // A script operation can consume bytes in the script chunk.
-        val bytesConsumed : Int = scriptOpOption.get.execute(executionEnvironment)
-        // Move the cursor to the next script operation we want to execute.
-        executionEnvironment.cursor += (bytesConsumed + 1)
-      } else {
-        throw new ScriptEvalException(ErrorCode.InvalidScriptOperation)
-      }
+    val executionEnvironment = new ScriptEnvironment()
+    for (operation : ScriptOp <- parsedScript.operations) {
+      operation.execute(executionEnvironment)
     }
 
     executionEnvironment.stack.pop()
   }
 }
+

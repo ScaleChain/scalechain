@@ -23,6 +23,19 @@ object ScriptValue {
     ScriptValue( value )
   }
 
+  /** Get a ScriptValue by copying a specific area of a given byte array.
+   *
+   * @param source The source byte array
+   * @param offset The offset to the source byte array.
+   * @param length The number of bytes to copy.
+   * @return The ScriptValue that has the given area of the byte array.
+   */
+  def valueOf(source : Array[Byte], offset : Int, length : Int ) : ScriptValue = {
+    val bytes = new Array[Byte](length)
+    Array.copy(source, offset, bytes, 0, length)
+    ScriptValue(bytes)
+  }
+
   /** Get a ScriptValue which has the given long value.
    *
    * @param value The long value.

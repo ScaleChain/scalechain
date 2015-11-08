@@ -53,7 +53,7 @@ class BitwiseLogicSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatch
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : Either[ErrorCode,Long] )  =>
       // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
-      val env = new ScriptEnvironment(null)
+      val env = new ScriptEnvironment()
 
       for ( input : ScriptValue <-inputValues) {
         env.stack.push( input )
@@ -96,7 +96,7 @@ class BitwiseLogicSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatch
 
   "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
     forAll(disabledOperations) { (operation: ScriptOp) =>
-      val env = new ScriptEnvironment(null)
+      val env = new ScriptEnvironment()
 
       val thrown = the[ScriptEvalException] thrownBy {
         operation.execute(env)

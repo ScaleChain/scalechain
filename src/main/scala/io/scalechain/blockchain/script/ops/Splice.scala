@@ -23,9 +23,8 @@ case class OpRight() extends Splice with DisabledScriptOp
 /** OP_SIZE(0x82) : Calculate string length of top item and push the result
   */
 case class OpSize() extends Splice {
-  def execute(env : ScriptEnvironment): Int = {
+  def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
-    0
   }
 }

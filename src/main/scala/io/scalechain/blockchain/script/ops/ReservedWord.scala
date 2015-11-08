@@ -34,9 +34,8 @@ case class OpReserved2() extends ReservedWords with InvalidScriptOpIfExecuted {
   * @param value The number from 1 to 10.
   */
 case class OpNop(val value : Int) extends ReservedWords {
-  def execute(env : ScriptEnvironment): Int= {
+  def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
-    0
   }
 }
