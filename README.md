@@ -1,6 +1,7 @@
 Introduction
 ============
-A Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
+A customizable blockchain implementation for private blockchains.
+Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
 
 Why ScalaChain?
 ===============
@@ -11,6 +12,10 @@ Supported Features
 ==================
 - All arithmetic operations are supported.
 - All bitwise logic operations are supported.
+
+Planned release date
+====================
+2015/11/30 ; Beta release
 
 Use Cases
 =========
