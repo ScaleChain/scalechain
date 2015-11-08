@@ -17,13 +17,26 @@ Supported Features
 - All arithmetic operations are supported.
 - All bitwise logic operations are supported.
 
-Planned release date
-====================
-November 30, 2015 ; Beta release
+Customization
+=============
+An example of adding a logarithm operation : 
+```
+/** OP_LOG : Pop top two items, x and y to calculate logarithm of x with base y.
+*/
+case class OpLog() extends Arithmetic {
+　def execute(env : ScriptEnvironment): Unit = {
+　　binaryIntOperation( env, Math.log(_) / Math.log(_) )
+　}
+}
+```
 
 Use Cases
 =========
 Private blockchains require customized script operations based on the Bitcoin script. ScalaChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
+
+Planned release date
+====================
+November 30, 2015 ; Beta release
 
 License
 =======
