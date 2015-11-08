@@ -49,4 +49,4 @@ OEMs (Original Equipment Manufacturers), ISVs (Independent Software Vendors), VA
 For Open Source Projects and Other Developers of Open Source Applications:
 For developers of Free Open Source Software ("FOSS") applications under the GPL that want to combine and distribute those FOSS applications with ScaleChain software, ScaleChain open source software licensed under the GPL is the best option.
 
-For developers and distributors of open source software under a FOSS license other than the GPL, ScaleChain makes its GPL-licensed ScaleChain Client Libraries available under a FOSS Exception that enables use of the those ScaleChain Client Libraries under certain conditions without causing the entire derivative work to be subject to the GPL.
+For developers and distributors of open source software under a FOSS license other than the GPL, ScaleChain makes its GPL-licensed ScaleChain Client Libraries available under a FOSS Exception that enables use of the ScaleChain Client Libraries under certain conditions without causing the entire derivative work to be subject to the GPL.
