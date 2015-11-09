@@ -1,43 +1,52 @@
 Introduction
 ============
-- Goal: Minimize disk usage of blockchain data from 45G to half of it.
-- How: Compress blockchain data, but still provide fast lookup on the blockchain.
+A customizable blockchain implementation for private blockchains.
+Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
 
-Current status
-==============
-- Investigation done for the blkxxx.dat file format.
-- Write a Scala program that reads the blkxxx.dat file. Write a block reader for it.
+For the avoidance of doubt, this particular copy of the software is released under the version 2 of the GNU General Public License. It is brought to you by ScaleChain.
 
-TODO
-====
-- Run the block reader to get statistics on blockchain data. Ex> What percentage of transaction hashes are written more than once? (to replace redundant transaction hash to a shorter one) 
-- Write a prototype that writes blockchain data in columnar layout to compress data using delta encoding, bitmaps, etc.
+Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
+Why ScaleChain?
+===============
+1. Easy to use, easy to integrate.
+2. Easy to add a customized script operation.
 
-References 
-==========
-- Mastering Bitcoin book. We also copied some text from the book to write comments on methods and classes.
+Supported Features
+==================
+- All arithmetic operations are supported.
+- All bitwise logic operations are supported.
 
-Video
-=====
-Followings are videos taken while the development of this project.
+Customization
+=============
+An example of adding a logarithm operation : 
+```
+/** OP_LOG : Pop top two items, x and y to calculate logarithm of x with base y.
+*/
+case class OpLog() extends Arithmetic {
+　def execute(env : ScriptEnvironment): Unit = {
+　　binaryIntOperation( env, Math.log(_) / Math.log(_) )
+　}
+}
+```
 
+Use Cases
+=========
+Private blockchains require customized script operations based on the Bitcoin script. ScalaChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
 
-Project setup, tools setup:
+Planned release date
+====================
+November 30, 2015 ; Beta release
 
-https://www.livecoding.tv/video/blockchain-scalechainio-2/
+License
+=======
+ScaleChain Commercial License for OEMs, ISVs and VARs
+ScaleChain provides its ScaleChain Server and Client Libraries under a dual license model designed to meet the development and distribution needs of both commercial distributors (such as OEMs, ISVs and VARs) and open source projects.
 
-https://www.livecoding.tv/video/blockchain-scalechainio-3/
+For OEMs, ISVs, VARs and Other Distributors of Commercial Applications:
+OEMs (Original Equipment Manufacturers), ISVs (Independent Software Vendors), VARs (Value Added Resellers) and other distributors that combine and distribute commercially licensed software with ScaleChain software and do not wish to distribute the source code for the commercially licensed software under version 2 of the GNU General Public License (the "GPL") must enter into a commercial license agreement with ScaleChain.
 
+For Open Source Projects and Other Developers of Open Source Applications:
+For developers of Free Open Source Software ("FOSS") applications under the GPL that want to combine and distribute those FOSS applications with ScaleChain software, ScaleChain open source software licensed under the GPL is the best option.
 
-Analysis of the genesis block on blk00000.dat : 
-
-A: https://www.livecoding.tv/video/blockchain-scalechainio-5/
-
-B: https://www.livecoding.tv/video/blockchain-scalechainio-5/
-
-See from 58:30 of A to save your time. Nothing much before the time. 
-
-Live stream available on this URL when I write code.
-
-https://www.livecoding.tv/kangmo/  
+For developers and distributors of open source software under a FOSS license other than the GPL, ScaleChain makes its GPL-licensed ScaleChain Client Libraries available under a FOSS Exception that enables use of the ScaleChain Client Libraries under certain conditions without causing the entire derivative work to be subject to the GPL.
