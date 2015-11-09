@@ -16,6 +16,7 @@ Supported Features
 ==================
 - All arithmetic operations are supported.
 - All bitwise logic operations are supported.
+- All stack operations are supported.
 
 Customization
 =============
