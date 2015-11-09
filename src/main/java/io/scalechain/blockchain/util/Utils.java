@@ -34,7 +34,7 @@ public class Utils {
                 ((stream.read() & 0xFFL) << 56);
     }
 
-    private static boolean castToBool(byte[] data) {
+    public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)
         {
             // "Can be negative zero" -reference client (see OpenSSL's BN_bn2mpi)
@@ -146,6 +146,7 @@ public class Utils {
     public static BigInteger decodeStackInt(byte[] encoded) throws ScriptEvalException {
         return castToBigInteger(encoded);
     }
+
 }
 
 

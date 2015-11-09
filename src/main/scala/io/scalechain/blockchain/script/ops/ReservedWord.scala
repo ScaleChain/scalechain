@@ -30,12 +30,12 @@ case class OpReserved2() extends ReservedWords with InvalidScriptOpIfExecuted {
 
 }
 /** OP_NOP1-OP_NOP10(0xb0-0xb9) : Does nothing, ignored. A case class for OP_NOP1 ~ OP_NOP10.
+  * New opcodes can be added by means of a carefully designed and executed softfork using OP_NOP1 - OP_NOP10.
   *
   * @param value The number from 1 to 10.
   */
 case class OpNop(val value : Int) extends ReservedWords {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    // Do nothing.
   }
 }

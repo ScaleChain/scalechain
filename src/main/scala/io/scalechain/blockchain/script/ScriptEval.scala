@@ -120,6 +120,7 @@ object ScriptOperations {
     (0x68, OpEndIf()),
     (0x69, OpVerify()),
     (0x6a, OpReturn()),
+    (0x6b, OpToAltStack()),
     (0x6c, OpFromAltStack()),
     (0x73, OpIfDup()),
     (0x74, OpDepth()),
