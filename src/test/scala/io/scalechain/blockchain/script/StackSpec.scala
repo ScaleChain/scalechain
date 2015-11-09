@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.script.ScriptStack
 import io.scalechain.blockchain.util.Utils
 import io.scalechain.blockchain.{ScriptEvalException, ErrorCode}
 import io.scalechain.blockchain.script.ops._
@@ -119,21 +120,21 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
       // OP_ROLL(0x7a) : Pop value N from top, then move the Nth item to the top of the stack
       // Before : xn ... x2 x1 x0 <n>
       // After  : ... x2 x1 x0 xn
-      (Array(10L,0L),               OpPick(),   Right(Array(10L))),
-      (Array(10L,1L),               OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(10L,2L),               OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(11L,10L,0L),           OpPick(),   Right(Array(11L,10L))),
-      (Array(11L,10L,1L),           OpPick(),   Right(Array(10L,11L))),
-      (Array(11L,10L,2L),           OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(11L,10L,3L),           OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(12L,11L,10L,0L),       OpPick(),   Right(Array(12L,11L,10L))),
-      (Array(12L,11L,10L,1L),       OpPick(),   Right(Array(12L,10L,11L))),
-      (Array(12L,11L,10L,2L),       OpPick(),   Right(Array(11L,10L,12L))),
-      (Array(12L,11L,10L,3L),       OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(12L,11L,10L,4L),       OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (EMPTY_ARRAY,                 OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(0L),                   OpPick(),   Left(ErrorCode.InvalidStackOperation)),
-      (Array(1L),                   OpPick(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(10L,0L),               OpRoll(),   Right(Array(10L))),
+      (Array(10L,1L),               OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(10L,2L),               OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(11L,10L,0L),           OpRoll(),   Right(Array(11L,10L))),
+      (Array(11L,10L,1L),           OpRoll(),   Right(Array(10L,11L))),
+      (Array(11L,10L,2L),           OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(11L,10L,3L),           OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(12L,11L,10L,0L),       OpRoll(),   Right(Array(12L,11L,10L))),
+      (Array(12L,11L,10L,1L),       OpRoll(),   Right(Array(12L,10L,11L))),
+      (Array(12L,11L,10L,2L),       OpRoll(),   Right(Array(11L,10L,12L))),
+      (Array(12L,11L,10L,3L),       OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(12L,11L,10L,4L),       OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (EMPTY_ARRAY,                 OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(0L),                   OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
+      (Array(1L),                   OpRoll(),   Left(ErrorCode.InvalidStackOperation)),
 
       // OP_ROT(0x7b) : Rotate the top three items in the stack
       // Before : x1 x2 x3
@@ -151,6 +152,8 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
       (Array(1L,2L,3L),             OpSwap(),   Right(Array(1L,3L,2L))),
       (EMPTY_ARRAY,                 OpSwap(),   Left(ErrorCode.InvalidStackOperation)),
       (Array(2L),                   OpSwap(),   Left(ErrorCode.InvalidStackOperation)),
+
+    // TODO : Fix issue.
 
       // OP_TUCK(0x7d) : Copy the top item and insert it between the top and second item.
       // Before : s x1 x2
@@ -240,6 +243,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
         case Right(expectedOutputValues) => {
           operation.execute(env)
 
+          println ("expected values :" + expectedOutputValues.mkString(","))
           verifyStack("actual stack", env.stack, expectedOutputValues)
         }
       }
@@ -247,11 +251,14 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
   }
 
   private def verifyStack(subject : String, actualStack:ScriptStack, expectedValues : Array[Long]) : Unit = {
+    println ("We are comparing the stack. subject : " + subject)
+    //println ("stack : " + actualStack)
+
+    toString
     for (i <- 0 until expectedValues.length) {
       val actualOutputBI : BigInteger = Utils.decodeStackInt( actualStack(expectedValues.length-1-i).value )
       val expectedOutput = expectedValues(i)
 
-      println ("We are comparing the stack : " + subject)
       println (s"expected output : ${expectedOutput}" )
       println (s"actual output : ${actualOutputBI.longValue()}" )
 
@@ -286,7 +293,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
       (Array(1L),       EMPTY_ARRAY,  OpFromAltStack(),  Left(ErrorCode.InvalidStackOperation))
     )
 
-  "operations" should "manipulate the stack correctly" in {
+  "operations" should "manipulate the main stack and alt correctly" in {
     forAll(altStackOperations) { ( mainStackInputs : Array[Long], altStackInputs : Array[Long], operation : ScriptOp, expectation : Either[ErrorCode, (Array[Long],Array[Long])] )  =>
       // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
       val env = new ScriptEnvironment()
@@ -312,7 +319,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
           operation.execute(env)
 
           verifyStack("actual main stack", env.stack, expectedMainStackInputs)
-          verifyStack("actual alt stack",  env.stack, expectedAltStackInputs)
+          verifyStack("actual alt stack",  env.altStack, expectedAltStackInputs)
         }
       }
     }

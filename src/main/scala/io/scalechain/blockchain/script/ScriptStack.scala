@@ -78,6 +78,16 @@ class ScriptStack {
     removedValue
   }
 
+  /** Inserts new elements at a given index into this stack.
+   *
+   * @param index The index where the new element will exist after the insertion.
+   * @param value The value to insert into this stack.
+   */
+  // TODO : Write a unit test for every edge cases for this method.
+  def insert(index :Int, value : ScriptValue) : Unit = {
+    array.insert( toArrayIndex(index), value)
+  }
+
   /** Get the number of elements in the stack.
    *
    * @return The number of elements.
@@ -86,7 +96,7 @@ class ScriptStack {
     array.size
   }
 
-  /** Push an integer value on to the top of the stack.
+  /** Push a big integer value on the top of the stack.
    *
    * @param value The value to push
    */
@@ -104,4 +114,10 @@ class ScriptStack {
     val value : BigInteger  = Utils.decodeStackInt(scriptValue.value)
     value
   }
+
+/*
+  override def toString() : String = {
+    s"ScriptStack[${array.mkString(",")}}]"
+  }
+*/
 }
