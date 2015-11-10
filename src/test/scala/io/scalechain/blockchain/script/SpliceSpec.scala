@@ -11,7 +11,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 /** Test splice operations in Splice.scala
   *
   */
-class SpliceSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class SpliceSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
@@ -28,54 +28,28 @@ class SpliceSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
     //
   }
 
-  val EMPTY_ARRAY = new Array[ScriptValue](0)
-/*
   val operations =
     Table(
       // column names
       ("inputValues","operation", "expectedOutputValue"),
       // test cases with input value, script operation, output value
       // The input value is pushed on to the script execution stack from left to right.
-      (Array(""),  OpSize(), Right(0L)),
-      (Array("a"),  OpSize(), Right(1L)),
-      (Array("ab"),  OpSize(), Right(2L)),
-      (Array("a",""),  OpSize(), Right(1L)),
-      (Array("a","b"),  OpSize(), Right(1L)),
-      (Array("a","bc"),  OpSize(), Right(1L)),
-      (EMPTY_ARRAY,     OpSize(), Left(ErrorCode.InvalidScriptOperation))
+
+      // OP_SIZE(0x82) : Calculate string length of top item and push the result
+      // Before : in
+      // After  : in size
+      (stack(""),  OpSize(), stack("", 0)),
+      (stack("a"),  OpSize(), stack("a", 1)),
+      (stack("ab"),  OpSize(), stack("ab", 2)),
+      (stack("a",""),  OpSize(), stack("a","", 0)),
+      (stack("a","b"),  OpSize(), stack("a","b", 1)),
+      (stack("a","bc"),  OpSize(), stack("a","bc", 2)),
+      (stack(),           OpSize(), ErrorCode.NotEnoughInput)
     )
 
   "operations" should "run and push expected value on the stack." in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : Either[ErrorCode,Array[ScriptValue]] )  =>
-      // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
-      val env = new ScriptEnvironment()
-
-      for ( input : ScriptValue <-inputValues) {
-        env.stack.push( input )
-      }
-
-      println (s"Testing with input ${inputValues.mkString(",")}, operation : ${operation}" )
-
-      expectation match {
-        case Left(expectedErrorCode) => {
-          val thrown = the[ScriptEvalException] thrownBy {
-            operation.execute(env)
-          }
-          thrown.code should equal(expectedErrorCode)
-          println (s"thrown expcetion : ${thrown}" )
-        }
-
-        case Right(expectedOutputValue) => {
-          operation.execute(env)
-
-          val actualOutput = env.stack.popInt()
-
-          println (s"actual output : ${actualOutput.longValue()}" )
-
-          actualOutput.longValue() should be (expectedOutputValue)
-        }
-      }
+    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+      verifyOperation(inputValues, operation, expectation);
     }
   }
-*/
 }

@@ -59,6 +59,23 @@ object ScriptValue {
 trait ScriptValue {
   val value : Array[Byte]
   def copy() : ScriptValue
+
+  def canEqual(a: Any) = a.isInstanceOf[ScriptValue]
+
+  override def equals(that: Any): Boolean =
+    that match {
+      case that: ScriptValue => that.canEqual(this) && that.value.sameElements(this.value)
+      case _ => false
+    }
+
+  override def hashCode:Int = {
+    val prime = 31
+    var result = 1
+    for (b : Byte <- value ) {
+      result = prime * result + b;
+    }
+    return result
+  }
 }
 
 case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
@@ -66,6 +83,11 @@ case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
   def copy() : ScriptValue = {
     ScriptInteger(bigIntValue)
   }
+  /*
+  override def canEqual(that:Any) = super.canEqual(that)
+  override def equals(that:Any) : Boolean = super.equals(that)
+  override def hashCode:Int = super.hashCode
+  */
 }
 
 case class ScriptBytes(bytesValue:Array[Byte]) extends ScriptValue {
@@ -73,5 +95,10 @@ case class ScriptBytes(bytesValue:Array[Byte]) extends ScriptValue {
   def copy() : ScriptValue = {
     ScriptBytes(bytesValue)
   }
+  /*
+  override def canEqual(that:Any) = super.canEqual(that)
+  override def equals(that:Any) : Boolean = super.equals(that)
+  override def hashCode:Int = super.hashCode
+  */
 }
 

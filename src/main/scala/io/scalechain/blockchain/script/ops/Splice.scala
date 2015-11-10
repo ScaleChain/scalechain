@@ -1,5 +1,8 @@
 package io.scalechain.blockchain.script.ops
 
+import java.math.BigInteger
+
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.ScriptEnvironment
 
 trait Splice extends ScriptOp
@@ -21,10 +24,16 @@ case class OpLeft() extends Splice with DisabledScriptOp
 case class OpRight() extends Splice with DisabledScriptOp
 
 /** OP_SIZE(0x82) : Calculate string length of top item and push the result
+  * Before : in
+  * After  : in size
   */
 case class OpSize() extends Splice {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+
+    val topValue = env.stack.top()
+    env.stack.pushInt( BigInteger.valueOf(topValue.value.length) )
   }
 }

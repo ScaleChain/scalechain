@@ -1,0 +1,13 @@
+@startuml
+'hide footbox
+
+actor Caller
+
+Caller -> ScriptParser : parse
+
+note left
+  pass Array[Byte]
+  get list of ScriptOp(s)
+end note
+
+@enduml

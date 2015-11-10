@@ -1,5 +1,8 @@
 package io.scalechain.blockchain.script.ops
 
+import java.math.BigInteger
+
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 
 trait Constant extends ScriptOp
@@ -38,10 +41,52 @@ case class OpPush(val byteCount : Int, val inputValue : ScriptValue = null) exte
 
 /** OP_PUSHDATA1(0x4c), OP_PUSHDATA2(0x4d), OP_PUSHDATA4(0x4e) : The next script byte contains N, push the following N bytes onto the stack
   */
-case class OpPushData(val lengthBytes : Int) extends Constant {
+case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null) extends Constant {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    // inputValue field is set by calling copyInputFrom while the script parser runs.
+    // If it is null, it means that there is an internal error.
+    assert(inputValue != null)
+    env.stack.push( inputValue )
+  }
+
+  /** create an OpPushData object by copying the input data from the raw script.
+    * This is called by script parser before execution.
+    * @param rawScript The raw script before it is parsed.
+    * @param offset The offset where the byte count is read.
+    * @return The number of bytes consumed to copy the input value.
+    */
+  override def createWithInput(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    val byteCount = getByteCount(rawScript, offset, lengthBytes)
+    val value = ScriptValue.valueOf(rawScript, offset + lengthBytes, byteCount)
+
+    ( OpPushData(lengthBytes, value), lengthBytes + byteCount)
+  }
+
+  /** Get how much bytes we need to read from script to get the inputValue to push.
+   *
+   * @param rawScript The raw script before it is parsed.
+   * @param offset The offset where the byte count is read.
+   * @param length The length of bytes to read to get the byte count.
+   * @return The byte count read form the raw script.
+   */
+  protected def getByteCount(rawScript : Array[Byte], offset : Int, length : Int) : Int = {
+    if (offset + length > rawScript.length) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughScriptData)
+    }
+
+    var result = 0L
+
+    if (length ==1) {
+      result = rawScript(offset).toLong
+    } else if (length == 2) {
+      result = rawScript(offset).toLong + (rawScript(offset+1).toLong << 8)
+    } else if (length == 4) {
+      result = rawScript(offset).toLong + (rawScript(offset+1).toLong << 8) + (rawScript(offset+1).toLong << 16) + (rawScript(offset+1).toLong << 24)
+    } else {
+      assert(false);
+    }
+    assert(result < Int.MaxValue)
+    result.toInt
   }
 }
 
@@ -49,8 +94,7 @@ case class OpPushData(val lengthBytes : Int) extends Constant {
   */
 case class Op1Negate() extends Constant {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    env.stack.pushInt( BigInteger.valueOf(-1))
   }
 }
 
@@ -58,8 +102,7 @@ case class Op1Negate() extends Constant {
   */
 case class Op1() extends Constant {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    env.stack.pushInt( BigInteger.valueOf(1))
   }
 }
 
@@ -68,9 +111,9 @@ case class Op1() extends Constant {
  *
  * @param number The value to push on to the stack. It is from 2 to 16.
  */
-case class Op2Num(val number : Int) extends Constant {
+case class OpNum(val number : Int) extends Constant {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    assert(2 <= number && number <=16)
+    env.stack.pushInt( BigInteger.valueOf(number))
   }
 }

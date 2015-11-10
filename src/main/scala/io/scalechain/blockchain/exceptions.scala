@@ -9,7 +9,8 @@ object ErrorCode {
   // We expect script numbers on stack are up to 4 bytes. In case hitting any number encoded in more than 4 bytes, raise this error.
   val TooBigScriptInteger = ErrorCode("too_big_script_integer")
   val InvalidTransaction = ErrorCode("invalid_transaction")
-  val InvalidStackOperation = ErrorCode("invalid_stack_operation")
+  val NotEnoughInput = ErrorCode("not_enough_input")
+  val NotEnoughScriptData = ErrorCode("not_enough_script_data")
 }
 
 case class ErrorCode(val code:String)
