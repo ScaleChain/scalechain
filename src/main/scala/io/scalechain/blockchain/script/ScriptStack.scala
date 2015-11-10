@@ -101,7 +101,7 @@ class ScriptStack {
    * @param value The value to push
    */
   def pushInt(value : BigInteger): Unit = {
-    val scriptValue = ScriptValue( Utils.encodeStackInt(value) )
+    val scriptValue = ScriptValue.valueOf( value )
     push(scriptValue)
   }
 

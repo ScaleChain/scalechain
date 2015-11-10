@@ -4,6 +4,7 @@ import java.math.BigInteger
 
 import io.scalechain.blockchain.util.Utils
 
+
 object ScriptValue {
   /**
    * Get a ScriptValue which has a byte array of a given string.
@@ -11,7 +12,7 @@ object ScriptValue {
    * @return The ScriptValue we created.
    */
   def valueOf(value : String) : ScriptValue = {
-    ScriptValue( value.getBytes() )
+    ScriptBytes( value.getBytes() )
   }
 
   /** Get a ScriptValue which has the given byte array.
@@ -20,7 +21,7 @@ object ScriptValue {
     * @return The ScriptValue we created.
    */
   def valueOf(value : Array[Byte]) : ScriptValue = {
-    ScriptValue( value )
+    ScriptBytes( value )
   }
 
   /** Get a ScriptValue by copying a specific area of a given byte array.
@@ -33,7 +34,7 @@ object ScriptValue {
   def valueOf(source : Array[Byte], offset : Int, length : Int ) : ScriptValue = {
     val bytes = new Array[Byte](length)
     Array.copy(source, offset, bytes, 0, length)
-    ScriptValue(bytes)
+    ScriptBytes(bytes)
   }
 
   /** Get a ScriptValue which has the given long value.
@@ -42,9 +43,35 @@ object ScriptValue {
    * @return The ScriptValue we created.
    */
   def valueOf(value : Long) : ScriptValue = {
-    ScriptValue( Utils.encodeStackInt( BigInteger.valueOf(value)))
+    ScriptInteger( BigInteger.valueOf( value ) )
+  }
+
+  /**
+   *
+   * @param value
+   * @return
+   */
+  def valueOf(value:BigInteger) : ScriptValue = {
+    ScriptInteger( value )
   }
 }
 
-case class ScriptValue(value : Array[Byte])
+trait ScriptValue {
+  val value : Array[Byte]
+  def copy() : ScriptValue
+}
+
+case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
+  override val value = Utils.encodeStackInt( bigIntValue )
+  def copy() : ScriptValue = {
+    ScriptInteger(bigIntValue)
+  }
+}
+
+case class ScriptBytes(bytesValue:Array[Byte]) extends ScriptValue {
+  override val value = bytesValue
+  def copy() : ScriptValue = {
+    ScriptBytes(bytesValue)
+  }
+}
 

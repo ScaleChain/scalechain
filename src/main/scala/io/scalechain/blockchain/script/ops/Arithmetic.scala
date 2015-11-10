@@ -13,8 +13,7 @@ trait Arithmetic extends ScriptOp
       val intValue1 = Utils.decodeStackInt(value1.value)
 
       val intResult = mutate(intValue1.longValue())
-      val scriptResult = ScriptValue( Utils.encodeStackInt( BigInteger.valueOf(intResult)) )
-      (scriptResult)
+      ScriptValue.valueOf( intResult )
     })
   }
 
@@ -24,8 +23,7 @@ trait Arithmetic extends ScriptOp
       val intValue2 = Utils.decodeStackInt(value2.value)
 
       val intResult = mutate(intValue1.longValue(), intValue2.longValue())
-      val scriptResult = ScriptValue( Utils.encodeStackInt( BigInteger.valueOf(intResult)) )
-      (scriptResult)
+      ScriptValue.valueOf(intResult)
     })
   }
 
@@ -36,8 +34,7 @@ trait Arithmetic extends ScriptOp
       val intValue3 = Utils.decodeStackInt(value3.value)
 
       val intResult = mutate(intValue1.longValue(), intValue2.longValue(), intValue3.longValue())
-      val scriptResult = ScriptValue( Utils.encodeStackInt( BigInteger.valueOf(intResult)) )
-      (scriptResult)
+      ScriptValue.valueOf(intResult)
     })
   }
 }

@@ -8,7 +8,7 @@ trait Constant extends ScriptOp
   */
 case class Op0() extends Constant {
   def execute(env : ScriptEnvironment): Unit = {
-    env.stack.push(ScriptValue(Array[Byte]()))
+    env.stack.push(ScriptValue.valueOf(Array[Byte]()))
   }
 }
 
