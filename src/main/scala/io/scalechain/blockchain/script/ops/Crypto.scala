@@ -1,51 +1,84 @@
 package io.scalechain.blockchain.script.ops
 
-import io.scalechain.blockchain.script.ScriptEnvironment
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
+import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
+import io.scalechain.util.Hash
 
 trait Crypto extends ScriptOp
 
 /** OP_RIPEMD160(0xa6) : Return RIPEMD160 hash of top item
+  * Before : in
+  * After  : hash
   */
 case class OpRIPEMD160() extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+
+    val topItem = env.stack.pop()
+    val hash = Hash.ripemd160(topItem.value)
+    env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
 
 /** OP_SHA1(0xa7) : Return SHA1 hash of top item
+  * Before : in
+  * After  : hash
   */
 case class OpSHA1() extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+    val topItem = env.stack.pop()
+    val hash = Hash.sha1(topItem.value)
+    env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
 
 /** OP_SHA256(0xa8) : Return SHA256 hash of top item
+  * Before : in
+  * After  : hash
   */
 case class OpSHA256() extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+    val topItem = env.stack.pop()
+    val hash = Hash.sha256(topItem.value)
+    env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
 
 /** OP_HASH160(0xa9) : Return RIPEMD160(SHA256(x)) hash of top item
+  * Before : in
+  * After  : hash
   */
 case class OpHash160() extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+    val topItem = env.stack.pop()
+    val hash = Hash.hash160(topItem.value)
+    env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
 
 /** OP_HASH256(0xaa) : Return SHA256(SHA256(x)) hash of top item
+  * Before : in
+  * After  : hash
   */
 case class OpHash256() extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    if (env.stack.size() < 1) {
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+    val topItem = env.stack.pop()
+    val hash = Hash.hash256(topItem.value)
+    env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
 

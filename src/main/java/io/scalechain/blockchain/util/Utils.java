@@ -1,7 +1,5 @@
 package io.scalechain.blockchain.util;
 
-import io.scalechain.blockchain.BlockDataInputStream;
-import io.scalechain.blockchain.ErrorCode;
 import io.scalechain.blockchain.ErrorCode$;
 import io.scalechain.blockchain.ScriptEvalException;
 

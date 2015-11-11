@@ -29,6 +29,16 @@ Hello World!
 ```
 8476ee4631b9b30ac2754b0ee0c47e161d3f724c
 ```
+## HASH160
+HASH160(x) = RIPE160(SHA256(x))
+```
+c5f3dbfc7aca5e6d050b1771b44b343bda99f1b4
+```
+## HASH256
+HASH256(x) = SHA256(SHA256(x))
+```
+4163fb4ab9e1e0a51709a51bc7e13ab6792907905960145c722d2c1479caac42
+```
 
 # Code snippets
 ## SHA1

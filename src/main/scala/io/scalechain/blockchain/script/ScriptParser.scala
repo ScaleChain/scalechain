@@ -1,7 +1,7 @@
-package io.scalechain.blockchain
+package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.script.{ScriptOperations, ScriptValue}
-import io.scalechain.blockchain.script.ops.{OpNip, ScriptOp}
+import io.scalechain.blockchain.script.ops.ScriptOp
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 
 import scala.collection.mutable.ListBuffer
 

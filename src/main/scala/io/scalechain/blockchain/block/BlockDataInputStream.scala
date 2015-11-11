@@ -1,6 +1,6 @@
-package io.scalechain.blockchain
+package io.scalechain.blockchain.block
 
-import java.io.{InputStream, DataInputStream}
+import java.io.{DataInputStream, InputStream}
 
 import io.scalechain.blockchain.util.Utils
 

@@ -3,6 +3,7 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.HexUtil
 
 
 object ScriptValue {
@@ -80,9 +81,8 @@ trait ScriptValue {
 
 case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
   override val value = Utils.encodeStackInt( bigIntValue )
-  def copy() : ScriptValue = {
-    ScriptInteger(bigIntValue)
-  }
+  def copy() : ScriptValue = ScriptInteger(bigIntValue)
+  override def toString() = s"ScriptIntger{$bigIntValue}"
   /*
   override def canEqual(that:Any) = super.canEqual(that)
   override def equals(that:Any) : Boolean = super.equals(that)
@@ -92,9 +92,8 @@ case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
 
 case class ScriptBytes(bytesValue:Array[Byte]) extends ScriptValue {
   override val value = bytesValue
-  def copy() : ScriptValue = {
-    ScriptBytes(bytesValue)
-  }
+  def copy() : ScriptValue = ScriptBytes(bytesValue)
+  override def toString() = s"ScriptBytes{${HexUtil.bytes2hex(bytesValue)}}"
   /*
   override def canEqual(that:Any) = super.canEqual(that)
   override def equals(that:Any) : Boolean = super.equals(that)

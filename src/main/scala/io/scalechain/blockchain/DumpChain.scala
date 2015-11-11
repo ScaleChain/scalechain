@@ -1,5 +1,7 @@
 package io.scalechain.blockchain
 
+import io.scalechain.blockchain.block._
+
 /**
  * Created by kangmo on 11/3/15.
  */

@@ -1,6 +1,8 @@
-package io.scalechain.blockchain
+package io.scalechain.blockchain.block
 
-import java.io.{EOFException, DataInputStream}
+import java.io.EOFException
+
+import io.scalechain.blockchain.{ErrorCode, FatalException}
 
 /**
  * Parse a block from a byte array stream.

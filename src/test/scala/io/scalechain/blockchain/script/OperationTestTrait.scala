@@ -121,6 +121,7 @@ trait OperationTestTrait extends ShouldMatchers {
   //  val buffer = new ArrayBuffer[ScriptValue]()
     val scriptValues = for (item : Any <- items) yield {
       item match {
+        case value : Array[Byte] => ScriptValue.valueOf(value)
         case value : Int => ScriptValue.valueOf(value)
         case value : Long => ScriptValue.valueOf(value)
         case value : String => ScriptValue.valueOf(value)

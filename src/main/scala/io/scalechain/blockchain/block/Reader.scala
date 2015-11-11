@@ -1,11 +1,8 @@
-package io.scalechain.blockchain
+package io.scalechain.blockchain.block
 
-import java.io.{FileInputStream, BufferedInputStream, DataInputStream, File}
-
+import java.io.{BufferedInputStream, DataInputStream, File, FileInputStream}
 
 import io.scalechain.util.HexUtil
-
-import scala.collection.JavaConversions._
 
 /**
  * Created by kangmo on 2015. 11. 1..

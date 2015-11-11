@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode, ParsedScript}
+import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode}
 
 import scala.collection.immutable.HashMap
 
