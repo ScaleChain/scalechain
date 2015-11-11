@@ -113,7 +113,7 @@ object ScriptOperations {
     (0x5e, OpNum(14)),
     (0x5f, OpNum(15)),
     (0x60, OpNum(16)),
-    (0x61, OpFlowNop()),
+    (0x61, OpNop()),
     (0x63, OpIf()),
     (0x64, OpNotIf()),
     (0x67, OpElse()),
@@ -197,16 +197,16 @@ object ScriptOperations {
     (0x66, OpVerNotIf()),
     (0x89, OpReserved1()),
     (0x8a, OpReserved2()),
-    (0xb0, OpNop(1)),
-    (0xb1, OpNop(2)),
-    (0xb2, OpNop(3)),
-    (0xb3, OpNop(4)),
-    (0xb4, OpNop(5)),
-    (0xb5, OpNop(6)),
-    (0xb6, OpNop(7)),
-    (0xb7, OpNop(8)),
-    (0xb8, OpNop(9)),
-    (0xb9, OpNop(10))
+    (0xb0, OpNopN(1)),
+    (0xb1, OpNopN(2)),
+    (0xb2, OpNopN(3)),
+    (0xb3, OpNopN(4)),
+    (0xb4, OpNopN(5)),
+    (0xb5, OpNopN(6)),
+    (0xb6, OpNopN(7)),
+    (0xb7, OpNopN(8)),
+    (0xb8, OpNopN(9)),
+    (0xb9, OpNopN(10))
   )
   /** Return the ScriptOp object that implements a specific operation code of the script.
    *
@@ -220,6 +220,17 @@ object ScriptOperations {
 }
 
 class ScriptEnvironment() {
+  // BUGBUG : if OP_CHECKSIG or OP_CHECKMULTISIG runs without OP_CODESEPARATOR,
+  //          can we keep signatureOffset as zero?
+  // The offset in the raw script where the data for checking signature starts.
+  protected var sigCheckOffset : Int = 0
+
+  /** Set the offset of raw script where the data for checking signature starts.
+   *
+   * @param offset the offset of raw script
+   */
+  def setSigCheckOffset(offset : Int) : Unit = sigCheckOffset = offset
+
   val stack = new ScriptStack()
   // The altStack is necessary to support OP_TOALTSTACK and OP_FROMALTSTACK,
   // which moves items on top of the stack and the alternative stack.
@@ -229,19 +240,32 @@ class ScriptEnvironment() {
 /**
  * Created by kangmo on 11/6/15.
  */
-class ScriptEval {
+object ScriptInterpreter {
   /** Execute a parsed script. Return the value on top of the stack after the script execution.
    *
-   * @param parsedScript A chunk of byte array after we get from ScriptParser.
+   * @param scriptOps A chunk of byte array after we get from ScriptParser.
    * @return the value on top of the stack after the script execution.
    */
-  def eval(parsedScript : ParsedScript) : ScriptValue = {
-    val executionEnvironment = new ScriptEnvironment()
-    for (operation : ScriptOp <- parsedScript.operations) {
-      operation.execute(executionEnvironment)
-    }
+  def eval(scriptOps : ScriptOpList) : ScriptValue = {
+    val env = new ScriptEnvironment()
 
-    executionEnvironment.stack.pop()
+    eval_internal(env, scriptOps)
+
+    env.stack.pop()
+  }
+
+  /** Execute a list of script operations, but do not pop any item from the stack.
+    * This method is called either by eval or ScriptOp.execute.
+    *
+    * Ex> OpCond may want to execute list of ScriptOp(s) on the then-statement-list.
+    *
+    * @param env The script execution environment.
+    * @param scriptOps The list of script operations to execute.
+    */
+  def eval_internal(env : ScriptEnvironment, scriptOps : ScriptOpList) = {
+    for (operation : ScriptOp <- scriptOps.operations) {
+      operation.execute(env)
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script.ops
 
-import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
+import io.scalechain.blockchain.{ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 import io.scalechain.util.Hash
 
@@ -84,11 +84,23 @@ case class OpHash256() extends Crypto {
 
 /** OP_CODESEPARATOR(0xab) : Mark the beginning of signature-checked data
   */
-case class OpCodeSparator() extends Crypto {
+case class OpCodeSparator(sigCheckOffset : Int = 0) extends Crypto {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    // The sigCheckOffset is set by create method, and it should be greater than 0
+    assert(sigCheckOffset > 0)
+    env.setSigCheckOffset(sigCheckOffset)
   }
+
+  override def create(programCounter: Int, rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    val sigCheckOffset = programCounter+1
+
+    if (sigCheckOffset >= rawScript.length) {
+      throw new ScriptParseException(ErrorCode.NoDataAfterCodeSparator)
+    }
+
+    (OpCodeSparator(sigCheckOffset), 0)
+  }
+
 }
 
 /** OP_CHECKSIG(0xac) : Pop a public key and signature and validate the signature for the transaction’s hashed data, return TRUE if matching

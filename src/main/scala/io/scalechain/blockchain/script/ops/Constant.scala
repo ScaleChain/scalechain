@@ -32,7 +32,7 @@ case class OpPush(val byteCount : Int, val inputValue : ScriptValue = null) exte
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  override def createWithInput(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+  override def create(programCount : Int, rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
     val value = ScriptValue.valueOf(rawScript, offset, byteCount)
 
     ( OpPush(byteCount, value), byteCount)
@@ -55,7 +55,7 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
     * @param offset The offset where the byte count is read.
     * @return The number of bytes consumed to copy the input value.
     */
-  override def createWithInput(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+  override def create(programCounter : Int, rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
     val byteCount = getByteCount(rawScript, offset, lengthBytes)
     val value = ScriptValue.valueOf(rawScript, offset + lengthBytes, byteCount)
 

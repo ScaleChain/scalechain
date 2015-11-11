@@ -138,6 +138,16 @@ trait OperationTestTrait extends ShouldMatchers {
     }
     scriptValues.toArray
   }
+
+  /** Create ScriptOpList which has a list of ScriptOp(s)
+   *
+   * @param operations The list of operations
+   * @return The ScriptOpList
+   */
+  def ops(operations:ScriptOp*) : ScriptOpList = {
+    val ops = for(o : ScriptOp <- operations) yield o
+    ScriptOpList( ops.toList )
+  }
 }
 
 

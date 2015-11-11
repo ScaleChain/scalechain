@@ -6,7 +6,7 @@ trait FlowControl extends ScriptOp
 
 /** OP_NOP(0x61) : Do nothing. An operation for OP_NOP for a flow control.
   */
-case class OpFlowNop() extends FlowControl {
+case class OpNop() extends FlowControl {
   def execute(env : ScriptEnvironment): Unit = {
     // Do nothing.
   }
@@ -16,25 +16,45 @@ case class OpFlowNop() extends FlowControl {
   */
 case class OpIf() extends FlowControl {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
+    // never executed.
     assert(false);
   }
+
+  override def create(programCounter : Int, rawScript: Array[Byte], offset : Int): (ScriptOp, Int) = {
+    // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
+    // Create OpCond with invert = false, thenStatementList, elseStatementList
+
+    // TODO : Implement
+    assert(false);
+    (this, 0)
+  }
+
 }
 
 /** OP_NOTIF(0x64) : Execute the statements following if top of stack is 0
   */
 case class OpNotIf() extends FlowControl {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
+    // never executed.
     assert(false);
   }
+
+  override def create(programCounter : Int, rawScript: Array[Byte], offset : Int): (ScriptOp, Int) = {
+    // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
+    // Create OpCond with invert = false, thenStatementList, elseStatementList
+
+    // TODO : Implement
+    assert(false);
+    (this, 0)
+  }
+
 }
 
 /**  OP_ELSE(0x67) : Execute only if the previous statements were not executed
   */
 case class OpElse() extends FlowControl {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
+    // never executed.
     assert(false);
   }
 }
@@ -43,7 +63,7 @@ case class OpElse() extends FlowControl {
   */
 case class OpEndIf() extends FlowControl {
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
+    // never executed.
     assert(false);
   }
 }

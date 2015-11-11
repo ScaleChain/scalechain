@@ -11,6 +11,9 @@ object ErrorCode {
   val InvalidTransaction = ErrorCode("invalid_transaction")
   val NotEnoughInput = ErrorCode("not_enough_input")
   val NotEnoughScriptData = ErrorCode("not_enough_script_data")
+
+  // Parse errors
+  val NoDataAfterCodeSparator = ErrorCode("no_data_after_code_separator")
 }
 
 case class ErrorCode(val code:String)
@@ -22,4 +25,8 @@ class FatalException(val code:ErrorCode) extends Exception {
 }
 
 class ScriptEvalException(val code:ErrorCode) extends Exception {
+}
+
+class ScriptParseException(val code:ErrorCode) extends Exception {
+
 }

@@ -26,11 +26,17 @@ trait ScriptOp {
    * This method is called while a raw script is parsed. After the script is parsed,
    * An instance of ScriptOp'subclass will have a ScriptValue field which has the copied data.
    *
+   * Also, OP_CODESEPARATOR overrides this method to get the programCounter parameter to store it
+   * in the script execution environment.
+   * The stored program counter will be used to find out the fence on the raw script
+   * for checking signature by OP_CHECKSIG and OP_CHECKMULTISIG.
+   *
+   * @param programCounter The offset of rawScript where the OP code of this operation exists.
    * @param rawScript The raw script before it is parsed.
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  def createWithInput(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+  def create(programCounter: Int, rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
     (this, 0)
   }
 
@@ -74,7 +80,7 @@ trait DisabledScriptOp {
  */
 trait InternalScriptOp {
   def execute(env : ScriptEnvironment) : Unit = {
-    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation)
+    // do nothing.
   }
 }
 
