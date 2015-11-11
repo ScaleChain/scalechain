@@ -19,6 +19,7 @@ Supported Features
 - All stack operations are supported.
 - All splice operations are supported.
 - All constant operations are supported.
+- All hash operations are supported.
 
 Customization
 =============
