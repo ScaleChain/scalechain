@@ -19,6 +19,7 @@ Supported Features
 - All stack operations are supported.
 - All splice operations are supported.
 - All constant operations are supported.
+- All hash operations are supported.
 
 Customization
 =============
@@ -35,7 +36,7 @@ case class OpLog() extends Arithmetic {
 
 Use Cases
 =========
-Private blockchains require customized script operations based on the Bitcoin script. ScalaChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
+Private blockchains require customized script operations based on the Bitcoin script. ScaleChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
 
 Planned release date
 ====================
