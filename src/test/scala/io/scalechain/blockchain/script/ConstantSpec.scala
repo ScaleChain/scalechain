@@ -77,7 +77,7 @@ class ConstantSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTr
 
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperation(inputValues, operation, expectation);
+      verifyOperation(inputValues, List(operation), expectation);
     }
   }
 

@@ -43,14 +43,14 @@ trait OperationTestTrait extends ShouldMatchers {
   /** Verify an operation without alt stack inputs and outputs.
    *
    * @param inputs initial values on the main stack.
-   * @param operation the operation to verify
+   * @param operations the list of operation to verify
    * @param expectation final values on the main stack or an error code.
    */
   protected def verifyOperation( inputs : Array[ScriptValue],
-                                 operation : ScriptOp,
+                                 operations : List[ScriptOp],
                                  expectation : AnyRef
                                  ) : Unit = {
-    verifyOperation(inputs, null, operation, expectation, null);
+    verifyOperation(inputs, null, operations, expectation, null);
   }
 
   /** Push an array of values on to a stack.
@@ -68,35 +68,43 @@ trait OperationTestTrait extends ShouldMatchers {
    *
    * @param mainStackInputs initial values on the main stack.
    * @param altStackInputs initial values on the alt stack.
-   * @param operation the operation to verify
+   * @param operations list of operations to verify
    * @param expectation final values on the main stack or an error code.
    * @param altStackOutputs final values on the alt stack.
    */
   protected def verifyOperation( mainStackInputs : Array[ScriptValue],
                                  altStackInputs : Array[ScriptValue],
-                                 operation : ScriptOp,
+                                 operations : List[ScriptOp],
                                  expectation : AnyRef,
                                  altStackOutputs : Array[ScriptValue]
                                ) : Unit = {
+    println (s"Testing with input ${mainStackInputs.mkString(",")}" )
+
     // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
     val env = new ScriptEnvironment()
+
 
     pushValues(env.stack, mainStackInputs)
 
     if (altStackInputs != null)
       pushValues(env.altStack, altStackInputs)
 
-    println (s"Testing with input ${mainStackInputs.mkString(",")}, operation : ${operation}" )
+    def executeOps() : Unit = {
+      for (op : ScriptOp <- operations) {
+        println (s"Executing operation : ${op}" )
+        op.execute(env)
+      }
+    }
 
     expectation match {
       case errorCode : ErrorCode => {
         val thrown = the[ScriptEvalException] thrownBy {
-          operation.execute(env)
+          executeOps()
         }
         thrown.code should be (errorCode)
       }
       case expectedOutputValues : Array[ScriptValue] => {
-        operation.execute(env)
+        executeOps()
 
         println ("expected values (main) :" + expectedOutputValues.mkString(","))
         if (altStackOutputs != null)
