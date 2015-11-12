@@ -218,7 +218,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait
 
   "operations" should "manipulate the stack correctly" in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperation(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, List(operation), expectation);
     }
   }
 
@@ -254,7 +254,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait
                                    operation : ScriptOp,
                                    expectation : AnyRef,
                                    altStackOutputs : Array[ScriptValue] )  =>
-      verifyOperation(mainStackInputs, altStackInputs, List(operation), expectation, altStackOutputs)
+      verifyOperationsWithAltStack(mainStackInputs, altStackInputs, List(operation), expectation, altStackOutputs)
     }
   }
 }

@@ -49,7 +49,7 @@ class SpliceSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrai
 
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperation(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, List(operation), expectation);
     }
   }
 }

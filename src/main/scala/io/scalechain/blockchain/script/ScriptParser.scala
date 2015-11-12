@@ -30,7 +30,7 @@ object ScriptParser {
         val scriptOpTemplate = scriptOpOption.get
         // A script operation can consume bytes in the script chunk.
         // Copy a chunk of bytes of
-        val (scriptOp, bytesCopied) = scriptOpTemplate.create(programCounter, rawScript, programCounter)
+        val (scriptOp, bytesCopied) = scriptOpTemplate.create(rawScript, programCounter)
         // Move the cursor to the next script operation we want to execute.
         operations.append(scriptOp)
         programCounter += bytesCopied

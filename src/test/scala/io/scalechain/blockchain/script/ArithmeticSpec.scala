@@ -188,7 +188,7 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with OperationTest
 
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperation(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, List(operation), expectation);
     }
   }
 
@@ -212,7 +212,7 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with OperationTest
 
   "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
     forAll(disabledOperations) { (operation : ScriptOp) =>
-      verifyOperation(stack(), List(operation), ErrorCode.DisabledScriptOperation);
+      verifyOperations(stack(), List(operation), ErrorCode.DisabledScriptOperation);
     }
   }
 

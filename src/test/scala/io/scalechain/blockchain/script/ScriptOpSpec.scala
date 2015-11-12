@@ -5,7 +5,7 @@ import org.scalatest._
 /** Test common super classes of script operations in ScriptOp.scala
   *
   */
-class ScriptOpSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class ScriptOpSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 

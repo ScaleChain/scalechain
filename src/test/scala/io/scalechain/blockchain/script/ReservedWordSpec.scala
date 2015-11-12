@@ -5,7 +5,7 @@ import org.scalatest._
 /** Test reserved word operations in ReservedWord.scala
   *
   */
-class ReservedWordSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class ReservedWordSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 

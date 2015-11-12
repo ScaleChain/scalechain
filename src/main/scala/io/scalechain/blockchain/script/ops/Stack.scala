@@ -13,6 +13,8 @@ trait StackOperation extends ScriptOp
   * After  : (alt)x1
   */
 case class OpToAltStack() extends StackOperation {
+  def opCode() = OpCode(0x6b)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1 ) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -29,6 +31,8 @@ case class OpToAltStack() extends StackOperation {
   * After  : x1
   */
 case class OpFromAltStack() extends StackOperation {
+  def opCode() = OpCode(0x6c)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.altStack.size() < 1 ) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -46,6 +50,8 @@ case class OpFromAltStack() extends StackOperation {
   * After  : x x   ( if x != 0 )
   */
 case class OpIfDup() extends StackOperation {
+  def opCode() = OpCode(0x73)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -62,6 +68,8 @@ case class OpIfDup() extends StackOperation {
   * After  : <stack size>
   */
 case class OpDepth() extends StackOperation {
+  def opCode() = OpCode(0x74)
+
   def execute(env : ScriptEnvironment): Unit = {
     val stackSize : Int = env.stack.size()
     env.stack.pushInt( BigInteger.valueOf(stackSize) )
@@ -73,6 +81,8 @@ case class OpDepth() extends StackOperation {
   * After  :
   */
 case class OpDrop() extends StackOperation {
+  def opCode() = OpCode(0x75)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -87,6 +97,8 @@ case class OpDrop() extends StackOperation {
   * After  : x x
   */
 case class OpDup() extends StackOperation {
+  def opCode() = OpCode(0x76)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -102,6 +114,8 @@ case class OpDup() extends StackOperation {
   * After  : x2
   */
 case class OpNip() extends StackOperation {
+  def opCode() = OpCode(0x77)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -118,6 +132,8 @@ case class OpNip() extends StackOperation {
   * After  : x1 x2 x1
   */
 case class OpOver() extends StackOperation {
+  def opCode() = OpCode(0x78)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -134,6 +150,8 @@ case class OpOver() extends StackOperation {
   * After  : xn ... x2 x1 x0 xn
   */
 case class OpPick() extends StackOperation {
+  def opCode() = OpCode(0x79)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -157,6 +175,8 @@ case class OpPick() extends StackOperation {
   * After  : ... x2 x1 x0 xn
   */
 case class OpRoll() extends StackOperation {
+  def opCode() = OpCode(0x7a)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -181,6 +201,8 @@ case class OpRoll() extends StackOperation {
   * After  : x2 x3 x1
   */
 case class OpRot() extends StackOperation {
+  def opCode() = OpCode(0x7b)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 3) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -200,6 +222,8 @@ case class OpRot() extends StackOperation {
   * After  : x2 x1
   */
 case class OpSwap() extends StackOperation {
+  def opCode() = OpCode(0x7c)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -218,6 +242,8 @@ case class OpSwap() extends StackOperation {
   * After  : s x2 x1 x2
   */
 case class OpTuck() extends StackOperation {
+  def opCode() = OpCode(0x7d)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -235,6 +261,8 @@ case class OpTuck() extends StackOperation {
   * After  :
   */
 case class Op2Drop() extends StackOperation {
+  def opCode() = OpCode(0x6d)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -250,6 +278,8 @@ case class Op2Drop() extends StackOperation {
   * After  : x1 x2 x1 x2
   */
 case class Op2Dup() extends StackOperation {
+  def opCode() = OpCode(0x6e)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 2) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -268,6 +298,8 @@ case class Op2Dup() extends StackOperation {
   * After  : x1 x2 x3 x1 x2 x3
   */
 case class Op3Dup() extends StackOperation {
+  def opCode() = OpCode(0x6f)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 3) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -288,6 +320,8 @@ case class Op3Dup() extends StackOperation {
   * After  : x1 x2 x3 x4 x1 x2
   */
 case class Op2Over() extends StackOperation {
+  def opCode() = OpCode(0x70)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 4) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -307,6 +341,8 @@ case class Op2Over() extends StackOperation {
   * After  : x3 x4 x5 x6 x1 x2
   */
 case class Op2Rot() extends StackOperation {
+  def opCode() = OpCode(0x71)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 6) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
@@ -328,6 +364,8 @@ case class Op2Rot() extends StackOperation {
   * After  : x3 x4 x1 x2
   */
 case class Op2Swap() extends StackOperation {
+  def opCode() = OpCode(0x72)
+
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 4) {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)

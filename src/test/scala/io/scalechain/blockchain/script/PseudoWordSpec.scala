@@ -5,7 +5,7 @@ import org.scalatest._
 /** Test pseudo word operations in PseudoWord.scala
   *
   */
-class PseudoWordSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class PseudoWordSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 

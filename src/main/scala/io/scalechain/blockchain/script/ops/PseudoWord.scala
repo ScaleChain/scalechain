@@ -5,11 +5,12 @@ import io.scalechain.blockchain.util.Utils
 
 trait PseudoWord extends ScriptOp
 
-
 /** OP_SMALLDATA(0xf9) : Represents small data field
  * Node : This operation is not listed in the Bitcoin Script wiki, but in Mastering Bitcoin book.
  */
 case class OpSmallData() extends PseudoWord with InternalScriptOp {
+  def opCode() = OpCode(0xf9)
+
   override def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
@@ -20,6 +21,8 @@ case class OpSmallData() extends PseudoWord with InternalScriptOp {
   * Node : This operation is not listed in the Bitcoin Script wiki, but in Mastering Bitcoin book.
   */
 case class OpSmallInteger() extends PseudoWord with InternalScriptOp {
+  def opCode() = OpCode(0xfa)
+
   override def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
@@ -31,6 +34,8 @@ case class OpSmallInteger() extends PseudoWord with InternalScriptOp {
 /** OP_PUBKEYHASH(0xfd) : Represents a public key hash field
   */
 case class OpPubKeyHash() extends PseudoWord with InternalScriptOp {
+  def opCode() = OpCode(0xfd)
+
   override def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
@@ -41,6 +46,8 @@ case class OpPubKeyHash() extends PseudoWord with InternalScriptOp {
 /** OP_PUBKEY(0xfe) : Represents a public key field
   */
 case class OpPubKey() extends PseudoWord with InternalScriptOp {
+  def opCode() = OpCode(0xfe)
+
   override def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
@@ -50,6 +57,8 @@ case class OpPubKey() extends PseudoWord with InternalScriptOp {
 /** OP_INVALIDOPCODE(0xff) : Represents any OP code not currently assigned
   */
 case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
+  def opCode() = OpCode(0xff)
+
   override def execute(env : ScriptEnvironment): Unit = {
     // TODO : Implement
     assert(false);
@@ -71,7 +80,7 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
  * 07 :     else-statement-list
  * 08 :   OP_ENDIF
  *                                  -> (3) OpIf().create returns OpCond with
- *                                            then-statement-list(05-08) and
+ *                                            then-statement-list(03-08) and
  *                                            else-statement-list(10)
  * 09 : OP_ELSE
  * 10 :   then-statement-list
@@ -87,7 +96,7 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
  *
  * The OpCond script operation will have three fields.
  *
- * 1. invert - true if the parser is producing OpCond while parsing OP_NOTIF, this is true.
+ * 1. invert - true if the parser is producing OpCond while parsing OP_NOTIF.
  * 2. then-statement-list
  * 3. else-statement-list
  *
@@ -104,6 +113,13 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
 case class OpCond(val invert : Boolean,
                   thenStatementList : ScriptOpList,
                   elseStatementList : ScriptOpList) extends PseudoWord with InternalScriptOp{
+  def opCode() = {
+    // We should never try to serialize OpCond, which is a temporary operation stays in memory.
+    // IOW, OpCond is implementation specific.
+    assert(false)
+    null
+  }
+
   override def execute(env : ScriptEnvironment) : Unit = {
     assert(thenStatementList != null)
     val top = env.stack.top()

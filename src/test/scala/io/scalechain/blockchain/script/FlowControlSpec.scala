@@ -26,6 +26,20 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
     //
   }
 
+  /*
+      (
+        stack(1),       // input stack.
+        // list of operations to execute.
+        List(OpIf(),
+               OpNum(4),
+               OpIf(),
+                 OpNum(8),
+               OpEndIf(),
+             OpEndIf()),
+        stack(8) // (expected) output stack.
+      ),
+*/
+
   /** Parsing flow control statements.
    * The test input has OP_IF, OP_NOTIF, OP_ELSE, OP_ENDIF, and output has OpCond.
    * We need to implement script operation serialization to test the parsing part,
@@ -85,7 +99,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpNum(5, OpElse(), OpNum(8), OpNum(9), OpEndIf()),
+        List(OpIf(), OpNum(4), OpNum(5), OpElse(), OpNum(8), OpNum(9), OpEndIf()),
         stack(4, 5)       // (expected) output stack.
       ),
       // if false multi-stmts-1 else multi-stmts-2 end
@@ -96,7 +110,14 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
         stack(8, 9)
       ) // (expected) output stack.
     )
+
+  "ifOperationsForParser" should "serialize and parse and execute." in {
+    forAll(ifOperationsForParser) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+      verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
+    }
+  }
 */
+
   /**
    * Evaluating flow control statements. The test case may contain pseudo operations.
    * Ex> OpCond ; converted from OP_IF, OP_NOTIF, OP_ELSE, OP_ENDIF.
@@ -232,7 +253,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
 
   "ifOperations" should "run and push expected value on the stack." in {
     forAll(ifOperations) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
-      verifyOperation(inputValues, operations, expectation);
+      verifyOperations(inputValues, operations, expectation);
     }
   }
 }

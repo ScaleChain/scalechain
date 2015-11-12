@@ -5,7 +5,19 @@ import java.math.BigInteger
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 
+import scala.collection.mutable.ArrayBuffer
+
+/** The OP code of an operation.
+ *
+ * @param code The OP code.
+ */
+case class OpCode(code : Short) {
+  assert(code < 255)
+}
+
 trait ScriptOp {
+  def opCode() : OpCode
+
  /** Execute the script operation using the given script execution environment.
    *
    * @param env The script execution environment.
@@ -26,18 +38,38 @@ trait ScriptOp {
    * This method is called while a raw script is parsed. After the script is parsed,
    * An instance of ScriptOp'subclass will have a ScriptValue field which has the copied data.
    *
-   * Also, OP_CODESEPARATOR overrides this method to get the programCounter parameter to store it
+   * Also, OP_CODESEPARATOR overrides this method to get the offset(=programCounter) parameter to store it
    * in the script execution environment.
    * The stored program counter will be used to find out the fence on the raw script
    * for checking signature by OP_CHECKSIG and OP_CHECKMULTISIG.
    *
-   * @param programCounter The offset of rawScript where the OP code of this operation exists.
    * @param rawScript The raw script before it is parsed.
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  def create(programCounter: Int, rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+  def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
     (this, 0)
+  }
+
+  /**
+   * Calculate an OP code from a base OP code and an index.
+   * Ex> OpPush, 1-75(0x01-0x4b), returns 1 for OpPush(1), and OpPush has the baseOpCode 0.
+   * @param baseOpCode The base OP code where the index is added to calculate the OP code.
+   * @param index The index from the base OP code.
+   * @return The calculated OP code.
+   */
+  protected def opCodeFromBase(baseOpCode: Int, index : Int) : OpCode = {
+    val result = baseOpCode + index
+
+    OpCode(result.toShort)
+  }
+
+  /** Serialize the script operation into an array buffer.
+   *
+   * @param buffer The array buffer where the script is serialized.
+   */
+  def serialize(buffer: ArrayBuffer[Byte]): Unit = {
+    buffer.append(opCode().code.toByte)
   }
 
   def unaryOperation(env : ScriptEnvironment, mutate : (ScriptValue) => (ScriptValue) ): Unit = {

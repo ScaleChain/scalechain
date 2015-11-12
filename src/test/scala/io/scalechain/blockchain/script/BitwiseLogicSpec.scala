@@ -51,7 +51,7 @@ class BitwiseLogicSpec extends FlatSpec with BeforeAndAfterEach with OperationTe
 
   "operations" should "run and push expected value on the stack." in {
     forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperation(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, List(operation), expectation);
     }
   }
 
@@ -67,7 +67,7 @@ class BitwiseLogicSpec extends FlatSpec with BeforeAndAfterEach with OperationTe
 
   "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
     forAll(disabledOperations) { (operation: ScriptOp) =>
-      verifyOperation(stack(), List(operation), ErrorCode.DisabledScriptOperation);
+      verifyOperations(stack(), List(operation), ErrorCode.DisabledScriptOperation);
     }
   }
 }

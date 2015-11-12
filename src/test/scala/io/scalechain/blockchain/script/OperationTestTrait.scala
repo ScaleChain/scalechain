@@ -46,11 +46,12 @@ trait OperationTestTrait extends ShouldMatchers {
    * @param operations the list of operation to verify
    * @param expectation final values on the main stack or an error code.
    */
-  protected def verifyOperation( inputs : Array[ScriptValue],
+  protected def verifyOperations( inputs : Array[ScriptValue],
                                  operations : List[ScriptOp],
-                                 expectation : AnyRef
+                                 expectation : AnyRef,
+                                 serializeAndExecute : Boolean = false
                                  ) : Unit = {
-    verifyOperation(inputs, null, operations, expectation, null);
+    verifyOperationsWithAltStack(inputs, null, operations, expectation, null, serializeAndExecute);
   }
 
   /** Push an array of values on to a stack.
@@ -72,12 +73,14 @@ trait OperationTestTrait extends ShouldMatchers {
    * @param expectation final values on the main stack or an error code.
    * @param altStackOutputs final values on the alt stack.
    */
-  protected def verifyOperation( mainStackInputs : Array[ScriptValue],
-                                 altStackInputs : Array[ScriptValue],
-                                 operations : List[ScriptOp],
-                                 expectation : AnyRef,
-                                 altStackOutputs : Array[ScriptValue]
-                               ) : Unit = {
+  protected def verifyOperationsWithAltStack(
+                  mainStackInputs : Array[ScriptValue],
+                  altStackInputs : Array[ScriptValue],
+                  operations : List[ScriptOp],
+                  expectation : AnyRef,
+                  altStackOutputs : Array[ScriptValue],
+                  serializeAndExecute : Boolean = false
+                ) : Unit = {
     println (s"Testing with input ${mainStackInputs.mkString(",")}" )
 
     // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
@@ -90,7 +93,16 @@ trait OperationTestTrait extends ShouldMatchers {
       pushValues(env.altStack, altStackInputs)
 
     def executeOps() : Unit = {
-      for (op : ScriptOp <- operations) {
+
+      val operationsToExecute =
+        if (serializeAndExecute) {
+          val serializedOperations = ScriptSerializer.serialize(operations)
+          ScriptParser.parse(serializedOperations, 0).operations
+        } else {
+          operations
+        }
+
+      for (op : ScriptOp <- operationsToExecute) {
         println (s"Executing operation : ${op}" )
         op.execute(env)
       }
