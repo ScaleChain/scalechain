@@ -107,6 +107,13 @@ trait DisabledScriptOp {
   }
 }
 
+/**
+ * Just for checking if an operation does not support opCode() method.
+ */
+trait ScriptOpWithoutCode extends ScriptOp {
+
+}
+
 /** The script operations are only for internal script execution engine.
  *
  */

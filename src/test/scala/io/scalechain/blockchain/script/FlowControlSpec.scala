@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ScriptParseException
 import io.scalechain.blockchain.script.ops._
 import org.scalatest._
 import org.scalatest.prop.TableDrivenPropertyChecks._
@@ -26,26 +27,282 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
     //
   }
 
-  /*
+  val invalidIfStatements =
+    Table(
+      // column names
+      ("inputValues","operation", "expectedOutputValue"),
+      // test cases with input value, script operation, output value
+      // The input value is pushed on to the script execution stack from left to right.
+
+      /////////////////////////////////////////////////////////////////////////////
+      // An if statement is nested on the then-statement-list part.
+      /////////////////////////////////////////////////////////////////////////////
+      // if true
+      //
+      // <missing end if>
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(),
-               OpNum(4),
-               OpIf(),
-                 OpNum(8),
-               OpEndIf(),
-             OpEndIf()),
-        stack(8) // (expected) output stack.
+        List(
+          OpIf(),
+            Op1()
+          // OpEndIf() is missing.
+        ),
+        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
       ),
-*/
+
+      // if false
+      //
+      // <missing end if>
+      (
+        stack(0),       // input stack.
+        // list of operations to execute.
+        List(
+          OpIf(),
+            Op1()
+          // OpEndIf() is missing.
+        ),
+        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+      ),
+
+
+      // if true
+      // else
+      // <missing end if>
+      (
+        stack(1),       // input stack.
+        // list of operations to execute.
+        List(
+          OpIf(),
+            Op1(),
+          OpElse(),
+            OpNum(2)
+          // OpEndIf() is missing.
+        ),
+        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+      ),
+
+      // if false
+      // else
+      // <missing end if>
+      (
+        stack(0),       // input stack.
+        // list of operations to execute.
+        List(
+          OpIf(),
+            Op1(),
+          OpElse(),
+            OpNum(2)
+          // OpEndIf() is missing.
+        ),
+        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+      )
+    )
+
+  "invalidIfStatements" should "should throw an exception." in {
+    forAll(invalidIfStatements) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+      verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
+    }
+  }
+
+
+  val nestedIfStatements =
+      Table(
+        // column names
+        ("inputValues","operation", "expectedOutputValue"),
+        // test cases with input value, script operation, output value
+        // The input value is pushed on to the script execution stack from left to right.
+
+        /////////////////////////////////////////////////////////////////////////////
+        // An if statement is nested on the then-statement-list part.
+        /////////////////////////////////////////////////////////////////////////////
+        // if true
+        //   if true
+        //   endif
+        // endif
+        (
+          stack(1),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              Op1(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack(8) // (expected) output stack.
+        ),
+
+        // if false
+        //   if true
+        //   endif
+        // endif
+        (
+          stack(0),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              Op1(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack() // (expected) output stack.
+        ),
+
+        // if true
+        //   if false
+        //   endif
+        // endif
+        (
+          stack(1),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              Op0(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack(9) // (expected) output stack.
+        ),
+
+        // if false
+        //   if false
+        //   endif
+        // endif
+        (
+          stack(0),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              Op0(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack() // (expected) output stack.
+        ),
+
+        /////////////////////////////////////////////////////////////////////////////
+        // An if statement is nested on the else-statement-list part.
+        /////////////////////////////////////////////////////////////////////////////
+
+        // if true
+        // else
+        //   if true
+        //   endif
+        // endif
+        (
+          stack(1),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              OpNum(4),
+            OpElse(),
+              Op1(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack(4) // (expected) output stack.
+        ),
+
+        // if false
+        // else
+        //   if true
+        //   endif
+        // endif
+        (
+          stack(0),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              OpNum(4),
+            OpElse(),
+              Op1(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack() // (expected) output stack.
+        ),
+
+        // if true
+        // else
+        //   if false
+        //   endif
+        // endif
+        (
+          stack(1),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              OpNum(4),
+            OpElse(),
+              Op0(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack(4) // (expected) output stack.
+        ),
+
+        // if false
+        // else
+        //   if false
+        //   endif
+        // endif
+        (
+          stack(0),       // input stack.
+          // list of operations to execute.
+          List(
+            OpIf(),
+              OpNum(4),
+            OpElse(),
+              Op0(),
+              OpIf(),
+                OpNum(8),
+              OpElse(),
+                OpNum(9),
+              OpEndIf(),
+            OpEndIf()),
+          stack() // (expected) output stack.
+        )
+      )
+
+  "nestedIfStatements" should "serialize and parse and execute." in {
+    forAll(nestedIfStatements) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+      verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
+    }
+  }
+
+  /** BUGBUG : Need to test if zero, negative zero, empty array are all evaluated to false.
+   * Why? "False is zero or negative zero (using any number of bytes) or an empty array, and True is anything else."
+   *
+   * See https://en.bitcoin.it/wiki/Script
+   */
 
   /** Parsing flow control statements.
    * The test input has OP_IF, OP_NOTIF, OP_ELSE, OP_ENDIF, and output has OpCond.
    * We need to implement script operation serialization to test the parsing part,
    * as the input of parser is a byte array, not a list of script operations.
    */
-/*
+
   val ifOperationsForParser =
     Table(
       // column names
@@ -116,7 +373,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
   }
-*/
+
 
   /**
    * Evaluating flow control statements. The test case may contain pseudo operations.

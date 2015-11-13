@@ -66,7 +66,8 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
 }
 
 /** OpCond is a Pseudo Script Operation, which is created by the parser internally.
- * Users of the script language can't create it.
+ * Users of the script language can't create it. So it does not have any OP code.
+ * The class also is declared with ScriptOpWithoutCode, to allow the parser to check if it can get an OP code or not.
  *
  * The following code snippet is a sample program with nested if statements.
  *
@@ -112,7 +113,8 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
  */
 case class OpCond(val invert : Boolean,
                   thenStatementList : ScriptOpList,
-                  elseStatementList : ScriptOpList) extends PseudoWord with InternalScriptOp{
+                  elseStatementList : ScriptOpList) extends PseudoWord with InternalScriptOp with ScriptOpWithoutCode {
+
   def opCode() = {
     // We should never try to serialize OpCond, which is a temporary operation stays in memory.
     // IOW, OpCond is implementation specific.

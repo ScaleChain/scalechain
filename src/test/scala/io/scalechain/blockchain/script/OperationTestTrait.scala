@@ -2,7 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
-import io.scalechain.blockchain.{ScriptEvalException, ErrorCode}
+import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode}
 import io.scalechain.blockchain.script.ops.ScriptOp
 import io.scalechain.blockchain.util.Utils
 import org.scalatest.{Suite, ShouldMatchers}
@@ -96,8 +96,10 @@ trait OperationTestTrait extends ShouldMatchers {
 
       val operationsToExecute =
         if (serializeAndExecute) {
+          // Serialze and parse the serialized byte array to get the pseudo operations such as OpCond,
+          // which is generated from OP_IF/OP_NOTIF, OP_ELSE, OP_ENDIF during parsing.
           val serializedOperations = ScriptSerializer.serialize(operations)
-          ScriptParser.parse(serializedOperations, 0).operations
+          ScriptParser.parse(serializedOperations).operations
         } else {
           operations
         }
@@ -109,6 +111,13 @@ trait OperationTestTrait extends ShouldMatchers {
     }
 
     expectation match {
+      case exception : ScriptParseException => {
+        val thrown = the[ScriptParseException] thrownBy {
+          executeOps()
+        }
+        thrown.code should be (exception.code)
+      }
+      // BUGBUG :  Get rid of this pattern, change all test case to use the above pattern.
       case errorCode : ErrorCode => {
         val thrown = the[ScriptEvalException] thrownBy {
           executeOps()
