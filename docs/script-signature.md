@@ -11,6 +11,9 @@ http://arstechnica.com/security/2013/10/a-relatively-easy-to-understand-primer-o
 # How digital signature works
 http://www.developer.com/java/ent/article.php/3092771/How-Digital-Signatures-Work-Digitally-Signing-Messages.htm
 
+# How OP_CHECKSIG works
+https://en.bitcoin.it/wiki/OP_CHECKSIG
+
 # Data Encoding
 ## Signature : ASN.1/DER
 Signatures are encoded using ASN.1/DER inside the Bitcoin protocol(source : BitcoinJ)
