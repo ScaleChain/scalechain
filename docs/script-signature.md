@@ -5,7 +5,10 @@ Ex> OP_ADD; pop two int values from the stack, push an int value that sums up th
 But the OP_CHECKSIG and OP_CHECKMULTISIG is not as simple as OP_ADD.
 We will investigate how OP_CHECKSIG and OP_CHECKMULTISIG works before implementing them.
 
-# How Digital Signature works
+# How elliptic curve cryptography works
+http://arstechnica.com/security/2013/10/a-relatively-easy-to-understand-primer-on-elliptic-curve-cryptography/
+
+# How digital signature works
 http://www.developer.com/java/ent/article.php/3092771/How-Digital-Signatures-Work-Digitally-Signing-Messages.htm
 
 # Data Encoding
