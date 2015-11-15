@@ -418,7 +418,3 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
 OP_CHECKMUILTISIG is basically looping for each (signature, public key) pair and calling 
 common functions used by OP_CHECKSIG, so this should not be hard to implement. 
 
-# Reference
-
-## Digital Document Signing in Java-Based Web Applications
-http://www.developer.com/java/web/article.php/3083161/Digital-Document-Signing-in-Java-Based-Web-Applications.htm
