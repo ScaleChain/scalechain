@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.script.ops
 
+import io.scalechain.blockchain.util.ECKey.ECDSASignature
+import io.scalechain.blockchain.util.{ECKey, Utils}
 import io.scalechain.blockchain.{ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 import io.scalechain.util.Hash
@@ -116,46 +118,130 @@ case class OpCodeSparator(sigCheckOffset : Int = 0) extends Crypto {
 
 }
 
+trait CheckSig extends Crypto {
+  def getScriptForCheckSig(rawScript:Array[Byte], startOffset:Int) : Array[Byte] = {
+    // TODO : Implement
+    assert(false);
+    null
+  }
+
+  def checkSig(rawScript : Array[Byte], env : ScriptEnvironment): Unit = {
+    assert(rawScript != null)
+    assert(env.transaction != null)
+    assert(env.transactionInputIndex.isDefined)
+
+    val publicKey = env.stack.pop()
+    val rawSigature = env.stack.pop()
+
+    // Check if the signature format is valid.
+    // BUGBUG : See if we always have to check the signature format.
+    if (!ECDSASignature.isEncodingCanonical(rawSigature.value)) {
+      throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat)
+    }
+
+    val howToHash : Int = rawSigature.value.last
+
+    val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSigature.value)
+
+    val scriptData : Array[Byte] = getScriptForCheckSig(rawScript, env.getSigCheckOffset )
+
+    val hashOfInput : Array[Byte] = env.transaction.hashForSignature(env.transactionInputIndex.get, scriptData, howToHash)
+
+    if (ECKey.verify(hashOfInput, signature, publicKey.value)) {
+      super.pushTrue(env)
+    } else {
+      super.pushFalse(env)
+    }
+  }
+
+  def checkMultiSig(rawScript : Array[Byte], env : ScriptEnvironment): Unit = {
+    assert(rawScript != null)
+    assert(env.transaction != null)
+    assert(env.transactionInputIndex.isDefined)
+
+    // TODO : Implement
+    assert(false);
+
+    // TODO : Implement it
+    assert(false);
+  }
+}
+
 /** OP_CHECKSIG(0xac) : Pop a public key and signature and validate the signature for the transaction’s hashed data, return TRUE if matching
+  * Before : <signature> <public key>
+  * After  : (1) 1 if the signature is correct.
+  *          (2) an empty array if the signature is not correct.
+  * Additional input :
+  * Followings are additional input values for calculate hash value.
+  * With this hash value and the public key, we can verify if the signature is valid.
+  *   1. Transaction ( The transaction we are verifying )
+  *   2. Transaction input index ( which has an UTXO )
+  *   3. A part of script byte array.
+  *   3.1 For calulating hash, we use the byte values after the OP_CODESEPARATOR only.
+  *   3.2 Also need to remove signature data if exists.
+  *   3.3 Also need to remove OP_CODESEPARATOR operation if exists. ( Need more investigation )
   */
-case class OpCheckSig() extends Crypto {
+case class OpCheckSig(val rawScript : Array[Byte] = null) extends CheckSig {
   def opCode() = OpCode(0xac)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    assert(rawScript != null)
+
+    super.checkSig(rawScript, env)
+  }
+
+  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    (OpCheckSig(rawScript), 0)
   }
 }
 
 /** OP_CHECKSIGVERIFY(0xad) : Same as CHECKSIG, then OP_VERIFY to halt if not TRUE
   */
-case class OpCheckSigVerify() extends Crypto {
-  def opCode() = OpCode(0xad)
+case class OpCheckSigVerify(val rawScript : Array[Byte] = null) extends CheckSig {
+  override def opCode() = OpCode(0xad)
 
-  def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+  override def execute(env : ScriptEnvironment): Unit = {
+    assert(rawScript != null)
+
+    super.checkSig(rawScript, env)
+    super.verify(env)
   }
+
+  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    (OpCheckSigVerify(rawScript), 0)
+  }
+
 }
 
 /** OP_CHECKMULTISIG(0xae) : Run CHECKSIG for each pair of signature and public key provided. All must match. Bug in implementation pops an extra value, prefix with OP_NOP as workaround
   */
-case class OpCheckMultiSig() extends Crypto {
+case class OpCheckMultiSig(val rawScript : Array[Byte] = null) extends CheckSig {
   def opCode() = OpCode(0xae)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    assert(rawScript != null)
+
+    super.checkMultiSig(rawScript, env)
   }
+
+  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    (OpCheckMultiSig(rawScript), 0)
+  }
+
 }
 
 /** OP_CHECKMULTISIGVERIFY(0xaf) : Same as CHECKMULTISIG, then OP_VERIFY to halt if not TRUE
   */
-case class OpCheckMultiSigVerify() extends Crypto {
-  def opCode() = OpCode(0xaf)
+case class OpCheckMultiSigVerify(val rawScript : Array[Byte] = null) extends CheckSig {
+  override def opCode() = OpCode(0xaf)
+  override def execute(env : ScriptEnvironment): Unit = {
+    assert(rawScript != null)
 
-  def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    super.checkMultiSig(rawScript, env)
+    super.verify(env)
+  }
+
+  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+    (OpCheckMultiSigVerify(rawScript), 0)
   }
 }

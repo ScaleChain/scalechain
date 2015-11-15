@@ -463,8 +463,35 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
 
 ```
 
-# OP_CHECKMUILTISIG
+# OP_CHECKMUILTISIG (Bitcoin Core)
 
 OP_CHECKMUILTISIG is basically looping for each (signature, public key) pair and calling 
 common functions used by OP_CHECKSIG, so this should not be hard to implement. 
 
+# Test Cases
+## P2PKH
+Following test cases are from actual transaction data dumped using DumpChain util.
+To run it, you can run the following script.
+```
+dump-txs.sh
+```
+
+We will use the second transaction of the following block. The timestamp of the block, 1444341590 indicates it was created at 2015-10-09 06:59:50.
+```
+bh:BlockHeader(version:3, BlockHash(size:32, 25 77 2f e4 8a 91 1e 64 d2 9f ae 08 1b 8c 6e d2 c5 f9 d1 a1 70 dd 62 04 00 00 00 00 00 00 00 00), MerkleRootHash(size:32, a8 8e 9d a9 fe 0c a2 82 86 3e b1 b4 45 7a c3 5e cc c0 3a 25 0a 4a d1 db 6e 19 7b 69 9e 8e 21 df), Timestamp(1444341590), target:403838066, nonce:-109641929)
+tx:Transaction(version:1, [GenerationTransactionInput(TransactionHash(size:32, 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00), outputIndex:-1, CoinbaseData(size:84, 03 c1 c4 05 09 42 69 74 4d 69 6e 74 65 72 06 2f 50 32 53 48 2f 2c fa be 6d 6d 21 45 44 36 d0 54 a1 67 15 dd e6 cb bf 74 ac 41 4a 22 1b 9c c1 9a 6a b8 b4 86 c5 da 67 7c 14 16 01 00 00 00 00 00 00 00 09 75 73 32 3f fa 00 00 00 05 00 69 44 27 1d 3f 02 00), sequenceNumber:-1)], [TransactionOutput(value : 2518427057, LockingScript(size:25, ScriptOpList(ops:OpDup(),OpHash160(),OpPush(20,ScriptBytes{5c0e4a6830ff6ea9aea773d75bc207299cd50b74}),OpEqualVerify(),OpCheckSig([B@c6f9afb))))], lockTime:0)
+tx:Transaction(version:1, [NormalTransactionInput(TransactionHash(size:32, 50 8f 85 39 cb a4 38 4e 9a de 1e 3b e8 b0 86 72 40 06 b3 b7 87 5a 7d 09 08 d3 0d 2d 63 14 1f 6b), outputIndex:0, UnlockingScript(size:140, ScriptOpList(ops:OpPush(73,ScriptBytes{3046022100eaf0618d2c164529b60c113f8bafc4fd6584f6350666a66a43bfb81263674bc10221009ba634faa2a0a9e4367dd23fa6efabfbd45952b105befecaf6454b766812d49401}),OpPush(65,ScriptBytes{040818a9ac5b0b3d793ecccac6e8f03ef3f6753cea4d9e463fff2289f2041cdb8ac604e8fd8033ef29bea21870f2ee407cdd45cc7cc3e093ddb0a7d26662846a14}))), sequenceNumber:-1)], [TransactionOutput(value : 33761500000, LockingScript(size:25, ScriptOpList(ops:OpDup(),OpHash160(),OpPush(20,ScriptBytes{7f2151902b227372c6ec5acfad76e4b0b1e3ba45}),OpEqualVerify(),OpCheckSig([B@1935fb8c)))),TransactionOutput(value : 16182000000, LockingScript(size:25, ScriptOpList(ops:OpDup(),OpHash160(),OpPush(20,ScriptBytes{d9eb0011f29a1c40baef4c5b6497f8fe32d79dbe}),OpEqualVerify(),OpCheckSig([B@78a07aa4))))], lockTime:0)
+```
+
+The transaction input of the 2nd transaction of the block is as follows.
+
+* Transaction hash : 50 8f 85 39 cb a4 38 4e 9a de 1e 3b e8 b0 86 72 40 06 b3 b7 87 5a 7d 09 08 d3 0d 2d 63 14 1f 6b
+* Output index : 0
+
+The unlocking script of the given transaction input is as follows.
+```
+# This should be the signature.
+OpPush(73,ScriptBytes{3046022100eaf0618d2c164529b60c113f8bafc4fd6584f6350666a66a43bfb81263674bc10221009ba634faa2a0a9e4367dd23fa6efabfbd45952b105befecaf6454b766812d49401})
+# This should be a compressed public key.
+OpPush(65,ScriptBytes{040818a9ac5b0b3d793ecccac6e8f03ef3f6753cea4d9e463fff2289f2041cdb8ac604e8fd8033ef29bea21870f2ee407cdd45cc7cc3e093ddb0a7d26662846a14})
+```

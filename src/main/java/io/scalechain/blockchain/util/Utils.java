@@ -5,6 +5,7 @@ import io.scalechain.blockchain.ScriptEvalException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 
 /**
@@ -31,6 +32,39 @@ public class Utils {
                 ((stream.read() & 0xFFL) << 48) |
                 ((stream.read() & 0xFFL) << 56);
     }
+
+    public static void uint32ToByteStreamLE(long val, OutputStream stream) throws IOException {
+        stream.write((int) (0xFF & val));
+        stream.write((int) (0xFF & (val >> 8)));
+        stream.write((int) (0xFF & (val >> 16)));
+        stream.write((int) (0xFF & (val >> 24)));
+    }
+
+    public static void int64ToByteStreamLE(long val, OutputStream stream) throws IOException {
+        stream.write((int) (0xFF & val));
+        stream.write((int) (0xFF & (val >> 8)));
+        stream.write((int) (0xFF & (val >> 16)));
+        stream.write((int) (0xFF & (val >> 24)));
+        stream.write((int) (0xFF & (val >> 32)));
+        stream.write((int) (0xFF & (val >> 40)));
+        stream.write((int) (0xFF & (val >> 48)));
+        stream.write((int) (0xFF & (val >> 56)));
+    }
+
+    /**
+     * Returns the minimum encoded size of the given unsigned long value.
+     *
+     * @param value the unsigned long value (beware widening conversion of negatives!)
+     */
+    public static int sizeOf(long value) {
+        // if negative, it's actually a very large unsigned long value
+        if (value < 0) return 9; // 1 marker + 8 data bytes
+        if (value < 253) return 1; // 1 data byte
+        if (value <= 0xFFFFL) return 3; // 1 marker + 2 data bytes
+        if (value <= 0xFFFFFFFFL) return 5; // 1 marker + 4 data bytes
+        return 9; // 1 marker + 8 data bytes
+    }
+
 
     public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)

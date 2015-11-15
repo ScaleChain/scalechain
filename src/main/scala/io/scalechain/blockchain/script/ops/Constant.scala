@@ -15,7 +15,7 @@ case class Op0() extends Constant {
   def opCode() = OpCode(0x00)
 
   def execute(env : ScriptEnvironment): Unit = {
-    env.stack.push(ScriptValue.valueOf(Array[Byte]()))
+    super.pushFalse(env)
   }
 }
 
@@ -89,11 +89,15 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
     var result = 0L
 
     if (length ==1) {
-      result = rawScript(offset).toLong
+      result = (rawScript(offset) & 0xFF).toLong
     } else if (length == 2) {
-      result = rawScript(offset).toLong + (rawScript(offset+1).toLong << 8)
+      result = (rawScript(offset) & 0xFF).toLong +
+               ((rawScript(offset+1) & 0xFF).toLong << 8)
     } else if (length == 4) {
-      result = rawScript(offset).toLong + (rawScript(offset+1).toLong << 8) + (rawScript(offset+1).toLong << 16) + (rawScript(offset+1).toLong << 24)
+      result = (rawScript(offset) & 0xFF).toLong +
+               ((rawScript(offset+1) & 0xFF).toLong << 8) +
+               ((rawScript(offset+1) & 0xFF).toLong << 16) +
+               ((rawScript(offset+1) & 0xFF).toLong << 24)
     } else {
       assert(false);
     }
@@ -118,7 +122,7 @@ case class Op1() extends Constant {
   def opCode() = OpCode(0x51)
 
   def execute(env : ScriptEnvironment): Unit = {
-    env.stack.pushInt( BigInteger.valueOf(1))
+    super.pushTrue(env)
   }
 }
 

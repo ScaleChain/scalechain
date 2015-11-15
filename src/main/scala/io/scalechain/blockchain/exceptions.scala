@@ -15,6 +15,7 @@ object ErrorCode {
   // Parse errors
   val NoDataAfterCodeSparator = ErrorCode("no_data_after_code_separator")
   val UnexpectedEndOfScript = ErrorCode("unexpected_end_of_script")
+  val InvalidSignatureFormat= ErrorCode("invalid_signature_format")
 }
 
 case class ErrorCode(val code:String)

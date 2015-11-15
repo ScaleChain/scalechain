@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script
 
+import io.scalechain.blockchain.block.Transaction
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode}
 
@@ -213,13 +214,18 @@ object ScriptOperations {
    * @param opCode The op code of a script word.
    * @return
    */
-  def get(opCode : Byte) : Option[ScriptOp] = {
+  def get(opCode : Short) : Option[ScriptOp] = {
     val scriptOp = SCRIPT_OPS.get(opCode)
     scriptOp
   }
 }
 
-class ScriptEnvironment() {
+class ScriptEnvironment(val transaction : Transaction, val transactionInputIndex : Option[Int]) {
+  /** Alternative constructor : pass null for transaction and tranasctionInput.
+   * These two parameters are necessary only for OP_CHECKSIG, OP_CHECKSIGVERIFY, OP_CHECKMULTISIG, OP_CHECKMULTISIGVERIFY.
+   */
+  def this() = this(null, null)
+
   // BUGBUG : if OP_CHECKSIG or OP_CHECKMULTISIG runs without OP_CODESEPARATOR,
   //          can we keep signatureOffset as zero?
   // The offset in the raw script where the data for checking signature starts.
@@ -231,10 +237,18 @@ class ScriptEnvironment() {
    */
   def setSigCheckOffset(offset : Int) : Unit = sigCheckOffset = offset
 
+  /** Get the offset of raw script where the data for checking signature starts.
+    *
+    * @return The offset.
+    */
+  def getSigCheckOffset() : Int = sigCheckOffset
+
   val stack = new ScriptStack()
   // The altStack is necessary to support OP_TOALTSTACK and OP_FROMALTSTACK,
   // which moves items on top of the stack and the alternative stack.
   val altStack = new ScriptStack()
+
+
 }
 
 /**

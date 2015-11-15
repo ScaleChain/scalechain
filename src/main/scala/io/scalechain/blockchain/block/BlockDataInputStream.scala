@@ -26,21 +26,23 @@ class BlockDataInputStream(stream : InputStream) extends DataInputStream(stream)
 
   /*
     Original code from Mike Hearn's BitcoinJ.
-    core/src/main/java/org/bitcoinj/core/Utils.java
+    core/src/main/java/org/bitcoinj/core/VarInt.java
+    public VarInt(byte[] buf, int offset) {
 
-    int first = 0xFF & buf[offset];
-    if (first < 253) {
-      value = first;
-      originallyEncodedSize = 1; // 1 data byte (8 bits)
-    } else if (first == 253) {
-      value = (0xFF & buf[offset + 1]) | ((0xFF & buf[offset + 2]) << 8);
-      originallyEncodedSize = 3; // 1 marker + 2 data bytes (16 bits)
-    } else if (first == 254) {
-      value = Utils.readUint32(buf, offset + 1);
-      originallyEncodedSize = 5; // 1 marker + 4 data bytes (32 bits)
-    } else {
-      value = Utils.readInt64(buf, offset + 1);
-      originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+      int first = 0xFF & buf[offset];
+      if (first < 253) {
+        value = first;
+        originallyEncodedSize = 1; // 1 data byte (8 bits)
+      } else if (first == 253) {
+        value = (0xFF & buf[offset + 1]) | ((0xFF & buf[offset + 2]) << 8);
+        originallyEncodedSize = 3; // 1 marker + 2 data bytes (16 bits)
+      } else if (first == 254) {
+        value = Utils.readUint32(buf, offset + 1);
+        originallyEncodedSize = 5; // 1 marker + 4 data bytes (32 bits)
+      } else {
+        value = Utils.readInt64(buf, offset + 1);
+        originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+      }
     }
 */
 

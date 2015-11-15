@@ -2,11 +2,18 @@ package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.script.ops.{ScriptOpWithoutCode, OpCond, ScriptOp}
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException, ScriptParseException}
+import io.scalechain.util.HexUtil
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
 
 
-case class ScriptOpList(val operations : List[ScriptOp])
+case class ScriptOpList(val operations : List[ScriptOp]) {
+  override def toString(): String = {
+    s"ScriptOpList(ops:${operations.mkString(",")})"
+  }
+}
+
 
 /** The parse result returned by parseUntil method.
  *
@@ -22,6 +29,8 @@ case class ParseResult(scriptOpList : ScriptOpList, foundFenceOp : ScriptOp, byt
  * @param rawScript The raw bytes of script that we did not parse yet.
  */
 object ScriptParser {
+  val logger = LoggerFactory.getLogger(ScriptParser.getClass)
+
   /** Parse a given raw script in a byte array to get the list of ScriptOp(s)
    *
    * @param rawScript The input script.
@@ -64,7 +73,7 @@ object ScriptParser {
     while ( (programCounter < rawScript.length) && // Loop until we meet the end of script and
             fenceOpOption.isEmpty) {               // we did not meet any fence operation.
       // Read the script op code
-      val opCode = rawScript(programCounter)
+      val opCode = (rawScript(programCounter) & 0xFF).toShort
       // Move the cursor forward
       programCounter += 1
 
@@ -91,6 +100,12 @@ object ScriptParser {
 
         programCounter += bytesConsumed
       } else {
+        // Encountered an invalid OP code. This could be an attack, so dump the raw script onto log.
+        logger.warn("InvalidScriptOperation. " +
+                    "code : ${HexUtil.prettyHex(Array(opCode.toByte))}" +
+                    "programCounter : $programCounter" +
+                    "rawScript : ${HexUtil.prettyHex(rawScript)}")
+
         throw new ScriptParseException(ErrorCode.InvalidScriptOperation)
       }
     }

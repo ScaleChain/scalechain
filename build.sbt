@@ -5,6 +5,8 @@ version := "1.0"
 scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
+  "org.slf4j" % "slf4j-api" % "1.7.13",
+  "org.slf4j" % "slf4j-simple" % "1.7.13",
   "com.madgag.spongycastle" % "core" % "1.53.0.0",
   "com.typesafe.akka" %% "akka-actor" % "2.3.11",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.11" % "test",

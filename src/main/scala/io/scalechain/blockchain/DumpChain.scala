@@ -50,6 +50,23 @@ object DumpChain {
     dump( blocksPath, new BlockListener() )
   }
 
+  /** Dump all transactions.
+   *
+   * @param blocksPath
+   */
+  def dumpTransactions(blocksPath: String) : Unit = {
+    class BlockListener extends BlockReadListener {
+      def onBlock(block: Block): Unit = {
+        println( "bh:"+ block.header );
+        for (tx : Transaction <- block.transactions ) {
+          println( "tx:"+tx )
+        }
+      }
+    }
+
+    dump( blocksPath, new BlockListener() )
+  }
+
   /** The main method of this program. Get the path to directory that has blkNNNNN.dat files, and dump all blocks to stdout.
    *
    * @param args Has only one element, the path to blocks directory.
@@ -65,6 +82,8 @@ object DumpChain {
         dumpBlocks(blocksPath)
       } else if ( command == "dump-hashes" ) {
         dumpHashes(blocksPath)
+      } else if ( command == "dump-transactions" ) {
+        dumpTransactions(blocksPath)
       }
     }
   }
@@ -73,5 +92,6 @@ object DumpChain {
     println("DumpChain <path to the blocks folder which has blkNNNNN.dat files> <command>");
     println("ex> DumpChain <path> dump-blocks");
     println("ex> DumpChain <path> dump-hashes");
+    println("ex> DumpChain <path> dump-transactions");
   }
 }

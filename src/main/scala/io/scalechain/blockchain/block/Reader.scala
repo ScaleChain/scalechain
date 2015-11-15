@@ -2,6 +2,7 @@ package io.scalechain.blockchain.block
 
 import java.io.{BufferedInputStream, DataInputStream, File, FileInputStream}
 
+import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.util.HexUtil
 
 /**
@@ -83,14 +84,33 @@ case class GenerationTransactionInput(override val transactionHash : Transaction
 abstract class Script(private val data:Array[Byte])
 
 case class LockingScript(val data:Array[Byte]) extends Script(data) {
+/*
+  // --- For debugging +++
+  println( s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})" )
+  val scriptOps = ScriptParser.parse(data)
+  println( s"LockingScript(size:${data.length}, $scriptOps)" )
+  // --- For debugging +++
+*/
+
   override def toString(): String = {
-    s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+    val scriptOps = ScriptParser.parse(data)
+//    s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+    s"LockingScript(size:${data.length}, $scriptOps)"
   }
 }
 
 case class UnlockingScript(val data:Array[Byte]) extends Script(data) {
+/*
+  // --- For debugging +++
+  println( s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})" )
+  val scriptOps = ScriptParser.parse(data)
+  println( s"UnlockingScript(size:${data.length}, $scriptOps)" )
+  // --- For debugging +++
+*/
   override def toString(): String = {
-    s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+    val scriptOps = ScriptParser.parse(data)
+//    s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+    s"UnlockingScript(size:${data.length}, $scriptOps)"
   }
 }
 
@@ -105,9 +125,40 @@ case class Transaction(version : Int,
                        inputs : Array[TransactionInput],
                        outputs : Array[TransactionOutput],
                        lockTime : Int) {
+
   override def toString() : String = {
-    s"Transaction(version:$version, [${inputs.mkString(",")}], [${outputs.mkString(",")}], lockTime:$lockTime)"
+    // TODO : HashCalculator depends on Transaction, and also Transaction depends on HashCalculator. Get rid of the circular dependency.
+    s"Transaction(version:$version, [${inputs.mkString(",")}], [${outputs.mkString(",")}], lockTime:$lockTime, _hash:${HashCalculator.transactionHash(this)}})"
   }
+
+
+  /** Calculate hash value for a given transaction input, and part of script that unlocks the UTXO attached to the input.
+   * Why use part of script instead of all script bytes?
+   *
+   * 1. We need to use bytes after the OP_CODESEPARATOR in the script.
+   * 2. We need to get rid of all signature data from the script.
+   * 3. We need to get rid of OP_CODESEPARATOR OP code from the script.
+   *
+   * @param transactionInputIndex The index of the transaction input to get the hash.
+   * @param scriptData A part of unlocking script for the UTXO attached to the given transaction input.
+   * @param howToHash Decides how to calculate the hash value from this transaction and the given script.
+   *                  The value should be one of values in Transaction.SigHash
+   * @return The calculated hash value.
+   */
+  def hashForSignature(transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Array[Byte] = {
+    // TODO : Implement
+    assert(false);
+    null
+  }
+}
+
+object Transaction {
+  object SigHash {
+    val ALL = 1
+    val NONE = 2
+    val SINGLE = 3
+  }
+  val ANYONECANPAY : Int = 0x80
 }
 
 case class Block(val size:Long,

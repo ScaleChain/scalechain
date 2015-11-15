@@ -3,6 +3,7 @@ package io.scalechain.blockchain.script.ops
 import java.math.BigInteger
 
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
+import io.scalechain.blockchain.util.Utils
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 
 import scala.collection.mutable.ArrayBuffer
@@ -62,6 +63,36 @@ trait ScriptOp {
     val result = baseOpCode + index
 
     OpCode(result.toShort)
+  }
+
+  /** Verify if the top value of the stack is true. Halt script execution if false.
+   *
+   * @param env The script execution environment.
+   * @throws ScriptEvalException if the top value of the stack was not true. code : ErrorCode.InvalidTransaction
+   */
+  def verify(env: ScriptEnvironment) : Unit = {
+    val top = env.stack.pop()
+
+    if (!Utils.castToBool(top.value)) {
+      throw new ScriptEvalException(ErrorCode.InvalidTransaction)
+    }
+  }
+
+  /** Push a false value on top of the stack.
+   *
+   * @param env The script execution environment.
+   */
+  def pushFalse(env:ScriptEnvironment) : Unit = {
+    env.stack.push(ScriptValue.valueOf(Array[Byte]()))
+  }
+
+
+  /** Push a true value on top of the stack.
+   *
+   * @param env The script execution environment.
+   */
+  def pushTrue(env:ScriptEnvironment) : Unit = {
+    env.stack.pushInt( BigInteger.valueOf(1))
   }
 
   /** Serialize the script operation into an array buffer.

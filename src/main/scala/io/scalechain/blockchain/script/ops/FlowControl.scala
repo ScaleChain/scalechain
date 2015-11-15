@@ -1,6 +1,8 @@
 package io.scalechain.blockchain.script.ops
 
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ParseResult, ScriptOpList, ScriptParser, ScriptEnvironment}
+import io.scalechain.blockchain.util.Utils
 
 trait FlowControl extends ScriptOp
 
@@ -103,8 +105,7 @@ case class OpVerify() extends FlowControl {
   def opCode() = OpCode(0x69)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // TODO : Implement
-    assert(false);
+    super.verify(env);
   }
 }
 
