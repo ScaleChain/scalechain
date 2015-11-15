@@ -75,6 +75,7 @@ public static class ECDSASignature {
 
     public static ECDSASignature decodeFromDER(byte[] bytes) { ... }
 }
+```
 
 ## Script.executeCheckSig
 
@@ -254,6 +255,7 @@ Remove ECDSA signature bytes from the given input script. The reference implemen
     }
 
 ```
+
 
 # OP_CHECKSIG (Bitcoin Core)
 
