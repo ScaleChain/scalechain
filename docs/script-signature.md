@@ -54,8 +54,8 @@ public class ECKey implements EncryptableItem {
 
 ```
 
-### EC
-Bitcoin uses the secp256k1 curve for EC.
+### Elliptic curve
+Bitcoin uses the secp256k1 elliptic curve.
 ```
 import org.spongycastle.crypto.ec.CustomNamedCurves;
 import org.spongycastle.math.ec.FixedPointUtil;
