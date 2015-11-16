@@ -38,7 +38,7 @@ object Hash {
    * @param input
    * @return
    */
-  def sha1(input: Array[Byte]) : HashValue = {
+  def sha1(input: Array[Byte]) : SHA1 = {
     val md = MessageDigest.getInstance("SHA-1")
     SHA1( md.digest(input) )
   }
@@ -48,7 +48,7 @@ object Hash {
    * @param input
    * @return
    */
-  def sha256(input: Array[Byte]) : HashValue = {
+  def sha256(input: Array[Byte]) : SHA256 = {
     val md = MessageDigest.getInstance("SHA-256")
     SHA256( md.digest(input) )
   }
@@ -58,7 +58,7 @@ object Hash {
    * @param input
    * @return
    */
-  def ripemd160(input: Array[Byte]) : HashValue = {
+  def ripemd160(input: Array[Byte]) : RIPEMD160 = {
     val md = new RIPEMD160Digest()
     md.update(input, 0, input.length)
     val out = Array.fill[Byte](md.getDigestSize())(0)
@@ -71,7 +71,7 @@ object Hash {
    * @param input
    * @return
    */
-  def hash160(input: Array[Byte]) : HashValue = {
+  def hash160(input: Array[Byte]) : Hash160 = {
     Hash160( ripemd160( sha256(input).value ).value )
   }
 
@@ -80,7 +80,7 @@ object Hash {
    * @param input
    * @return
    */
-  def hash256(input: Array[Byte]) : HashValue = {
+  def hash256(input: Array[Byte]) : Hash256 = {
     Hash256( sha256( sha256(input).value ).value )
   }
 }

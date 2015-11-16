@@ -54,19 +54,22 @@ class BlockSerializer(val stream : BlockDataOutputStream) {
   }
 
   def writeTransactionInput(transactionInput : TransactionInput) : Unit = {
-    // TODO : type conversion code looks so dirty. Move all serialization methods to case classes.
-    if (transactionInput.isInstanceOf[GenerationTransactionInput]) {
-      assert( transactionInput.transactionHash.isAllZero() )
-      writeGenerationTranasctionInput(transactionInput.asInstanceOf[GenerationTransactionInput])
-    } else if (transactionInput.isInstanceOf[NormalTransactionInput]){
-      writeNormalTransactionInput(transactionInput.asInstanceOf[NormalTransactionInput])
-    } else {
-      assert(false)
+    transactionInput match {
+      case tx : GenerationTransactionInput => {
+        assert( tx.outputTransactionHash.isAllZero() )
+        writeGenerationTranasctionInput(tx)
+      }
+      case tx : NormalTransactionInput => {
+        writeNormalTransactionInput(tx)
+      }
+      case _ => {
+        assert(false);
+      }
     }
   }
 
   def writeGenerationTranasctionInput(transactionInput : GenerationTransactionInput) : Unit = {
-    stream.writeBytes(transactionInput.transactionHash.hash)
+    stream.writeBytes(transactionInput.outputTransactionHash.hash)
 
     stream.writeLittleEndianInt(transactionInput.outputIndex)
     stream.writeVarInt(transactionInput.coinbaseData.data.length)
@@ -75,7 +78,7 @@ class BlockSerializer(val stream : BlockDataOutputStream) {
   }
 
   def writeNormalTransactionInput(transactionInput : NormalTransactionInput) : Unit = {
-    stream.writeBytes(transactionInput.transactionHash.hash)
+    stream.writeBytes(transactionInput.outputTransactionHash.hash)
 
     stream.writeLittleEndianInt(transactionInput.outputIndex)
     writeUnlockingScript(transactionInput.unlockingScript)

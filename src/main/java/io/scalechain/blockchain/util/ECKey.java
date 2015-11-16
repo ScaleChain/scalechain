@@ -15,7 +15,7 @@ import java.io.*;
 import java.util.Objects;
 
 /**
- * Source codes copied from Mike Hearn's BitcoinJ and Google's
+ * Source code copied from Mike Hearn's BitcoinJ.
  */
 public class ECKey {
     private static final Logger log = LoggerFactory.getLogger(ECKey.class);

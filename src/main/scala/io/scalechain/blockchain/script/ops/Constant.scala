@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script.ops
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 
@@ -34,12 +35,12 @@ case class OpPush(val byteCount : Int, val inputValue : ScriptValue = null) exte
 
   /** create an OpPush object by copying the input data from the raw script.
    * This is called by script parser before execution.
-   * @param rawScript The raw script before it is parsed.
+   * @param script The raw script before it is parsed.
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
-    val value = ScriptValue.valueOf(rawScript, offset, byteCount)
+  override def create(script : Script, offset : Int) : (ScriptOp, Int) = {
+    val value = ScriptValue.valueOf(script.data, offset, byteCount)
 
     ( OpPush(byteCount, value), byteCount)
   }
@@ -63,13 +64,13 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
 
   /** create an OpPushData object by copying the input data from the raw script.
     * This is called by script parser before execution.
-    * @param rawScript The raw script before it is parsed.
+    * @param script The raw script before it is parsed.
     * @param offset The offset where the byte count is read.
     * @return The number of bytes consumed to copy the input value.
     */
-  override def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
-    val byteCount = getByteCount(rawScript, offset, lengthBytes)
-    val value = ScriptValue.valueOf(rawScript, offset + lengthBytes, byteCount)
+  override def create(script : Script, offset : Int) : (ScriptOp, Int) = {
+    val byteCount = getByteCount(script.data, offset, lengthBytes)
+    val value = ScriptValue.valueOf(script.data, offset + lengthBytes, byteCount)
 
     ( OpPushData(lengthBytes, value), lengthBytes + byteCount)
   }

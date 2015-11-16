@@ -55,14 +55,11 @@ class BlockDataOutputStream(stream: OutputStream) extends DataOutputStream(strea
   def writeVarInt(value : Long): Unit = {
     Utils.sizeOf(value) match {
       case 1 => {
-        // BUGBUG : make sure that & 0xFF works correctly.
         writeByte((value & 0xFF).toByte)
       }
       case 3 => {
         writeByte(253)
-        // BUGBUG : make sure that & 0xFF works correctly.
         writeByte((value & 0xFF).toByte)
-        // BUGBUG : make sure that & 0xFF works correctly.
         writeByte(((value>>8) & 0xFF).toByte)
       }
       case 5 => {

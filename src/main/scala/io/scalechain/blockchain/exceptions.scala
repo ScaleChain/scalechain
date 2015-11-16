@@ -16,6 +16,16 @@ object ErrorCode {
   val NoDataAfterCodeSparator = ErrorCode("no_data_after_code_separator")
   val UnexpectedEndOfScript = ErrorCode("unexpected_end_of_script")
   val InvalidSignatureFormat= ErrorCode("invalid_signature_format")
+
+  // Transaction verification errors
+  val InvalidInputIndex = ErrorCode("invalid_input_index")
+  val InvalidOutputIndex = ErrorCode("invalid_output_index")
+  val TopValueFalse = ErrorCode("top_value_false")
+  val ScriptParseFailure = ErrorCode("script_parse_failure")
+  val ScriptEvalFailure = ErrorCode("script_eval_failure")
+  val GeneralFailure= ErrorCode("general_failure")
+  val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
+  val UnsupportedHashType = ErrorCode("unsupported_hash_type")
 }
 
 case class ErrorCode(val code:String)
@@ -23,12 +33,15 @@ case class ErrorCode(val code:String)
 /**
  * Created by kangmo on 11/2/15.
  */
-class FatalException(val code:ErrorCode) extends Exception {
-}
+class FatalException(val code:ErrorCode) extends Exception
 
-class ScriptEvalException(val code:ErrorCode) extends Exception {
-}
+class ScriptEvalException(val code:ErrorCode) extends Exception
 
-class ScriptParseException(val code:ErrorCode) extends Exception {
+class ScriptParseException(val code:ErrorCode) extends Exception
 
+class TransactionVerificationException(val code:ErrorCode, val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends Exception
+{
+  override def toString() = {
+    s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"
+  }
 }

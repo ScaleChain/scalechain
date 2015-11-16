@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script
 
+import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.script.ops.{ScriptOpWithoutCode, OpCond, ScriptOp}
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException, ScriptParseException}
 import io.scalechain.util.HexUtil
@@ -33,12 +34,12 @@ object ScriptParser {
 
   /** Parse a given raw script in a byte array to get the list of ScriptOp(s)
    *
-   * @param rawScript The input script.
+   * @param script The input script.
    *
    * @return The list of ScriptOp(s).
    */
-  def parse(rawScript : Array[Byte]): ScriptOpList  = {
-    val parseResult = parseUntil(rawScript, 0)
+  def parse(script : Script): ScriptOpList  = {
+    val parseResult = parseUntil(script, 0)
     parseResult.scriptOpList
   }
 
@@ -53,7 +54,7 @@ object ScriptParser {
     *
     * See OpCond for the details.
     *
-    * @param rawScript The input script.
+    * @param script The input script.
     * @param offset The offset of the script to start parsing.
     * @param fenceScriptOps Parsing continues until we meet any of the operations in fenceScriptOps.
     *                       If no fence operation is passed, parse the script until the end of script.
@@ -63,17 +64,17 @@ object ScriptParser {
     *
     * @return The list of ScriptOp(s).
     */
-  def parseUntil(rawScript : Array[Byte], offset : Int, fenceScriptOps : ScriptOp*): ParseResult  = {
+  def parseUntil(script : Script, offset : Int, fenceScriptOps : ScriptOp*): ParseResult  = {
     val operations = new ListBuffer[ScriptOp]()
 
     var programCounter = offset
     var fenceOpOption : Option[ScriptOp] = None
     // BUGBUG : Improve readability of this code.
 
-    while ( (programCounter < rawScript.length) && // Loop until we meet the end of script and
+    while ( (programCounter < script.length) && // Loop until we meet the end of script and
             fenceOpOption.isEmpty) {               // we did not meet any fence operation.
       // Read the script op code
-      val opCode = (rawScript(programCounter) & 0xFF).toShort
+      val opCode = (script(programCounter) & 0xFF).toShort
       // Move the cursor forward
       programCounter += 1
 
@@ -84,7 +85,7 @@ object ScriptParser {
 
         // A script operation can consume bytes in the script chunk.
         // Copy a chunk of bytes of
-        val (scriptOp, bytesConsumed) = scriptOpTemplate.create(rawScript, programCounter)
+        val (scriptOp, bytesConsumed) = scriptOpTemplate.create(script, programCounter)
         // Move the cursor to the next script operation we want to execute.
 
         // See if the scriptOp exists in the fenceScriptOps list.

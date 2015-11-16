@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script.ops
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
 import io.scalechain.blockchain.util.Utils
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
@@ -44,11 +45,11 @@ trait ScriptOp {
    * The stored program counter will be used to find out the fence on the raw script
    * for checking signature by OP_CHECKSIG and OP_CHECKMULTISIG.
    *
-   * @param rawScript The raw script before it is parsed.
+   * @param script The raw script before it is parsed.
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  def create(rawScript : Array[Byte], offset : Int) : (ScriptOp, Int) = {
+  def create(script : Script, offset : Int) : (ScriptOp, Int) = {
     (this, 0)
   }
 

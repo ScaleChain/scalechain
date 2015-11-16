@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script.ops
 
+import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ParseResult, ScriptOpList, ScriptParser, ScriptEnvironment}
 import io.scalechain.blockchain.util.Utils
@@ -17,18 +18,18 @@ case class OpNop() extends FlowControl {
 }
 
 trait IfOrNotIfOp extends FlowControl {
-  def create(rawScript: Array[Byte], offset : Int, invert : Boolean): (ScriptOp, Int) = {
+  def create(script: Script, offset : Int, invert : Boolean): (ScriptOp, Int) = {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
 
     val thenPart : ParseResult =
-      ScriptParser.parseUntil(rawScript, offset, OpElse(), OpEndIf())
+      ScriptParser.parseUntil(script, offset, OpElse(), OpEndIf())
 
     // TODO : Implement equals method for ScriptOp.
     val (elseScriptOpList, elsePartBytesConsumed) =
       if ( thenPart.foundFenceOp.opCode() == OpElse().opCode()) {
         val elsePart : ParseResult =
-          ScriptParser.parseUntil(rawScript, offset + thenPart.bytesConsumed, OpEndIf())
+          ScriptParser.parseUntil(script, offset + thenPart.bytesConsumed, OpEndIf())
         assert(elsePart.foundFenceOp.opCode() == OpEndIf().opCode)
         (elsePart.scriptOpList, elsePart.bytesConsumed)
       } else {
@@ -47,14 +48,14 @@ case class OpIf() extends IfOrNotIfOp {
   def opCode() = OpCode(0x63)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // never executed.
+    // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 
-  override def create(rawScript: Array[Byte], offset : Int): (ScriptOp, Int) = {
+  override def create(script: Script, offset : Int): (ScriptOp, Int) = {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
-    super.create(rawScript, offset, invert=false)
+    super.create(script, offset, invert=false)
   }
 
 }
@@ -65,14 +66,14 @@ case class OpNotIf() extends IfOrNotIfOp {
   def opCode() = OpCode(0x64)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // never executed.
+    // never executed, because OP_NOTIF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 
-  override def create(rawScript: Array[Byte], offset : Int): (ScriptOp, Int) = {
+  override def create(script: Script, offset : Int): (ScriptOp, Int) = {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
-    super.create(rawScript, offset, invert=true)
+    super.create(script, offset, invert=true)
   }
 
 }
@@ -83,7 +84,7 @@ case class OpElse() extends FlowControl {
   def opCode() = OpCode(0x67)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // never executed.
+    // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 }
@@ -94,7 +95,7 @@ case class OpEndIf() extends FlowControl {
   def opCode() = OpCode(0x68)
 
   def execute(env : ScriptEnvironment): Unit = {
-    // never executed.
+    // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 }

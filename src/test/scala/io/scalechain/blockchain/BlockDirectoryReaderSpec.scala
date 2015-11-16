@@ -29,6 +29,8 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Sho
 
     class BlockListener extends BlockReadListener {
       def onBlock(block : Block ): Unit = {
+        //println("onBlock("+blocksRead+") : " + block.header)
+
         if (blocksRead < READ_BLOCKS_UP_TO) {
           blocks(blocksRead) = block
           blocksRead +=1;

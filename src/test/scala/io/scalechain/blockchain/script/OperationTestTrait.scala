@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode}
 import io.scalechain.blockchain.script.ops.ScriptOp
 import io.scalechain.blockchain.util.Utils
@@ -99,7 +100,7 @@ trait OperationTestTrait extends ShouldMatchers {
           // Serialze and parse the serialized byte array to get the pseudo operations such as OpCond,
           // which is generated from OP_IF/OP_NOTIF, OP_ELSE, OP_ENDIF during parsing.
           val serializedOperations = ScriptSerializer.serialize(operations)
-          ScriptParser.parse(serializedOperations).operations
+          ScriptParser.parse(new Script(serializedOperations)).operations
         } else {
           operations
         }

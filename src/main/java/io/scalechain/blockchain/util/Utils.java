@@ -3,10 +3,12 @@ package io.scalechain.blockchain.util;
 import io.scalechain.blockchain.ErrorCode$;
 import io.scalechain.blockchain.ScriptEvalException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 /**
  * Copied some functions from BitcoinJ by Mike Hearn.
@@ -179,6 +181,79 @@ public class Utils {
         return castToBigInteger(encoded);
     }
 
+
+    private static boolean equalsRange(byte[] a, int start, byte[] b) {
+        if (start + b.length > a.length)
+            return false;
+        for (int i = 0; i < b.length; i++)
+            if (a[i + start] != b[i])
+                return false;
+        return true;
+    }
+
+    /**
+     * Returns the script bytes of inputScript with all instances of the specified script object removed
+     * TODO : Rewrite this method in Scala.
+     */
+    public static byte[] removeAllInstancesOf(byte[] inputScript, byte[] chunkToRemove) {
+        // OP_PUSHDATA1(0x4c), OP_PUSHDATA2(0x4d), OP_PUSHDATA4(0x4e) : The next script byte contains N, push the following N bytes onto the stack
+        final int OP_PUSHDATA1 = 0x4c;
+        final int OP_PUSHDATA2 = 0x4d;
+        final int OP_PUSHDATA4 = 0x4e;
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(inputScript.length);
+
+        int cursor = 0;
+        while (cursor < inputScript.length) {
+            boolean skip = equalsRange(inputScript, cursor, chunkToRemove);
+
+            int opcode = inputScript[cursor++] & 0xFF;
+            int additionalBytes = 0;
+
+            // TODO : Get rid of duplicate codes. Similar code exists in OpPushData.getByteCount
+            if (opcode >= 0 && opcode < OP_PUSHDATA1) {
+                additionalBytes = opcode;
+            } else if (opcode == OP_PUSHDATA1) {
+                additionalBytes = (0xFF & inputScript[cursor]) + 1;
+            } else if (opcode == OP_PUSHDATA2) {
+                additionalBytes = ((0xFF & inputScript[cursor]) |
+                        ((0xFF & inputScript[cursor+1]) << 8)) + 2;
+            } else if (opcode == OP_PUSHDATA4) {
+                additionalBytes = ((0xFF & inputScript[cursor]) |
+                        ((0xFF & inputScript[cursor+1]) << 8) |
+                        ((0xFF & inputScript[cursor+1]) << 16) |
+                        ((0xFF & inputScript[cursor+1]) << 24)) + 4;
+            }
+            if (!skip) {
+                bos.write(opcode);
+                bos.write(inputScript, cursor, additionalBytes);
+                /*
+                try {
+                    bos.write(opcode);
+                    bos.write(Arrays.copyOfRange(inputScript, cursor, cursor + additionalBytes));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }*/
+            }
+            cursor += additionalBytes;
+        }
+
+        if (bos.size() == inputScript.length) {
+            // We usually end up removing nothing.
+            // If nothing is removed. return the inputScript itself.
+            // We can save (costly) array copy in this case, because toByteArray() copies the backing array to produce a new array.
+            return inputScript;
+        } else {
+            return bos.toByteArray();
+        }
+    }
+
+    /**
+     * Returns the script bytes of inputScript with all instances of the given op code removed
+     */
+    public static byte[] removeAllInstancesOfOp(byte[] inputScript, int opCode) {
+        return removeAllInstancesOf(inputScript, new byte[] {(byte)opCode});
+    }
 }
 
 
