@@ -83,9 +83,9 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with OperationTest
       (stack(-1, 0),  OpNumEqual(),  stack(0)),
       (stack(0, -1),  OpNumEqual(),  stack(0)),
       // OP_NUMEQUALVERIFY(0x9d) : Same as OP_NUMEQUAL, but runs OP_VERIFY afterward.
-      (stack(0, 0),   OpNumEqualVerify(),    stack(1)),
-      (stack(1, 1),   OpNumEqualVerify(),    stack(1)),
-      (stack(-1,-1),  OpNumEqualVerify(),    stack(1)),
+      (stack(0, 0),   OpNumEqualVerify(),    stack()),
+      (stack(1, 1),   OpNumEqualVerify(),    stack()),
+      (stack(-1,-1),  OpNumEqualVerify(),    stack()),
       (stack(-1, 0),  OpNumEqualVerify(),    ErrorCode.InvalidTransaction),
       (stack(0, -1),  OpNumEqualVerify(),    ErrorCode.InvalidTransaction),
       // OP_NUMNOTEQUAL(0x9e) : Return TRUE if top two items are not equal numbers

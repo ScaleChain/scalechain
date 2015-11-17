@@ -3,6 +3,8 @@ package io.scalechain.blockchain
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.block._
+import io.scalechain.blockchain.script.{ScriptParser, ScriptBytes}
+import io.scalechain.blockchain.script.ops.OpPush
 import scala.collection._
 
 /**
@@ -110,6 +112,47 @@ object DumpChain {
     dump( blocksPath, new BlockListener() )
   }
 
+  type ScriptFilter = (UnlockingScript, LockingScript) => Boolean
+
+  /** Merge locking script and unlocking script with filter option.
+   *
+   * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
+   * @param filterOption Specify the type of transaction script. "p2pkh"
+   */
+  def mergeScripts(blocksPath : String, filterOption : String) : Unit = {
+    // Return a filter by checking a specific prefix of the public key in the unlocking script.
+    def p2pkh_filter(pkPrefix : Byte) : ScriptFilter = {
+      (unlockingScript, lockingScript) => {
+        val scriptOps = ScriptParser.parse(unlockingScript)
+
+        if ( scriptOps.operations.length == 2) {
+          // Check the second item of unlocking script; PushData(public key)
+          scriptOps.operations(1) match {
+            case OpPush( _, ScriptBytes( bytes ) ) => {
+              println(s"Pattern matched. ${bytes.length}, ${bytes(0)}, ${(bytes.length >= 1) && (bytes(0) == pkPrefix)}")
+              // Check prefix
+              (bytes.length >= 1) && (bytes(0) == pkPrefix)
+            }
+            case _ => false
+          }
+        } else {
+          false
+        }
+      }
+    }
+
+    // Create a script filter based on the prefix of the public key.
+    val filter : ScriptFilter =
+      filterOption match {
+        case "p2pkh-uncompressed"    => p2pkh_filter(4)
+        case "p2pkh-compressed-even" => p2pkh_filter(2)
+        case "p2pkh-compressed-odd"  => p2pkh_filter(3)
+        case ""  => (_,_) => true // No option was specified.
+        case _ => (_,_) => false // An invalid option was specified.
+      }
+    mergeScripts(blocksPath, filter)
+  }
+
   /** Merge locking script and unlocking script to test signature verification.
    *
    * The output of this method can be copied to SignatureCheckingSpec to create a new test case.
@@ -118,8 +161,9 @@ object DumpChain {
    * so that we can automatically test that the issue was fixed.
    *
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
+   * @param filter the filter to apply. it receives both locking script and unlocking script.
    */
-  def mergeScripts(blocksPath : String) : Unit = {
+  def mergeScripts(blocksPath : String, filter : ScriptFilter) : Unit = {
     // Step 1) Create a map from transaction hash to Transaction object.
     // c.f. Need List here instead of Array, which implements reference equality.
     val txMap = mutable.Map[List[Byte], Transaction]()
@@ -144,8 +188,15 @@ object DumpChain {
                 //         Produce a pair ( unlocking script, locking script )
                 if (txWithOutputOption.isDefined) { // Found the transaction object from the map.
                   val output = txWithOutputOption.get.outputs(normalTxIn.outputIndex)
-                  println(s"MergedScript(transaction=$tx, inputIndex=$inputIndex, unlockingScript=${normalTxIn.unlockingScript}, lockingScript=${output.lockingScript})")
-                  println()
+
+                  val unlockingScript = normalTxIn.unlockingScript
+                  val lockingScript   = output.lockingScript
+
+                  // Print the merged script only if the filter returns true.
+                  if ( filter(unlockingScript, lockingScript) ) {
+                    println(s"MergedScript(transaction=$tx, inputIndex=$inputIndex, unlockingScript=${unlockingScript}, lockingScript=${lockingScript})")
+                    println()
+                  }
                 }
               }
               case _ => {
@@ -166,7 +217,7 @@ object DumpChain {
    * @param args Has only one element, the path to blocks directory.
    */
   def main(args:Array[String]) : Unit = {
-    if (args.length != 2) {
+    if (args.length < 2) {
       printUsage();
     } else {
       val blocksPath = args(0)
@@ -181,7 +232,8 @@ object DumpChain {
       } else if ( command == "verify-serialization" ) {
         verifySerialization(blocksPath)
       } else if ( command == "merge-scripts" ) {
-        mergeScripts(blocksPath)
+        val option = if (args.length == 3) args(2) else ""
+        mergeScripts(blocksPath, option)
       } else {
         printUsage()
       }

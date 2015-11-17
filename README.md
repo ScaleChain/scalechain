@@ -20,7 +20,8 @@ Supported Features
 - All splice operations are supported.
 - All constant operations are supported.
 - All hash operations are supported.
-- All flow operations are supported.
+- All flow control operations are supported.
+- OP_CHECKSIG with P2PK is supported.
 
 Customization
 =============

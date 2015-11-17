@@ -54,6 +54,8 @@ case class OpEqual() extends BitwiseLogic {
 }
 
 /** OP_EQUALVERIFY(0x88) : Same as OP_EQUAL, but run OP_VERIFY after to halt if not TRUE
+  * Before : x1 x2
+  * After :
   */
 case class OpEqualVerify() extends BitwiseLogic {
   def opCode() = OpCode(0x88)
@@ -63,8 +65,9 @@ case class OpEqualVerify() extends BitwiseLogic {
       if ( value1.value sameElements( value2.value)) {
         ScriptValue.valueOf(1L)
       } else {
-        throw new ScriptEvalException(ErrorCode.InvalidTransaction)
+        ScriptValue.valueOf("")
       }
     })
+    super.verify(env)
   }
 }

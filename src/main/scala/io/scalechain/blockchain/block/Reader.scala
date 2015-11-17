@@ -206,31 +206,17 @@ class Script(val data:Array[Byte])
 }
 
 case class LockingScript(override val data:Array[Byte]) extends Script(data) {
-/*
-  // --- For debugging +++
-  println( s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})" )
-  val scriptOps = ScriptParser.parse(data)
-  println( s"LockingScript(size:${data.length}, $scriptOps)" )
-  // --- For debugging +++
-*/
-
   override def toString(): String = {
     val scriptOps = ScriptParser.parse(this)
-//    s"LockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+
     s"LockingScript(${scalaHex(data)}) /* ops:$scriptOps */ "
   }
 }
 
 case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
-/*
-  // --- For debugging +++
-  println( s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})" )
-  val scriptOps = ScriptParser.parse(data)
-  println( s"UnlockingScript(size:${data.length}, $scriptOps)" )
-  // --- For debugging +++
-*/
   override def toString(): String = {
     val scriptOps = ScriptParser.parse(this)
+
     // The last byte of the signature, hash type decides how to create a hash value from transaction and script.
     // The hash value and public key is used to verify the signature.
     val hashType = scriptOps.operations(0) match {
@@ -241,7 +227,7 @@ case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
         None
       }
     }
-    // s"UnlockingScript(size:${data.length}, ${HexUtil.prettyHex(data)})"
+
     s"UnlockingScript(${scalaHex(data)}) /* ops:$scriptOps, hashType:$hashType */"
   }
 }

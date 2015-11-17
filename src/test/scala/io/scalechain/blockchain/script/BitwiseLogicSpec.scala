@@ -42,10 +42,10 @@ class BitwiseLogicSpec extends FlatSpec with BeforeAndAfterEach with OperationTe
       (stack("Hello", "World"),      OpEqual(),      stack(0L)),
 
       // OP_EQUALVERIFY(0x88) : Same as OP_EQUAL, but run OP_VERIFY after to halt if not TRUE
-      (stack("", ""),                OpEqualVerify(),  stack(1L)),
+      (stack("", ""),                OpEqualVerify(),  stack()),
       (stack("", "a"),               OpEqualVerify(),  ErrorCode.InvalidTransaction),
       (stack("a", ""),               OpEqualVerify(),  ErrorCode.InvalidTransaction),
-      (stack("Hello", "Hello"),      OpEqualVerify(),  stack(1L)),
+      (stack("Hello", "Hello"),      OpEqualVerify(),  stack()),
       (stack("Hello", "World"),      OpEqualVerify(),  ErrorCode.InvalidTransaction)
     )
 
