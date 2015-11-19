@@ -5,10 +5,11 @@ import java.util
 import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.util.ECKey.ECDSASignature
 import io.scalechain.blockchain.util.{ECKey, Utils}
-import io.scalechain.blockchain.{ScriptParseException, ErrorCode, ScriptEvalException}
-import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
+import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, ScriptEvalException}
+import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
 import io.scalechain.util.{Hash256, Hash}
 import io.scalechain.util.HexUtil._
+import sun.jvm.hotspot.runtime.StackValue
 
 trait Crypto extends ScriptOp
 
@@ -123,7 +124,15 @@ case class OpCodeSparator(sigCheckOffset : Int = 0) extends Crypto {
 }
 
 trait CheckSig extends Crypto {
-  def getScriptForCheckSig(rawScript:Array[Byte], startOffset:Int, rawSignature : Array[Byte]) : Array[Byte] = {
+  /** Get the script for verifying if a signature is valid.
+   * Also it gets rid of signatures from the given script.
+   *
+   * @param rawScript The script where we want to remove the signature.
+   * @param startOffset Copy bytes from this offset in rawScript to get the script for check sign
+   * @param rawSignatures The signatures we are going to remove. To support OP_CHECKMULTISIG, it accepts multiple signatures.
+   * @return The script for verifying if a signature is valid.
+   */
+  def getScriptForCheckSig(rawScript:Array[Byte], startOffset:Int, rawSignatures : Array[ScriptValue]) : Array[Byte] = {
     // Step 1 : Copy the region of the raw script starting from startOffset
     val scriptFromStartOffset =
       if (startOffset>0)
@@ -131,8 +140,11 @@ trait CheckSig extends Crypto {
       else
         rawScript // In most cases, startOffset is 0. Do not copy anything.
 
-    // Step 2 : Remove the signature from the script if any.
-    val signatureRemoved = Utils.removeAllInstancesOf(scriptFromStartOffset, rawSignature)
+    // Step 2 : Remove the signatures from the script if any.
+    var signatureRemoved : Array[Byte] = scriptFromStartOffset
+    for (rawSignature : ScriptValue <- rawSignatures) {
+      signatureRemoved = Utils.removeAllInstancesOf(signatureRemoved, rawSignature.value)
+    }
 
     // Step 3 : Remove OP_CODESEPARATOR if any.
     Utils.removeAllInstancesOfOp(signatureRemoved, OpCodeSparator().opCode().code)
@@ -143,23 +155,31 @@ trait CheckSig extends Crypto {
     assert(env.transaction != null)
     assert(env.transactionInputIndex.isDefined)
 
+    // At least we need to have two items on the stack.
+    //   1. a public key.
+    //   2. a signature
+    if (env.stack.size() < 2) {
+      // TODO : Write a test for this branch.
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+
     val publicKey = env.stack.pop()
-    val rawSigature = env.stack.pop()
+    val rawSignature = env.stack.pop()
 
     // Check if the signature format is valid.
     // BUGBUG : See if we always have to check the signature format.
-    if (!ECDSASignature.isEncodingCanonical(rawSigature.value)) {
+    if (!ECDSASignature.isEncodingCanonical(rawSignature.value)) {
       throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat)
     }
+
+    val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
+
+    val scriptData : Array[Byte] = getScriptForCheckSig(script.data, env.getSigCheckOffset, Array(rawSignature) )
 
     // use only the low 5 bits from the last byte of the signature to get the hash mode.
     // TODO : The 0x1f constant is from TransactionSignature.sigHashMode of BitcoinJ. Investigate if it is necessary.
     //val howToHash : Int = rawSigature.value.last & 0x1f
-    val howToHash : Int = rawSigature.value.last
-
-    val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSigature.value)
-
-    val scriptData : Array[Byte] = getScriptForCheckSig(script.data, env.getSigCheckOffset, rawSigature.value )
+    val howToHash : Int = rawSignature.value.last
 
     val hashOfInput : Hash256 = env.transaction.hashForSignature(env.transactionInputIndex.get, scriptData, howToHash)
 
@@ -175,11 +195,114 @@ trait CheckSig extends Crypto {
     assert(env.transaction != null)
     assert(env.transactionInputIndex.isDefined)
 
-    // TODO : Implement
-    assert(false);
+    // At least we need to have 5 items on the stack.
+    //   1. the number of public keys
+    //   2. at least a public key.
+    //   3. the number of signatures.
+    //   4. at least a signature
+    //   5. dummy
+    if (env.stack.size() < 5) {
+      // TODO : Write a test for this branch.
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
 
-    // TODO : Implement it
-    assert(false);
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 1 : Get the public key count
+    val publicKeyCount = env.stack.popInt().intValue()
+    if (publicKeyCount < 0 || publicKeyCount > Config.MAX_PUBLIC_KEYS_FOR_MULTSIG)
+      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys)
+
+    // Now, we need to have at least publicKeyCount + 3 items on the stack.
+    //   1. publicKeyCount public keys.
+    //   2. the number of signatures.
+    //   3. at least a signature
+    //   4. dummy
+    if (env.stack.size() < publicKeyCount + 3) {
+      // TODO : Write a test for this branch.
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 2 : Get the public keys
+    val publicKeys : Seq[ScriptValue] = for (i : Int <- 1 to publicKeyCount) yield {
+      env.stack.pop()
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 3 : Get the signature count
+    val signatureCount = env.stack.popInt().intValue()
+    if (signatureCount < 0 || signatureCount > publicKeyCount)
+      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys)
+
+    // Now, we need to have at least signatureKeyCount + 1 items on the stack.
+    //   1. signatureCount signatures
+    //   2. dummy
+    if (env.stack.size() < signatureCount + 1) {
+      // TODO : Write a test for this branch.
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 4 : Get the signatures
+    val signatures : Seq[ScriptValue] = for (i : Int <- 1 to signatureCount) yield {
+      env.stack.pop()
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 5 : Scrub scriptData to get rid of signatures from it.
+    val scriptData : Array[Byte] = getScriptForCheckSig(script.data, env.getSigCheckOffset, signatures.toArray )
+
+    var isValid = true
+    var consumedPublicKeyCount = 0
+    var consumedSignatureCount = 0
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Step 6 : For each signature, try to match it with public keys.
+    for (rawSignature : ScriptValue <- signatures ) {
+
+      ////////////////////////////////////////////////////////////////////////////////
+      // Step 6.1 : Check the signature format.
+      // BUGBUG : See if we always have to check the signature format.
+      if (!ECDSASignature.isEncodingCanonical(rawSignature.value)) {
+        throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat)
+      }
+
+
+      ////////////////////////////////////////////////////////////////////////////////
+      // Step 6.2 : Get the hash value from the spending transaction.
+      // use only the low 5 bits from the last byte of the signature to get the hash mode.
+      // TODO : The 0x1f constant is from TransactionSignature.sigHashMode of BitcoinJ. Investigate if it is necessary.
+      //val howToHash : Int = rawSigature.value.last & 0x1f
+      val howToHash : Int = rawSignature.value.last
+
+      val hashOfInput : Hash256 = env.transaction.hashForSignature(env.transactionInputIndex.get, scriptData, howToHash)
+
+      // Step 6.3 : Try to match the signature with a public key
+      val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
+      var signatureVerified = false
+      // Loop until we successfully verify the signature.
+      while(consumedPublicKeyCount < publicKeyCount &&
+            !signatureVerified) {
+        val publicKey = publicKeys(consumedPublicKeyCount)
+        if (ECKey.verify(hashOfInput.value, signature, publicKey.value)) {
+          signatureVerified = true
+          consumedSignatureCount +=1
+        }
+        consumedPublicKeyCount += 1
+      }
+
+      val signaturesLeft = signatureCount - consumedSignatureCount
+      val publicKeysLeft = publicKeyCount - consumedPublicKeyCount
+      if (signaturesLeft > publicKeysLeft) {
+        isValid = false
+      }
+    }
+
+    if (isValid) {
+      super.pushTrue(env)
+    } else {
+      super.pushFalse(env)
+    }
   }
 }
 
@@ -249,6 +372,35 @@ case class OpCheckSigVerify(val script : Script = null) extends CheckSig {
   *  as their corresponding public keys were placed in the scriptPubKey or redeemScript.
   *  If all signatures are valid, 1 is returned, 0 otherwise.
   *  Due to a bug, one extra unused value is removed from the stack.
+  *
+  *  Ex> An example of 2 of 3 multisig.
+  *
+  *  <Unlocking Script ; provided by a spending transaction>
+  *  ScriptOpList(operations=
+  *    Array(
+  *      Op0(), // Dummy value. we need it because the reference implementation has a bug
+  *             // popping an additional item from the stack at the end of OP_CHECKMULTISIG execution.
+  *      OpPush(72,ScriptBytes(bytes("sig2"))), // Second signature.
+  *      OpPush(72,ScriptBytes(bytes("sig1")))  // First signature.
+  *    )
+  *  ),
+  *
+  *  <Locking Script; attached to UTXO >
+  *  ScriptOpList(operations=
+  *    Array(
+  *      OpNum(2), // The number of required signatures.
+  *      OpPush(33,ScriptBytes(bytes("pub key3"))), // Third public key
+  *      OpPush(33,ScriptBytes(bytes("pub key2"))), // Second public key
+  *      OpPush(33,ScriptBytes(bytes("pub key1"))), // First public key
+  *      OpNum(3), // The number of public keys.
+  *      OpCheckMultiSig(Script(bytes("..."))) // The OP_CHECKMULTISIG signature.
+  *    )
+  *  )
+  *
+  *  The order of signatures should match the order of public keys.
+  *  ex> If sig1 matches pub key2, sig2 can not match pub key 1, but it can match pub key 3.
+  *      If sig1 matches pub key1, sig2 can either match pub key 2 or 3.
+  *
   */
 case class OpCheckMultiSig(val script : Script = null) extends CheckSig {
   def opCode() = OpCode(0xae)

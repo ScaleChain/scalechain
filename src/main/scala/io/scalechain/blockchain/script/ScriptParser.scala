@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 
 case class ScriptOpList(val operations : List[ScriptOp]) {
   override def toString(): String = {
-    s"ScriptOpList(ops:${operations.mkString(",")})"
+    s"ScriptOpList(operations=Array(${operations.mkString(",")}))"
   }
 }
 

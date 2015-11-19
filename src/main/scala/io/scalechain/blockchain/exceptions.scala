@@ -11,6 +11,7 @@ object ErrorCode {
   val InvalidTransaction = ErrorCode("invalid_transaction")
   val NotEnoughInput = ErrorCode("not_enough_input")
   val NotEnoughScriptData = ErrorCode("not_enough_script_data")
+  val TooManyPublicKeys = ErrorCode("too_many_public_keys")
 
   // Parse errors
   val NoDataAfterCodeSparator = ErrorCode("no_data_after_code_separator")

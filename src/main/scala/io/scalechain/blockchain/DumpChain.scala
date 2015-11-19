@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.script.{ScriptParser, ScriptBytes}
-import io.scalechain.blockchain.script.ops.OpPush
+import io.scalechain.blockchain.script.ops.{OpCheckMultiSig, OpCode, OpPush}
 import scala.collection._
 
 /**
@@ -141,12 +141,26 @@ object DumpChain {
       }
     }
 
+    /**
+     * Count the number of operations having a given OP code.
+     * @param opCode
+     * @return
+     */
+    def locking_script_has(opCode : OpCode) : ScriptFilter = {
+      (unlockingScript, lockingScript) => {
+        val scriptOps = ScriptParser.parse(lockingScript)
+        val count = scriptOps.operations.count( _.opCode() == opCode )
+        count > 0
+      }
+    }
+
     // Create a script filter based on the prefix of the public key.
     val filter : ScriptFilter =
       filterOption match {
         case "p2pkh-uncompressed"    => p2pkh_filter(4)
         case "p2pkh-compressed-even" => p2pkh_filter(2)
         case "p2pkh-compressed-odd"  => p2pkh_filter(3)
+        case "multisig-raw" => locking_script_has(OpCheckMultiSig().opCode())
         case ""  => (_,_) => true // No option was specified.
         case _ => (_,_) => false // An invalid option was specified.
       }
@@ -247,5 +261,6 @@ object DumpChain {
     println("ex> DumpChain <path> dump-transactions");
     println("ex> DumpChain <path> verify-serialization");
     println("ex> DumpChain <path> merge-scripts");
+    println("ex> DumpChain <path> multisig-raw");
   }
 }
