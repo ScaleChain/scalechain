@@ -21,7 +21,7 @@ Supported Features
 - All constant operations are supported.
 - All hash operations are supported.
 - All flow control operations are supported.
-- OP_CHECKSIG with P2PK is supported.
+- OP_CHECKSIG with P2PK, P2PKH is supported.
 
 Customization
 =============
