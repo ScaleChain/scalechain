@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.script.{ScriptParser, ScriptBytes}
-import io.scalechain.blockchain.script.ops.{OpCheckMultiSig, OpCode, OpPush}
+import io.scalechain.blockchain.script.ops._
 import scala.collection._
 
 /**
@@ -154,13 +154,29 @@ object DumpChain {
       }
     }
 
+    /* Find out a P2SH transaction */
+    def p2sh_filter() : ScriptFilter = {
+      (unlockingScript, lockingScript) => {
+        val scriptOps = ScriptParser.parse(lockingScript)
+
+        // TODO : Extract the duplicate code to a method. see getRedeemingScript
+        scriptOps.operations match {
+          case List(OpHash160(), OpPush(20, _), OpEqual()) => {
+            true
+          }
+          case _ => false
+        }
+      }
+    }
+
     // Create a script filter based on the prefix of the public key.
     val filter : ScriptFilter =
       filterOption match {
         case "p2pkh-uncompressed"    => p2pkh_filter(4)
         case "p2pkh-compressed-even" => p2pkh_filter(2)
         case "p2pkh-compressed-odd"  => p2pkh_filter(3)
-        case "multisig-raw" => locking_script_has(OpCheckMultiSig().opCode())
+        case "multisig-raw"          => locking_script_has(OpCheckMultiSig().opCode())
+        case "p2sh"                  => p2sh_filter()
         case ""  => (_,_) => true // No option was specified.
         case _ => (_,_) => false // An invalid option was specified.
       }
@@ -262,5 +278,6 @@ object DumpChain {
     println("ex> DumpChain <path> verify-serialization");
     println("ex> DumpChain <path> merge-scripts");
     println("ex> DumpChain <path> multisig-raw");
+    println("ex> DumpChain <path> p2sh");
   }
 }

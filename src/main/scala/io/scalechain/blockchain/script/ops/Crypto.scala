@@ -9,7 +9,6 @@ import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, Script
 import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
 import io.scalechain.util.{Hash256, Hash}
 import io.scalechain.util.HexUtil._
-import sun.jvm.hotspot.runtime.StackValue
 
 trait Crypto extends ScriptOp
 
@@ -247,6 +246,10 @@ trait CheckSig extends Crypto {
     val signatures : Seq[ScriptValue] = for (i : Int <- 1 to signatureCount) yield {
       env.stack.pop()
     }
+
+    // The reference implementation had a bug to pop one more item from the stack.
+    env.stack.pop();
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // Step 5 : Scrub scriptData to get rid of signatures from it.

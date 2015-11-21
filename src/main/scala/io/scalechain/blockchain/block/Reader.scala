@@ -4,8 +4,8 @@ import java.io._
 
 import io.scalechain.blockchain.block.index.BlockIndex
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
-import io.scalechain.blockchain.script.{ScriptOpList, ScriptInterpreter, ScriptParser, ScriptEnvironment}
-import io.scalechain.blockchain.script.ops.OpPush
+import io.scalechain.blockchain.script._
+import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual, OpHash160, OpPush}
 import io.scalechain.blockchain.util.Utils
 import io.scalechain.util.{Hash256, Hash}
 import io.scalechain.util.HexUtil._
@@ -148,30 +148,81 @@ case class NormalTransactionInput(override val outputTransactionHash : Transacti
       verify(env, lockingScript)
     }
   }
-
+  /** Get the redeem script if the lockingScriptOps match the P2SH pattern.
+   *
+   * @param unlockingScriptOps The unlocking script that is provided by the spending transaction.
+   * @param lockingScriptOps The locking script attached to the UTXO.
+   * @return Some(redeem script) if the locking script had the P2SH pattern. None otherwise.
+   */
+  def getRedeemScript(unlockingScriptOps : ScriptOpList,
+                      lockingScriptOps : ScriptOpList) : Option[ScriptValue]= {
+    // TODO : Extract the duplicate code to a method. see p2sh_filter
+    lockingScriptOps.operations match {
+      // TODO : Optimize by checking opCode() instead of slow pattern matching.
+      // STEP 1 : Check if the locking script matches P2SH pattern.
+      case List(OpHash160(), OpPush(20, _), OpEqual()) => {
+        // STEP 2 : Get the redeem script from the last operation of unlocking script.
+        val lastOperation = unlockingScriptOps.operations.last
+        lastOperation match {
+          // TODO : Verify assumption : the redeem script is provided by only OpPushData or OpPush
+          case OpPushData(_, redeemingScript) => Some(redeemingScript)
+          case OpPush(_, redeemingScript) => Some(redeemingScript)
+          case _ => None
+        }
+      }
+      case _ => None
+    }
+  }
   /** With a locking script, verify that the unlocking script of the input successfully unlocks the locking script attached to the UTXO that this input references.
+   *
+   *
+   * unlocking script :
+   *   Op0(), // A dummy value required for emulating a bug in the reference implementation by Satoshi for OP_CHECKMULTISIG.
+   *   // Second signature
+   *   OpPush(71,ScriptBytes(bytes("304402207dc87ea88c8a10bde69dbc91f80c827c7b8a3d18122409e358f1e51b54322e9a022042fe00abb6466dc5e4dbd7f982d2ad9f904e6dc69c6f7eb947223e936a00473e01"))),
+   *   // First signature
+   *   OpPush(72,ScriptBytes(bytes("3045022100f2e9163f61e50cf5984b94f3a388b2c13cf33e442bdf217a944a1b482319af1c022060c48f1e696ad084da336c20618dcc12c1cf14cdf0ef3bd1b0c86e026afe78da01"))),
+   *   // Redeeming script
+   *   OpPushData(1,ScriptBytes(bytes("522102a2a60f3f6ec13028e58e8fb9ccc53aab9391ea542f35a38b5560138b14bd20a62102b6dad19484515162f51ddc5446bc2a3f622f68dd111282b038b9af107be62ad821037e38809356db2eb6b40b0f14666641f00a041996137f7355a8e1745bac3a4cb453ae")))))
+   *
+   * locking script :
+   *   OpHash160()
+   *   OpPush(20,ScriptBytes(bytes("0ba8c243f2e21f963cb3c04338b3e0c6918a996c")))
+   *   OpEqual()))
    *
    * @param env The script execution environment, which has (1) the transaction that this input belongs to, and (2) the index of the inputs of the transaction that corresponds to this transaction input.
    * @param lockingScript The locking script attached to the UTXO that this input references.
    */
   def verify(env : ScriptEnvironment, lockingScript : LockingScript): Unit = {
     throwingTransactionVerificationException {
-      // Step 1 : Parse and run the unlocking script
+      // Step 1 : Parse both unlocking script and locking script.
       val unlockingScriptOps : ScriptOpList = ScriptParser.parse(unlockingScript)
+      val lockingScriptOps : ScriptOpList = ScriptParser.parse(lockingScript)
+
+      // Step 2 : Run the unlocking script.
       ScriptInterpreter.eval_internal(env, unlockingScriptOps)
 
-      // Step 2 : Parse and run the locking script
-      val lockingScriptOps : ScriptOpList = ScriptParser.parse(lockingScript)
+      // Step 3 : See if it is P2SH. If yes, copy the redeeming script.
+      val redeemScript : Option[ScriptValue]
+          = getRedeemScript(unlockingScriptOps, lockingScriptOps)
+
+      // Step 4 : Run the locking script
       ScriptInterpreter.eval_internal(env, lockingScriptOps)
 
-      // Step 3 : Check the top value of the stack
+      // Step 5 : Check the top value of the stack
       val top = env.stack.pop()
       if ( !Utils.castToBool(top.value) ) {
         throw new TransactionVerificationException(ErrorCode.TopValueFalse)
       }
+
+      // Step 6 : If we have any redeeming script, parse it, and run it.
+      redeemScript.map { scriptValue : ScriptValue=>
+        val redeemScriptOps : ScriptOpList =
+          ScriptParser.parse(LockingScript(scriptValue.value))
+        ScriptInterpreter.eval_internal(env, redeemScriptOps)
+      }
     }
   }
-
 }
 
 case class GenerationTransactionInput(override val outputTransactionHash : TransactionHash,
