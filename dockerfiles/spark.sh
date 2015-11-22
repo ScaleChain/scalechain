@@ -6,10 +6,10 @@ case "$1" in
                 ./remove.sh spark:latest
                 ;;
         start)
-                docker run -d --name spark
+                docker run --name spark -d -p 8088:8088 -p 8042:8042 spark
                 ;;
         shell)
-                docker run -it -p 8088:8088 -p 8042:8042 --name spark bash
+                ./shell.sh spark
                 ;;
         stop)
                 ./stop.sh spark

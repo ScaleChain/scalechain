@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.util.Arrays;
 
 /**
  * Copied some functions from BitcoinJ by Mike Hearn.

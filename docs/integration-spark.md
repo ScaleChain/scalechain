@@ -13,6 +13,10 @@ ScaleChain provides block/transaction search layer on top of Pair RDD.
 For example, we will create a Pair RDD whose key is block hash, and whose data is the file name and offset of the block in the file.
 By using this Pair RDD, we will be able to search a specific block data by block hash in O(log N) by leveraging indexes on the key.
 
+Spark quick start:
+
+http://spark.apache.org/docs/latest/quick-start.html
+
 Details on Pair RDD:
 
 https://www.safaribooksonline.com/library/view/learning-spark/9781449359034/ch04.html
@@ -37,3 +41,12 @@ http://tachyon-project.org/documentation/Tiered-Storage-on-Tachyon.html
 2. Test spark integration from ScaleChain
 3. Change Spark configuration to use Tachyon for dat storage layer
 4. Change Tachyon configuration to use Tiered storage to store dataset larger than the physical memory.
+
+# Running the spark loader
+You can run the spark loader, which loads blockchain data into spark.
+```
+spark-submit \
+  --class "io.scalechain.blockchain.SparkLoader" \
+  --master local[4] \
+  target/scala-2.11/scalachain_2.11-1.0.jar
+```
