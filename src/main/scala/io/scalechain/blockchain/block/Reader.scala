@@ -174,8 +174,9 @@ case class NormalTransactionInput(override val outputTransactionHash : Transacti
     }
   }
   /** With a locking script, verify that the unlocking script of the input successfully unlocks the locking script attached to the UTXO that this input references.
+   * This method supports P2SH.
    *
-   *
+   * An example of P2SH is as follows.
    * unlocking script :
    *   Op0(), // A dummy value required for emulating a bug in the reference implementation by Satoshi for OP_CHECKMULTISIG.
    *   // Second signature
@@ -220,6 +221,12 @@ case class NormalTransactionInput(override val outputTransactionHash : Transacti
         val redeemScriptOps : ScriptOpList =
           ScriptParser.parse(LockingScript(scriptValue.value))
         ScriptInterpreter.eval_internal(env, redeemScriptOps)
+
+        // Step 6.1 : See if the result of the redeem script execution is true.
+        val top = env.stack.pop()
+        if ( !Utils.castToBool(top.value) ) {
+          throw new TransactionVerificationException(ErrorCode.TopValueFalse)
+        }
       }
     }
   }
