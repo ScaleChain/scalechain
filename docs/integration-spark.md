@@ -44,6 +44,19 @@ http://tachyon-project.org/documentation/Tiered-Storage-on-Tachyon.html
 
 # Running the spark loader
 You can run the spark loader, which loads blockchain data into spark.
+
+1. build jar ; sbt package
+2. start docker container that has Spark ; cd dockerfiles; ./spark.sh build; ./spark.sh shell
+3. copy jar ; cd scripts; ./cp-jar.sh
+4. (on the shell we got from step 2) run following commands.
+
+Copy a test input file README.md on hdfs 
+```
+hadoop fs -mkdir /test
+hadoop fs -put README.md /test
+```
+
+Run the SparkLoader Spark app; 
 ```
 spark-submit \
   --class "io.scalechain.blockchain.SparkLoader" \
