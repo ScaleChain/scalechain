@@ -45,15 +45,18 @@ http://tachyon-project.org/documentation/Tiered-Storage-on-Tachyon.html
 # Running the spark loader
 You can run the spark loader, which loads blockchain data into spark.
 
-1. build jar ; sbt package
-2. start docker container that has Spark ; cd dockerfiles; ./spark.sh build; ./spark.sh shell
-3. copy jar ; cd scripts; ./cp-jar.sh
-4. (on the shell we got from step 2) run following commands.
+0. Run 'DumpChain <path to blkNNNNN.dat files> build-block-index-data > your/path/block-index-data.txt' to create block-index-data.txt to load to Spark.
+1. Open the block-index-data.txt file and remove 5 lines at the beginning of the file.
+2. Build jar ; sbt package
+3. Start docker container that has Spark ; cd dockerfiles; ./spark.sh build; ./spark.sh shell
+4. Copy jar ; cd scripts; ./cp-jar.sh
+5. Copy block-index-data.txt; cd dockerfiles; ./cp.sh spark your/path/block-index-data.txt 
+5. (on the shell we got from step 2) run following commands.
 
-Copy a test input file README.md on hdfs 
+Copy the block index file block-index-data.txt on hdfs 
 ```
 hadoop fs -mkdir /test
-hadoop fs -put README.md /test
+hadoop fs -put block-index-data.txt /test
 ```
 
 Run the SparkLoader Spark app; 
@@ -62,4 +65,13 @@ spark-submit \
   --class "io.scalechain.blockchain.SparkLoader" \
   --master local[4] \
   target/scala-2.11/scalachain_2.11-1.0.jar
+```
+
+# Note
+I had to build Spark with Scala version 2.11, as Spark was using Scala 2.10.
+
+from: http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211
+```
+./dev/change-scala-version.sh 2.11
+mvn -Pyarn -Phadoop-2.4 -Dscala-2.11 -DskipTests clean package
 ```

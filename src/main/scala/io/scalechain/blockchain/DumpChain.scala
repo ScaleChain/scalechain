@@ -5,6 +5,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.script.{ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
+import io.scalechain.util.HexUtil._
 import scala.collection._
 
 /**
@@ -27,6 +28,25 @@ object DumpChain {
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         println(block)
+      }
+    }
+
+    dump( blocksPath, new BlockListener() )
+  }
+
+  /** For loading to Spark, dump all blocks in blkNNNNN.dat files in a directory.
+   * Format : block_hash(hex) space raw_block_data(hex)
+   *
+   * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
+   */
+  def dumpBlockIndexData(blocksPath : String) : Unit = {
+
+    class BlockListener extends BlockReadListener {
+      def onBlock(block: Block): Unit = {
+        val serializedBlock = Util.serialize(block)
+        val blockHash = io.scalechain.util.Hash.hash256( serializedBlock )
+
+        println(s"${hex(blockHash.value)} ${hex(serializedBlock)}")
       }
     }
 
@@ -82,29 +102,11 @@ object DumpChain {
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
   def verifySerialization(blocksPath: String) : Unit = {
-    def serialize(block : Block) : Array[Byte] = {
-      val bout = new ByteArrayOutputStream()
-      val dout = new BlockDataOutputStream(bout)
-      try {
-        val serializer = new BlockSerializer(dout)
-        serializer.serialize(block)
-      } finally {
-        dout.close()
-      }
-      bout.toByteArray
-    }
-
-    def parse(data: Array[Byte]) : Block = {
-      val din = new BlockDataInputStream( new ByteArrayInputStream(data))
-      val parser = new BlockParser(din)
-      parser.parse().get
-    }
-
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         println( "bh:"+ block.header )
-        val serializedBlock1 = serialize(block)
-        val serializedBlock2 = serialize( parse(serializedBlock1) )
+        val serializedBlock1 = Util.serialize(block)
+        val serializedBlock2 = Util.serialize( Util.parse(serializedBlock1) )
         assert( serializedBlock1.sameElements(serializedBlock2) )
       }
     }
@@ -259,6 +261,8 @@ object DumpChain {
         dumpHashes(blocksPath)
       } else if ( command == "dump-transactions" ) {
         dumpTransactions(blocksPath)
+      } else if ( command == "dump-block-index-data" ) {
+        dumpBlockIndexData(blocksPath)
       } else if ( command == "verify-serialization" ) {
         verifySerialization(blocksPath)
       } else if ( command == "merge-scripts" ) {
@@ -275,6 +279,7 @@ object DumpChain {
     println("ex> DumpChain <path> dump-blocks");
     println("ex> DumpChain <path> dump-hashes");
     println("ex> DumpChain <path> dump-transactions");
+    println("ex> DumpChain <path> dump-block-index-data");
     println("ex> DumpChain <path> verify-serialization");
     println("ex> DumpChain <path> merge-scripts");
     println("ex> DumpChain <path> multisig-raw");
