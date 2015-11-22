@@ -30,3 +30,10 @@ http://tachyon-project.org/documentation/Getting-Started.html
 Details on Tachyon Tiered Storage.
 
 http://tachyon-project.org/documentation/Tiered-Storage-on-Tachyon.html
+
+
+# Coding Plan 
+1. Setup Spark with docker
+2. Test spark integration from ScaleChain
+3. Change Spark configuration to use Tachyon for dat storage layer
+4. Change Tachyon configuration to use Tiered storage to store dataset larger than the physical memory.
