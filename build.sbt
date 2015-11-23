@@ -2,7 +2,7 @@ name := """scalachain"""
 
 version := "1.0"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.10.6"
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.13",

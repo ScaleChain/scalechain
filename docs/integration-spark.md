@@ -46,7 +46,7 @@ http://tachyon-project.org/documentation/Tiered-Storage-on-Tachyon.html
 You can run the spark loader, which loads blockchain data into spark.
 
 0. Run 'DumpChain <path to blkNNNNN.dat files> build-block-index-data > your/path/block-index-data.txt' to create block-index-data.txt to load to Spark.
-1. Open the block-index-data.txt file and remove 5 lines at the beginning of the file.
+1. Open the block-index-data.txt file and remove first 4 lines and last 2 lines.
 2. Build jar ; sbt package
 3. Start docker container that has Spark ; cd dockerfiles; ./spark.sh build; ./spark.sh shell
 4. Copy jar ; cd scripts; ./cp-jar.sh
@@ -55,12 +55,14 @@ You can run the spark loader, which loads blockchain data into spark.
 
 Copy the block index file block-index-data.txt on hdfs 
 ```
+cd /test
 hadoop fs -mkdir /test
 hadoop fs -put block-index-data.txt /test
 ```
 
 Run the SparkLoader Spark app; 
 ```
+cd /test
 spark-submit \
   --class "io.scalechain.blockchain.SparkLoader" \
   --master local[4] \

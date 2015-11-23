@@ -29,9 +29,8 @@ object SparkLoader {
 
     // Step 4 : Calculate total amount of Bitcoins sent to outputs by for each block
     val blockStat = blockByHash.mapValues( rawBlockInHex => {
-        println(s"Magic(in Little endian : ${rawBlockInHex(0)}${rawBlockInHex(1)}${rawBlockInHex(2)}${rawBlockInHex(3)}" )
         val block = Util.parse(HexUtil.bytes(rawBlockInHex))
-        block.transactions.map{ tx =>
+        block.transactions.flatMap{ tx =>
           tx.outputs.map { output =>
             output.value
           }
@@ -40,6 +39,10 @@ object SparkLoader {
     )
 
     println(s"== total amount of Bitcoins sent to outputs ==")
-    blockStat.foreach(println)
+    blockStat.foreach
+    { case (blockHash, outputValues : Array[Long] ) =>
+      val totalOutputValue = outputValues.sum
+      println(s"[$blockHash] total output=${totalOutputValue}")
+    }
   }
 }
