@@ -66,11 +66,13 @@ cd /test
 spark-submit \
   --class "io.scalechain.blockchain.SparkLoader" \
   --master local[4] \
-  target/scala-2.11/scalachain_2.11-1.0.jar
+  target/scala-2.10/scalechain_2.10-1.0.jar
 ```
 
 # Note
-I had to build Spark with Scala version 2.11, as Spark was using Scala 2.10.
+
+Because Spark 1.5.2 is shipped with Scala 2.10, ScaleChain uses Scala 2.10.x.
+In case you need to use Scala 2.11, you can build Spark with Scala version 2.11, as Spark was using Scala 2.10.
 
 from: http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211
 ```

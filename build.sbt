@@ -1,4 +1,4 @@
-name := """scalachain"""
+name := """scalechain"""
 
 version := "1.0"
 
