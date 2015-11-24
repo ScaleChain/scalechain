@@ -1,0 +1,25 @@
+@startuml
+'hide footbox
+
+actor Node
+actor MessageActor
+actor AnotherMessageActor
+
+Node -> MessageActor : RequestMessage
+MessageActor -> AnotherMessageActor : RequestMessage
+
+note left
+  Messages are sent by actors.
+  Actors also receive messages.
+  Upon receiving messages,
+  The actor prepares response
+  data to send
+end note
+
+AnotherMessageActor -> MessageProcessor : RequestMessage
+MessageProcessor -> AnotherMessageActor : ResponseMessage
+
+AnotherMessageActor -> MessageActor : ResponseMessage
+MessageActor -> Node : ResponseMessage
+
+@enduml

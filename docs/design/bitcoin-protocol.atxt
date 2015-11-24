@@ -1,0 +1,33 @@
+               ,-.                 ,-.                        ,-.                                     
+               `-'                 `-'                        `-'                                     
+               /|\                 /|\                        /|\                                     
+                |                   |                          |                    ,----------------.
+               / \                 / \                        / \                   |MessageProcessor|
+              Node            MessageActor            AnotherMessageActor           `-------+--------'
+               |   RequestMessage  |                           |                            |         
+               | ------------------>                           |                            |         
+               |                   |                           |                            |         
+  ,-----------------------------!. |                           |                            |         
+  |Messages are sent by actors. |_\|                           |                            |         
+  |Actors also receive messages.  ||      RequestMessage       |                            |         
+  |Upon receiving messages,       || ------------------------->|                            |         
+  |The actor prepares response    ||                           |                            |         
+  |data to send                   ||                           |                            |         
+  `-------------------------------'|                           |                            |         
+               |                   |                           |      RequestMessage        |         
+               |                   |                           |--------------------------->|         
+               |                   |                           |                            |         
+               |                   |                           |      ResponseMessage       |         
+               |                   |                           |<---------------------------|         
+               |                   |                           |                            |         
+               |                   |      ResponseMessage      |                            |         
+               |                   | <-------------------------|                            |         
+               |                   |                           |                            |         
+               |  ResponseMessage  |                           |                            |         
+               | <------------------                           |                            |         
+              Node            MessageActor            AnotherMessageActor           ,-------+--------.
+               ,-.                 ,-.                        ,-.                   |MessageProcessor|
+               `-'                 `-'                        `-'                   `----------------'
+               /|\                 /|\                        /|\                                     
+                |                   |                          |                                      
+               / \                 / \                        / \                                     
