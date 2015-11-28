@@ -27,13 +27,10 @@ Customization
 =============
 An example of adding a logarithm operation : 
 ```
-/** OP_LOG : Pop top two items, x and y to calculate logarithm of x with base y.
-*/
+// OP_LOG : Pop top two items, x and y to calculate logarithm of x with base y.
 case class OpLog() extends Arithmetic {
 　def opCode() = OpCode(0xb0)
-　def execute(env : ScriptEnvironment): Unit = {
-　　binaryIntOperation( env, Math.log(_) / Math.log(_) )
-　}
+　def execute(env : ScriptEnvironment) = binaryIntOperation( env, Math.log(_) / Math.log(_) )
 }
 ```
 
