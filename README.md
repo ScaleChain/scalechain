@@ -2,6 +2,7 @@ Introduction
 ============
 A customizable blockchain implementation for private blockchains.
 Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
+Take a look at an example [configuration](docs/config.md).
 
 For the avoidance of doubt, this particular copy of the software is released under the version 2 of the GNU General Public License. It is brought to you by ScaleChain.
 
@@ -40,7 +41,11 @@ Private blockchains require customized script operations based on the Bitcoin sc
 
 Planned release date
 ====================
-November 30, 2015 ; Beta release
+November 30, 2015; Bitcoin script execution engine - Spark integration 
+
+Jaunary 15, 2016; P2P networking - Private blockchain, Bitcoin testnet integration
+
+March 15, 2016; Turing complete Bitcoin script.
 
 License
 =======
