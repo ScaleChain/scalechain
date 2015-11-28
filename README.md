@@ -10,19 +10,23 @@ Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
 Why ScaleChain?
 ===============
-1. Easy to use, easy to integrate.
-2. Easy to add a customized script operation.
+1. (M1) Easy to use, easy to integrate.
+2. (M1) Easy to add a customized script operation.
+3. (M2) Easy to customize with plugin configurations.
+4. (M2) Shard data across P2P nodes(Private blockchain only).
+5. (M3) Turing completeness on Bitcoin script(Private blockchain only).
+
+Planned release dates
+=====================
+* M1 - Bitcoin script engine; November 30, 2015; [Spark integration](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) 
+* M2 - P2P networking; Jaunary 15, 2016; Private blockchain/ Bitcoin testnet integration with plugin configurations. 
+* M3 - Turing complete; March 15, 2016; Turing complete Bitcoin script - Like ethereum ;-)
 
 Supported Features
 ==================
-- All arithmetic operations are supported.
-- All bitwise logic operations are supported. 
-- All stack operations are supported.
-- All splice operations are supported.
-- All constant operations are supported.
-- All hash operations are supported.
-- All flow control operations are supported.
-- OP_CHECKSIG/OP_CHECKMULTISIG with P2PK, P2PKH is supported.
+- All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
+- Spark Integration; [load bitcoin transaction/block data onto Spark](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) for real-time analysis.
+- (In-progress) P2P networking; Bitcoin testnet integration.
 
 Customization
 =============
@@ -38,14 +42,6 @@ case class OpLog() extends Arithmetic {
 Use Cases
 =========
 Private blockchains require customized script operations based on the Bitcoin script. ScaleChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
-
-Planned release date
-====================
-November 30, 2015; Bitcoin script execution engine - Spark integration 
-
-Jaunary 15, 2016; P2P networking - Private blockchain, Bitcoin testnet integration
-
-March 15, 2016; Turing complete Bitcoin script.
 
 License
 =======
