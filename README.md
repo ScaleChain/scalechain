@@ -18,7 +18,7 @@ Planned release dates
 * Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) 
 * Milestone 2 ; February 29, 2016 - P2P networking;  Bitcoin testnet integration 
 * Milestone 3 ;    April 30, 2016 - Plugin Configuration; Support customizable plugins 
-* Mulestone 4 ;     July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
+* Milestone 4 ;     July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
 * Milestone 5 ;      Oct 30, 2016 - Data sharding ; Data partitioning across P2P nodes. Private blockchain only.
 
 Supported Features
@@ -44,8 +44,8 @@ Private blockchains require customized script operations based on the Bitcoin sc
 
 License
 =======
-ScaleChain Commercial License for OEMs, ISVs and VARs
-ScaleChain provides its ScaleChain Server and Client Libraries under a dual license model designed to meet the development and distribution needs of both commercial distributors (such as OEMs, ISVs and VARs) and open source projects.
+ScaleChain Commercial License for OEMs, ISVs, and VARs
+ScaleChain provides its ScaleChain Server and Client Libraries under a dual license model designed to meet the development and distribution needs of both commercial distributors (such as OEMs, ISVs, and VARs) and open source projects.
 
 For OEMs, ISVs, VARs and Other Distributors of Commercial Applications:
 OEMs (Original Equipment Manufacturers), ISVs (Independent Software Vendors), VARs (Value Added Resellers) and other distributors that combine and distribute commercially licensed software with ScaleChain software and do not wish to distribute the source code for the commercially licensed software under version 2 of the GNU General Public License (the "GPL") must enter into a commercial license agreement with ScaleChain.
