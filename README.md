@@ -10,17 +10,16 @@ Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
 Why ScaleChain?
 ===============
-1. (M1) Easy to use, easy to integrate.
-2. (M1) Easy to add a customized script operation.
-3. (M2) Easy to customize with plugin configurations.
-4. (M2) Shard data across P2P nodes(Private blockchain only).
-5. (M3) Turing completeness on Bitcoin script(Private blockchain only).
+1. Easy to use, easy to integrate, easy to customize.
+2. Shard data across P2P nodes(Private blockchain only).
 
 Planned release dates
 =====================
-* M1 - Bitcoin script engine; November 30, 2015; [Spark integration](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) 
-* M2 - P2P networking; Jaunary 15, 2016; Private blockchain/ Bitcoin testnet integration with plugin configurations. 
-* M3 - Turing complete; March 15, 2016; Turing complete Bitcoin script - Like ethereum ;-)
+* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) 
+* Milestone 2 ; February 29, 2016 - P2P networking;  Bitcoin testnet integration 
+* Milestone 3 ;    April 30, 2016 - Plugin Configuration; Support customizable plugins 
+* Mulestone 4 ;     July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
+* Milestone 5 ;      Oct 30, 2016 - Data sharding ; Data partitioning across P2P nodes. Private blockchain only.
 
 Supported Features
 ==================
