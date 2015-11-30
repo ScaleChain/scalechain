@@ -15,7 +15,7 @@ Why ScaleChain?
 
 Planned release dates
 =====================
-* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) 
+* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
 * Milestone 2 ; February 29, 2016 - P2P networking;  Bitcoin testnet integration 
 * Milestone 3 ;    April 30, 2016 - Plugin Configuration; Support customizable plugins 
 * Milestone 4 ;     July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
@@ -24,7 +24,7 @@ Planned release dates
 Supported Features
 ==================
 - All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
-- Spark Integration; [load bitcoin transaction/block data onto Spark](https://github.com/ScaleChain/scalechain/blob/master/src/main/scala/io/scalechain/blockchain/SparkLoader.scala) for real-time analysis.
+- Spark Integration; [load bitcoin transaction/block data onto Spark](docs/spark-integration.md) for real-time analysis.
 - (In-progress) P2P networking; Bitcoin testnet integration.
 
 Customization

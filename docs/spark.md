@@ -1,6 +1,10 @@
 # Spark Integration
 ScaleChain supports Spark integration to load blockchain data for analysis or machine learning. 
 
+For example, you can upload all block files (Ex> blk00001.dat) written by Bitcoin reference implementation,
+and calculate the total amount of Bitcoins sent to outputs in each block. 
+
+
 # How to store blockchain data
 ## data files
 Block data is stored on disk in a format compatible to Bitcoin reference implementation.
