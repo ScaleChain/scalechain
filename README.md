@@ -13,9 +13,12 @@ Why ScaleChain?
 1. Easy to use, easy to integrate, easy to customize.
 2. Shard data across P2P nodes(Private blockchain only).
 
+Releases
+========
+* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
+
 Planned release dates
 =====================
-* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
 * Milestone 2 ; February 29, 2016 - P2P networking;  Bitcoin testnet integration 
 * Milestone 3 ;    April 30, 2016 - Plugin Configuration; Support customizable plugins 
 * Milestone 4 ;     July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
