@@ -15,7 +15,7 @@ Why ScaleChain?
 
 Releases
 ========
-* Milestone 1 ; November 30, 2015 - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
+* [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
 
 Planned release dates
 =====================
