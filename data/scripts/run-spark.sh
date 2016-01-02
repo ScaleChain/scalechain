@@ -1,6 +1,6 @@
 pushd .
 
-cd ..
+cd ../..
 # build jar
 sbt compile package
 
