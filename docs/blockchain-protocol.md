@@ -20,10 +20,19 @@ Communicate with a remote actor.
 http://doc.akka.io/docs/akka/snapshot/scala/remoting.html
 ```
 
-#akka
-## akka-camel
-
+#Code Examples
+## Akka-camel
 http://doc.akka.io/docs/akka/snapshot/scala/camel.html
+
+## Camel-Netty 
+http://camel.apache.org/netty.html
+
+## Tutorial : Akka,Camel,Netty
+https://vijayannadi.wordpress.com/tutorials/131-2/
+
+## Netty encoder
+https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/string/StringEncoder.java
+
 
 #Bitcoin
 ## main.cpp
