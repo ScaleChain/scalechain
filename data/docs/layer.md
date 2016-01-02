@@ -4,7 +4,7 @@ Each module exists at a layer and a module can use another module at a layer bel
 
 # Layers
 The followings are list of sub-modules from the top layer to the bottom layer.
-
+```
 +------------------------------------------------+
 |           Util          |          Main        |
 +------------------------------------------------+
@@ -20,7 +20,7 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +------------------------------------------------+
 |                   Base Layer                   |
 +------------------------------------------------+
-
+```
 ## Util
 A jar package containing all utilities such as DumpChain.
 
