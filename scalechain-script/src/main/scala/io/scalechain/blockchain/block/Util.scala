@@ -2,6 +2,8 @@ package io.scalechain.blockchain.block
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import io.scalechain.io.{BlockDataOutputStream, BlockDataInputStream}
+
 /**
  * Created by kangmo on 11/23/15.
  */

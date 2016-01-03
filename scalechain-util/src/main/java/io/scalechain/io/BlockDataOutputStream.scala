@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.block
+package io.scalechain.io
 
 import java.io.{DataOutputStream, OutputStream}
 

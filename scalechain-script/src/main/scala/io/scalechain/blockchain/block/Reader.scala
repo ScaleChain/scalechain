@@ -6,6 +6,7 @@ import io.scalechain.blockchain.block.index.BlockIndex
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual, OpHash160, OpPush}
+import io.scalechain.io.{BlockDataOutputStream, BlockDataInputStream}
 import io.scalechain.util.{HexUtil, Utils}
 import io.scalechain.crypto.{Hash256, TransactionSigHash, HashFunctions}
 import HexUtil._

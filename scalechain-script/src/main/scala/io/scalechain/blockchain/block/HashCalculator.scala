@@ -2,6 +2,8 @@ package io.scalechain.blockchain.block
 
 import java.io.ByteArrayOutputStream
 
+import io.scalechain.io.BlockDataOutputStream
+
 object HashCalculator {
   def transactionHash(transaction : Transaction ) : Array[Byte] = {
     val bout = new ByteArrayOutputStream()

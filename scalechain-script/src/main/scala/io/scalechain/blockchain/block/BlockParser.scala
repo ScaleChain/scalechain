@@ -3,6 +3,7 @@ package io.scalechain.blockchain.block
 import java.io.EOFException
 
 import io.scalechain.blockchain.{ErrorCode, FatalException}
+import io.scalechain.io.BlockDataInputStream
 
 /**
  * Parse a block from a byte array stream.
