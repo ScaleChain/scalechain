@@ -15,7 +15,7 @@ object HashCalculator {
     }
 
     // Run SHA256 twice and reverse bytes.
-    val hash = io.scalechain.util.Hash.hash256( bout.toByteArray )
+    val hash = io.scalechain.crypto.HashFunctions.hash256( bout.toByteArray )
     //hash.value.reverse
     // TODO : Check if don't need to reverse hash value
     hash.value

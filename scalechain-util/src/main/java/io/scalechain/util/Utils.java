@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.util;
+package io.scalechain.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

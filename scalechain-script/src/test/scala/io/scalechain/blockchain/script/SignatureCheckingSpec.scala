@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.block._
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.HexUtil
+import HexUtil._
+import io.scalechain.util.HexUtil
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.Tables.Table
 import org.scalatest.{Suite, BeforeAndAfterEach, FlatSpec}

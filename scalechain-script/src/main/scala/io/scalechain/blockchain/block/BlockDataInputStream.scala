@@ -2,7 +2,7 @@ package io.scalechain.blockchain.block
 
 import java.io.{DataInputStream, InputStream}
 
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 
 /**
  * Created by kangmo on 11/2/15.

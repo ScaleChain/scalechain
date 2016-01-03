@@ -6,9 +6,10 @@ import io.scalechain.blockchain.block.index.BlockIndex
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual, OpHash160, OpPush}
-import io.scalechain.blockchain.util.Utils
-import io.scalechain.util.{Hash256, Hash}
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.{HexUtil, Utils}
+import io.scalechain.crypto.{Hash256, TransactionSigHash, HashFunctions}
+import HexUtil._
+
 
 
 /**
@@ -366,7 +367,7 @@ case class Transaction(version : Int,
    */
   protected def alter(transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Unit = {
     howToHash match {
-      case Transaction.SigHash.ALL => {
+      case TransactionSigHash.ALL => {
         // Set an empty unlocking script for all inputs
         forEachNormalTransaction { (txIndex, normalTxInput) =>
           normalTxInput.unlockingScript =
@@ -376,10 +377,10 @@ case class Transaction(version : Int,
               UnlockingScript(Array())
         }
       }
-      case Transaction.SigHash.NONE => {
+      case TransactionSigHash.NONE => {
         throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
       }
-      case Transaction.SigHash.SINGLE => {
+      case TransactionSigHash.SINGLE => {
         throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
       }
     }
@@ -404,18 +405,9 @@ case class Transaction(version : Int,
       dout.close()
     }
     // Step 3 : Calculate hash
-    Hash.hash256(bout.toByteArray)
+    HashFunctions.hash256(bout.toByteArray)
   }
 
-}
-
-object Transaction {
-  object SigHash {
-    val ALL = 1
-    val NONE = 2
-    val SINGLE = 3
-  }
-  val ANYONECANPAY : Int = 0x80
 }
 
 case class Block(val size:Long,

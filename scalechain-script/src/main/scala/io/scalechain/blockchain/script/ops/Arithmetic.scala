@@ -3,8 +3,8 @@ package io.scalechain.blockchain.script.ops
 import java.math.BigInteger
 
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
-import io.scalechain.blockchain.util.Utils
 import io.scalechain.blockchain.{ScriptEvalException, ErrorCode, FatalException}
+import io.scalechain.util.Utils
 
 trait Arithmetic extends ScriptOp
 {

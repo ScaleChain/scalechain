@@ -1,6 +1,5 @@
-package io.scalechain.blockchain.util;
+package io.scalechain.crypto;
 
-import io.scalechain.blockchain.block.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
@@ -184,8 +183,8 @@ public class ECKey {
                 return false;
 
             // BUGBUG : ANYONECANPAY was byte type, but changed it to int. Make sure it is OK.
-            int hashType = signature[signature.length-1] & ~Transaction.ANYONECANPAY();
-            if (hashType < (Transaction.SigHash$.MODULE$.ALL()) || hashType > (Transaction.SigHash$.MODULE$.SINGLE()))
+            int hashType = signature[signature.length-1] & ~TransactionSigHash$.MODULE$.HASH_TYPE_MASK();
+            if (hashType < (TransactionSigHash$.MODULE$.ALL()) || hashType > (TransactionSigHash$.MODULE$.SINGLE()))
                 return false;
 
             //                   "wrong type"                  "wrong length marker"

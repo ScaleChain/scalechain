@@ -48,7 +48,7 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Sho
     // the resources directory.
     val source = Source.fromURL(getClass.getResource("/data.xml"))     *
     */
-    reader.readFrom("/Users/kangmo/crypto/scalachain/scalechain-script/src/test/resources/blocks")
+    reader.readFrom("/Users/kangmo/crypto/scalechain/scalechain-script/src/test/resources/blocks")
 
     for (b : Block <- blocks) {
       println("Block : " + b.toString())

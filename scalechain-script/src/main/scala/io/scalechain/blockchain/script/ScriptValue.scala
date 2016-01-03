@@ -3,8 +3,9 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.blockchain.util.Utils
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.{HexUtil, Utils}
+import HexUtil._
+import io.scalechain.util.Utils
 
 
 object ScriptValue {

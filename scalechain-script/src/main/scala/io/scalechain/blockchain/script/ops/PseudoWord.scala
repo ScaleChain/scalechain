@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.script.ops
 
 import io.scalechain.blockchain.script.{ScriptInterpreter, ScriptOpList, ScriptEnvironment}
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 
 trait PseudoWord extends ScriptOp
 

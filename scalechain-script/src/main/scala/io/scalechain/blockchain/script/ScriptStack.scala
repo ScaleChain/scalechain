@@ -3,7 +3,7 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ErrorCode$, ScriptEvalException}
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 
 
 import scala.collection.mutable

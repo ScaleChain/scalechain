@@ -3,12 +3,13 @@ package io.scalechain.blockchain.script.ops
 import java.util
 
 import io.scalechain.blockchain.block.Script
-import io.scalechain.blockchain.util.ECKey.ECDSASignature
-import io.scalechain.blockchain.util.{ECKey, Utils}
 import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
-import io.scalechain.util.{Hash256, Hash}
-import io.scalechain.util.HexUtil._
+import io.scalechain.crypto.ECKey.ECDSASignature
+import io.scalechain.util.{HexUtil, Utils}
+import HexUtil._
+import io.scalechain.util.Utils
+import io.scalechain.crypto.{Hash256, HashFunctions, ECKey}
 
 trait Crypto extends ScriptOp
 
@@ -25,7 +26,7 @@ case class OpRIPEMD160() extends Crypto {
     }
 
     val topItem = env.stack.pop()
-    val hash = Hash.ripemd160(topItem.value)
+    val hash = HashFunctions.ripemd160(topItem.value)
     env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
@@ -42,7 +43,7 @@ case class OpSHA1() extends Crypto {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
     }
     val topItem = env.stack.pop()
-    val hash = Hash.sha1(topItem.value)
+    val hash = HashFunctions.sha1(topItem.value)
     env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
@@ -59,7 +60,7 @@ case class OpSHA256() extends Crypto {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
     }
     val topItem = env.stack.pop()
-    val hash = Hash.sha256(topItem.value)
+    val hash = HashFunctions.sha256(topItem.value)
     env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
@@ -76,7 +77,7 @@ case class OpHash160() extends Crypto {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
     }
     val topItem = env.stack.pop()
-    val hash = Hash.hash160(topItem.value)
+    val hash = HashFunctions.hash160(topItem.value)
     env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }
@@ -93,7 +94,7 @@ case class OpHash256() extends Crypto {
       throw new ScriptEvalException(ErrorCode.NotEnoughInput)
     }
     val topItem = env.stack.pop()
-    val hash = Hash.hash256(topItem.value)
+    val hash = HashFunctions.hash256(topItem.value)
     env.stack.push(ScriptValue.valueOf(hash.value))
   }
 }

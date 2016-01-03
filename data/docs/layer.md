@@ -42,6 +42,10 @@ The codec layer of protocols. Knows how to read/write case classes for P2P netwo
 ## Codec-Block
 The codec layer of blocks. Knows how to read/write transaction/block data to/from disk or network.
 
+## Crypto 
+The crypto layer. Implements ECC for signing and verifying transactions.
+Also implements various hash functions.
+
 ## Proto
 Defines all case classes for communicating with another P2P node.
 

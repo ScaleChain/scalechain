@@ -1,8 +1,7 @@
-package io.scalechain.util
+package io.scalechain.crypto
 
 import java.security.MessageDigest
 import org.spongycastle.crypto.digests.RIPEMD160Digest
-
 
 trait HashValue {
   val value: Array[Byte]
@@ -32,7 +31,7 @@ case class Hash256(bytes:Array[Byte]) extends HashValue {
 /**
  * Created by kangmo on 11/11/15.
  */
-object Hash {
+object HashFunctions {
   /**
    *
    * @param input

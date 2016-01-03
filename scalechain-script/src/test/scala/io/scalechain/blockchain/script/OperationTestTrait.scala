@@ -5,7 +5,7 @@ import java.math.BigInteger
 import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode}
 import io.scalechain.blockchain.script.ops.ScriptOp
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 import org.scalatest.{Suite, ShouldMatchers}
 
 import scala.Long

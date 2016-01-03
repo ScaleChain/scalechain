@@ -5,7 +5,9 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.script.{ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.HexUtil
+import HexUtil._
+import io.scalechain.util.HexUtil
 import scala.collection._
 
 /**
@@ -44,7 +46,7 @@ object DumpChain {
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         val serializedBlock = Util.serialize(block)
-        val blockHash = io.scalechain.util.Hash.hash256( serializedBlock )
+        val blockHash = io.scalechain.crypto.HashFunctions.hash256( serializedBlock )
 
         println(s"${hex(blockHash.value)} ${hex(serializedBlock)}")
       }

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.script.ops
 import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ParseResult, ScriptOpList, ScriptParser, ScriptEnvironment}
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 
 trait FlowControl extends ScriptOp
 

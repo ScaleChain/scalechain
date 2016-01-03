@@ -4,7 +4,7 @@ import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
-import io.scalechain.blockchain.util.Utils
+import io.scalechain.util.Utils
 
 trait BitwiseLogic extends ScriptOp
 
