@@ -27,6 +27,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-script",
 			base = file("scalechain-script"))
+	  .dependsOn(base_module)
 
 	lazy val storage =
 		Project(
