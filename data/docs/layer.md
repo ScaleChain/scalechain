@@ -5,24 +5,24 @@ Each module exists at a layer and a module can use another module at a layer bel
 # Layers
 The followings are list of sub-modules from the top layer to the bottom layer.
 ```
-+------------------------------------------------+
-|           Util          |          Main        |
-+------------------------------------------------+
++-------------------------+----------------------+
+|          Cli            |          Main        |
++-------------------------+----------------------+
 |                   Net                          |
 +------------------------------------------------+
 |                   Storage                      |
 +------------------------------------------------+
 |                   Script                       |
-+------------------------------------------------+
-|                   Codec|Proto                  |
-+------------------------------------------------+
-|                   Codec|Block                  |
-+------------------------------------------------+
-|                   Base Layer                   |
++----------------+----------------+--------------+
+|   Codec|Block  |   Codec|Proto  |              |
++---------------------------------+    Crypto    |
+|      Block     |      Proto     |              |
++----------------+----------------+--------------+
+|                   Util Layer                   |
 +------------------------------------------------+
 ```
-## Util
-A jar package containing all utilities such as DumpChain.
+## Cli
+A jar package containing all CLI(command line interface) utilities such as DumpChain.
 
 ## Main
 A jar package containing the ScaleChain main class to run P2P nodes.
@@ -42,5 +42,11 @@ The codec layer of protocols. Knows how to read/write case classes for P2P netwo
 ## Codec-Block
 The codec layer of blocks. Knows how to read/write transaction/block data to/from disk or network.
 
-## Base
-The base layer. Implements utility functions that can be used by other modules.
+## Proto
+Defines all case classes for communicating with another P2P node.
+
+## Block
+Defines all case classes about blocks and transactions.
+
+## Util
+The utility layer. Implements utility functions that can be used by other modules.

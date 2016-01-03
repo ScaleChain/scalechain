@@ -10,7 +10,7 @@ trait Arithmetic extends ScriptOp
 {
   def unaryIntOperation(env : ScriptEnvironment, mutate : (Long) => (Long) ): Unit = {
     super.unaryOperation(env, (value1 : ScriptValue) => {
-      val intValue1 = Utils.decodeStackInt(value1.value)
+      val intValue1 = ScriptValue.decodeStackInt(value1.value)
 
       val intResult = mutate(intValue1.longValue())
       ScriptValue.valueOf( intResult )
@@ -19,8 +19,8 @@ trait Arithmetic extends ScriptOp
 
   def binaryIntOperation(env : ScriptEnvironment, mutate : (Long, Long) => (Long) ): Unit = {
     super.binaryOperation(env, (value1 : ScriptValue, value2 : ScriptValue) => {
-      val intValue1 = Utils.decodeStackInt(value1.value)
-      val intValue2 = Utils.decodeStackInt(value2.value)
+      val intValue1 = ScriptValue.decodeStackInt(value1.value)
+      val intValue2 = ScriptValue.decodeStackInt(value2.value)
 
       val intResult = mutate(intValue1.longValue(), intValue2.longValue())
       ScriptValue.valueOf(intResult)
@@ -29,9 +29,9 @@ trait Arithmetic extends ScriptOp
 
   def ternaryIntOperation(env : ScriptEnvironment, mutate : (Long, Long, Long) => (Long) ): Unit = {
     super.ternaryOperation(env, (value1 : ScriptValue, value2 : ScriptValue, value3 : ScriptValue) => {
-      val intValue1 = Utils.decodeStackInt(value1.value)
-      val intValue2 = Utils.decodeStackInt(value2.value)
-      val intValue3 = Utils.decodeStackInt(value3.value)
+      val intValue1 = ScriptValue.decodeStackInt(value1.value)
+      val intValue2 = ScriptValue.decodeStackInt(value2.value)
+      val intValue3 = ScriptValue.decodeStackInt(value3.value)
 
       val intResult = mutate(intValue1.longValue(), intValue2.longValue(), intValue3.longValue())
       ScriptValue.valueOf(intResult)

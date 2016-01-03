@@ -1,8 +1,5 @@
 package io.scalechain.blockchain.util;
 
-import io.scalechain.blockchain.ErrorCode$;
-import io.scalechain.blockchain.ScriptEvalException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,16 +74,14 @@ public class Utils {
         return false;
     }
 
-    private static BigInteger castToBigInteger(byte[] chunk) throws ScriptEvalException {
-        if (chunk.length > 4)
-            throw new ScriptEvalException(ErrorCode$.MODULE$.TooBigScriptInteger());
+    public static BigInteger castToBigInteger(byte[] chunk) {
         return Utils.decodeMPI(Utils.reverseBytes(chunk), false);
     }
 
     /**
      * Returns a copy of the given byte array in reverse order.
      */
-    private static byte[] reverseBytes(byte[] bytes) {
+    public static byte[] reverseBytes(byte[] bytes) {
         // We could use the XOR trick here but it's easier to understand if we don't. If we find this is really a
         // performance issue the matter can be revisited.
         byte[] buf = new byte[bytes.length];
@@ -101,7 +96,7 @@ public class Utils {
      * the number in big endian format (with a sign bit).
      * @param hasLength can be set to false if the given array is missing the 4 byte length field
      */
-    private static BigInteger decodeMPI(byte[] mpi, boolean hasLength) {
+    public static BigInteger decodeMPI(byte[] mpi, boolean hasLength) {
         byte[] buf;
         if (hasLength) {
             int length = (int) readUint32BE(mpi, 0);
@@ -124,7 +119,7 @@ public class Utils {
      * the number in big endian format (with a sign bit).
      * @param includeLength indicates whether the 4 byte length field should be included
      */
-    private static byte[] encodeMPI(BigInteger value, boolean includeLength) {
+    public static byte[] encodeMPI(BigInteger value, boolean includeLength) {
         if (value.equals(BigInteger.ZERO)) {
             if (!includeLength)
                 return new byte[] {};
@@ -172,15 +167,6 @@ public class Utils {
                 (bytes[offset + 3] & 0xFFL);
     }
 
-    public static byte[] encodeStackInt(BigInteger value) throws ScriptEvalException {
-        return Utils.reverseBytes(Utils.encodeMPI(value, false));
-    }
-
-    public static BigInteger decodeStackInt(byte[] encoded) throws ScriptEvalException {
-        return castToBigInteger(encoded);
-    }
-
-
     private static boolean equalsRange(byte[] a, int start, byte[] b) {
         if (start + b.length > a.length)
             return false;
@@ -190,6 +176,7 @@ public class Utils {
         return true;
     }
 
+    // BUGBUG : Move to script layer.
     /**
      * Returns the script bytes of inputScript with all instances of the specified script object removed
      * TODO : Rewrite this method in Scala.
@@ -247,6 +234,7 @@ public class Utils {
         }
     }
 
+    // BUGBUG : Move to script layer.
     /**
      * Returns the script bytes of inputScript with all instances of the given op code removed
      */

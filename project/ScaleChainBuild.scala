@@ -6,12 +6,17 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-all",
 			base = file(".")).
-			aggregate(base_module, codec_block, codec_proto, script, storage, net, main, util)
+			aggregate(util, crypto, codec_block, codec_proto, script, storage, net, main, cli)
 
-	lazy val base_module =
+	lazy val util =
 		Project(
-			id = "scalechain-base",
-			base = file("scalechain-base"))
+			id = "scalechain-util",
+			base = file("scalechain-util"))
+
+	lazy val crypto =
+		Project(
+			id = "scalechain-crypto",
+			base = file("scalechain-crypto"))
 
 	lazy val codec_block =
 		Project(
@@ -27,7 +32,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-script",
 			base = file("scalechain-script"))
-	  .dependsOn(base_module)
+	  .dependsOn(util, crypto)
 
 	lazy val storage =
 		Project(
@@ -44,10 +49,10 @@ object ScaleChainBuild extends Build {
 			id = "scalechain-main",
 			base = file("scalechain-main"))
 
-	lazy val util =
+	lazy val cli =
 		Project(
-			id = "scalechain-util",
-			base = file("scalechain-util"))
+			id = "scalechain-cli",
+			base = file("scalechain-cli"))
 
 }
 

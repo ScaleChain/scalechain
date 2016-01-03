@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.util.Utils
 import io.scalechain.util.HexUtil._
 
@@ -55,6 +56,15 @@ object ScriptValue {
   def valueOf(value:BigInteger) : ScriptValue = {
     ScriptInteger( value )
   }
+
+  def encodeStackInt(value: BigInteger): Array[Byte] = {
+    return Utils.reverseBytes(Utils.encodeMPI(value, false))
+  }
+
+  def decodeStackInt(encoded: Array[Byte]): BigInteger = {
+    if (encoded.length > 4) throw new ScriptEvalException(ErrorCode.TooBigScriptInteger)
+    return Utils.castToBigInteger(encoded)
+  }
 }
 
 trait ScriptValue {
@@ -80,7 +90,7 @@ trait ScriptValue {
 }
 
 case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
-  override val value = Utils.encodeStackInt( bigIntValue )
+  override val value = ScriptValue.encodeStackInt( bigIntValue )
   def copy() : ScriptValue = ScriptInteger(bigIntValue)
   override def toString() = s"ScriptIntger($bigIntValue)"
   /*

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
+import io.scalechain.blockchain.{ErrorCode, ErrorCode$, ScriptEvalException}
 import io.scalechain.blockchain.util.Utils
 
 
@@ -111,7 +112,7 @@ class ScriptStack {
    */
   def popInt() : BigInteger  = {
     val scriptValue = pop()
-    val value : BigInteger  = Utils.decodeStackInt(scriptValue.value)
+    val value : BigInteger  = ScriptValue.decodeStackInt(scriptValue.value)
     value
   }
 
