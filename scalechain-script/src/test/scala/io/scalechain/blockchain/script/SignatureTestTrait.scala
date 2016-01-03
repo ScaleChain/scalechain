@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script
 
+import io.scalechain.blockchain.{GenerationTransactionVerifier, TransactionVerifier, NormalTransactionVerifier}
 import io.scalechain.blockchain.block.{GenerationTransactionInput, LockingScript, Transaction, NormalTransactionInput}
 import org.scalatest._
 
@@ -18,10 +19,10 @@ trait SignatureTestTrait extends ShouldMatchers {
     val txInput = spendingTransaction.inputs(inputIndex)
     txInput match {
       case normalTxInput : NormalTransactionInput => {
-        normalTxInput.verify(env, lockingScript)
+        new NormalTransactionVerifier(normalTxInput).verify(env, lockingScript)
       }
-      case _  => {
-        txInput.verify(null, null)
+      case generationTxInput : GenerationTransactionInput  => {
+        new GenerationTransactionVerifier(generationTxInput).verify(null, null)
       }
     }
   }

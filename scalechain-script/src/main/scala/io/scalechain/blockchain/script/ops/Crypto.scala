@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script.ops
 
 import java.util
 
+import io.scalechain.blockchain.script.TransactionSignature
 import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
@@ -181,7 +182,7 @@ trait CheckSig extends Crypto {
     //val howToHash : Int = rawSigature.value.last & 0x1f
     val howToHash : Int = rawSignature.value.last
 
-    val hashOfInput : Hash256 = env.transaction.hashForSignature(env.transactionInputIndex.get, scriptData, howToHash)
+    val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction, env.transactionInputIndex.get, scriptData, howToHash)
 
     if (ECKey.verify(hashOfInput.value, signature, publicKey.value)) {
       super.pushTrue(env)
@@ -279,7 +280,7 @@ trait CheckSig extends Crypto {
       //val howToHash : Int = rawSigature.value.last & 0x1f
       val howToHash : Int = rawSignature.value.last
 
-      val hashOfInput : Hash256 = env.transaction.hashForSignature(env.transactionInputIndex.get, scriptData, howToHash)
+      val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction, env.transactionInputIndex.get, scriptData, howToHash)
 
       // Step 6.3 : Try to match the signature with a public key
       val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
