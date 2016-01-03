@@ -13,6 +13,12 @@ Why ScaleChain?
 1. Easy to use, easy to integrate, easy to customize.
 2. Shard data across P2P nodes(Private blockchain only).
 
+A pitch deck
+============
+The following deck contains how financial companies can benefit from using ScaleChain.
+ 
+[Cost Reduction for the Financial Industry using Blockchain Technology] (https://drive.google.com/file/d/0B5FqZAXWn_zgSThTdTVBYlhuUjA/view)
+
 Releases
 ========
 * [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 

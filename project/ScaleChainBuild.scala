@@ -11,42 +11,42 @@ object ScaleChainBuild extends Build {
 	lazy val base_module =
 		Project(
 			id = "scalechain-base",
-			base = file("base"))
+			base = file("scalechain-base"))
 
 	lazy val codec_block =
 		Project(
 			id = "scalechain-codec-block",
-			base = file("codec-block"))
+			base = file("scalechain-codec-block"))
 
 	lazy val codec_proto =
 		Project(
 			id = "scalechain-codec-proto",
-			base = file("codec-proto"))
+			base = file("scalechain-codec-proto"))
 
 	lazy val script =
 		Project(
 			id = "scalechain-script",
-			base = file("script"))
+			base = file("scalechain-script"))
 
 	lazy val storage =
 		Project(
 			id = "scalechain-storage",
-			base = file("storage"))
+			base = file("scalechain-storage"))
 
 	lazy val net =
 		Project(
 			id = "scalechain-net",
-			base = file("net"))
+			base = file("scalechain-net"))
 
 	lazy val main =
 		Project(
 			id = "scalechain-main",
-			base = file("main"))
+			base = file("scalechain-main"))
 
 	lazy val util =
 		Project(
 			id = "scalechain-util",
-			base = file("util"))
+			base = file("scalechain-util"))
 
 }
 
