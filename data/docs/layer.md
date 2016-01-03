@@ -10,6 +10,8 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +-------------------------+----------------------+
 |                   Net                          |
 +------------------------------------------------+
+|                   Transaction                  |
++------------------------------------------------+
 |                   Storage                      |
 +------------------------------------------------+
 |                   Script                       |
@@ -29,6 +31,10 @@ A jar package containing the ScaleChain main class to run P2P nodes.
 
 ## Net
 The P2P networking layer.
+
+## Transaction
+The ScaleChain transaction layer. Implements signing a raw transaction, verifying a signed transaction.
+Also implements transaction memory pool.
 
 ## Storage
 The storage layer. Knows how to store blocks and transactions. It knows how to search blocks by hash or transactions by hash.
