@@ -68,7 +68,7 @@ Run the SparkLoader Spark app;
 ```
 cd /test
 spark-submit \
-  --class "io.scalechain.blockchain.SparkLoader" \
+  --class "io.scalechain.cli.SparkLoader" \
   --master local[4] \
   target/scala-2.10/scalechain_2.10-1.0.jar
 ```

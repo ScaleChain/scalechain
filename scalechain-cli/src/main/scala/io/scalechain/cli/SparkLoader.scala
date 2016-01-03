@@ -1,11 +1,8 @@
-package io.scalechain.blockchain
+package io.scalechain.cli
 
-/* SimpleApp.scala */
-
-import io.scalechain.blockchain.block.{NormalTransactionInput, Util}
+import io.scalechain.blockchain.block.Util
 import io.scalechain.util.HexUtil
 import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
 
 object SparkLoader {

@@ -1,4 +1,4 @@
-package io.scalechain.blockchain
+package io.scalechain.cli
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 

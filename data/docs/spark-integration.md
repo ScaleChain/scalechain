@@ -40,7 +40,7 @@ hadoop fs -put /user/block-index-data.txt hdfs://test/block-index-data.txt
 You can write a Spark app to parse transaction data in each block during the Spark RDD transformation.
 You can even run Bitcoin scripts in each transaction while the transformation runs.
 
-An example Spark app is on [SparkLoader](../src/main/scala/io/scalechain/blockchain/SparkLoader.scala).
+An example Spark app is on [SparkLoader](../src/main/scala/io/scalechain/cli/SparkLoader.scala).
 
 ## Package the Spark app, and upload to a Spark cluster.
 ```
@@ -53,5 +53,5 @@ tar -c target/scala-2.10/scalechain_2.10-1.0.jar | docker exec -i spark /bin/tar
 ## Run the Spark app on your Spark cluster.
 ```
 # run the spark app, SparkLoader.
-docker exec -i spark /usr/local/spark/bin/spark-submit --class "io.scalechain.blockchain.SparkLoader" --master local[4] /test/target/scala-2.10/scalechain_2.10-1.0.jar
+docker exec -i spark /usr/local/spark/bin/spark-submit --class "io.scalechain.cli.SparkLoader" --master local[4] /test/target/scala-2.10/scalechain_2.10-1.0.jar
 ```
