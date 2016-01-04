@@ -1,6 +1,9 @@
-package io.scalechain.blockchain.block
+package io.scalechain.blockchain.script
 
 import java.io.ByteArrayOutputStream
+
+import io.scalechain.blockchain.block.Transaction
+import io.scalechain.blockchain.block.codec.BlockSerializer
 import io.scalechain.io.BlockDataOutputStream
 
 object HashCalculator {
@@ -17,8 +20,7 @@ object HashCalculator {
 
     // Run SHA256 twice and reverse bytes.
     val hash = io.scalechain.crypto.HashFunctions.hash256( bout.toByteArray )
-    //hash.value.reverse
-    // TODO : Check if don't need to reverse hash value
+
     hash.value
   }
 }

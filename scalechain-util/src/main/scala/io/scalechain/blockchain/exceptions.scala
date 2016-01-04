@@ -1,6 +1,5 @@
 package io.scalechain.blockchain
 
-
 object ErrorCode {
   val InvalidBlockMagic = ErrorCode("invalid_block_magic")
   val InvalidScriptOperation = ErrorCode("invalid_script_operation")

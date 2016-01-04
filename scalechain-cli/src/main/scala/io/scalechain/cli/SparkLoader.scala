@@ -1,6 +1,6 @@
 package io.scalechain.cli
 
-import io.scalechain.blockchain.block.Util
+import io.scalechain.blockchain.block.codec.Util
 import io.scalechain.util.HexUtil
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf

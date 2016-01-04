@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.block
+package io.scalechain.blockchain.block.codec
 
 import io.scalechain.blockchain.block._
 import io.scalechain.io.BlockDataOutputStream

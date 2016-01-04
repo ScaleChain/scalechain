@@ -1,7 +1,7 @@
-package io.scalechain.blockchain.script
+package io.scalechain.blockchain.transaction
 
-import io.scalechain.blockchain.{GenerationTransactionVerifier, NormalTransactionVerifier}
-import io.scalechain.blockchain.block.{LockingScript, GenerationTransactionInput, NormalTransactionInput, Transaction}
+import io.scalechain.blockchain.block.{GenerationTransactionInput, LockingScript, NormalTransactionInput, Transaction}
+import io.scalechain.blockchain.script.ScriptEnvironment
 import org.scalatest._
 
 /**

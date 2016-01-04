@@ -1,10 +1,10 @@
-package io.scalechain.blockchain
+package io.scalechain.blockchain.transaction
 
-import io.scalechain.blockchain.block.Transaction
 import io.scalechain.blockchain.block.index.BlockIndex
-import io.scalechain.blockchain.block._
-import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual, OpPush, OpHash160}
+import io.scalechain.blockchain.block.{Transaction, _}
 import io.scalechain.blockchain.script._
+import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushData}
+import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
 import io.scalechain.util.Utils
 
 /** Check if inputs of a transaction successfully unlocks the locking script attached to the UTXO, which the input references.

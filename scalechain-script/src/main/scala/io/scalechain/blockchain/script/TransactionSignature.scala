@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import io.scalechain.blockchain.block.Transaction
 import io.scalechain.blockchain.block._
+import io.scalechain.blockchain.block.codec.BlockSerializer
 import io.scalechain.blockchain.{ErrorCode, TransactionVerificationException}
 import io.scalechain.crypto.{Hash256, HashFunctions, TransactionSigHash}
 import io.scalechain.io.BlockDataOutputStream

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.block
 
 import java.io._
 
+import io.scalechain.blockchain.block.codec.BlockParser
 import io.scalechain.io.BlockDataInputStream
 
 

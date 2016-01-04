@@ -1,10 +1,12 @@
-package io.scalechain.blockchain.block
+package io.scalechain.blockchain.block.codec
 
 import java.io.EOFException
 
+import io.scalechain.blockchain.{FatalException, ErrorCode}
 import io.scalechain.blockchain.block._
-import io.scalechain.blockchain.{ErrorCode, FatalException}
 import io.scalechain.io.BlockDataInputStream
+
+
 
 /**
  * Parse a block from a byte array stream.

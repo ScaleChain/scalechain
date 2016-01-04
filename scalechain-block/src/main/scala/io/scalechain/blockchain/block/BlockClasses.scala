@@ -83,16 +83,33 @@ class Script(val data:Array[Byte])
   def apply(i:Int) = data.apply(i)
 }
 
+trait LockingScriptPrinter {
+  def toString(lockingScript:LockingScript) : String
+}
+object LockingScript {
+  var printer : LockingScriptPrinter = null
+}
 case class LockingScript(override val data:Array[Byte]) extends Script(data) {
   override def toString(): String = {
-    s"LockingScript(${scalaHex(data)})"
+    if (LockingScript.printer != null)
+      LockingScript.printer.toString(this)
+    else
+      s"LockingScript(${scalaHex(data)})"
   }
 }
 
-
+trait UnlockingScriptPrinter {
+  def toString(unlockingScript:UnlockingScript) : String
+}
+object UnlockingScript {
+  var printer : UnlockingScriptPrinter = null
+}
 case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
   override def toString(): String = {
-    s"UnlockingScript(${scalaHex(data)})"
+    if (UnlockingScript.printer != null)
+      UnlockingScript.printer.toString(this)
+    else
+      s"UnlockingScript(${scalaHex(data)})"
   }
 }
 
@@ -102,13 +119,22 @@ case class TransactionOutput(value : Long, lockingScript : LockingScript) {
   }
 }
 
+trait TransactionPrinter {
+  def toString(transaction:Transaction) : String
+}
+object Transaction {
+  var printer : TransactionPrinter = null
+}
 case class Transaction(val version : Int,
                        val inputs : Array[TransactionInput],
                        val outputs : Array[TransactionOutput],
                        val lockTime : Int) {
 
   override def toString() : String = {
-    s"Transaction(version=$version, inputs=Array(${inputs.mkString(",")}), outputs=Array(${outputs.mkString(",")}), lockTime=$lockTime)"
+    if (Transaction.printer != null)
+      Transaction.printer.toString(this)
+    else
+      s"Transaction(version=$version, inputs=Array(${inputs.mkString(",")}), outputs=Array(${outputs.mkString(",")}), lockTime=$lockTime)"
   }
 }
 
