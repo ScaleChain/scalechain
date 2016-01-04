@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.script.ops
 
 import java.util
-
-import io.scalechain.blockchain.script.TransactionSignature
 import io.scalechain.blockchain.block.Script
+import io.scalechain.blockchain.script.TransactionSignature
 import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
 import io.scalechain.crypto.ECKey.ECDSASignature

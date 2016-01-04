@@ -2,6 +2,7 @@ package io.scalechain.blockchain.block
 
 import java.io.EOFException
 
+import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.{ErrorCode, FatalException}
 import io.scalechain.io.BlockDataInputStream
 

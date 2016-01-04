@@ -1,5 +1,6 @@
 package io.scalechain.blockchain
 
+import io.scalechain.blockchain.block.Transaction
 import io.scalechain.blockchain.block.index.BlockIndex
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual, OpPush, OpHash160}

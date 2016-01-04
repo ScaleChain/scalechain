@@ -22,6 +22,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-block",
 			base = file("scalechain-block"))
+			.dependsOn(util)
 
 	lazy val proto =
 		Project(
@@ -33,6 +34,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-codec-block",
 			base = file("scalechain-codec-block"))
+			.dependsOn(block)
 
 	lazy val codec_proto =
 		Project(
@@ -43,7 +45,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-script",
 			base = file("scalechain-script"))
-		.dependsOn(util, crypto)
+		.dependsOn(util, crypto, codec_block)
 
         lazy val transaction =
 		Project(

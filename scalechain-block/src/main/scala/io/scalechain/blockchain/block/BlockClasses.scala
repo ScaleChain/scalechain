@@ -1,11 +1,6 @@
 package io.scalechain.blockchain.block
 
-// BUGBUG : Remove reference to ScriptParser from this file.
-// Why? This file will be moved to block layer, which is below the script layer.
-import io.scalechain.blockchain.script.ScriptParser
-import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.util.HexUtil
-import HexUtil._
+import io.scalechain.util.HexUtil._
 
 /**
   * Created by kangmo on 2015. 11. 1..
@@ -90,31 +85,16 @@ class Script(val data:Array[Byte])
 
 case class LockingScript(override val data:Array[Byte]) extends Script(data) {
   override def toString(): String = {
-    val scriptOps = ScriptParser.parse(this)
-
-    s"LockingScript(${scalaHex(data)}) /* ops:$scriptOps */ "
+    s"LockingScript(${scalaHex(data)})"
   }
 }
+
 
 case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
   override def toString(): String = {
-    val scriptOps = ScriptParser.parse(this)
-
-    // The last byte of the signature, hash type decides how to create a hash value from transaction and script.
-    // The hash value and public key is used to verify the signature.
-    val hashType = scriptOps.operations(0) match {
-      case signature : OpPush => {
-        Some(signature.inputValue.value.last)
-      }
-      case _ => {
-        None
-      }
-    }
-
-    s"UnlockingScript(${scalaHex(data)}) /* ops:$scriptOps, hashType:$hashType */"
+    s"UnlockingScript(${scalaHex(data)})"
   }
 }
-
 
 case class TransactionOutput(value : Long, lockingScript : LockingScript) {
   override def toString(): String = {
@@ -122,16 +102,16 @@ case class TransactionOutput(value : Long, lockingScript : LockingScript) {
   }
 }
 
-case class Transaction(version : Int,
-                       inputs : Array[TransactionInput],
-                       outputs : Array[TransactionOutput],
-                       lockTime : Int) {
+case class Transaction(val version : Int,
+                       val inputs : Array[TransactionInput],
+                       val outputs : Array[TransactionOutput],
+                       val lockTime : Int) {
 
   override def toString() : String = {
-    // TODO : HashCalculator depends on Transaction, and also Transaction depends on HashCalculator. Get rid of the circular dependency.
-    s"Transaction(version=$version, inputs=Array(${inputs.mkString(",")}), outputs=Array(${outputs.mkString(",")}), lockTime=$lockTime /* hash:${scalaHex(HashCalculator.transactionHash(this))} */)"
+    s"Transaction(version=$version, inputs=Array(${inputs.mkString(",")}), outputs=Array(${outputs.mkString(",")}), lockTime=$lockTime)"
   }
 }
+
 
 case class Block(val size:Long,
                  val header:BlockHeader,

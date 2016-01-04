@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.block.index
 
+import io.scalechain.blockchain.block.Block
 import io.scalechain.blockchain.block.{Transaction, TransactionHash, BlockHash, Block}
 
 /**

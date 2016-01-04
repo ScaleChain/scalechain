@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.block
 
+import io.scalechain.blockchain.block._
 import io.scalechain.io.BlockDataOutputStream
 
 /**

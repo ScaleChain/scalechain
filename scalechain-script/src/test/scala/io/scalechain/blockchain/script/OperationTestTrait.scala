@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.script
 
 import java.math.BigInteger
-
 import io.scalechain.blockchain.block.Script
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode}
 import io.scalechain.blockchain.script.ops.ScriptOp

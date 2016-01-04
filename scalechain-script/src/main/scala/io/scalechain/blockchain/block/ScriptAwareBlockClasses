@@ -1,0 +1,48 @@
+package io.scalechain.blockchain.block
+
+import io.scalechain.block._
+import io.scalechain.blockchain.script.ScriptParser
+import io.scalechain.blockchain.script.ops.OpPush
+import io.scalechain.util.HexUtil
+import HexUtil._
+
+
+// TODO : move this to script layer.
+case class LockingScriptWithScriptOps(override val data:Array[Byte]) extends LockingScript(data) {
+  override def toString(): String = {
+    val scriptOps = ScriptParser.parse(this)
+
+    s"LockingScript(${scalaHex(data)}) /* ops:$scriptOps */ "
+  }
+}
+
+// TODO : move this to script layer.
+case class UnlockingScriptWithScriptOps(override val data:Array[Byte]) extends UnlockingScript(data) {
+  override def toString(): String = {
+    val scriptOps = ScriptParser.parse(this)
+
+    // The last byte of the signature, hash type decides how to create a hash value from transaction and script.
+    // The hash value and public key is used to verify the signature.
+    val hashType = scriptOps.operations(0) match {
+      case signature : OpPush => {
+        Some(signature.inputValue.value.last)
+      }
+      case _ => {
+        None
+      }
+    }
+
+    s"UnlockingScript(${scalaHex(data)}) /* ops:$scriptOps, hashType:$hashType */"
+  }
+}
+
+// TODO : move to script layer.
+case class TransactionWithHash(override val version : Int,
+                               override val inputs : Array[TransactionInput],
+                               override val outputs : Array[TransactionOutput],
+                               override val lockTime : Int) extends Transaction(version,inputs,outputs,lockTime) {
+
+  override def toString() : String = {
+    s"Transaction(version=$version, inputs=Array(${inputs.mkString(",")}), outputs=Array(${outputs.mkString(",")}), lockTime=$lockTime /* hash:${scalaHex(HashCalculator.transactionHash(this))} */)"
+  }
+}
