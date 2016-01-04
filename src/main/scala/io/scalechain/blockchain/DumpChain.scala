@@ -81,6 +81,8 @@ object DumpChain {
         dumpHashes(blocksPath)
       } else if ( command == "field-stats" ) {
         dumpFieldStats(blocksPath)
+      } else {
+        printUsage();
       }
 
     }
