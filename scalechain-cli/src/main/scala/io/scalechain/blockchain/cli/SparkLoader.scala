@@ -1,4 +1,4 @@
-package io.scalechain.cli
+package io.scalechain.blockchain.cli
 
 import io.scalechain.blockchain.block.codec.Util
 import io.scalechain.util.HexUtil
