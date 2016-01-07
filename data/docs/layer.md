@@ -38,7 +38,6 @@ Also implements transaction memory pool.
 
 ## Storage
 The storage layer. Knows how to store blocks and transactions. It knows how to search blocks by hash or transactions by hash.
-
 ## Script
 The script layer. Implements all bitcoin script commands.
 

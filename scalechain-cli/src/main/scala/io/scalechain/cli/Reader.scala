@@ -1,7 +1,8 @@
-package io.scalechain.blockchain.block
+package io.scalechain.cli
 
 import java.io._
 
+import io.scalechain.blockchain.block.Block
 import io.scalechain.blockchain.block.codec.BlockParser
 import io.scalechain.io.BlockDataInputStream
 
