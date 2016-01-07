@@ -1,8 +1,7 @@
-package io.scalechain.blockchain.block.index
+package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.block.Block
 import io.scalechain.blockchain.block.{Transaction, TransactionHash, BlockHash, Block}
-
 /**
  * Created by kangmo on 11/16/15.
  */
