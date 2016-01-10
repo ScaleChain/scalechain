@@ -33,6 +33,9 @@ https://vijayannadi.wordpress.com/tutorials/131-2/
 ## Netty encoder
 https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/string/StringEncoder.java
 
+#Documents
+## Akka Remote
+http://doc.akka.io/docs/akka/snapshot/java/remoting.html
 
 #Bitcoin
 ## main.cpp
