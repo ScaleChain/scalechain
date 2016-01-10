@@ -1,1 +1,1 @@
-./dump.sh /Users/kangmo/crypto/blocks-blk0035x.dat verify-serialization
+./dump.sh ../../../blocks-blk0035x.dat verify-serialization

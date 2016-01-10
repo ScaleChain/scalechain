@@ -2,7 +2,7 @@ Introduction
 ============
 A customizable blockchain implementation for private blockchains.
 Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
-Take a look at an example [configuration](docs/config.md).
+Take a look at an example [configuration](data/docs/config.md).
 
 For the avoidance of doubt, this particular copy of the software is released under the version 3 of the GNU General Public License. It is brought to you by ScaleChain.
 
@@ -21,7 +21,7 @@ The following deck contains how financial companies can benefit from using Scale
 
 Releases
 ========
-* [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](docs/spark-integration.md) 
+* [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](data/docs/spark-integration.md) 
 
 Planned release dates
 =====================
@@ -33,7 +33,7 @@ Planned release dates
 Supported Features
 ==================
 - All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
-- Spark Integration; [load bitcoin transaction/block data onto Spark](docs/spark-integration.md) for real-time analysis.
+- Spark Integration; [load bitcoin transaction/block data onto Spark](data/docs/spark-integration.md) for real-time analysis.
 - (In-progress) P2P networking; Bitcoin testnet integration.
 
 Customization
