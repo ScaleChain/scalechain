@@ -35,7 +35,8 @@ A jar package containing the ScaleChain main class to run P2P nodes.
 The Json-RPC API layer. 100% Compatible with Bitcoin.
 
 ## Net
-The P2P networking layer.
+The P2P networking layer. 100% Compatible with Bitcoin. 
+To make the protocol compatible, we use netty4 and implement codecs on Codec|Proto layer to convert on-the-wire format to case classes and vice versa.
 
 ## Transaction
 The ScaleChain transaction layer. Implements signing a raw transaction, verifying a signed transaction.
