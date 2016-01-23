@@ -6,7 +6,7 @@ import akka.camel.{CamelMessage, Consumer}
   * Created by kangmo on 1/8/16.
   */
 class ServerConsumer extends Consumer {
-  def endpointUri = "jetty://http://0.0.0.0:8778"
+  def endpointUri = "netty4:tcp://0.0.0.0:8778"
 
   def receive = {
     case msg : CamelMessage => {

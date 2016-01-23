@@ -25,17 +25,32 @@ http://doc.akka.io/docs/akka/snapshot/scala/remoting.html
 http://doc.akka.io/docs/akka/snapshot/scala/camel.html
 
 ## Camel-Netty 
+The netty component in Camel is a socket communication component, based on the Netty project.
+Netty is a NIO client server framework which enables quick and easy development of network applications such as protocol servers and clients.
+Netty greatly simplifies and streamlines network programming such as TCP and UDP socket server.
+
 http://camel.apache.org/netty.html
 
 ## Tutorial : Akka,Camel,Netty
 https://vijayannadi.wordpress.com/tutorials/131-2/
 
-## Netty encoder
+## Netty StringEncoder
 https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/string/StringEncoder.java
+
+## Netty StringDecoder
+https://github.com/netty/netty/blob/4.1/codec/src/main/java/io/netty/handler/codec/string/StringDecoder.java
+
 
 #Documents
 ## Akka Remote
 http://doc.akka.io/docs/akka/snapshot/java/remoting.html
+
+## Camel-Spring
+http://camel.apache.org/spring.html
+
+## Camel Fluent Builders
+Camel provides fluent builders for creating routing and mediation rules using a type-safe IDE friendly way which provides smart completion and is refactoring safe.
+http://camel.apache.org/fluent-builders.html
 
 #Bitcoin
 ## main.cpp

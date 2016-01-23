@@ -8,6 +8,8 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +-------------------------+----------------------+
 |          Cli            |          Main        |
 +-------------------------+----------------------+
+|                   API                          |
++------------------------------------------------+
 |                   Net                          |
 +------------------------------------------------+
 |                   Transaction                  |
@@ -28,6 +30,9 @@ A jar package containing all CLI(command line interface) utilities such as DumpC
 
 ## Main
 A jar package containing the ScaleChain main class to run P2P nodes.
+
+## API
+The Json-RPC API layer. 100% Compatible with Bitcoin.
 
 ## Net
 The P2P networking layer.
