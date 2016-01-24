@@ -133,6 +133,8 @@ trait ServiceDispatcher {
   }
 }
 
+case class Test(a : String)
+
 // use it wherever json (un)marshalling is needed
 trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
   implicit object JsonRpcResultFormat extends RootJsonFormat[JsonRpcResult] {
@@ -148,10 +150,14 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
   implicit val implcitJsonRpcResponse = jsonFormat3(JsonRpcResponse.apply)
   implicit val implcitGetInfoResponse = jsonFormat15(GetInfoResponse.apply)
 
+
+  implicit val implcitTest = jsonFormat1(Test.apply)
+
   // format: OFF
   val routes = {
     pathPrefix("") {
-      (get & entity(as[JsonRpcRequest])) { request =>
+
+      (post & entity(as[JsonRpcRequest])) { request =>
         complete {
           val serviceResponse = dispatch(request)
           serviceResponse
@@ -161,7 +167,13 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
   }
 }
 
-
+// BUGBUG :
+// Currently, only the following is accepted for the content-type HTTP header.
+//   Content-Type: application/json
+// followings should be accepted :
+//   Content-Type: application/json;
+//   Content-Type: plain/text
+//   Content-Type: plain/text;
 object JsonRpcMicroservice extends App with JsonRpc {
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()
