@@ -1,5 +1,4 @@
 package io.scalechain.blockchain.api
-/*
 import akka.actor.ActorSystem
 import akka.event.{LoggingAdapter, Logging}
 import akka.http.scaladsl.Http
@@ -24,6 +23,7 @@ case class IpInfo(ip: String, country_name: Option[String], city: Option[String]
 case class IpPairSummaryRequest(ip1: String, ip2: String)
 
 case class IpPairSummary(distance: Option[Double], ip1Info: IpInfo, ip2Info: IpInfo)
+
 
 object IpPairSummary {
   def apply(ip1Info: IpInfo, ip2Info: IpInfo): IpPairSummary = IpPairSummary(calculateDistance(ip1Info, ip2Info), ip1Info, ip2Info)
@@ -79,8 +79,18 @@ trait Service extends Protocols {
     }
   }
 
+
   val routes = {
     logRequestResult("akka-http-microservice") {
+/*
+      pathPrefix("") {
+        get {
+          complete {
+            TestResponse("hello world")
+          }
+        }
+      }
+*/
       pathPrefix("ip") {
         (get & path(Segment)) { ip =>
           complete {
@@ -90,17 +100,17 @@ trait Service extends Protocols {
             }
           }
         } ~
-          (post & entity(as[IpPairSummaryRequest])) { ipPairSummaryRequest =>
-            complete {
-              val ip1InfoFuture = fetchIpInfo(ipPairSummaryRequest.ip1)
-              val ip2InfoFuture = fetchIpInfo(ipPairSummaryRequest.ip2)
-              ip1InfoFuture.zip(ip2InfoFuture).map[ToResponseMarshallable] {
-                case (Right(info1), Right(info2)) => IpPairSummary(info1, info2)
-                case (Left(errorMessage), _) => BadRequest -> errorMessage
-                case (_, Left(errorMessage)) => BadRequest -> errorMessage
-              }
+        (post & entity(as[IpPairSummaryRequest])) { ipPairSummaryRequest =>
+          complete {
+            val ip1InfoFuture = fetchIpInfo(ipPairSummaryRequest.ip1)
+            val ip2InfoFuture = fetchIpInfo(ipPairSummaryRequest.ip2)
+            ip1InfoFuture.zip(ip2InfoFuture).map[ToResponseMarshallable] {
+              case (Right(info1), Right(info2)) => IpPairSummary(info1, info2)
+              case (Left(errorMessage), _) => BadRequest -> errorMessage
+              case (_, Left(errorMessage)) => BadRequest -> errorMessage
             }
           }
+        }
       }
     }
   }
@@ -116,4 +126,3 @@ object AkkaHttpMicroservice extends App with Service {
 
   Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
 }
-*/

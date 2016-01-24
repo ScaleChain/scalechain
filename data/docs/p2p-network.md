@@ -11,4 +11,6 @@ TODO : Write
 # Sending requests and receiving responses.
 TODO : Write
 
-
+# References
+## Developer reference.
+https://bitcoin.org/en/developer-reference#p2p-network
