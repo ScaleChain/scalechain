@@ -12,6 +12,7 @@ Simple (micro)service which demonstrates how to accomplish tasks typical for RES
 http://www.typesafe.com/activator/template/akka-http-microservice
 
 # References
-
+## Bitcoin Core APIs
 https://bitcoin.org/en/developer-reference#bitcoin-core-apis
-
+## Json-RPC 1.0 
+http://json-rpc.org/wiki/specification

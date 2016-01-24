@@ -1,7 +1,7 @@
 //import Version._
 libraryDependencies ++= {
   val akkaV       = "2.4.1"
-  val akkaStreamV = "2.0.1"
+  val akkaStreamV = "2.0.2"
 
   Seq(
     "com.typesafe.akka" %% "akka-actor"                           % akkaV,
