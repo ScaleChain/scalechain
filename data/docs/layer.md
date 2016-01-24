@@ -10,6 +10,8 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +-------------------------+----------------------+
 |                   API                          |
 +------------------------------------------------+
+|                   APIDomain                    |
++------------------------------------------------+
 |                   Net                          |
 +------------------------------------------------+
 |                   Transaction                  |
@@ -33,6 +35,10 @@ A jar package containing the ScaleChain main class to run P2P nodes.
 
 ## API
 The Json-RPC API layer. 100% Compatible with Bitcoin.
+
+## API Domain
+Contains domain objects such as Json-RPC request or response.
+These are implemented as case classes, and referenced by CLI and API layer.
 
 ## Net
 The P2P networking layer. 100% Compatible with Bitcoin. 
