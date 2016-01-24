@@ -1,0 +1,1 @@
+curl --user bitcoinrpc --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettxout", "params": ["184c6195ddd4204219644e2d4169d22cf264144ef5b6a49a09a571f4639a60b9", 0] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/ 
