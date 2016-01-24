@@ -4,6 +4,7 @@ libraryDependencies ++= {
   val akkaStreamV = "2.0.2"
 
   Seq(
+    "com.github.scopt"  %% "scopt" % "3.3.0",
     "com.typesafe.akka" %% "akka-actor"                           % akkaV,
     "com.typesafe.akka" %% "akka-stream-experimental"             % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-core-experimental"          % akkaStreamV,
@@ -11,3 +12,5 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-spray-json-experimental"    % akkaStreamV
   )
 }
+
+resolvers += Resolver.sonatypeRepo("public")

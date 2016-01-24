@@ -81,6 +81,15 @@ walletpassphrase "passphrase" timeout
 walletpassphrasechange "oldpassphrase" "newpassphrase"
 ```
 
+#Libraries
+Scopt/scopt has the highest number of votes for a stack overflow question about command line parsing.
+
+http://stackoverflow.com/questions/2315912/scala-best-way-to-parse-command-line-parameters-cli
+
+Github page. looks like it is developed by github.
+
+https://github.com/scopt/scopt
+
 #References
 ## CLI Examples (ch03 of Mastering Bitcoin)
 https://github.com/aantonop/bitcoinbook/blob/develop/ch03.asciidoc

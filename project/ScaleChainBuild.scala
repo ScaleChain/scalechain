@@ -73,7 +73,6 @@ object ScaleChainBuild extends Build {
 			base = file("scalechain-api-domain"))
 				.dependsOn(util)
 
-
 	lazy val api =
 		Project(
 			id = "scalechain-api",
