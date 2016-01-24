@@ -89,6 +89,6 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-cli",
 			base = file("scalechain-cli"))
-	  .dependsOn(util, net, transaction)
+	  .dependsOn(util, net, transaction, api_domain)
 }
 

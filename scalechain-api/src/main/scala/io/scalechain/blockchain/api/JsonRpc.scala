@@ -15,11 +15,12 @@ import io.scalechain.util.Config
 
 // use it wherever json (un)marshalling is needed
 trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
+/*
   implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
     def write(value : AnyRef) = value.toJson
     def read(value :JsValue) = ""
   }
-
+*/
   implicit object JsonRpcResultFormat extends RootJsonFormat[RpcResult] {
     case class Dummy() extends RpcResult
     def write(result : RpcResult) = result match {

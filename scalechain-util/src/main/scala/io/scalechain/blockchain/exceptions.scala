@@ -26,6 +26,9 @@ object ErrorCode {
   val GeneralFailure= ErrorCode("general_failure")
   val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
   val UnsupportedHashType = ErrorCode("unsupported_hash_type")
+
+  // HTTP errors
+  val HttpRequestFailure = ErrorCode("http_request_failure")
 }
 
 case class ErrorCode(val code:String)
@@ -38,6 +41,8 @@ class FatalException(val code:ErrorCode) extends Exception
 class ScriptEvalException(val code:ErrorCode) extends Exception
 
 class ScriptParseException(val code:ErrorCode) extends Exception
+
+class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String ) extends Exception
 
 class TransactionVerificationException(val code:ErrorCode, val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends Exception
 {
