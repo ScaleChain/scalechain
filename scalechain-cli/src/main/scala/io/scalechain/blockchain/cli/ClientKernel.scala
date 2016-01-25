@@ -13,6 +13,7 @@ class ClientKernel extends Bootable {
   val clientProducer = system.actorOf(Props[ClientProducer])
   val mediator = system.actorOf(Props[Mediator])
 
+
   def startup(): Unit = {
   }
 
