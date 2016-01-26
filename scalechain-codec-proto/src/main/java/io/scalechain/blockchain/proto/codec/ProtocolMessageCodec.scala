@@ -79,227 +79,31 @@ class ProtocolMessageCodecs {
     }
   }
 
-
-  val codecs = Seq[ProtocolMessageCodec[_<:ProtocolMessage]](
-    new ProtocolMessageCodec[VersionMessage] {
-      val command = "version"
-      val prototype = VersionMessage()
-
-      def processImpl(stream: InputOutputStream, message: VersionMessage): VersionMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[VerackMessage] {
-      val command = "verack"
-      val prototype = VerackMessage()
-      def processImpl(stream : InputOutputStream, message : VerackMessage) : VerackMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[AddrMessage] {
-      val command = "addr"
-      val prototype = AddrMessage()
-      def processImpl(stream : InputOutputStream, message : AddrMessage) : AddrMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[InvMessage] {
-      val command = "inv"
-      val prototype = InvMessage()
-      def processImpl(stream : InputOutputStream, message : InvMessage) : InvMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[GetDataMessage] {
-      val command = "getdata"
-      val prototype = GetDataMessage()
-      def processImpl(stream : InputOutputStream, message : GetDataMessage) : GetDataMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[NotFoundMessage] {
-      val command = "notfound"
-      val prototype = NotFoundMessage()
-      def processImpl(stream : InputOutputStream, message : NotFoundMessage) : NotFoundMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[GetBlocksMessage] {
-      val command = "getblocks"
-      val prototype = GetBlocksMessage()
-      def processImpl(stream : InputOutputStream, message : GetBlocksMessage) : GetBlocksMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[GetHeadersMessage] {
-      val command = "getheaders"
-      val prototype = GetHeadersMessage()
-      def processImpl(stream : InputOutputStream, message : GetHeadersMessage) : GetHeadersMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[TxMessage] {
-      val command = "tx"
-      val prototype = TxMessage()
-      def processImpl(stream : InputOutputStream, message : TxMessage) : TxMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[BlockMessage] {
-      val command = "block"
-      val prototype = BlockMessage()
-      def processImpl(stream : InputOutputStream, message : BlockMessage) : BlockMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[HeadersMessage] {
-      val command = "headers"
-      val prototype = HeadersMessage()
-      def processImpl(stream : InputOutputStream, message : HeadersMessage) : HeadersMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[GetAddrMessage] {
-      val command = "getaddr"
-      val prototype = GetAddrMessage()
-      def processImpl(stream : InputOutputStream, message : GetAddrMessage) : GetAddrMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[MempoolMessage] {
-      val command = "mempool"
-      val prototype = MempoolMessage()
-      def processImpl(stream : InputOutputStream, message : MempoolMessage) : MempoolMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[CheckOrderMessage] {
-      val command = "checkorder"
-      val prototype = CheckOrderMessage()
-      def processImpl(stream : InputOutputStream, message : CheckOrderMessage) : CheckOrderMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[SubmitOrderMessage] {
-      val command = "submitorder"
-      val prototype = SubmitOrderMessage()
-      def processImpl(stream : InputOutputStream, message : SubmitOrderMessage) : SubmitOrderMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[ReplyMessage] {
-      val command = "reply"
-      val prototype = ReplyMessage()
-      def processImpl(stream : InputOutputStream, message : ReplyMessage) : ReplyMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[PingMessage] {
-      val command = "ping"
-      val prototype = PingMessage()
-
-      def processImpl(stream: InputOutputStream, message: PingMessage): PingMessage = {
-        message.copy(
-          nonce = stream.littleEndianLong(message.nonce)
-        )
-      }
-    },
-    new ProtocolMessageCodec[PongMessage] {
-      val command = "pong"
-      val prototype = PongMessage()
-      def processImpl(stream : InputOutputStream, message : PongMessage) : PongMessage = {
-        message.copy(
-          nonce = stream.littleEndianLong(message.nonce)
-        )
-      }
-    },
-    new ProtocolMessageCodec[RejectMessage] {
-      val command = "reject"
-      val prototype = RejectMessage()
-      def processImpl(stream : InputOutputStream, message : RejectMessage) : RejectMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[FilterLoadMessage] {
-      val command = "filterload"
-      val prototype = FilterLoadMessage()
-      def processImpl(stream : InputOutputStream, message : FilterLoadMessage) : FilterLoadMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[FilterAddMessage] {
-      val command = "filteradd"
-      val prototype = FilterAddMessage()
-      def processImpl(stream : InputOutputStream, message : FilterAddMessage) : FilterAddMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[FilterClearMessage] {
-      val command = "filterclear"
-      val prototype = FilterClearMessage()
-      def processImpl(stream : InputOutputStream, message : FilterClearMessage) : FilterClearMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[MerkleBlockMessage] {
-      val command = "merkleblock"
-      val prototype = MerkleBlockMessage()
-      def processImpl(stream : InputOutputStream, message : MerkleBlockMessage) : MerkleBlockMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    },
-    new ProtocolMessageCodec[AlertMessage] {
-      val command = "alert"
-      val prototype = AlertMessage()
-      def processImpl(stream : InputOutputStream, message : AlertMessage) : AlertMessage = {
-        //message.copy( x =  )
-        assert(false);
-        null
-      }
-    }
-  )
+  val codecs = Seq(
+    VersionCodec,
+    VerackCodec,
+    AddrCodec,
+    InvCodec,
+    GetDataCodec,
+    NotFoundCodec,
+    GetBlocksCodec,
+    GetHeadersCodec,
+    TxCodec,
+    BlockCodec,
+    HeadersCodec,
+    GetAddrCodec,
+    MempoolCodec,
+    CheckOrderCodec,
+    SubmitOrderCodec,
+    ReplyCodec,
+    PingCodec,
+    PongCodec,
+    RejectCodec,
+    FilterLoadCodec,
+    FilterAddCodec,
+    FilterClearCodec,
+    MerkleBlockCodec,
+    AlertCodec )
 
   val codecMapByCommand = (codecs.map(_.command) zip codecs).toMap
   val codecMapByClass   = (codecs.map(_.prototype.getClass) zip codecs).toMap

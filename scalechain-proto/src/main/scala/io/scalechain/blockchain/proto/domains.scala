@@ -6,9 +6,9 @@ import io.scalechain.util.HexUtil._
   * Created by kangmo on 2015. 11. 1..
   */
 
-case class Timestamp(val unixTimestamp : Int)
+case class Timestamp(val unixTimestamp : Int) extends ProtocolMessage
 
-abstract class Hash(private val hash : Array[Byte])
+abstract class Hash(private val hash : Array[Byte]) extends ProtocolMessage
 {
   def isAllZero() = {
     // BUGBUG : Dirty code. make it cleaner!
@@ -42,19 +42,19 @@ case class TransactionHash(val hash : Array[Byte]) extends Hash(hash) {
   }
 }
 
-case class BlockHeader(val version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, time : Timestamp, target : Int, nonce : Int) {
+case class BlockHeader(val version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, time : Timestamp, target : Int, nonce : Int)  extends ProtocolMessage {
   override def toString() : String = {
     s"BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, time=$time, target= $target, nonce= $nonce)"
   }
 }
 
-case class CoinbaseData(data: Array[Byte]) {
+case class CoinbaseData(data: Array[Byte]) extends ProtocolMessage {
   override def toString() : String = {
     s"CoinbaseData(${scalaHex(data)})"
   }
 }
 
-trait TransactionInput {
+trait TransactionInput extends ProtocolMessage {
   val outputTransactionHash : TransactionHash
   val outputIndex : Int
 }
@@ -77,7 +77,7 @@ case class GenerationTransactionInput(override val outputTransactionHash : Trans
   }
 }
 
-class Script(val data:Array[Byte])
+class Script(val data:Array[Byte]) extends ProtocolMessage
 {
   def length = data.length
   def apply(i:Int) = data.apply(i)
@@ -113,7 +113,7 @@ case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
   }
 }
 
-case class TransactionOutput(value : Long, lockingScript : LockingScript) {
+case class TransactionOutput(value : Long, lockingScript : LockingScript) extends ProtocolMessage {
   override def toString(): String = {
     s"TransactionOutput(value=${value}L, lockingScript=$lockingScript)"
   }
@@ -128,7 +128,7 @@ object Transaction {
 case class Transaction(val version : Int,
                        val inputs : Array[TransactionInput],
                        val outputs : Array[TransactionOutput],
-                       val lockTime : Int) {
+                       val lockTime : Int) extends ProtocolMessage {
 
   override def toString() : String = {
     if (Transaction.printer != null)
@@ -138,10 +138,12 @@ case class Transaction(val version : Int,
   }
 }
 
-
+/** The block message is sent in response to a getdata message
+  * which requests transaction information from a block hash.
+  */
 case class Block(val size:Long,
                  val header:BlockHeader,
-                 val transactions : Array[Transaction]) {
+                 val transactions : Array[Transaction]) extends ProtocolMessage {
 
 
   override def toString() : String = {

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.proto.codec
 import java.io.{InputStream, OutputStream}
 
 import io.netty.buffer.ByteBuf
-import io.scalechain.blockchain.proto.{VersionMessage, ProtocolMessage}
+import io.scalechain.blockchain.proto.{Version, ProtocolMessage}
 import io.scalechain.io.{BlockDataInputStream, BlockDataOutputStream}
 
 class BitcoinProtocolCodec {
