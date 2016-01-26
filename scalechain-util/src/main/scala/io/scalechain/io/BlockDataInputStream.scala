@@ -74,4 +74,8 @@ class BlockDataInputStream(stream : InputStream) extends DataInputStream(stream)
     read(bytes)
     bytes
   }
+
+  def readBytes(bytes : Array[Byte]) : Unit = {
+    read(bytes)
+  }
 }

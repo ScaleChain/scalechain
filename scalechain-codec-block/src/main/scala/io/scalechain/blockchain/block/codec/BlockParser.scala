@@ -6,8 +6,6 @@ import io.scalechain.blockchain.{FatalException, ErrorCode}
 import io.scalechain.blockchain.block._
 import io.scalechain.io.BlockDataInputStream
 
-
-
 /**
  * Parse a block from a byte array stream.
  *

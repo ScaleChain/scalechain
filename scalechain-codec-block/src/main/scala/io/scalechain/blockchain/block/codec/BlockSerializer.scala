@@ -3,8 +3,9 @@ package io.scalechain.blockchain.block.codec
 import io.scalechain.blockchain.block._
 import io.scalechain.io.BlockDataOutputStream
 
-/**
- * Created by kangmo on 11/15/15.
+/** Serialize a block into a output stream.
+ *
+ * @param stream The stream where we write block data.
  */
 class BlockSerializer(val stream : BlockDataOutputStream) {
   def serialize(block : Block) : Unit = {

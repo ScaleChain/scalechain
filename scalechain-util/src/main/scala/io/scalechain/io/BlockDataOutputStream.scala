@@ -76,7 +76,7 @@ class BlockDataOutputStream(stream: OutputStream) extends DataOutputStream(strea
   /** Write a byte array.
     * @param bytes The byte array to write.
     */
-  def writeBytes(bytes : Array[Byte]) = {
+  def writeBytes(bytes : Array[Byte]) : Unit = {
     write(bytes)
   }
 

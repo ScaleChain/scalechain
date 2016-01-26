@@ -16,12 +16,8 @@ class ClientProducer extends Actor with Producer {
     super.preStart()
 
     val registry = new SimpleRegistry()
-    if ( registry.get("bitcoin-protocol-encoder") == null ) {
-      registry.put("bitcoin-protocol-encoder", new BitcoinProtocolEncoder())
-    }
-    if ( registry.get("bitcoin-protocol-decoder") == null ) {
-      registry.put("bitcoin-protocol-decoder", new BitcoinProtocolDecoder())
-    }
+    registry.put("bitcoin-protocol-encoder", new BitcoinProtocolEncoder())
+    registry.put("bitcoin-protocol-decoder", new BitcoinProtocolDecoder())
     camelContext.setRegistry( registry )
   }
 

@@ -2,6 +2,14 @@ package io.scalechain.blockchain.proto
 
 import java.math.BigInteger
 
+/** The super class for all protocol messages.
+  * The interface of protocol encoder and decoder will use ProtocolMessage type.
+  * (Protocol encoder and decoder serialize and deserialize the message.)
+  *
+  * See also : BitcoinProtocolEncoder, BitcoinProtocolDecoder.
+  */
+trait ProtocolMessage
+
 /** protocols.scala ; Define protocol case classes that are aware of serialization and deserialization about the message.
  * Each case class itself consists of protocol fields.
  *
@@ -12,22 +20,22 @@ import java.math.BigInteger
 /** Version ; When a node creates an outgoing connection, it will immediately advertise its version.
   *  The remote node will respond with its version. No further communication is possible until both peers have exchanged their version.
  */
-case class VersionMessage()
+case class VersionMessage() extends ProtocolMessage
 
 /** Verack ; The verack message is sent in reply to version.
  * This message consists of only a message header with the command string "verack".
  */
-case class VerackMessage()
+case class VerackMessage() extends ProtocolMessage
 
 /** Addr ; Provide information on known nodes of the network.
  *  Non-advertised nodes should be forgotten after typically 3 hours
  */
-case class AddrMessage()
+case class AddrMessage() extends ProtocolMessage
 
 /** Inv ; Allows a node to advertise its knowledge of one or more objects.
  *  It can be received unsolicited, or in reply to getblocks.
  */
-case class InvMessage()
+case class InvMessage() extends ProtocolMessage
 
 /** GetData ; getdata is used in response to inv, to retrieve the content of a specific object,
  * and is usually sent after receiving an inv packet, after filtering known elements.
@@ -36,12 +44,12 @@ case class InvMessage()
  * to avoid having clients start to depend on nodes having full transaction indexes
  * (which modern nodes do not).
  */
-case class GetDataMessage()
+case class GetDataMessage() extends ProtocolMessage
 
 /** NotFound ; notfound is a response to a getdata, sent if any requested data items could not be relayed.
  * For example, because the requested transaction was not in the memory pool or relay set.
  */
-case class NotFoundMessage()
+case class NotFoundMessage() extends ProtocolMessage
 
 /** GetBlocks; Return an inv packet containing the list of blocks
  * starting right after the last known hash in the block locator object,
@@ -54,7 +62,7 @@ case class NotFoundMessage()
  * Keep in mind that some clients may provide blocks which are invalid
  * if the block locator object contains a hash on the invalid branch.
  */
-case class GetBlocksMessage()
+case class GetBlocksMessage() extends ProtocolMessage
 
 /** GetHeaders ; Return a headers packet containing the headers of blocks starting right after the last known hash
  * in the block locator object, up to hash_stop or 2000 blocks, whichever comes first.
@@ -64,20 +72,20 @@ case class GetBlocksMessage()
  * Keep in mind that some clients may provide headers of blocks which are invalid
  * if the block locator object contains a hash on the invalid branch.
  */
-case class GetHeadersMessage()
+case class GetHeadersMessage() extends ProtocolMessage
 
 /** Tx ; tx describes a bitcoin transaction, in reply to getdata.
  */
-case class TxMessage()
+case class TxMessage() extends ProtocolMessage
 
 /** The block message is sent in response to a getdata message
  * which requests transaction information from a block hash.
  */
-case class BlockMessage()
+case class BlockMessage() extends ProtocolMessage
 
 /** Headers ; The headers packet returns block headers in response to a getheaders packet.
  */
-case class HeadersMessage()
+case class HeadersMessage() extends ProtocolMessage
 
 /** GetAddr ; The getaddr message sends a request to a node asking
  * for information about known active peers to help with finding potential nodes in the network.
@@ -87,7 +95,7 @@ case class HeadersMessage()
  *
  * No additional data is transmitted with this message.
  */
-case class GetAddrMessage()
+case class GetAddrMessage() extends ProtocolMessage
 
 /** Mempool ; The mempool message sends a request to a node asking for information
  * about transactions it has verified but which have not yet confirmed. The response to receiving this message is an inv message containing the transaction hashes for all the transactions in the node's mempool.
@@ -95,22 +103,22 @@ case class GetAddrMessage()
  * It is specified in BIP 35. Since BIP 37, if a bloom filter is loaded, only transactions matching the filter are replied.
  *
  */
-case class MempoolMessage()
+case class MempoolMessage() extends ProtocolMessage
 
 /** CheckOrder ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
  */
 @deprecated
-case class CheckOrderMessage()
+case class CheckOrderMessage() extends ProtocolMessage
 
 /** SubmitOrder ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
  */
 @deprecated
-case class SubmitOrderMessage()
+case class SubmitOrderMessage() extends ProtocolMessage
 
 /** Reply ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
  */
 @deprecated
-case class ReplyMessage()
+case class ReplyMessage() extends ProtocolMessage
 
 /** Ping ; The ping message is sent primarily to confirm that the TCP/IP connection is still valid.
  * An error in transmission is presumed to be a closed connection and the address is removed as a current peer.
@@ -119,7 +127,7 @@ case class ReplyMessage()
  * ================================================
  *          8,        nonce,   uint64_t,  random nonce
  */
-case class PingMessage(val nonce : BigInteger)
+case class PingMessage(val nonce : Long = 0) extends ProtocolMessage
 
 /** Pong ; The pong message is sent in response to a ping message.
  * In modern protocol versions, a pong response is generated using a nonce included in the ping.
@@ -129,31 +137,31 @@ case class PingMessage(val nonce : BigInteger)
   *          8,        nonce,   uint64_t,  random nonce
 
  */
-case class PongMessage(val nonce : BigInteger)
+case class PongMessage(val nonce : Long = 0) extends ProtocolMessage
 
 /** Reject ; The reject message is sent when messages are rejected.
  */
-case class Reject()
+case class RejectMessage() extends ProtocolMessage
 
 /** These messages are related to Bloom filtering of connections and are defined in BIP 0037.
  * Details : https://en.bitcoin.it/wiki/BIP_0037
  */
-case class FilterLoad()
+case class FilterLoadMessage() extends ProtocolMessage
 
 /** FilterAdd; TODO : Copy & paste description from Bitcoin protocol wiki.
  *
  */
-case class FilterAdd()
+case class FilterAddMessage() extends ProtocolMessage
 
 /** FilterClear; TODO : Copy & paste description from Bitcoin protocol wiki.
   *
   */
-case class FilterClear()
+case class FilterClearMessage() extends ProtocolMessage
 
 /** FilterBlock; TODO : Copy & paste description from Bitcoin protocol wiki.
   *
   */
-case class MerkleBlock()
+case class MerkleBlockMessage() extends ProtocolMessage
 
 /** An alert is sent between nodes to send a general notification message throughout the network.
  * If the alert can be confirmed with the signature as having come from the core development group of the Bitcoin software,
@@ -162,4 +170,4 @@ case class MerkleBlock()
  *
  * The text in the Message string should be relayed to log files and any user interfaces.
  */
-case class AlertMessage()
+case class AlertMessage() extends ProtocolMessage

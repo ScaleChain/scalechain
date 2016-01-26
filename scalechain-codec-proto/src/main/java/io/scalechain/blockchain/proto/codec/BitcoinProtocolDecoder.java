@@ -23,7 +23,10 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.scalechain.blockchain.proto.ProtocolMessage;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -32,32 +35,20 @@ import java.util.List;
  */
 @Sharable
 public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
-
-    // TODO Use CharsetDecoder instead.
-    private final Charset charset;
-
     /**
      * Creates a new instance with the current system character set.
      */
     public BitcoinProtocolDecoder() {
-        this(Charset.defaultCharset());
-    }
-
-    /**
-     * Creates a new instance with the specified character set.
-     */
-    public BitcoinProtocolDecoder(Charset charset) {
-        if (charset == null) {
-            throw new NullPointerException("charset");
-        }
-        this.charset = charset;
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        ByteArrayInputStream bin = new ByteArrayInputStream(msg.array());
+        BitcoinProtocolCodec codec = new BitcoinProtocolCodec();
+        ProtocolMessage message = codec.decode(bin);
 
-        System.out.println("[Debug] BitcoinProtocolDecoder : " + msg.toString(charset));
+        System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
 
-        out.add(msg.toString(charset));
+        out.add(message);
     }
 }

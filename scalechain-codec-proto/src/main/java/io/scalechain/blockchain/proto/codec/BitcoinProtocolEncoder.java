@@ -15,15 +15,23 @@
  */
 package io.scalechain.blockchain.proto.codec;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import io.scalechain.blockchain.proto.ProtocolMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -31,36 +39,23 @@ import java.util.List;
  * Encodes the requested case class that represents a bitcoin protocol message into a {@link ByteBuf}.
  */
 @Sharable
-public class BitcoinProtocolEncoder extends MessageToMessageEncoder<CharSequence> {
-
-    // TODO Use CharsetEncoder instead.
-    private final Charset charset;
-
+public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMessage> {
     /**
-     * Creates a new instance with the current system character set.
+     * Creates a new instance .
      */
     public BitcoinProtocolEncoder() {
-        this(Charset.defaultCharset());
-    }
-
-    /**
-     * Creates a new instance with the specified character set.
-     */
-    public BitcoinProtocolEncoder(Charset charset) {
-        if (charset == null) {
-            throw new NullPointerException("charset");
-        }
-        this.charset = charset;
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CharSequence msg, List<Object> out) throws Exception {
-        if (msg.length() == 0) {
-            return;
-        }
+    protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
+        System.out.println("[Debug] BitcoinProtocolEncoder : " + msg.toString());
 
-        System.out.println("[Debug] BitcoinProtocolEncoder : " + msg);
+        // TODO : Make sure that we are not having any performance issue here.
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        BitcoinProtocolCodec codec = new BitcoinProtocolCodec();
+        codec.encode( msg, bout);
 
-        out.add(ByteBufUtil.encodeString(ctx.alloc(), CharBuffer.wrap(msg), charset));
+        ByteBuf buffer = Unpooled.wrappedBuffer(bout.toByteArray());
+        out.add( buffer );
     }
 }
