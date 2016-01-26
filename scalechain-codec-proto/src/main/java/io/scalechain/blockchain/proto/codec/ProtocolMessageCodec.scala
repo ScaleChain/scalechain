@@ -80,7 +80,7 @@ class ProtocolMessageCodecs {
   }
 
 
-  val codecs = Seq(
+  val codecs = Seq[ProtocolMessageCodec[_<:ProtocolMessage]](
     new ProtocolMessageCodec[VersionMessage] {
       val command = "version"
       val prototype = VersionMessage()
@@ -302,12 +302,11 @@ class ProtocolMessageCodecs {
     }*/
   )
 
-  val codecMapByCommand = codecs.map {
-    codec => (codec.command -> codec)
-  }.toMap[String, ProtocolMessageCodec[_<:ProtocolMessage]]
+  val codecMapByCommand = codecs.foldLeft(scala.collection.mutable.Map[String, ProtocolMessageCodec[_ <: ProtocolMessage]]()) {
+    (map, codec) => map(codec.command) = codec ; map
+  }
 
-  val codecMapByClass = codecs.map {
-    codec => (codec.prototype.getClass -> codec)
-  }.toMap[Class[_<:ProtocolMessage], ProtocolMessageCodec[_<:ProtocolMessage]]
-
+  val codecMapByClass = codecs.foldLeft(scala.collection.mutable.Map[Class[_<:ProtocolMessage], ProtocolMessageCodec[_ <: ProtocolMessage]]()) {
+    (map, codec) => map(codec.prototype.getClass) = codec ; map
+  }
 }

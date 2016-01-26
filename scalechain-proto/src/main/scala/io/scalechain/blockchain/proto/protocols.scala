@@ -8,7 +8,7 @@ import java.math.BigInteger
   *
   * See also : BitcoinProtocolEncoder, BitcoinProtocolDecoder.
   */
-trait ProtocolMessage
+abstract class ProtocolMessage
 
 /** protocols.scala ; Define protocol case classes that are aware of serialization and deserialization about the message.
  * Each case class itself consists of protocol fields.
