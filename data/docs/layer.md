@@ -20,9 +20,9 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +------------------------------------------------+
 |                   Script                       |
 +----------------+----------------+--------------+
-|   Codec|Block  |   Codec|Proto  |              |
+|           Proto|Codec           |              |
 +---------------------------------+    Crypto    |
-|      Block     |      Proto     |              |
+|              Proto              |              |
 +----------------+----------------+--------------+
 |                   Util Layer                   |
 +------------------------------------------------+

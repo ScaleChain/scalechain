@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.block.codec
 
 import io.scalechain.blockchain.block._
+import io.scalechain.blockchain.proto._
 import io.scalechain.io.BlockDataOutputStream
 
 /** Serialize a block into a output stream.

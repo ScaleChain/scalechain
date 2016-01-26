@@ -99,8 +99,7 @@ class ProtocolMessageCodecs {
         assert(false);
         null
       }
-    }/*
-,
+    },
     new ProtocolMessageCodec[AddrMessage] {
       val command = "addr"
       val prototype = AddrMessage()
@@ -299,14 +298,9 @@ class ProtocolMessageCodecs {
         assert(false);
         null
       }
-    }*/
+    }
   )
 
-  val codecMapByCommand = codecs.foldLeft(scala.collection.mutable.Map[String, ProtocolMessageCodec[_ <: ProtocolMessage]]()) {
-    (map, codec) => map(codec.command) = codec ; map
-  }
-
-  val codecMapByClass = codecs.foldLeft(scala.collection.mutable.Map[Class[_<:ProtocolMessage], ProtocolMessageCodec[_ <: ProtocolMessage]]()) {
-    (map, codec) => map(codec.prototype.getClass) = codec ; map
-  }
+  val codecMapByCommand = (codecs.map(_.command) zip codecs).toMap
+  val codecMapByClass   = (codecs.map(_.prototype.getClass) zip codecs).toMap
 }

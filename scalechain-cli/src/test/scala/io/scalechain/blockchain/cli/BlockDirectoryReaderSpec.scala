@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.cli
 
-import io.scalechain.blockchain.block.Block
+import io.scalechain.blockchain.proto.Block
 import org.scalatest._
 
 /**

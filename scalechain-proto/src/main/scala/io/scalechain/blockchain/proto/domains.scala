@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.block
+package io.scalechain.blockchain.proto
 
 import io.scalechain.util.HexUtil._
 

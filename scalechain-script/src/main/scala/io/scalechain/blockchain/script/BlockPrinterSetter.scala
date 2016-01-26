@@ -2,6 +2,7 @@ package io.scalechain.blockchain.script
 
 
 import io.scalechain.blockchain.block._
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.util.HexUtil._
 

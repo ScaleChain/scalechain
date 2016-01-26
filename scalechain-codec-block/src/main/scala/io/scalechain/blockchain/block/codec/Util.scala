@@ -1,8 +1,7 @@
 package io.scalechain.blockchain.block.codec
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
-import io.scalechain.blockchain.block.Block
+import io.scalechain.blockchain.proto.Block
 import io.scalechain.io.{BlockDataInputStream, BlockDataOutputStream}
 
 /**

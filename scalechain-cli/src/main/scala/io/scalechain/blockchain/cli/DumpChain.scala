@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.block._
 import io.scalechain.blockchain.block.codec.Util
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.util.HexUtil

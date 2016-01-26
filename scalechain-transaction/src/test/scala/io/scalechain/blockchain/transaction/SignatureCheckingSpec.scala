@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.block._
+import io.scalechain.blockchain.proto._
 import io.scalechain.util.HexUtil._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.Tables.Table

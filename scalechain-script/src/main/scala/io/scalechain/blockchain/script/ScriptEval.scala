@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.block.Transaction
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.{ScriptEvalException, FatalException, ErrorCode}
 

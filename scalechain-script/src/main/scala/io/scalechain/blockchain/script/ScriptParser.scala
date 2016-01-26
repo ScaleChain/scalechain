@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.block.Script
+import io.scalechain.blockchain.proto.Script
 import io.scalechain.blockchain.script.ops.{ScriptOpWithoutCode, OpCond, ScriptOp}
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException, ScriptParseException}
 import io.scalechain.util.HexUtil

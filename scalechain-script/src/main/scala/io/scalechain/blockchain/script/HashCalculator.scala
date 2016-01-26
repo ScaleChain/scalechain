@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.script
 
 import java.io.ByteArrayOutputStream
-
-import io.scalechain.blockchain.block.Transaction
 import io.scalechain.blockchain.block.codec.BlockSerializer
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.io.BlockDataOutputStream
 
 object HashCalculator {
