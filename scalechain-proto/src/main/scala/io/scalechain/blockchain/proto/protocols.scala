@@ -1,5 +1,8 @@
 package io.scalechain.blockchain.proto
 
+import io.scalechain.util.HexUtil
+import HexUtil.scalaHex
+
 import java.math.BigInteger
 
 /** protocols.scala ; Define protocol case classes that are aware of serialization and deserialization about the message.
@@ -115,7 +118,9 @@ case class Reply() extends ProtocolMessage
  * ================================================
  *          8,        nonce,   uint64_t,  random nonce
  */
-case class Ping(val nonce : Long = 0) extends ProtocolMessage
+case class Ping(val nonce : BigInt) extends ProtocolMessage {
+  override def toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
+}
 
 /** Pong ; The pong message is sent in response to a ping message.
  * In modern protocol versions, a pong response is generated using a nonce included in the ping.
@@ -125,7 +130,9 @@ case class Ping(val nonce : Long = 0) extends ProtocolMessage
   *          8,        nonce,   uint64_t,  random nonce
 
  */
-case class Pong(val nonce : Long = 0) extends ProtocolMessage
+case class Pong(val nonce : BigInt) extends ProtocolMessage {
+  override def toString = s"Pong(BigInt(${scalaHex(nonce.toByteArray)}))"
+}
 
 /** Reject ; The reject message is sent when messages are rejected.
  */

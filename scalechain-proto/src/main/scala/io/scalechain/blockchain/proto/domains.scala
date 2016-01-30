@@ -1,6 +1,8 @@
 package io.scalechain.blockchain.proto
 
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.HexUtil
+import HexUtil.scalaHex
+
 
 /**
   * Created by kangmo on 2015. 11. 1..

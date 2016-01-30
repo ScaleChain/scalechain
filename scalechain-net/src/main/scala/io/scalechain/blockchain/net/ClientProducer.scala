@@ -2,9 +2,9 @@ package io.scalechain.blockchain.net
 
 import akka.actor.Actor
 import akka.camel.{CamelMessage, Producer}
+import io.scalechain.blockchain.proto.codec.{BitcoinProtocolDecoder, BitcoinProtocolEncoder}
 import org.apache.camel.impl.{SimpleRegistry, JndiRegistry}
 import org.apache.camel.spi.Registry
-import io.scalechain.blockchain.proto.codec._
 
 /**
   * Created by kangmo on 1/8/16.

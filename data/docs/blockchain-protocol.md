@@ -52,12 +52,24 @@ http://camel.apache.org/spring.html
 Camel provides fluent builders for creating routing and mediation rules using a type-safe IDE friendly way which provides smart completion and is refactoring safe.
 http://camel.apache.org/fluent-builders.html
 
+## Developer guide.
+https://bitcoin.org/en/developer-guide#p2p-network
+
+## Developer reference.
+https://bitcoin.org/en/developer-reference#p2p-network
+
+
 #Bitcoin
 ## main.cpp
 Process messages received from each peer node.
 ```
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 ```
+
+## net.h
+class CNetMessage ; Has P2P protocol message. A good place to dump all messages?
+
+
 ## net.cpp
 Get peer address from DNS seeds.
 ```
@@ -74,4 +86,28 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 Receive messages from each peer node, call process them, send reponse messages.
 ```
 void ThreadMessageHandler()
+```
+
+Receive a message to create CNetMessage.
+```
+bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
+```
+
+Send a message to peers.
+```
+void SocketSendData(CNode *pnode)
+{
+    std::deque<CSerializeData>::iterator it = pnode->vSendMsg.begin();
+
+    while (it != pnode->vSendMsg.end()) {
+        const CSerializeData &data = *it;
+```
+
+Receive a message. 
+```
+bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
+{
+    ...
+        if (msg.complete()) {
+
 ```

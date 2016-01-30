@@ -18,16 +18,12 @@ package io.scalechain.blockchain.proto.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
+import scodec.bits.ByteVector;
+import scodec.bits.ByteVector$;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -41,11 +37,12 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
     public BitcoinProtocolDecoder() {
     }
 
+    private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        ByteArrayInputStream bin = new ByteArrayInputStream(msg.array());
-        BitcoinProtocolCodec codec = new BitcoinProtocolCodec();
-        ProtocolMessage message = codec.decode(bin);
+
+        ProtocolMessage message = codec.decode(msg.array());
 
         System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
 

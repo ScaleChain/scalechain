@@ -18,21 +18,10 @@ package io.scalechain.blockchain.proto.codec;
 import io.netty.buffer.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.CharBuffer;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ScatteringByteChannel;
-import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -46,16 +35,17 @@ public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMess
     public BitcoinProtocolEncoder() {
     }
 
+    private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
+
     @Override
     protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
         System.out.println("[Debug] BitcoinProtocolEncoder : " + msg.toString());
 
         // TODO : Make sure that we are not having any performance issue here.
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        BitcoinProtocolCodec codec = new BitcoinProtocolCodec();
-        codec.encode( msg, bout);
+        byte[] bytes = codec.encode(msg);
 
-        ByteBuf buffer = Unpooled.wrappedBuffer(bout.toByteArray());
+        ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
+
         out.add( buffer );
     }
 }

@@ -30,11 +30,17 @@ object ErrorCode {
   // HTTP errors
   val HttpRequestFailure = ErrorCode("http_request_failure")
 
-  // Protocol Serialization errors.
-  val SerializerNotRegistered = ErrorCode("serializer_not_registered")
+  // Codec errors
+  val CodecNotRegistered = ErrorCode("codec_not_registered")
 
-  // Protocol Parse errors.
-  val ParserNotRegistered = ErrorCode("parser_not_registered")
+  // Protocol Encode errors
+  val EncodeFailure = ErrorCode("encode_failure")
+  val RemainingNotEmptyAfterDecoding = ErrorCode("remaining_not_empty_after_decoding")
+
+  // Protocol Decode errors
+  val DecodeFailure = ErrorCode("decode_failure")
+  val PayloadLengthMismatch = ErrorCode("payload_length_mismatch")
+  val PayloadChecksumMismatch = ErrorCode("payload_checksum_mismatch")
 }
 
 case class ErrorCode(val code:String)
@@ -48,8 +54,7 @@ class ScriptEvalException(val code:ErrorCode) extends Exception
 
 class ScriptParseException(val code:ErrorCode) extends Exception
 
-class ProtocolParseException(val code : ErrorCode) extends Exception
-class ProtocolSerializeException(val code : ErrorCode) extends Exception
+class ProtocolCodecException(val code : ErrorCode, val message : String = "") extends Exception
 
 class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String ) extends Exception
 
