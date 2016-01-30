@@ -7,10 +7,11 @@ import io.scalechain.blockchain.block.codec.Util
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.util.HexUtil
+import io.scalechain.util.{ByteArray, HexUtil}
 import HexUtil._
-import io.scalechain.util.HexUtil
 import scala.collection._
+//import io.scalechain.util.ByteArray
+//import ByteArray._
 
 /**
  * Created by kangmo on 11/3/15.
@@ -19,7 +20,9 @@ object DumpChain {
 
   def dump(blocksPath : String, blockListener : BlockReadListener ) : Unit = {
     val reader = new BlockDirectoryReader(blockListener)
-    reader.readFrom(blocksPath)
+    if (!reader.readFrom(blocksPath)) {
+      println("The directory that has blkNNNNN.dat files does not exist : " + blocksPath )
+    }
   }
 
 
@@ -202,7 +205,7 @@ object DumpChain {
   def mergeScripts(blocksPath : String, filter : ScriptFilter) : Unit = {
     // Step 1) Create a map from transaction hash to Transaction object.
     // c.f. Need List here instead of Array, which implements reference equality.
-    val txMap = mutable.Map[List[Byte], Transaction]()
+    val txMap = mutable.Map[ByteArray, Transaction]()
 
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
@@ -210,7 +213,7 @@ object DumpChain {
         for (tx : Transaction <- block.transactions ) {
           //println( "tx:"+tx )
           // Step 2) For each transaction, calculate hash, and put it into the map.
-          val txHash = HashCalculator.transactionHash(tx).toList
+          val txHash = HashCalculator.transactionHash(tx)
           txMap(txHash) = tx
 
           // Step 3) For each normal transaction input, check if the input transaction exists in the map.
@@ -218,7 +221,7 @@ object DumpChain {
           for (txIn : TransactionInput <- tx.inputs) {
             txIn match {
               case normalTxIn : NormalTransactionInput => {
-                val txWithOutputOption = txMap.get(normalTxIn.outputTransactionHash.hash.toList)
+                val txWithOutputOption = txMap.get(normalTxIn.outputTransactionHash.hash)
                 // Step 4) If it exists, get the locking script from the output of the input transaction.
                 //         Get the unlocking script from the transaction input.
                 //         Produce a pair ( unlocking script, locking script )

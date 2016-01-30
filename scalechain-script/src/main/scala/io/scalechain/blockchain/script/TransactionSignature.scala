@@ -77,7 +77,7 @@ object TransactionSignature {
             if (txIndex == transactionInputIndex)
               UnlockingScript(scriptData)
             else
-              UnlockingScript(Array())
+              UnlockingScript(Array[Byte]())
         }
       }
       case TransactionSigHash.NONE => {

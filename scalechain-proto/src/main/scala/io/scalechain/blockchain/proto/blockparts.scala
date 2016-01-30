@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.proto
 
-import io.scalechain.util.HexUtil
+import io.scalechain.util.{ByteArray, HexUtil}
 import HexUtil.scalaHex
-
+import ByteArray._
 
 /**
   * Created by kangmo on 2015. 11. 1..
@@ -10,7 +10,7 @@ import HexUtil.scalaHex
 
 case class Timestamp(val unixTimestamp : Int) extends ProtocolMessage
 
-abstract class Hash(private val hash : Array[Byte]) extends ProtocolMessage
+abstract class Hash(private val hash : ByteArray) extends ProtocolMessage
 {
   def isAllZero() = {
     (0 until hash.length).forall { i =>
@@ -18,25 +18,23 @@ abstract class Hash(private val hash : Array[Byte]) extends ProtocolMessage
     }
   }
 
-  def toHex() : String = {
-    s"${scalaHex(hash.reverse)}"
+  def toHex() : String = hash.toString
+}
+
+case class BlockHash(val hash : ByteArray) extends Hash(hash) {
+  override def toString() : String = {
+    s"BlockHash($hash))"
+  }
+}
+case class MerkleRootHash(val hash : ByteArray) extends Hash(hash) {
+  override def toString() : String = {
+    s"MerkleRootHash($hash)"
   }
 }
 
-case class BlockHash(val hash : Array[Byte]) extends Hash(hash) {
+case class TransactionHash(val hash : ByteArray) extends Hash(hash) {
   override def toString() : String = {
-    s"BlockHash(${scalaHex(hash)}))"
-  }
-}
-case class MerkleRootHash(val hash : Array[Byte]) extends Hash(hash) {
-  override def toString() : String = {
-    s"MerkleRootHash(${scalaHex(hash)})"
-  }
-}
-
-case class TransactionHash(val hash : Array[Byte]) extends Hash(hash) {
-  override def toString() : String = {
-    s"TransactionHash(${scalaHex(hash)})"
+    s"TransactionHash($hash)"
   }
 }
 
@@ -46,9 +44,9 @@ case class BlockHeader(val version : Int, hashPrevBlock : BlockHash, hashMerkleR
   }
 }
 
-case class CoinbaseData(data: Array[Byte]) extends ProtocolMessage {
+case class CoinbaseData(data: ByteArray) extends ProtocolMessage {
   override def toString() : String = {
-    s"CoinbaseData(${scalaHex(data)})"
+    s"CoinbaseData($data)"
   }
 }
 
@@ -75,7 +73,7 @@ case class GenerationTransactionInput(override val outputTransactionHash : Trans
   }
 }
 
-class Script(val data:Array[Byte]) extends ProtocolMessage
+class Script(val data:ByteArray) extends ProtocolMessage
 {
   def length = data.length
   def apply(i:Int) = data.apply(i)
@@ -87,12 +85,12 @@ trait LockingScriptPrinter {
 object LockingScript {
   var printer : LockingScriptPrinter = null
 }
-case class LockingScript(override val data:Array[Byte]) extends Script(data) {
+case class LockingScript(override val data:ByteArray) extends Script(data) {
   override def toString(): String = {
     if (LockingScript.printer != null)
       LockingScript.printer.toString(this)
     else
-      s"LockingScript(${scalaHex(data)})"
+      s"LockingScript($data)"
   }
 }
 
@@ -102,12 +100,12 @@ trait UnlockingScriptPrinter {
 object UnlockingScript {
   var printer : UnlockingScriptPrinter = null
 }
-case class UnlockingScript(override val data:Array[Byte]) extends Script(data) {
+case class UnlockingScript(override val data:ByteArray) extends Script(data) {
   override def toString(): String = {
     if (UnlockingScript.printer != null)
       UnlockingScript.printer.toString(this)
     else
-      s"UnlockingScript(${scalaHex(data)})"
+      s"UnlockingScript($data)"
   }
 }
 

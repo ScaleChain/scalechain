@@ -69,13 +69,21 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
     * @param path The path that has blkNNNNN.dat files.
     * @return
     */
-  def readFrom(path : String) {
+  def readFrom(path : String) : Boolean = {
     val directory = new File(path)
-    // For each file in the path
-    for (file <- directory.listFiles.sortBy(_.getName())
-         if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) ) {
-      val fileReader = new  BlockFileReader(blockListener)
-      fileReader.readFully(file)
+    if (directory.exists()) {
+      val x = directory.listFiles.sortBy(_.getName())
+      println("xxx="+x)
+      // For each file in the path
+      for (file <- directory.listFiles.sortBy(_.getName())) {
+        if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) {
+          val fileReader = new BlockFileReader(blockListener)
+          fileReader.readFully(file)
+        }
+      }
+      true
+    } else {
+      false
     }
   }
 }

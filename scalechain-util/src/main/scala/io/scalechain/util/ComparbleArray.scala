@@ -36,7 +36,7 @@ object ComparableArray {
 
 
 class ByteArray(override val array : Array[Byte]) extends ComparableArray[Byte](array) {
-  override def toString = s"ComparableArray(${scalaHex(array)})"
+  override def toString = s"${scalaHex(array)}"
 }
 
 object ByteArray {

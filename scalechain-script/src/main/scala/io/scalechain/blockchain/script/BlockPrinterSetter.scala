@@ -16,7 +16,7 @@ object BlockPrinterSetter {
       def toString(lockingScript:LockingScript): String = {
         val scriptOps = ScriptParser.parse(lockingScript)
 
-        s"LockingScript(${scalaHex(lockingScript.data)}) /* ops:$scriptOps */ "
+        s"LockingScript(${lockingScript.data}) /* ops:$scriptOps */ "
       }
     }
 
@@ -36,7 +36,7 @@ object BlockPrinterSetter {
           }
         }
 
-        s"UnlockingScript(${scalaHex(unlockingScript.data)}) /* ops:$scriptOps, hashType:$hashType */"
+        s"UnlockingScript(${unlockingScript.data}) /* ops:$scriptOps, hashType:$hashType */"
       }
     }
 
