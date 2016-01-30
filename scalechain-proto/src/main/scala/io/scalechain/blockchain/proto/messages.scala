@@ -91,21 +91,6 @@ case class GetAddr() extends ProtocolMessage
  */
 case class Mempool() extends ProtocolMessage
 
-/** CheckOrder ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
- */
-@deprecated
-case class CheckOrder() extends ProtocolMessage
-
-/** SubmitOrder ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
- */
-@deprecated
-case class SubmitOrder() extends ProtocolMessage
-
-/** Reply ; This message was used for IP Transactions. As IP transactions have been deprecated, it is no longer used.
- */
-@deprecated
-case class Reply() extends ProtocolMessage
-
 /** Ping ; The ping message is sent primarily to confirm that the TCP/IP connection is still valid.
  * An error in transmission is presumed to be a closed connection and the address is removed as a current peer.
  *
@@ -161,3 +146,8 @@ case class MerkleBlock() extends ProtocolMessage
  * The text in the Message string should be relayed to log files and any user interfaces.
  */
 case class Alert() extends ProtocolMessage
+
+/** SendHeaders; The sendheaders message tells the receiving peer
+  * to send new block announcements using a headers message rather than an inv message.
+  */
+case class SendHeaders() extends ProtocolMessage
