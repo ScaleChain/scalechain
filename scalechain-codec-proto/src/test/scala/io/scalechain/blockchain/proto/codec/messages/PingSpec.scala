@@ -1,8 +1,8 @@
-package io.scalechain.blockchain.proto.codec
+package io.scalechain.blockchain.proto.codec.messages
 
 import io.scalechain.blockchain.proto.Ping
+import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
-import scodec.Codec
 import scodec.bits.BitVector
 
 /**

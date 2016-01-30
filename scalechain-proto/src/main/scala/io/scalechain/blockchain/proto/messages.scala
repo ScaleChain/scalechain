@@ -69,11 +69,6 @@ case class GetBlocks() extends ProtocolMessage
  */
 case class GetHeaders() extends ProtocolMessage
 
-// TODO : This is duplicate of Transaction case class. Get rid of it!!!
-/** Tx ; tx describes a bitcoin transaction, in reply to getdata.
- */
-case class Tx() extends ProtocolMessage
-
 /** Headers ; The headers packet returns block headers in response to a getheaders packet.
  */
 case class Headers() extends ProtocolMessage

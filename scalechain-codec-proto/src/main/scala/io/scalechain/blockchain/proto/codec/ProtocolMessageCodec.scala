@@ -53,7 +53,7 @@ class BitcoinProtocol extends NetworkProtocol {
     NotFoundCodec,
     GetBlocksCodec,
     GetHeadersCodec,
-    TxCodec,
+    TransactionCodec,
     BlockCodec,
     HeadersCodec,
     GetAddrCodec,

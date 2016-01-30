@@ -13,13 +13,9 @@ case class Timestamp(val unixTimestamp : Int) extends ProtocolMessage
 abstract class Hash(private val hash : Array[Byte]) extends ProtocolMessage
 {
   def isAllZero() = {
-    // BUGBUG : Dirty code. make it cleaner!
-    var countOfZero = 0
-    for ( byteValue : Byte <- hash ) {
-      if (byteValue == 0)
-        countOfZero += 1
+    (0 until hash.length).forall { i =>
+      hash(i) == 0
     }
-    (countOfZero == hash.length)
   }
 
   def toHex() : String = {
@@ -127,6 +123,9 @@ trait TransactionPrinter {
 object Transaction {
   var printer : TransactionPrinter = null
 }
+
+/** Tx ; tx describes a bitcoin transaction, in reply to getdata.
+  */
 case class Transaction(val version : Int,
                        val inputs : Array[TransactionInput],
                        val outputs : Array[TransactionOutput],

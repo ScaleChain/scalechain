@@ -80,12 +80,12 @@ object GetHeadersCodec extends ProtocolMessageCodec[GetHeaders] {
 }
 
 
-object TxCodec extends ProtocolMessageCodec[Tx] {
+object TransactionCodec extends ProtocolMessageCodec[Transaction] {
   val command = "tx"
-  val clazz = classOf[Tx]
+  val clazz = classOf[Transaction]
 
   // TODO : Implement
-  val codec : Codec[Tx] = null
+  val codec : Codec[Transaction] = null
 }
 
 object HeadersCodec extends ProtocolMessageCodec[Headers] {
