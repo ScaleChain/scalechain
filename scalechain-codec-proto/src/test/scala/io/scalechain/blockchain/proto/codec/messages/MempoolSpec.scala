@@ -6,24 +6,14 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-    [Bitcoin Core Packets Not Captured]
+ *  [Bitcoin Core Packets Not Captured]
+ *  No payload.
  */
-class MempoolSpec extends EnvelopeTestSuite[Mempool]  {
+class MempoolSpec extends PayloadTestSuite[Mempool]  {
 
   val codec = MempoolCodec.codec
 
-  val envelopeHeader = bytes("""
-                             """)
-
-  val payload = bytes("")
-
-  val envelope = BitcoinMessageEnvelope(
-    Magic.MAIN,
-    "mempool",
-    payload.length.toInt,
-    Checksum.fromHex(""),
-    BitVector.view(payload)
-  )
+  val payload = bytes("") // No payload.
 
   val message = null//Mempool()
 

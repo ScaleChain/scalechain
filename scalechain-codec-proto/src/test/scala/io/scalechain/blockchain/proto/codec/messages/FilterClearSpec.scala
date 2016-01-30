@@ -6,24 +6,14 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-    [Bitcoin Core Packets Not Captured]
+  *  [Bitcoin Core Packets Not Captured]
+  *  No Payload
   */
-class FilterClearSpec extends EnvelopeTestSuite[FilterClear]  {
+class FilterClearSpec extends PayloadTestSuite[FilterClear]  {
 
   val codec = FilterClearCodec.codec
 
-  val envelopeHeader = bytes("""
-                             """)
-
-  val payload = bytes("")
-
-  val envelope = BitcoinMessageEnvelope(
-    Magic.MAIN,
-    "filterclear",
-    payload.length.toInt,
-    Checksum.fromHex(""),
-    BitVector.view(payload)
-  )
+  val payload = bytes("") // No Payload.
 
   val message = null//FilterClear()
 

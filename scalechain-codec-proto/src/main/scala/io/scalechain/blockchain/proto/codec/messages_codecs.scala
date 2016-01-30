@@ -251,7 +251,17 @@ object GetBlocksCodec extends ProtocolMessageCodec[GetBlocks] {
   * https://bitcoin.org/en/developer-reference#block
   *
   * [Protocol]
-  * TODO : Write an example of block message.
+  *  01000000 ........................... Block version: 1
+  *  82bb869cf3a793432a66e826e05a6fc3
+  *  7469f8efb7421dc88067010000000000 ... Hash of previous block's header
+  *  7f16c5962e8bd963659c793ce370d95f
+  *  093bc7e367117b3c30c1f8fdd0d97287 ... Merkle root
+  *  76381b4d ........................... Time: 1293629558
+  *  4c86041b ........................... nBits: 0x04864c * 256**(0x1b-3)
+  *  554b8529 ........................... Nonce
+  *
+  *  01 ................................. Transaction Count
+  *  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Raw transactions ( See TransactionCodec )
   */
 object BlockCodec extends ProtocolMessageCodec[Block] {
   val command = "block"
