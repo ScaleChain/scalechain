@@ -35,11 +35,16 @@ object ComparableArray {
 }
 
 
-class ByteArray(override val array : Array[Byte]) extends ComparableArray[Byte](array) {
+case class ByteArray(override val array : Array[Byte]) extends ComparableArray[Byte](array) {
   override def toString = s"${scalaHex(array)}"
 }
 
 object ByteArray {
-  implicit def byteArrayToArray(barray : ByteArray) = barray.array
-  implicit def arrayToByteArray(array:Array[Byte]) = new ByteArray(array)
+  implicit def byteArrayToArray (barray : ByteArray   ) = barray.array
+  implicit def arrayToByteArray (array  : Array[Byte] ) = ByteArray(array)
+}
+
+object ByteArrayAndVectorConverter {
+  implicit def byteArrayToVector(barray : ByteArray   ) = barray.array.toVector
+  implicit def vectorToByteArray(vector : Vector[Byte]) = ByteArray(vector.toArray[Byte])
 }

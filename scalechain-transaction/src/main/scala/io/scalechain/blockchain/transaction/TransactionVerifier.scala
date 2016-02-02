@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.transaction
 
-import io.scalechain.blockchain.block.{_}
 import io.scalechain.blockchain.proto.{Transaction, LockingScript, GenerationTransactionInput, NormalTransactionInput}
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushData}
@@ -98,7 +97,7 @@ class NormalTransactionVerifier(transaction : NormalTransactionInput) {
       *  BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
       */
 
-    outputTx.outputs(transaction.outputIndex).lockingScript
+    outputTx.outputs(transaction.outputIndex.toInt).lockingScript
   }
 
   /** With a block index, verify that the unlocking script of the input successfully unlocks the locking script attached to the UTXO that this input references.

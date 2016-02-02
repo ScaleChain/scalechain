@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto
 
-import io.scalechain.util.HexUtil
+import io.scalechain.util.{UInt64, HexUtil}
 import HexUtil.scalaHex
 
 import java.math.BigInteger
@@ -98,8 +98,8 @@ case class Mempool() extends ProtocolMessage
  * ================================================
  *          8,        nonce,   uint64_t,  random nonce
  */
-case class Ping(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
+case class Ping(val nonce : UInt64) extends ProtocolMessage {
+  override def toString = s"Ping($nonce)"
 }
 
 /** Pong ; The pong message is sent in response to a ping message.
@@ -110,8 +110,8 @@ case class Ping(val nonce : BigInt) extends ProtocolMessage {
   *          8,        nonce,   uint64_t,  random nonce
 
  */
-case class Pong(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Pong(BigInt(${scalaHex(nonce.toByteArray)}))"
+case class Pong(val nonce : UInt64) extends ProtocolMessage {
+  override def toString = s"Pong($nonce)"
 }
 
 /** Reject ; The reject message is sent when messages are rejected.

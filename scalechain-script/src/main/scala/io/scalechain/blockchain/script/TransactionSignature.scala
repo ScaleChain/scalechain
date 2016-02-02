@@ -1,8 +1,7 @@
 package io.scalechain.blockchain.script
 
 import java.io.ByteArrayOutputStream
-import io.scalechain.blockchain.block._
-import io.scalechain.blockchain.block.codec.BlockSerializer
+import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.{UnlockingScript, NormalTransactionInput, TransactionInput, Transaction}
 import io.scalechain.blockchain.{ErrorCode, TransactionVerificationException}
 import io.scalechain.crypto.{Hash256, HashFunctions, TransactionSigHash}
@@ -68,6 +67,7 @@ object TransactionSignature {
     * @param scriptData See hashForSignature
     * @param howToHash See hashForSignature
     */
+  // TODO Make NormalTransactionInput immutable.
   protected def alter(transaction : Transaction, transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Unit = {
     howToHash match {
       case TransactionSigHash.ALL => {
@@ -100,9 +100,9 @@ object TransactionSignature {
     val bout = new ByteArrayOutputStream()
     val dout = new BlockDataOutputStream(bout)
     try {
-      val serializer = new BlockSerializer(dout)
       // Step 1 : Serialize the transaction
-      serializer.writeTransaction(transaction)
+      val serializedBytes = TransactionCodec.serialize(transaction)
+      dout.writeBytes(serializedBytes)
       // Step 2 : Write hash type
       Utils.uint32ToByteStreamLE(0x000000ff & howToHash, dout);
     } finally {

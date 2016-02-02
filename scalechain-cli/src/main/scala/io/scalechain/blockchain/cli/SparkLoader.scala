@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.cli
 
-import io.scalechain.blockchain.block.codec.Util
+import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.util.HexUtil
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
@@ -26,7 +26,7 @@ object SparkLoader {
 
     // Step 4 : Calculate total amount of Bitcoins sent to outputs by for each block
     val blockStat = blockByHash.mapValues( rawBlockInHex => {
-        val block = Util.parse(HexUtil.bytes(rawBlockInHex))
+        val block = BlockCodec.parse(HexUtil.bytes(rawBlockInHex))
         block.transactions.flatMap{ tx =>
           tx.outputs.map { output =>
             output.value
@@ -37,7 +37,7 @@ object SparkLoader {
 
     println(s"== total amount of Bitcoins sent to outputs ==")
     blockStat.foreach
-    { case (blockHash, outputValues : Array[Long] ) =>
+    { case (blockHash, outputValues : List[Long] ) =>
       val totalOutputValue = outputValues.sum
       println(s"[$blockHash] total output=${totalOutputValue}")
     }

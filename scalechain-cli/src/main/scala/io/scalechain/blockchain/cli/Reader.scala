@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.cli
 
 import java.io._
-import io.scalechain.blockchain.block.codec.BlockParser
+import io.scalechain.blockchain.proto.codec.BlockCodec
+import io.scalechain.blockchain.{ErrorCode, FatalException}
 import io.scalechain.blockchain.proto.Block
 import io.scalechain.io.BlockDataInputStream
 
@@ -39,14 +40,46 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     }
   }
 
+  /** Parse the byte array stream to get a block.
+    *
+    * This function reads the following fields.
+    * Magic no : value always 0xD9B4BEF9, 4 bytes
+    * Blocksize : number of bytes following up to end of block, 4 bytes
+    * Blockheader : consists of 6 items, 80 bytes
+    * Transaction counter : positive integer VI = VarInt, 1 - 9 bytes
+    * transactions : the (non empty) list of transactions, <Transaction counter>-many transactions
+    *
+    * Source : https://en.bitcoin.it/wiki/Block
+    *
+    * @return Some(Block) if we successfully read a block. None otherwise.
+    */
+  def parseBlock(stream : BlockDataInputStream) : Option[Block] = {
+    val magic = try {
+      stream.readLittleEndianInt()
+    } catch {
+      case e : EOFException => -1
+    }
+    if (magic == -1) {
+      None // End of file.
+    } else {
+      // BUGBUG : Does this work even though the integer we read is a signed int?
+      if (magic != 0xD9B4BEF9)
+        throw new FatalException(ErrorCode.InvalidBlockMagic)
+
+      val blockSize        = stream.readLittleEndianInt()
+      val bytes = stream.readBytes(blockSize)
+      Some(BlockCodec.parse(bytes))
+    }
+  }
+
+
   /**
    * Read a block from the input stream.
    * @param stream The byte array stream where we read the block data.
    * @return True if a block was read, False if we met EOF of the input block file.
    */
   def readBlock(stream : BlockDataInputStream): Boolean = {
-    val parser = new BlockParser(stream)
-    val blockOption = parser.parse()
+    val blockOption = parseBlock(stream)
     if (blockOption.isDefined) {
       blockListener.onBlock(blockOption.get)
       true

@@ -2,9 +2,8 @@ package io.scalechain.blockchain.cli
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import io.scalechain.blockchain.block._
-import io.scalechain.blockchain.block.codec.Util
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.util.{ByteArray, HexUtil}
@@ -50,7 +49,7 @@ object DumpChain {
 
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
-        val serializedBlock = Util.serialize(block)
+        val serializedBlock = BlockCodec.serialize(block)
         val blockHash = io.scalechain.crypto.HashFunctions.hash256( serializedBlock )
 
         println(s"${hex(blockHash.value)} ${hex(serializedBlock)}")
@@ -112,8 +111,9 @@ object DumpChain {
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         println( "bh:"+ block.header )
-        val serializedBlock1 = Util.serialize(block)
-        val serializedBlock2 = Util.serialize( Util.parse(serializedBlock1) )
+        implicit val codec = BlockCodec.codec
+        val serializedBlock1 = BlockCodec.serialize(block)
+        val serializedBlock2 = BlockCodec.serialize( BlockCodec.parse(serializedBlock1) )
         assert( serializedBlock1.sameElements(serializedBlock2) )
       }
     }
@@ -226,7 +226,7 @@ object DumpChain {
                 //         Get the unlocking script from the transaction input.
                 //         Produce a pair ( unlocking script, locking script )
                 if (txWithOutputOption.isDefined) { // Found the transaction object from the map.
-                  val output = txWithOutputOption.get.outputs(normalTxIn.outputIndex)
+                  val output = txWithOutputOption.get.outputs(normalTxIn.outputIndex.toInt)
 
                   val unlockingScript = normalTxIn.unlockingScript
                   val lockingScript   = output.lockingScript
