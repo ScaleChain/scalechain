@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.{Addr, Ping}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -46,5 +46,6 @@ class AddrSpec extends EnvelopeTestSuite[Addr]  {
     BitVector.view(payload)
   )
 
-  val message = null//Addr()
+  val message = Addr(List(NetworkAddressWithTimestamp(1454060630L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff3dae7ef8")), 36128)),NetworkAddressWithTimestamp(1454061141L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff2d21553a")), 36128))))
+
 }

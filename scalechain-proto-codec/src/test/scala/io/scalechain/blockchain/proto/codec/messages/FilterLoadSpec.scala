@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.FilterLoad
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -15,6 +15,7 @@ import scodec.bits.BitVector
   *  00 ......... nFlags: BLOOM_UPDATE_NONE
   *
   */
+/*
 class FilterLoadSpec extends PayloadTestSuite[FilterLoad]  {
 
   val codec = FilterLoadCodec.codec
@@ -30,3 +31,4 @@ class FilterLoadSpec extends PayloadTestSuite[FilterLoad]  {
 
   val message = null//FilterLoad()
 }
+*/

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.Inv
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -57,6 +57,6 @@ class InvSpec extends EnvelopeTestSuite[Inv]  {
     BitVector.view(payload)
   )
 
-  val message = Inv()
+  val message = Inv(List(InvVector(InvType.MSG_TX, Hash(bytes("b2e4bdfeffb04a8df3ddf0abe9ba45150663bb41a4bd6f9d4767a0119e0141f9"))),InvVector(InvType.MSG_TX, Hash(bytes("80fe53bd8f81cd296b4ff3bd48e46b221538eba8065de1c660ad7afc98720177"))),InvVector(InvType.MSG_TX, Hash(bytes("f75845650176135011a4fca6d41fe6e342f273b032124f37e9bf65aa06cd985d"))),InvVector(InvType.MSG_TX, Hash(bytes("7c6315ab536b5d0a4e2304bd8d6c01eb0ee25ef4ca28f8cf4e623c91e5b6cc47")))))
 
 }

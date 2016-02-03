@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.FilterAdd
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -13,6 +13,7 @@ import scodec.bits.BitVector
   *  9dee312d666187ed77ee7d26af16cb0b ... Element (A TXID)
   *
   */
+/*
 class FilterAddSpec extends PayloadTestSuite[FilterAdd]  {
 
   val codec = FilterAddCodec.codec
@@ -28,3 +29,4 @@ class FilterAddSpec extends PayloadTestSuite[FilterAdd]  {
   val message = null//FilterAdd()
 
 }
+*/

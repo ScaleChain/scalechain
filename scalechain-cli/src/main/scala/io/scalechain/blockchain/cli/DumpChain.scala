@@ -221,7 +221,7 @@ object DumpChain {
           for (txIn : TransactionInput <- tx.inputs) {
             txIn match {
               case normalTxIn : NormalTransactionInput => {
-                val txWithOutputOption = txMap.get(normalTxIn.outputTransactionHash.hash)
+                val txWithOutputOption = txMap.get(normalTxIn.outputTransactionHash.value)
                 // Step 4) If it exists, get the locking script from the output of the input transaction.
                 //         Get the unlocking script from the transaction input.
                 //         Produce a pair ( unlocking script, locking script )

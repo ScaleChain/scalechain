@@ -1,44 +1,49 @@
 package io.scalechain.blockchain.proto
 
+import io.scalechain.util
 import io.scalechain.util.{ByteArray, HexUtil}
 import HexUtil.scalaHex
 import ByteArray._
-import io.scalechain.util.UInt64
 
-/**
-  * Created by kangmo on 2015. 11. 1..
-  */
+import io.scalechain.util.BigIntUtil
+import BigIntUtil._
 
-case class Timestamp(val unixTimestamp : Long) extends ProtocolMessage
-{
-  override def toString = s"Timestamp(${unixTimestamp}L)"
-}
 
-abstract class Hash(private val hash : ByteArray) extends ProtocolMessage
+
+abstract class AbstractHash(private val value : ByteArray) extends ProtocolMessage
 {
   def isAllZero() = {
-    (0 until hash.length).forall { i =>
-      hash(i) == 0
+    (0 until value.length).forall { i =>
+      value(i) == 0
     }
   }
 
-  def toHex() : String = hash.toString
+  def toHex() : String = value.toString
 }
 
-case class BlockHash(hash : ByteArray) extends Hash(hash) {
-  override def toString() = s"BlockHash($hash)"
-}
-case class MerkleRootHash(hash : ByteArray) extends Hash(hash) {
-  override def toString() = s"MerkleRootHash($hash)"
-}
-
-case class TransactionHash(hash : ByteArray) extends Hash(hash) {
-  override def toString() = s"TransactionHash($hash)"
+/** A hash case class that can represent transaction hash or block hash.
+  * Used by an inventory vector, InvVector.
+  *
+  * @param value
+  */
+case class Hash(value : ByteArray) extends AbstractHash(value) {
+  override def toString() = s"Hash($value)"
 }
 
-case class BlockHeader(version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, time : Timestamp, target : Long, nonce : Long)  extends ProtocolMessage {
+case class BlockHash(value : ByteArray) extends AbstractHash(value) {
+  override def toString() = s"BlockHash($value)"
+}
+case class MerkleRootHash(value : ByteArray) extends AbstractHash(value) {
+  override def toString() = s"MerkleRootHash($value)"
+}
+
+case class TransactionHash(value : ByteArray) extends AbstractHash(value) {
+  override def toString() = s"TransactionHash($value)"
+}
+
+case class BlockHeader(version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, timestamp : Long, target : Long, nonce : Long)  extends ProtocolMessage {
   override def toString() : String = {
-    s"BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, time=$time, target=${target}L, nonce=${nonce}L)"
+    s"BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, timestamp=${timestamp}L, target=${target}L, nonce=${nonce}L)"
   }
 }
 
@@ -155,15 +160,15 @@ case class IPv6Address(address:ByteArray) {
 }
 
 // TODO : Add a comment
-case class NetworkAddress(services:UInt64, ipv6:IPv6Address, port:Int) {
+case class NetworkAddress(services:BigInt, ipv6:IPv6Address, port:Int) {
   override def toString() : String = {
-    s"NetworkAddress($services, $ipv6, $port)"
+    s"NetworkAddress(${bint(services)}, $ipv6, $port)"
   }
 }
 // TODO : Add a comment
-case class NetworkAddressWithTimestamp(time:Timestamp, address:NetworkAddress) {
+case class NetworkAddressWithTimestamp(timestamp:Long, address:NetworkAddress) {
   override def toString() : String = {
-    s"NetworkAddressWithTimestamp($time, $address)"
+    s"NetworkAddressWithTimestamp(${timestamp}L, $address)"
   }
 }
 

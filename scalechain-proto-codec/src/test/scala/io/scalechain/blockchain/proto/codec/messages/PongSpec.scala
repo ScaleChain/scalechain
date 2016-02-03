@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.Pong
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
-import io.scalechain.util.UInt64
 import scodec.bits.BitVector
 
 /**
@@ -36,6 +35,6 @@ class PongSpec extends EnvelopeTestSuite[Pong]  {
     BitVector.view(payload)
   )
 
-  val message = Pong(UInt64(BigInt(payload.reverse).toLong))
+  val message = Pong(BigInt(payload.reverse).toLong)
 }
 

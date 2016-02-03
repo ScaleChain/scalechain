@@ -1,14 +1,12 @@
 package io.scalechain.blockchain.proto.codec.primitive
 
-import io.scalechain.util.UInt64
-
 /** Source code copied from : https://github.com/yzernik/bitcoin-scodec
   * Thanks to : https://github.com/yzernik
   */
 
 class UInt64Spec extends CodecSuite {
 
-  import UInt64Codec._
+  implicit val int64codec = BigIntCodec.int64codec
 
   "UInt64 codec" should {
     "roundtrip" in {

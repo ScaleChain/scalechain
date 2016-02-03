@@ -1,9 +1,12 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.GetData
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
+import io.scalechain.blockchain.proto._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
+
+import InvType._
 
 /**
 [Bitcoin Core Packets Captured]
@@ -50,6 +53,5 @@ class GetDataSpec extends EnvelopeTestSuite[GetData]  {
     BitVector.view(payload)
   )
 
-  val message = null//GetData()
-
+  val message = GetData(List(InvVector(InvType.MSG_TX, Hash(bytes("411308b9451727b84fcb359998078722cf9ec84c2c44299a87a68939f82f9010"))),InvVector(InvType.MSG_TX, Hash(bytes("af742cdab40bebb681541e61e140ded4981c56ed3bdb642ee89df67053ca82ce"))),InvVector(InvType.MSG_TX, Hash(bytes("3a39148e82d642e7091ac0283be1a8af3e76ec66b29af6168cfecffe5dfbec99")))))
 }

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.Version
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -51,6 +51,6 @@ class VersionSpec extends EnvelopeTestSuite[Version]  {
     BitVector.view(payload)
   )
 
-  val message = null// Version()
+  val message = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 36128), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 
 }

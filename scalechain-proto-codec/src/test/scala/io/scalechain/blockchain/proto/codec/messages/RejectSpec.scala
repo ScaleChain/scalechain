@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.Reject
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -45,6 +45,7 @@ class RejectSpec extends EnvelopeTestSuite[Reject]  {
     BitVector.view(payload)
   )
 
-  val message = null//Reject()
+  val message = Reject("tx", RejectType.REJECT_INSUFFICIENTFEE, "mempool min fee not met", bytes("6e532ae33433cae18190ea2fe3e19a9a2181698f2daae215888567bfe4e0029a"))
+
 
 }

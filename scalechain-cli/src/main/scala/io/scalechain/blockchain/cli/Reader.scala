@@ -67,8 +67,8 @@ class BlockFileReader(val blockListener : BlockReadListener) {
         throw new FatalException(ErrorCode.InvalidBlockMagic)
 
       val blockSize        = stream.readLittleEndianInt()
-      val bytes = stream.readBytes(blockSize)
-      Some(BlockCodec.parse(bytes))
+      val blockBytes = stream.readBytes(blockSize)
+      Some(BlockCodec.parse(blockBytes))
     }
   }
 

@@ -6,7 +6,6 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 import io.scalechain.blockchain.proto.Ping
 import io.scalechain.blockchain.proto.codec.PingCodec
-import io.scalechain.util.UInt64
 import scodec.Codec
 
 class VarListSpec extends CodecSuite {
@@ -20,9 +19,9 @@ class VarListSpec extends CodecSuite {
     "roundtrip" in {
       roundtrip(codec, List())
       roundtrip(List(
-        Ping(UInt64(0)),
-        Ping(UInt64(1)),
-        Ping(UInt64(2))))
+        Ping(BigInt(0)),
+        Ping(BigInt(1)),
+        Ping(BigInt(2))))
     }
 
   }

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{FixedByteArray, UInt64Codec, VarInt, VarByteArray}
+import io.scalechain.blockchain.proto.codec.primitive._
 import io.scalechain.io.InputOutputStream
 import io.scalechain.util.{ByteArray, ByteArrayAndVectorConverter}
 import scodec.Codec
@@ -12,6 +12,13 @@ import scodec.codecs._
 trait MessagePartCodec[T] {
   val codec : Codec[T]
 }
+
+object HashCodec extends MessagePartCodec[Hash] {
+  val codec : Codec[Hash] = {
+    ("hash" | FixedByteArray.reverseCodec(32))
+  }.as[Hash]
+}
+
 
 object BlockHashCodec extends MessagePartCodec[BlockHash]{
   val codec : Codec[BlockHash] = {
@@ -204,23 +211,13 @@ object TransactionOutputCodec extends MessagePartCodec[TransactionOutput] {
   }.as[TransactionOutput]
 }
 
-
-
-// TODO : Add a test case
-object TimestampCodec extends MessagePartCodec[Timestamp]{
-  val codec : Codec[Timestamp] = {
-    ("timestamp" | uint32L)
-  }.as[Timestamp]
-}
-
 // TODO : Add a test case
 object BlockHeaderCodec extends MessagePartCodec[BlockHeader]{
-  // TODO : Implement
   val codec : Codec[BlockHeader] = {
     ("version"               | int32L                                 ) ::
     ("previous_block_hash"   | BlockHashCodec.codec                   ) ::
     ("merkle_root_hash"      | MerkleRootHashCodec.codec              ) ::
-    ("timestamp"             | TimestampCodec.codec                   ) ::
+    ("timestamp"             | uint32L                                ) ::
     ("diffculty_target_bits" | uint32L                                ) ::
     ("nonce"                 | uint32L                                )
   }.as[BlockHeader]
@@ -228,26 +225,23 @@ object BlockHeaderCodec extends MessagePartCodec[BlockHeader]{
 
 // TODO : Add a test case
 object IPv6AddressCodec extends MessagePartCodec[IPv6Address]{
-  // TODO : Implement
   val codec : Codec[IPv6Address] = {
     ("address" | FixedByteArray.codec(16) )
   }.as[IPv6Address]
 }
 
-object NetworkAddresCodec extends MessagePartCodec[NetworkAddress]{
-  // TODO : Implemnet
+object NetworkAddressCodec extends MessagePartCodec[NetworkAddress]{
   val codec : Codec[NetworkAddress] = {
-    ("services" | UInt64Codec.codec) ::
+    ("services" | BigIntCodec.codec) ::
     ("ipv6" | IPv6AddressCodec.codec) ::
-    ("port" | uint16L) // BUGBUG : Make sure how to map uint16L to Int and vice versa.
+    ("port" | uint16L)
   }.as[NetworkAddress]
 }
 
 
 object NetworkAddressWithTimestampCodec extends MessagePartCodec[NetworkAddressWithTimestamp]{
-  // TODO : Implemnet
   val codec : Codec[NetworkAddressWithTimestamp] = {
-    ("timestamp" | TimestampCodec.codec) ::
-    ("network_address" | NetworkAddresCodec.codec)
-  }.as[NetworkAddressWithTimestamp];
+    ("timestamp" | uint32L) ::
+    ("network_address" | NetworkAddressCodec.codec)
+  }.as[NetworkAddressWithTimestamp]
 }

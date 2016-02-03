@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.cli
 
+import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto.Block
 import org.scalatest._
 
@@ -23,7 +24,7 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Sho
   }
 
   "readFrom" should "read all blocks in a file" in {
-    val READ_BLOCKS_UP_TO = 100
+    val READ_BLOCKS_UP_TO = 500
     val blocks = new Array[Block](READ_BLOCKS_UP_TO)
     var blocksRead = 0
 
@@ -41,7 +42,18 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Sho
     val blockListener = new BlockListener()
     val reader = new BlockDirectoryReader(blockListener)
 
-    reader.readFrom("scalechain-script/src/test/resources/blocks")
+    try {
+      reader.readFrom("scalechain-script/src/test/resources/blocks")
+    } catch {
+      case e : ProtocolCodecException => {
+        if (e.code == ErrorCode.RemainingNotEmptyAfterDecoding) {
+          // Because the data file in the path is created by cutting blk00000.dat to 128K, this error can happen.
+          // Do nothing.
+        } else {
+          throw e
+        }
+      }
+    }
 
     for (b : Block <- blocks) {
       println("Block : " + b.toString())

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.MerkleBlock
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -33,6 +33,7 @@ import scodec.bits.BitVector
   *  1d ................................. Flags: 1 0 1 1 1 0 0 0
   *
   */
+/*
 class MerkleBlockSpec extends PayloadTestSuite[MerkleBlock]  {
 
   val codec = MerkleBlockCodec.codec
@@ -67,3 +68,4 @@ class MerkleBlockSpec extends PayloadTestSuite[MerkleBlock]  {
   val message = null//MerkleBlock()
 
 }
+*/

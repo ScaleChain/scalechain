@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.Headers
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -48,6 +48,6 @@ class HeadersSpec extends EnvelopeTestSuite[Headers]  {
     BitVector.view(payload)
   )
 
-  val message = null//Headers()
+  val message = Headers(List(BlockHeader(version=4, hashPrevBlock=BlockHash(bytes("000000000000000006004783a6ad104f7c522a9db14859d4c2384bcc3f175463")), hashMerkleRoot=MerkleRootHash(bytes("dbc8bd5112be871061e444c4179c38f6a3cc60b555ab386bde7862f892dc1e66")), timestamp=1454058586L, target=403253488L, nonce=3500476912L)))
 
 }

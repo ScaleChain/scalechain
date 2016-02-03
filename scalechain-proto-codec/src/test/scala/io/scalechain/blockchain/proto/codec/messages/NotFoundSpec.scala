@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec.messages
 
-import io.scalechain.blockchain.proto.NotFound
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
@@ -40,6 +40,5 @@ class NotFoundSpec extends EnvelopeTestSuite[NotFound]  {
     BitVector.view(payload)
   )
 
-  val message = null//NotFound()
-
+  val message = NotFound(List(InvVector(InvType.MSG_TX, Hash(bytes("351d0662f8f88d4e1297c10aee4c226ea301141a9260103711b1793fdcc84673")))))
 }

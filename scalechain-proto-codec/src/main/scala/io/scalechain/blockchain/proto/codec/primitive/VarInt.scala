@@ -6,7 +6,7 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 import scala.BigInt
 
-import UInt64Codec.bigIntCodec
+import BigIntCodec.codec
 
 import scodec.Attempt.{ Failure, Successful }
 import scodec.Codec

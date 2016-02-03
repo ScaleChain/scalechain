@@ -36,4 +36,19 @@ object FixedByteArray {
     )
   }
 
+  def codec() : Codec[ByteArray] = {
+    def byteVectorToByteArray(byteVector : ByteVector) = {
+      byteVector.toArray
+    }
+    def byteArrayToByteVector(byteArray : ByteArray) = {
+      ByteVector(byteArray.array)
+    }
+
+    bytes.xmap(
+      byteVectorToByteArray _,
+      byteArrayToByteVector _
+    )
+  }
+
+
 }
