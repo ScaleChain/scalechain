@@ -16,8 +16,8 @@ class Mediator extends Actor {
     case transformedMsg : String => {
       println("Got transformed msg: %s" format transformedMsg)
     }
-    case _ => {
-      println("Got something else")
+    case obj : Any=> {
+      println("Got something else:" + obj)
     }
   }
 }

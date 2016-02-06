@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.cli
 
+import io.scalechain.blockchain.proto.Ping
+
 import scala.concurrent.duration._
 import akka.util
 import akka.pattern.ask
@@ -9,5 +11,5 @@ import akka.pattern.ask
 object ScaleChainClient extends App {
   val clientKernel = new ClientKernel
   implicit val timeout = util.Timeout(55 seconds)
-  clientKernel.mediator ? (clientKernel.clientProducer, "HELLO")
+  clientKernel.mediator ? (clientKernel.clientProducer, Ping(123))
 }

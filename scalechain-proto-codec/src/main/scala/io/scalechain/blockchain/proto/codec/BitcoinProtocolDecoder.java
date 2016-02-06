@@ -41,6 +41,7 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        System.out.println("[Debug] BitcoinProtocolDecoder Called ");
 
         ProtocolMessage message = codec.decode(msg.array());
 

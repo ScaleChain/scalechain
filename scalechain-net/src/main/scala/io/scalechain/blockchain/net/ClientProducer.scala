@@ -10,7 +10,7 @@ import org.apache.camel.spi.Registry
   * Created by kangmo on 1/8/16.
   */
 class ClientProducer extends Actor with Producer {
-  def endpointUri = "netty4:tcp://localhost:8778?decoders=#bitcoin-protocol-decoder&encoders=bitcoin-protocol-encoder"
+  def endpointUri = "netty4:tcp://localhost:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
   override def preStart(): Unit = {
     super.preStart()

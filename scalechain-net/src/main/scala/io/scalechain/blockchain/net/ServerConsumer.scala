@@ -8,14 +8,16 @@ import org.apache.camel.impl.SimpleRegistry
   * Created by kangmo on 1/8/16.
   */
 class ServerConsumer extends Consumer {
-  def endpointUri = "netty4:tcp://0.0.0.0:8778?decoders=#bitcoin-protocol-decoder&encoders=bitcoin-protocol-encoder"
+  def endpointUri = "netty4:tcp://0.0.0.0:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
   override def preStart(): Unit = {
     super.preStart()
 
     val registry = new SimpleRegistry()
+
     registry.put("bitcoin-protocol-encoder", new BitcoinProtocolEncoder())
     registry.put("bitcoin-protocol-decoder", new BitcoinProtocolDecoder())
+
     camelContext.setRegistry( registry )
   }
 
