@@ -1,31 +1,33 @@
 package io.scalechain.blockchain.net
 
 import akka.camel.{CamelMessage, Consumer}
+import io.scalechain.blockchain.proto.{Pong, Ping, ProtocolMessage}
 import io.scalechain.blockchain.proto.codec.{BitcoinProtocolDecoder, BitcoinProtocolEncoder}
 import org.apache.camel.impl.SimpleRegistry
 
-/**
-  * Created by kangmo on 1/8/16.
-  */
 class ServerConsumer extends Consumer {
   def endpointUri = "netty4:tcp://0.0.0.0:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
   override def preStart(): Unit = {
-    super.preStart()
-
     val registry = new SimpleRegistry()
 
-    registry.put("bitcoin-protocol-encoder", new BitcoinProtocolEncoder())
-    registry.put("bitcoin-protocol-decoder", new BitcoinProtocolDecoder())
+    registry.put("bitcoin-protocol-decoder", new BitcoinProtocolEncoder())
+    registry.put("bitcoin-protocol-encoder", new BitcoinProtocolDecoder())
 
     camelContext.setRegistry( registry )
+
+    super.preStart()
   }
 
   def receive = {
     case msg : CamelMessage => {
-      val bodyString = msg.bodyAs[String]
-      println("Got %s from the client" format bodyString )
-      sender ! ("Got %s from the client" format bodyString )
+      val message = msg.bodyAs[ProtocolMessage]
+      println("Got from the client : " + message )
+      message match {
+        case Ping(nonce) => {
+          sender ! Pong(nonce)
+        }
+      }
     }
   }
 }

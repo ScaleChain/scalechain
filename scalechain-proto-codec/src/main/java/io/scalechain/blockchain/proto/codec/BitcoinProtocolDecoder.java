@@ -15,37 +15,40 @@
  */
 package io.scalechain.blockchain.proto.codec;
 
-import io.netty.buffer.*;
+
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.MessageToMessageDecoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
+import scodec.bits.ByteVector;
+import scodec.bits.ByteVector$;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Array;
 import java.util.List;
 
 /**
- * Encodes the requested case class that represents a bitcoin protocol message into a {@link ByteBuf}.
+ * Decodes a received {@link ByteBuf} into a case class that represents Bitcoin protocol message.
  */
 @Sharable
-public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMessage> {
+public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
     /**
-     * Creates a new instance .
+     * Creates a new instance with the current system character set.
      */
-    public BitcoinProtocolEncoder() {
+    public BitcoinProtocolDecoder() {
     }
 
     private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
-        System.out.println("[Debug] BitcoinProtocolEncoder : " + msg.toString());
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        byte[] bytes = new byte[msg.readableBytes()];
+        msg.readBytes(bytes);
+        ProtocolMessage message = codec.decode(bytes);
 
-        // TODO : Make sure that we are not having any performance issue here.
-        byte[] bytes = codec.encode(msg);
+        System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
 
-        ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
-
-        out.add( buffer );
+        out.add(message);
     }
 }

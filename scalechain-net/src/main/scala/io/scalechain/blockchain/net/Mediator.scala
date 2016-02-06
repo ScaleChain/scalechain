@@ -2,12 +2,14 @@ package io.scalechain.blockchain.net
 
 import akka.actor.{ActorRef, Actor}
 import akka.camel.CamelMessage
+import io.scalechain.blockchain.proto.ProtocolMessage
+
 /**
   * Created by kangmo on 1/8/16.
   */
 class Mediator extends Actor {
   def receive = {
-    case (actor : ActorRef, msg : String) => {
+    case (actor : ActorRef, msg : ProtocolMessage) => {
       actor ! CamelMessage(msg, Map.empty)
     }
     case msg : CamelMessage => {
