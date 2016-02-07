@@ -44,7 +44,7 @@ class HeadersSpec extends EnvelopeTestSuite[Headers]  {
     Magic.MAIN,
     "headers",
     payload.length.toInt,
-    Checksum.fromHex("5a 59 14 73"),
+    Checksum.fromHex("73 14 59 5a"),
     BitVector.view(payload)
   )
 

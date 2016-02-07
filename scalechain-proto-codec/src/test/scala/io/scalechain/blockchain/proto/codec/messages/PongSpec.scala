@@ -31,7 +31,7 @@ class PongSpec extends EnvelopeTestSuite[Pong]  {
     Magic.MAIN,
     "pong",
     payload.length.toInt,
-    Checksum.fromHex("80 c9 a0 2e"),
+    Checksum.fromHex("2e a0 c9 80"),
     BitVector.view(payload)
   )
 

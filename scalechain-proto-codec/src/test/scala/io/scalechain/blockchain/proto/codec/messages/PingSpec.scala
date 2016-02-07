@@ -31,7 +31,7 @@ class PingSpec extends EnvelopeTestSuite[Ping]  {
     Magic.MAIN,
     "ping",
     payload.length.toInt,
-    Checksum.fromHex("d6 96 09 2d"),
+    Checksum.fromHex("2d 09 96 d6"),
     BitVector.view(payload)
   )
 

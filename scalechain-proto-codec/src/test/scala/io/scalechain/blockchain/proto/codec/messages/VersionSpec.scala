@@ -47,7 +47,7 @@ class VersionSpec extends EnvelopeTestSuite[Version]  {
     Magic.MAIN,
     "version",
     payload.length.toInt,
-    Checksum.fromHex("5a c1 f3 72"),
+    Checksum.fromHex("72 f3 c1 5a"),
     BitVector.view(payload)
   )
 

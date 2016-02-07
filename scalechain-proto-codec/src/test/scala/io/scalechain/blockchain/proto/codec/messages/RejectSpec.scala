@@ -41,7 +41,7 @@ class RejectSpec extends EnvelopeTestSuite[Reject]  {
     Magic.MAIN,
     "reject",
     payload.length.toInt,
-    Checksum.fromHex("6b e5 10 15"),
+    Checksum.fromHex("15 10 e5 6b"),
     BitVector.view(payload)
   )
 

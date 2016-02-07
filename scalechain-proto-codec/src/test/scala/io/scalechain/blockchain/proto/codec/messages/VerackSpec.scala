@@ -29,7 +29,7 @@ class VerackSpec extends EnvelopeTestSuite[Verack]  {
     Magic.MAIN,
     "verack",
     payload.length.toInt,
-    Checksum.fromHex("e2 e0 f6 5d"),
+    Checksum.fromHex("5d f6 e0 e2"),
     BitVector.view(payload)
   )
 

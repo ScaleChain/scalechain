@@ -53,7 +53,7 @@ class InvSpec extends EnvelopeTestSuite[Inv]  {
     Magic.MAIN,
     "inv",
     payload.length.toInt,
-    Checksum.fromHex("ed 04 d3 64"),
+    Checksum.fromHex("64 d3 04 ed"),
     BitVector.view(payload)
   )
 

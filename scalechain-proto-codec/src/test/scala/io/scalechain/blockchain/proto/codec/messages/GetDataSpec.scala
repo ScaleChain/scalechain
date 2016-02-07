@@ -49,7 +49,7 @@ class GetDataSpec extends EnvelopeTestSuite[GetData]  {
     Magic.MAIN,
     "getdata",
     payload.length.toInt,
-    Checksum.fromHex("70 f1 88 34"),
+    Checksum.fromHex("34 88 f1 70"),
     BitVector.view(payload)
   )
 

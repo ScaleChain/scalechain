@@ -36,7 +36,7 @@ class BlockSpec extends EnvelopeTestSuite[Block]  {
     Magic.MAIN,
     "block",
     payload.length.toInt,
-    Checksum.fromHex("81 2c f4 bc"),
+    Checksum.fromHex("bc f4 2c 81"),
     BitVector.view(payload)
   )
 

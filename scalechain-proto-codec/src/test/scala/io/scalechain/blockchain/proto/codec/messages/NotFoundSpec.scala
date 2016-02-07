@@ -36,7 +36,7 @@ class NotFoundSpec extends EnvelopeTestSuite[NotFound]  {
     Magic.MAIN,
     "notfound",
     payload.length.toInt,
-    Checksum.fromHex("16 6e f8 c8"),
+    Checksum.fromHex("c8 f8 6e 16"),
     BitVector.view(payload)
   )
 

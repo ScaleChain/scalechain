@@ -42,7 +42,7 @@ class AddrSpec extends EnvelopeTestSuite[Addr]  {
     Magic.MAIN,
     "addr",
     payload.length.toInt,
-    Checksum.fromHex("9c 14 1b 83"),
+    Checksum.fromHex("83 1b 14 9c"),
     BitVector.view(payload)
   )
 

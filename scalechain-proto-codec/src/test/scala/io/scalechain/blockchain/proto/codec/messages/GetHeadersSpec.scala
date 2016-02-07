@@ -161,7 +161,7 @@ class GetHeadersSpec extends EnvelopeTestSuite[GetHeaders]  {
     Magic.MAIN,
     "getheaders",
     payload.length.toInt,
-    Checksum.fromHex("1f c5 0e 6e"),
+    Checksum.fromHex("6e 0e c5 1f"),
     BitVector.view(payload)
   )
 

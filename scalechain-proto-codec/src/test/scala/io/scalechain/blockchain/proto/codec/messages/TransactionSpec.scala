@@ -137,7 +137,7 @@ class TransactionSpec extends EnvelopeTestSuite[Transaction]  {
     Magic.MAIN,
     "tx",
     payload.length.toInt,
-    Checksum.fromHex("a2 e8 07 fa"),
+    Checksum.fromHex("fa 07 e8 a2"),
     BitVector.view(payload)
   )
 

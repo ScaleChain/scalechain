@@ -160,7 +160,7 @@ class GetBlocksSpec extends EnvelopeTestSuite[GetBlocks]  {
     Magic.MAIN,
     "getblocks",
     payload.length.toInt,
-    Checksum.fromHex("ae 16 45 4a"),
+    Checksum.fromHex("4a 45 16 ae"),
     BitVector.view(payload)
   )
 

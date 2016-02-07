@@ -1,22 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
-/**
-  * Created by kangmo on 2/7/16.
-  */
-class BitcoinProtocolCodecSpec {
 
-}
-
-
-package io.scalechain.blockchain.cli
-
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.ProtocolCodecException
-import io.scalechain.blockchain.cli.BlockDirectoryReader
-import io.scalechain.blockchain.cli.BlockReadListener
-import io.scalechain.blockchain.proto.Block
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto.Block
 import org.scalatest._
 
 /**
