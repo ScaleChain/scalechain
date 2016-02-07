@@ -234,7 +234,7 @@ object NetworkAddressCodec extends MessagePartCodec[NetworkAddress]{
   val codec : Codec[NetworkAddress] = {
     ("services" | BigIntCodec.codec) ::
     ("ipv6" | IPv6AddressCodec.codec) ::
-    ("port" | uint16L)
+    ("port" | uint16) // Note, port is encoded with big endian, not little endian
   }.as[NetworkAddress]
 }
 

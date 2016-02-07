@@ -38,6 +38,7 @@ object ErrorCode {
   val RemainingNotEmptyAfterDecoding = ErrorCode("remaining_not_empty_after_decoding")
 
   // Protocol Decode errors
+  val IncorrectMagicValue = ErrorCode("incorrect_magic_value")
   val DecodeFailure = ErrorCode("decode_failure")
   val PayloadLengthMismatch = ErrorCode("payload_length_mismatch")
   val PayloadChecksumMismatch = ErrorCode("payload_checksum_mismatch")

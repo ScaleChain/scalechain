@@ -17,23 +17,75 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
       }
     }
   }
-  def decode(bytes : Array[Byte]) : ProtocolMessage = {
-    val bitVector: BitVector = BitVector.view(bytes)
 
-    val envelope = BitcoinMessageEnvelope.codec.decode(bitVector) match {
-      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
-        if ( remainder.isEmpty ) {
-          decoded
-        } else {
-          throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+  /** Decode bits and add decoded messages to the given vector.
+    *
+    * @param bitVector The data to decode.
+    * @param messages The messages decoded from the given BitVector. The BitVector may have multiple messages, with or without an incomplete message. However, the BitVector itself may not have enough data to construct a message.
+    * @return BitVector If we do not have enough data to construct a message, return the data as BitVector instead of constructing a message.
+    */
+  def decode(bitVector : BitVector, messages : java.util.Vector[ProtocolMessage]) : BitVector = {
+    if ( bitVector.length < BitcoinMessageEnvelope.MIN_DATA_BITS) {
+      bitVector
+    } else {
+      val (envelope, remainder) = BitcoinMessageEnvelope.codec.decode(bitVector) match {
+        case Attempt.Successful(DecodeResult(decoded, remainder)) => {
+          (decoded, remainder)
+        }
+        case Attempt.Failure(err) => {
+          throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
         }
       }
-      case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+
+
+      if ( (envelope.payload.length / 8) < envelope.length  ) { // Not enough data received for an envelope.
+        println("Not enough data.")
+        bitVector
+      } else {
+        BitcoinMessageEnvelope.verify(envelope)
+        val protocolMessage = protocol.decode( envelope.command, envelope.payload )
+
+        messages.add( protocolMessage )
+
+        if ( remainder.isEmpty ) {
+          null
+        } else {
+          decode(remainder, messages )
+        }
       }
+
+      /*
+      println("received : " + envelope)
+
+      try {
+        if ( (envelope.payload.length / 8) < envelope.length  ) { // Not enough data received for an envelope.
+          println("Not enough data.")
+          bitVector
+        } else {
+          BitcoinMessageEnvelope.verify(envelope)
+          val protocolMessage = protocol.decode( envelope.command, envelope.payload )
+
+          messages.add( protocolMessage )
+
+          println("adding : " + protocolMessage)
+
+          if ( remainder.isEmpty ) {
+            null
+          } else {
+            println("remaining : " + remainder.length)
+
+            decode(remainder, messages )
+          }
+        }
+      } catch {
+        case e : Exception => {
+          println("Exception : " + e)
+          e.printStackTrace()
+          throw e
+        }
+      }
+      */
     }
-    BitcoinMessageEnvelope.verify(envelope)
-    protocol.decode( envelope.command, envelope.payload )
   }
 }
 

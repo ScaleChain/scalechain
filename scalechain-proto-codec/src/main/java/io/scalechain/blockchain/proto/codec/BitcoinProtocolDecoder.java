@@ -20,19 +20,31 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.scalechain.blockchain.proto.ProtocolMessage;
+import scodec.bits.BitVector;
+import scodec.bits.BitVector$;
 import scodec.bits.ByteVector;
 import scodec.bits.ByteVector$;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * Decodes a received {@link ByteBuf} into a case class that represents Bitcoin protocol message.
  */
 @Sharable
 public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
+    /**
+     * An incomplete message, which needs to receive more data to construct a complete message.
+     *
+     * This happens situations as follow.
+     * (1) when the data received is less than 24 bytes, which is the length for the header of bitcoin message.
+     * (2) when we received less than the length specified at the payload length( BitcoinMessageEnvelope.length ).
+     */
+    private BitVector incompleteMessage = null;
     /**
      * Creates a new instance with the current system character set.
      */
@@ -45,10 +57,20 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
         byte[] bytes = new byte[msg.readableBytes()];
         msg.readBytes(bytes);
-        ProtocolMessage message = codec.decode(bytes);
+        BitVector inputMessage = BitVector$.MODULE$.view(bytes);
 
-        System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
+        Vector<ProtocolMessage> messages = new Vector<ProtocolMessage>();
 
-        out.add(message);
+        if (incompleteMessage != null) { // If we have any incomplete message, prepend it to the current message.
+            inputMessage = incompleteMessage.$plus$plus(inputMessage);
+        }
+
+        // In case there is any remaining bits, we keep it in incompleteMessage
+        incompleteMessage = codec.decode(inputMessage, messages);
+        for (ProtocolMessage message : messages) {
+            System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
+
+            out.add(message);
+        }
     }
 }

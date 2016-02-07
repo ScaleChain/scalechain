@@ -46,6 +46,6 @@ class AddrSpec extends EnvelopeTestSuite[Addr]  {
     BitVector.view(payload)
   )
 
-  val message = Addr(List(NetworkAddressWithTimestamp(1454060630L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff3dae7ef8")), 36128)),NetworkAddressWithTimestamp(1454061141L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff2d21553a")), 36128))))
+  val message = Addr(List(NetworkAddressWithTimestamp(1454060630L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff3dae7ef8")), 8333)),NetworkAddressWithTimestamp(1454061141L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff2d21553a")), 8333))))
 
 }

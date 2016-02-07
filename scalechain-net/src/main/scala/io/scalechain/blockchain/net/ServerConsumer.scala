@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import akka.camel.{CamelMessage, Consumer}
-import io.scalechain.blockchain.proto.{Pong, Ping, ProtocolMessage}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BitcoinProtocolDecoder, BitcoinProtocolEncoder}
 import org.apache.camel.impl.SimpleRegistry
 
@@ -26,6 +26,10 @@ class ServerConsumer extends Consumer {
       message match {
         case Ping(nonce) => {
           sender ! Pong(nonce)
+        }
+        case v : Version => {
+          // Need to send version first. Just a testing purpose.
+          sender ! Verack()
         }
       }
     }

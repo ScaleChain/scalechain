@@ -30,8 +30,8 @@ object Checksum {
   def fromHex(hexString : String) = Checksum(HexUtil.bytes(hexString))
 
   val codec: Codec[Checksum] = bytes(VALUE_SIZE).xmap(
-    b => Checksum.apply(b.reverse.toArray),
-    c => ByteVector(c.value.array.reverse))
+    b => Checksum.apply(b.toArray), // internal byte order, should not reverse bytes.
+    c => ByteVector(c.value.array)) // internal byte order, should not reverse bytes.
 }
 
 case class Checksum(value : ByteArray) {
@@ -80,6 +80,7 @@ object BitcoinConfiguration {
 }
 
 object BitcoinMessageEnvelope {
+  val MIN_DATA_BITS = 24 * 8
 
   val COMMAND_SIZE = 12
 
@@ -108,21 +109,29 @@ object BitcoinMessageEnvelope {
   def build(protocol:NetworkProtocol, message:ProtocolMessage) : BitcoinMessageEnvelope = {
     val payload = protocol.encode(message)
 
+    assert(payload.length % 8 == 0)
+    val payloadByteCount = (payload.length.toInt / 8)
+
     BitcoinMessageEnvelope(
       BitcoinConfiguration.config.magic,
       protocol.getCommand(message),
-      payload.length.toInt,
+      payloadByteCount,
       checksum(payload),
       payload
     )
   }
 
   def verify(envelope : BitcoinMessageEnvelope) : Unit = {
-    if ( envelope.length != envelope.payload.length )
-      throw new ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
+    assert(envelope.payload.length % 8 == 0)
+
+    if ( envelope.magic != BitcoinConfiguration.config.magic)
+      throw new ProtocolCodecException( ErrorCode.IncorrectMagicValue )
+
+    if ( envelope.length != (envelope.payload.length / 8) )
+      throw new ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
 
     if ( envelope.checksum != checksum( envelope.payload) )
-      throw new ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
+      throw new ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
   }
 
   def encode(msg: BitcoinMessageEnvelope) : scodec.Attempt[scodec.bits.BitVector]= {
