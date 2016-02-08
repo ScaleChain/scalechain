@@ -10,10 +10,15 @@ import org.apache.camel.impl.SimpleRegistry
 
 import scala.collection.mutable
 
-class ServerConsumer extends Consumer {
+object ServerConsumer {
+  def apply(peerBroker : ActorRef) : Props = Props(new ServerConsumer(peerBroker))
+}
+
+class ServerConsumer(peerBroker : ActorRef) extends Consumer {
+  // options to consider
+  // option.child.keepAlive=true
   def endpointUri = "netty4:tcp://0.0.0.0:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
-  val peerByAddress = mutable.HashMap[InetSocketAddress, ActorRef]()
   override def preStart(): Unit = {
     val registry = new SimpleRegistry()
 
@@ -25,26 +30,20 @@ class ServerConsumer extends Consumer {
     super.preStart()
   }
 
+  def getRemoteAddress(message : CamelMessage) = message.headers("CamelNettyRemoteAddress").asInstanceOf[InetSocketAddress]
+
   def receive = {
-    case msg : CamelMessage => {
+    case camelMessage : CamelMessage => {
       // Step 1 : Get the address of the peer.
-      val remotePeerAddress = msg.headers("CamelNettyRemoteAddress").asInstanceOf[InetSocketAddress]
+      val remotePeerAddress = getRemoteAddress(camelMessage)
       println("Get camel message from remote address : " + remotePeerAddress)
-      val protocolMessage = msg.bodyAs[ProtocolMessage]
+      //println("Got camel message : " + camelMessage)
+
+      val protocolMessage = camelMessage.bodyAs[ProtocolMessage]
       println("Got from the client : " + protocolMessage )
 
-      // Step 2 : Get an actor reference to communicates with the peer.
-      val peer = peerByAddress.get(remotePeerAddress) match {
-        case Some(node : ActorRef) => node
-        case None => {
-          val node = context.actorOf(Props[PeerNode])
-          peerByAddress.put(remotePeerAddress, node)
-          node
-        }
-      }
-
-      // Step 3 : Forward the message to the peer.
-      peer forward protocolMessage
+      // Step 2 : Forward the message to the peer broker.
+      peerBroker forward (remotePeerAddress, protocolMessage)
     }
   }
 }

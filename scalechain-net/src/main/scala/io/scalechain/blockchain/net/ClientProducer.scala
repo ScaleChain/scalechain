@@ -1,18 +1,26 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.Actor
+import java.net.InetSocketAddress
+
+import akka.actor.{Props, Actor}
 import akka.camel.{CamelMessage, Producer}
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.{BitcoinProtocolDecoder, BitcoinProtocolEncoder}
 import org.apache.camel.impl.{SimpleRegistry, JndiRegistry}
 import org.apache.camel.spi.Registry
 
+
+object ClientProducer {
+  def apply(inetSocketAddress: InetSocketAddress) = Props(new ClientProducer(inetSocketAddress))
+}
+
 /**
   * Created by kangmo on 1/8/16.
   */
-class ClientProducer extends Actor with Producer {
-  def endpointUri = "netty4:tcp://localhost:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
-//  def endpointUri = "netty4:tcp://127.0.0.1:8333?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
+class ClientProducer(socketAddress: InetSocketAddress) extends Actor with Producer {
+  // options to consider :
+  // clientMode=true
+  def endpointUri = s"netty4:tcp://${socketAddress.getAddress.getHostAddress}:${socketAddress.getPort}?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
   override def preStart(): Unit = {
     val registry = new SimpleRegistry()

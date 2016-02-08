@@ -1,22 +1,32 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.{ActorRef, Actor}
+import java.net.InetSocketAddress
+
+import akka.actor.{Props, ActorRef, Actor}
 import akka.camel.CamelMessage
 import io.scalechain.blockchain.proto.ProtocolMessage
+
+
+object Mediator {
+  case class Request(message : ProtocolMessage)
+  def apply(address:InetSocketAddress, peerBroker : ActorRef) : Props = Props(new Mediator(address, peerBroker))
+}
 
 /**
   * Created by kangmo on 1/8/16.
   */
-class Mediator extends Actor {
+class Mediator(address:InetSocketAddress, peerBroker: ActorRef) extends Actor {
+  val clientProducer = context.actorOf( ClientProducer(address))
+
   def receive = {
-    case (actor : ActorRef, msg : ProtocolMessage) => {
-      actor ! CamelMessage(msg, Map.empty)
+    /* Request to send the message to the client producer */
+    case Mediator.Request(message : ProtocolMessage) => {
+      clientProducer ! CamelMessage(message, Map.empty)
     }
-    case msg : CamelMessage => {
-      println("Got camel message: %s" format msg.body)
-    }
-    case transformedMsg : String => {
-      println("Got transformed msg: %s" format transformedMsg)
+    /* client producer sent back a reply */
+    case protocolMessage : ProtocolMessage => {
+      println("Got camel message: %s" format protocolMessage.toString )
+      peerBroker forward (address, protocolMessage)
     }
     case obj : Any=> {
       println("Got something else:" + obj)

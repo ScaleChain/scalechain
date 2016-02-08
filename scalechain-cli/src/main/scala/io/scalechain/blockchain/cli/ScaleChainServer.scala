@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli
 
 import akka.actor.{Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
-import io.scalechain.blockchain.net.ServerConsumer
+import io.scalechain.blockchain.net.{PeerBroker, ServerConsumer}
 
 /**
   * Created by kangmo on 1/8/16.
@@ -10,5 +10,6 @@ import io.scalechain.blockchain.net.ServerConsumer
 object ScaleChainServer extends App {
 
   val system = ActorSystem("ScaleChainServer", ConfigFactory.load.getConfig("server"))
-  val httpConsumer = system.actorOf(Props[ServerConsumer], "httpConsumer")
+  val peerBroker = system.actorOf(Props[PeerBroker], "peerBroker")
+  val consumer = system.actorOf(ServerConsumer(peerBroker), "consumer")
 }
