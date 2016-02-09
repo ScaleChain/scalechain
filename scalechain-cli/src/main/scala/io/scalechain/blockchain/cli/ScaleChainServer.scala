@@ -8,8 +8,11 @@ import io.scalechain.blockchain.net.{PeerBroker, ServerConsumer}
   * Created by kangmo on 1/8/16.
   */
 object ScaleChainServer extends App {
+  val DEFAULT_PORT = 8778
 
   val system = ActorSystem("ScaleChainServer", ConfigFactory.load.getConfig("server"))
+
   val peerBroker = system.actorOf(Props[PeerBroker], "peerBroker")
-  val consumer = system.actorOf(ServerConsumer(peerBroker), "consumer")
+
+  val consumer = system.actorOf(ServerConsumer(DEFAULT_PORT, peerBroker), "consumer")
 }

@@ -15,8 +15,8 @@ case class Parameters(
 object CommandExecutor {
 
   def main(args: Array[String]) = {
-    val parser = new scopt.OptionParser[Parameters]("scopt") {
-      head("scalechain", "1.0")
+    val parser = new scopt.OptionParser[Parameters]("scalechain-cli") {
+      head("scalechain-cli", "1.0")
       opt[String]('h', "host") action { (x, c) =>
         c.copy(host = x) } text("host of the ScaleChain Json-RPC service.")
       opt[Int]('p', "port") action { (x, c) =>

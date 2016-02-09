@@ -24,6 +24,7 @@ class PeerNode extends Actor {
     case verack : Verack => {
       import scala.concurrent.ExecutionContext.Implicits.global
       sender ! Ping(123)
+      sender ! Ping(124)
 
       originalSender = sender
       pingSchedule = context.system.scheduler.schedule( initialDelay = 1 second, interval = 1 second, self, PeerNode.SendPing)

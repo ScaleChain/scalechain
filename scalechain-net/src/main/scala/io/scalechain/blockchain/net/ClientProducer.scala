@@ -19,8 +19,12 @@ object ClientProducer {
   */
 class ClientProducer(socketAddress: InetSocketAddress) extends Actor with Producer {
   // options to consider :
-  // clientMode=true
-  def endpointUri = s"netty4:tcp://${socketAddress.getAddress.getHostAddress}:${socketAddress.getPort}?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
+  // synchronous=true ;
+  // - If this is set to false(default), a new connection is created for a request sent while the response of the previous request has not arrived yet.
+  // - By setting this to true, we can reuse the connection and the new request is sent to the endpoint after the response of the previous request arrives.
+  //
+  // Whether Asynchronous Routing Engine is not in use. false then the Asynchronous Routing Engine is used, true to force processing synchronous.
+  def endpointUri = s"netty4:tcp://${socketAddress.getAddress.getHostAddress}:${socketAddress.getPort}?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder&synchronous=true"
 
   override def preStart(): Unit = {
     val registry = new SimpleRegistry()

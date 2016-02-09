@@ -11,13 +11,13 @@ import org.apache.camel.impl.SimpleRegistry
 import scala.collection.mutable
 
 object ServerConsumer {
-  def apply(peerBroker : ActorRef) : Props = Props(new ServerConsumer(peerBroker))
+  def apply(port : Int, peerBroker : ActorRef) : Props = Props(new ServerConsumer(port, peerBroker))
 }
 
-class ServerConsumer(peerBroker : ActorRef) extends Consumer {
+class ServerConsumer(port : Int, peerBroker : ActorRef) extends Consumer {
   // options to consider
   // option.child.keepAlive=true
-  def endpointUri = "netty4:tcp://0.0.0.0:8778?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
+  def endpointUri = s"netty4:tcp://0.0.0.0:$port?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
 
   override def preStart(): Unit = {
     val registry = new SimpleRegistry()
