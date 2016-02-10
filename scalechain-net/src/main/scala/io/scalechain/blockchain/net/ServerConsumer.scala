@@ -17,7 +17,7 @@ object ServerConsumer {
 class ServerConsumer(port : Int, peerBroker : ActorRef) extends Consumer {
   // options to consider
   // option.child.keepAlive=true
-  def endpointUri = s"netty4:tcp://0.0.0.0:$port?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder"
+  def endpointUri = s"netty4:tcp://0.0.0.0:$port?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder&synchronous=true"
 
   override def preStart(): Unit = {
     val registry = new SimpleRegistry()
@@ -43,7 +43,7 @@ class ServerConsumer(port : Int, peerBroker : ActorRef) extends Consumer {
       println("Got from the client : " + protocolMessage )
 
       // Step 2 : Forward the message to the peer broker.
-      peerBroker forward (remotePeerAddress, protocolMessage)
+      peerBroker forward (sender /*connected peer*/, remotePeerAddress, Some(protocolMessage))
     }
   }
 }

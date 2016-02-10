@@ -6,13 +6,12 @@ import akka.actor.{Props, ActorSystem}
 import akka.util
 import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
-import io.scalechain.blockchain.net.{Mediator, ServerConsumer, PeerBroker}
-import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}
+import io.scalechain.blockchain.net._
+import io.scalechain.blockchain.proto.{ProtocolMessage, IPv6Address, NetworkAddress, Version}
 import io.scalechain.util.HexUtil._
 import scala.collection.JavaConverters._
 
-/**
-  * Created by kangmo on 2/9/16.
+/** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
 object ScaleChainPeer {
   case class Parameters(
@@ -77,6 +76,13 @@ object ScaleChainPeer {
       */
     peers.map { peer =>
       if (!peer.isMyself()) {
+        val peerAddress = new InetSocketAddress(peer.address, peer.port)
+        val clientProducer = system.actorOf( ClientProducer(peerAddress))
+        println("sent! null : "+ peerAddress)
+        // Send StartPeer message to the peer, so that it can initiate the node start-up process.
+        peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )
+
+/*
         val mediator = system.actorOf(Mediator(new InetSocketAddress(peer.address, peer.port), peerBroker))
 
         // Send Version message
@@ -84,6 +90,7 @@ object ScaleChainPeer {
         val version = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 
         mediator ! Mediator.Request(version)
+*/
       }
     }
   }

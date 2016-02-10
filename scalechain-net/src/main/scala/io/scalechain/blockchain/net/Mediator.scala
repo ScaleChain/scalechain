@@ -18,15 +18,23 @@ object Mediator {
 class Mediator(address:InetSocketAddress, peerBroker: ActorRef) extends Actor {
   val clientProducer = context.actorOf( ClientProducer(address))
 
+  override def preStart() = {
+    super.preStart()
+
+    peerBroker forward (clientProducer /*connected peer*/, address, StartPeer)
+  }
+
   def receive = {
+
     /* Request to send the message to the client producer */
     case Mediator.Request(message : ProtocolMessage) => {
-      clientProducer ! CamelMessage(message, Map.empty)
+      clientProducer ! message
     }
+
     /* client producer sent back a reply */
     case protocolMessage : ProtocolMessage => {
       println("Got camel message: %s" format protocolMessage.toString )
-      peerBroker forward (address, protocolMessage)
+      peerBroker forward (clientProducer /*connected peer*/, address, protocolMessage)
     }
     case obj : Any=> {
       println("Got something else:" + obj)

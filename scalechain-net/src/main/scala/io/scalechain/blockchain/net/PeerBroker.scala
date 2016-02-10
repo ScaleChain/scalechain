@@ -15,11 +15,13 @@ import scala.collection.mutable
 class PeerBroker extends Actor {
   val peerByAddress = mutable.HashMap[InetSocketAddress, ActorRef]()
 
-  def getPeerByAddress(remotePeerAddress : InetSocketAddress) : ActorRef = {
+  def getPeerByAddress(connectedPeer:ActorRef, remotePeerAddress : InetSocketAddress) : ActorRef = {
+    println("PeerBroker.getPeerByAddress")
     val peer = peerByAddress.get(remotePeerAddress) match {
       case Some(node : ActorRef) => node
       case None => {
-        val node = context.actorOf(PeerNode())
+        println("PeerBroker:None")
+        val node = context.actorOf(PeerNode(connectedPeer))
         peerByAddress.put(remotePeerAddress, node)
         node
       }
@@ -28,9 +30,16 @@ class PeerBroker extends Actor {
   }
 
   def receive = {
-    case (remotePeerAddress:InetSocketAddress, protocolMessage:ProtocolMessage) => {
-      val peer = getPeerByAddress(remotePeerAddress)
-      peer forward protocolMessage
+    case (connectedPeer:ActorRef, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
+      println("PeerBroker.receive")
+
+      // Create the peer node which is connected to the remote peer address.
+      val peer = getPeerByAddress(connectedPeer, remotePeerAddress)
+
+      // forward a message if any.
+      protocolMessageOption.map { protocolMessage =>
+        peer forward protocolMessage
+      }
     }
   }
 }
