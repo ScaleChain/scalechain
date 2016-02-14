@@ -34,14 +34,17 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, addre
   }
 
   val repl = Flow[ByteString]
+/*
     .via(Framing.delimiter(
       ByteString("\n"),
       maximumFrameLength = 256,
       allowTruncation = true))
+*/
     .map(_.utf8String)
-    .map(text => println("Server : " + text))
+    .map{text => println("Server : " + text); text}
     .map(_ => readLine("> "))
     .transform(() => replParser)
 
+  println(s"Connecting to server : ${address.getAddress.getHostAddress}:${address.getPort}")
   connection.join(repl).run()
 }
