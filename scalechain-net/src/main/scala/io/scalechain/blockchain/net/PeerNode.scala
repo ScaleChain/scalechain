@@ -50,6 +50,8 @@ class PeerNode(remotePeer:ActorRef) extends Actor {
       sender ! Ping(123)
       sender ! Ping(124)
 
+      // BUGBUG : Need to cancel the schedule when the actor stops.
+      // See : http://doc.akka.io/docs/akka/current/scala/howto.html#Scheduling_Periodic_Messages
       pingSchedule = context.system.scheduler.schedule( initialDelay = 1 second, interval = 1 second, self, PeerNode.SendPing)
 //      context.become(receivingMessages)
     }

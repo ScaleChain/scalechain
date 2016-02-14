@@ -16,6 +16,7 @@ object ServerConsumer {
 
 class ServerConsumer(port : Int, peerBroker : ActorRef) extends Consumer {
   // options to consider
+  // synchronous=true
   // option.child.keepAlive=true
   def endpointUri = s"netty4:tcp://0.0.0.0:$port?decoders=#bitcoin-protocol-decoder&encoders=#bitcoin-protocol-encoder&synchronous=true"
 
