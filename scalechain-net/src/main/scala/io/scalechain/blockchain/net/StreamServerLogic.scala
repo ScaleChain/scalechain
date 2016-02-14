@@ -16,6 +16,7 @@ import io.scalechain.util.HexUtil._
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object StreamServerLogic {
   def apply(system : ActorSystem, materializer : Materializer, address : InetSocketAddress) = new StreamServerLogic(system, materializer, address)
@@ -26,6 +27,7 @@ case class TestMessage(message : String) extends ProtocolMessage {
 }
 
 object ServerRequester {
+  case object SendPing
   case object RequestDenied
   case object RequestAccepted
 
@@ -41,6 +43,13 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
   import akka.stream.actor.ActorPublisherMessage._
   import ServerRequester._
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+  val pingSchedule = context.system.scheduler.schedule( initialDelay = 1 second, interval = 1 second, self, ServerRequester.SendPing)
+
+  // We need to canel the ping schedule right before this actor stops.
+  // http://doc.akka.io/docs/akka/current/scala/howto.html#Scheduling_Periodic_Messages
+  override def postStop() = pingSchedule.cancel
+
 
   val MaxBufferSize = 1024
   var buffer = List.empty[ProtocolMessage]
@@ -49,16 +58,26 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
     case message : ProtocolMessage if buffer.size == MaxBufferSize =>
       //sender ! RequestDenied
 
+    case SendPing if buffer.size == MaxBufferSize =>
+      //sender ! RequestDenie
+
+    case SendPing =>
+      appendToBuffer(Ping(System.currentTimeMillis()))
+
     case message : ProtocolMessage =>
       //sender ! RequestAccepted
-      if (buffer.isEmpty && totalDemand > 0)
-        onNext(List(message))
-      else {
-        buffer :+= message
-        deliverBuffer()
-      }
+      appendToBuffer(message)
     case Request(_) => deliverBuffer()
     case Cancel => context.stop(self)
+  }
+
+  def appendToBuffer(message:ProtocolMessage) : Unit = {
+    if (buffer.isEmpty && totalDemand > 0)
+      onNext(List(message))
+    else {
+      buffer :+= message
+      deliverBuffer()
+    }
   }
 
   @tailrec final def deliverBuffer() : Unit = {
