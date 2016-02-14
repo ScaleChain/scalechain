@@ -16,6 +16,8 @@ import scala.collection.JavaConverters._
   */
 object ScaleChainPeer {
   case class Parameters(
+    peerAddress : Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+    peerPort : Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
     inboundPort : Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.inbound_port")
   )
 
@@ -24,12 +26,16 @@ object ScaleChainPeer {
       head("scalechain", "1.0")
       opt[Int]('p', "port") action { (x, c) =>
         c.copy(inboundPort = x) } text("The inbound port to use to accept connection from other peers.")
+      opt[String]('a', "peerAddress") action { (x, c) =>
+        c.copy(peerAddress = Some(x)) } text("The address of the peer we want to connect.")
+      opt[Int]('x', "peerPort") action { (x, c) =>
+        c.copy(peerPort = Some(x)) } text("The port of the peer we want to connect.")
     }
 
     // parser.parse returns Option[C]
     parser.parse(args, Parameters()) match {
       case Some(params) => {
-        startPeer(params.inboundPort)
+        startPeer(params)
       }
 
       case None =>
@@ -38,9 +44,9 @@ object ScaleChainPeer {
   }
 
 
-  def startPeer(inboundPort : Int): Unit = {
+  def startPeer(params : Parameters): Unit = {
     case class PeerAddress(address : String, port : Int) {
-      def isMyself() = (address == "localhost" || address == "127.0.0.1") && (port == inboundPort )
+      def isMyself() = (address == "localhost" || address == "127.0.0.1") && (port == params.inboundPort )
     }
 
     /**
@@ -57,9 +63,15 @@ object ScaleChainPeer {
       *   }
       * }
       */
-    val peers = io.scalechain.util.Config.scalechain.getConfigList("scalechain.p2p.peers").asScala.toList.map { peer =>
-      PeerAddress( peer.getString("address"), peer.getInt("port") )
-    }
+    val peers =
+      // If the command parameter has -peerAddress and -peerPort, connect to the given peer.
+      if (params.peerAddress.isDefined && params.peerPort.isDefined) {
+        List(PeerAddress(params.peerAddress.get, params.peerPort.get))
+      } else { // Otherwise, connect to peers listed in the configuration file.
+        io.scalechain.util.Config.scalechain.getConfigList("scalechain.p2p.peers").asScala.toList.map { peer =>
+          PeerAddress( peer.getString("address"), peer.getInt("port") )
+        }
+      }
 
     /** Create the actor system.
       */
@@ -73,7 +85,7 @@ object ScaleChainPeer {
 
     /** The consumer that opens an inbound port, and waits for connections from other peers.
       */
-    val server = StreamServerLogic(system, materializer, new InetSocketAddress("127.0.0.1", inboundPort))
+    val server = StreamServerLogic(system, materializer, new InetSocketAddress("127.0.0.1", params.inboundPort))
 
     /** The mediator that creates outbound connections to other peers listed in the scalechain.p2p.peers configuration.
       */

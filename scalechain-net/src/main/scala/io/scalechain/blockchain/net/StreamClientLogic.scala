@@ -2,12 +2,14 @@ package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.Materializer
 import akka.stream.io.Framing
 import akka.stream.scaladsl._
 import akka.stream.stage.{SyncDirective, Context, PushStage}
 import akka.util.ByteString
+import io.scalechain.blockchain.proto._
+import io.scalechain.util.HexUtil._
 
 
 object StreamClientLogic {
@@ -24,27 +26,15 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, addre
 
   val connection = Tcp().outgoingConnection(address.getAddress.getHostAddress, address.getPort)
 
-  val replParser = new PushStage[String, ByteString] {
-    override def onPush( elem: String, ctx : Context[ByteString]) : SyncDirective = {
-      elem match {
-        case "q" => ctx.pushAndFinish(ByteString("BYE\n"))
-        case _ => ctx.push(ByteString(s"$elem\n"))
-      }
-    }
-  }
-
-  val repl = Flow[ByteString]
-/*
-    .via(Framing.delimiter(
-      ByteString("\n"),
-      maximumFrameLength = 256,
-      allowTruncation = true))
-*/
-    .map(_.utf8String)
-    .map{text => println("Server : " + text); text}
-    .map(_ => readLine("> "))
-    .transform(() => replParser)
+  val protocolDecoder = new ProtocolDecoder()
+  val messageTransformer = new ProtocolMessageTransformer()
 
   println(s"Connecting to server : ${address.getAddress.getHostAddress}:${address.getPort}")
-  connection.join(repl).run()
+  val requester = connection.joinMat(PeerLogic.flow())(Keep.right).run()
+
+
+  val versionMessage = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
+
+  println("Sending version message to the server : ")
+  requester ! versionMessage
 }
