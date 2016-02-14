@@ -105,8 +105,6 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
   def readFrom(path : String) : Boolean = {
     val directory = new File(path)
     if (directory.exists()) {
-      val x = directory.listFiles.sortBy(_.getName())
-      println("xxx="+x)
       // For each file in the path
       for (file <- directory.listFiles.sortBy(_.getName())) {
         if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) {

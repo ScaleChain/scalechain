@@ -152,21 +152,25 @@ case class Block(val header:BlockHeader,
   }
 }
 
-// TODO : Add a comment
-case class IPv6Address(address:ByteArray) {
+/** IPv6 address. Network byte order.
+  * The original client only supported IPv4 and only read the last 4 bytes to get the IPv4 address.
+  * However, the IPv4 address is written into the message as a 16 byte IPv4-mapped IPv6 address
+  */
+case class IPv6Address(address:ByteArray) extends ProtocolMessage {
   override def toString() : String = {
     s"IPv6Address($address)"
   }
+  def inetAddress = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reverse)
 }
 
 // TODO : Add a comment
-case class NetworkAddress(services:BigInt, ipv6:IPv6Address, port:Int) {
+case class NetworkAddress(services:BigInt, ipv6:IPv6Address, port:Int) extends ProtocolMessage {
   override def toString() : String = {
     s"NetworkAddress(${bint(services)}, $ipv6, $port)"
   }
 }
 // TODO : Add a comment
-case class NetworkAddressWithTimestamp(timestamp:Long, address:NetworkAddress) {
+case class NetworkAddressWithTimestamp(timestamp:Long, address:NetworkAddress) extends ProtocolMessage {
   override def toString() : String = {
     s"NetworkAddressWithTimestamp(${timestamp}L, $address)"
   }

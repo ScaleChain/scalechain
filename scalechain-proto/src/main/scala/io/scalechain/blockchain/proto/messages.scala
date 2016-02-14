@@ -55,6 +55,7 @@ case class InvVector(invType:InvType, hash : Hash) extends ProtocolMessage {
   override def toString = s"InvVector(InvType.$invType, $hash)"
 }
 
+
 /** Inv ; Allows a node to advertise its knowledge of one or more objects.
  *  It can be received unsolicited, or in reply to getblocks.
  */

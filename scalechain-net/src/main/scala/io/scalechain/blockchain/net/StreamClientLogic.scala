@@ -16,24 +16,24 @@ import scala.util.{Failure, Success}
 
 
 object StreamClientLogic {
-  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) = new StreamClientLogic(system, materializer, peerBroker, address)
+  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, domainMessageRouter : ActorRef, address : InetSocketAddress) = new StreamClientLogic(system, materializer, peerBroker, domainMessageRouter, address)
 }
 
 /** Connect to a stream server.
   *
   * Source code copied from http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-io.html#streaming-tcp
   */
-class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) {
+class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, domainMessageRouter : ActorRef, remoteAddress : InetSocketAddress) {
   implicit val s = system
   implicit val m = materializer
 
-  val connection = Tcp().outgoingConnection(address.getAddress.getHostAddress, address.getPort)
+  val connection = Tcp().outgoingConnection(remoteAddress.getAddress.getHostAddress, remoteAddress.getPort)
 
-  val peerAddress = s"${address.getAddress.getHostAddress}:${address.getPort}"
+  val peerAddress = s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}"
 
   println(s"Connecting to server : $peerAddress")
 
-  val (peerLogicFlow, messageTransformer) = PeerLogic.flow()
+  val (peerLogicFlow, messageTransformer) = PeerLogic.flow(domainMessageRouter, remoteAddress)
   val (outgoingConnection : Future[Tcp.OutgoingConnection], requester:ActorRef) = connection.joinMat(peerLogicFlow)(Keep.both).run()
 
   import scala.concurrent.ExecutionContext.Implicits.global

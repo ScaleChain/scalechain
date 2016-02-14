@@ -45,9 +45,10 @@ object ScaleChainPeer {
 
 
   def startPeer(params : Parameters): Unit = {
-    case class PeerAddress(address : String, port : Int) {
-      def isMyself() = (address == "localhost" || address == "127.0.0.1") && (port == params.inboundPort )
-    }
+    case class PeerAddress(address : String, port : Int)
+
+    def isMyself(addr : PeerAddress) =
+      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.inboundPort )
 
     /**
       * Read list of peers from scalechain.conf
@@ -81,18 +82,24 @@ object ScaleChainPeer {
 
     /** The peer broker that keeps multiple PeerNode(s) and routes messages based on the origin address of the message.
       */
-    val peerBroker = system.actorOf(Props[PeerBroker], "peerBroker")
+    val peerBroker = system.actorOf(PeerBroker.props, "peerBroker")
+
+    /** The domain message router receives messages from all peers.
+      * The ProtocolMessageTransformer in the TCP connection flow sends
+      * all received domain messages such as Tx, Block, Inv, BlockHeader to the domain message router.
+      */
+    val domainMessageRouter = system.actorOf(DomainMessageRouter.props(peerBroker), "domainMessageRouter")
 
     /** The consumer that opens an inbound port, and waits for connections from other peers.
       */
-    val server = StreamServerLogic(system, materializer, peerBroker, new InetSocketAddress("127.0.0.1", params.inboundPort))
+    val server = StreamServerLogic(system, materializer, peerBroker, domainMessageRouter, new InetSocketAddress("127.0.0.1", params.inboundPort))
 
     /** The mediator that creates outbound connections to other peers listed in the scalechain.p2p.peers configuration.
       */
     peers.map { peer =>
-      if (!peer.isMyself()) {
+      if (!isMyself(peer)) {
         val peerAddress = new InetSocketAddress(peer.address, peer.port)
-        val client = StreamClientLogic(system, materializer, peerBroker, peerAddress)
+        val client = StreamClientLogic(system, materializer, peerBroker, domainMessageRouter, peerAddress)
 
         // Send StartPeer message to the peer, so that it can initiate the node start-up process.
         //peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )

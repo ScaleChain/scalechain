@@ -50,9 +50,9 @@ object DumpChain {
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         val serializedBlock = BlockCodec.serialize(block)
-        val blockHash = io.scalechain.crypto.HashFunctions.hash256( serializedBlock )
+        val blockHeaderHash = HashCalculator.blockHeaderHash(block.header)
 
-        println(s"${hex(blockHash.value)} ${hex(serializedBlock)}")
+        println(s"${hex(blockHeaderHash)} ${hex(serializedBlock)}")
       }
     }
 

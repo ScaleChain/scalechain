@@ -16,47 +16,15 @@ import scodec.{DecodeResult, Attempt, Codec}
   *
   * Source : https://en.bitcoin.it/wiki/Protocol_documentation
   */
-trait ProtocolMessageCodec[T <: ProtocolMessage] {
+trait ProtocolMessageCodec[T <: ProtocolMessage] extends MessagePartCodec[T] {
 
   val command : String
   val clazz : Class[T]
-  val codec : Codec[T]
 
   def encode( message : ProtocolMessage ) = {
     val castedMessage = clazz.cast(message)
     codec.encode(castedMessage)
   }
-
-
-  def serialize(obj : T) : Array[Byte] = {
-    codec.encode(obj) match {
-      case Attempt.Successful(bitVector) => {
-        bitVector.toByteArray
-      }
-      case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
-      }
-    }
-
-  }
-
-  def parse(data: Array[Byte]) : T = {
-    val bitVector: BitVector = BitVector.view(data)
-
-    codec.decode(bitVector) match {
-      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
-        if ( remainder.isEmpty ) {
-          decoded
-        } else {
-          throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
-        }
-      }
-      case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
-      }
-    }
-  }
-
 }
 
 trait NetworkProtocol {

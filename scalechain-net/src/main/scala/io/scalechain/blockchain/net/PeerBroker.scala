@@ -4,8 +4,14 @@ import java.net.InetSocketAddress
 
 import akka.actor.{Props, ActorRef, Actor}
 import io.scalechain.blockchain.proto.ProtocolMessage
-
+import io.scalechain.util.CollectionUtil
 import scala.collection.mutable
+
+object PeerBroker {
+  val props = Props[PeerBroker]
+  case class SendToAny(message : ProtocolMessage)
+  case class SendToAll(message : ProtocolMessage)
+}
 
 /** Forwards a message to a Peer based on the remote address of the peer.
  * - A peer broker knows which peer is for a specific remote address.
@@ -14,10 +20,16 @@ import scala.collection.mutable
 class PeerBroker extends Actor {
   val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
 
+  def anyLivePeer() : Peer = {
+    val livePeers = peerByAddress.values.filter(_.messageTransformer.isLive)
+    val randomLivePeer = CollectionUtil.random(livePeers)
+    randomLivePeer
+  }
+
   def getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer = {
     println("PeerBroker.getPeerByAddress")
     val peer = peerByAddress.get(remotePeerAddress) match {
-      case Some(connectedPeer : Peer) => connectedPeer
+      case Some(foundPeer : Peer) => foundPeer
       case None => {
         println("PeerBroker:None")
         peerByAddress.put(remotePeerAddress, connectedPeer)
@@ -27,7 +39,10 @@ class PeerBroker extends Actor {
     peer
   }
 
+  import PeerBroker._
+
   def receive = {
+
     case (connectedPeer:Peer, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
       println("PeerBroker.receive")
 
@@ -37,6 +52,12 @@ class PeerBroker extends Actor {
       // forward a message if any.
       protocolMessageOption.map { protocolMessage =>
         peer.requester forward protocolMessage
+      }
+    }
+    case SendToAny(message) => anyLivePeer.requester ! message
+    case SendToAll(message) => {
+      peerByAddress.values.filter(_.messageTransformer.isLive).map { peer =>
+        peer.requester ! message
       }
     }
   }

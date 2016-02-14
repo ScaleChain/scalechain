@@ -1,16 +1,45 @@
 package io.scalechain.blockchain.proto.codec
 
+import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
 import io.scalechain.io.InputOutputStream
 import io.scalechain.util.{ByteArray, ByteArrayAndVectorConverter}
-import scodec.Codec
-import scodec.bits.ByteVector
+import scodec.{DecodeResult, Attempt, Codec}
+import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
 
-
-trait MessagePartCodec[T] {
+trait MessagePartCodec[T <: ProtocolMessage] {
   val codec : Codec[T]
+
+  def serialize(obj : T) : Array[Byte] = {
+    codec.encode(obj) match {
+      case Attempt.Successful(bitVector) => {
+        bitVector.toByteArray
+      }
+      case Attempt.Failure(err) => {
+        throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
+      }
+    }
+
+  }
+
+  def parse(data: Array[Byte]) : T = {
+    val bitVector: BitVector = BitVector.view(data)
+
+    codec.decode(bitVector) match {
+      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
+        if ( remainder.isEmpty ) {
+          decoded
+        } else {
+          throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+        }
+      }
+      case Attempt.Failure(err) => {
+        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+      }
+    }
+  }
 }
 
 object HashCodec extends MessagePartCodec[Hash] {

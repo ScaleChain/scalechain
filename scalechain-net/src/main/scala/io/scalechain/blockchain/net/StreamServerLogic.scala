@@ -19,7 +19,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object StreamServerLogic {
-  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) = new StreamServerLogic(system, materializer, peerBroker, address)
+  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, domainMessageRouter : ActorRef, address : InetSocketAddress) = new StreamServerLogic(system, materializer, peerBroker, domainMessageRouter, address)
 }
 
 case class TestMessage(message : String) extends ProtocolMessage {
@@ -31,7 +31,7 @@ case class TestMessage(message : String) extends ProtocolMessage {
   *
   * Source code copied from http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-io.html#streaming-tcp
   */
-class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) {
+class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, domainMessageRouter : ActorRef,  address : InetSocketAddress) {
   implicit val s = system
   implicit val m = materializer
 
@@ -40,7 +40,7 @@ class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerB
   connections runForeach { connection : IncomingConnection =>
     println(s"Accepting connection from client : ${connection.remoteAddress}")
 
-    val (peerLogicFlow, messageTransformer) = PeerLogic.flow()
+    val (peerLogicFlow, messageTransformer) = PeerLogic.flow( domainMessageRouter, connection.remoteAddress )
 
     val requester : ActorRef = connection.handleWith( peerLogicFlow )
 

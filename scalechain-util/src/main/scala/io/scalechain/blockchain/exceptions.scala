@@ -42,6 +42,11 @@ object ErrorCode {
   val DecodeFailure = ErrorCode("decode_failure")
   val PayloadLengthMismatch = ErrorCode("payload_length_mismatch")
   val PayloadChecksumMismatch = ErrorCode("payload_checksum_mismatch")
+
+  // Block Storage errors
+  val OutOfFileSpace = ErrorCode("out_of_file_space")
+  val BlockFilePathNotExists = ErrorCode("block_file_path_not_exists")
+  val InvalidFileNumber = ErrorCode("invalid_file_number")
 }
 
 case class ErrorCode(val code:String)
@@ -58,6 +63,10 @@ class ScriptParseException(val code:ErrorCode) extends Exception
 class ProtocolCodecException(val code : ErrorCode, val message : String = "") extends Exception
 
 class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String ) extends Exception
+
+class TransactionStorageException(val code : ErrorCode) extends Exception
+
+class BlockStorageException(val code : ErrorCode) extends Exception
 
 class TransactionVerificationException(val code:ErrorCode, val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends Exception
 {
