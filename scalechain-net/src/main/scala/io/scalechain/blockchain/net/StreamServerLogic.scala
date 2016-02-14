@@ -19,7 +19,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object StreamServerLogic {
-  def apply(system : ActorSystem, materializer : Materializer, address : InetSocketAddress) = new StreamServerLogic(system, materializer, address)
+  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) = new StreamServerLogic(system, materializer, peerBroker, address)
 }
 
 case class TestMessage(message : String) extends ProtocolMessage {
@@ -106,7 +106,7 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
   *
   * Source code copied from http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-io.html#streaming-tcp
   */
-class StreamServerLogic(system : ActorSystem, materializer : Materializer, address : InetSocketAddress) {
+class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) {
   implicit val s = system
   implicit val m = materializer
 
@@ -115,11 +115,17 @@ class StreamServerLogic(system : ActorSystem, materializer : Materializer, addre
   connections runForeach { connection : IncomingConnection =>
     println(s"Accepting connection from client : ${connection.remoteAddress}")
 
-    val ref : ActorRef = connection.handleWith( PeerLogic.flow() )
+    val (peerLogicFlow, messageTransformer) = PeerLogic.flow()
+
+    val requester : ActorRef = connection.handleWith( peerLogicFlow )
+
+    val connectedPeer = Peer(requester, messageTransformer)
+    // Register the connected peer to the peer broker.
+    peerBroker ! (connectedPeer, connection.remoteAddress, null /* Nothing to send */ )
 
     val versionMessage = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 
     println("Sending version message to the client : ")
-    ref ! versionMessage
+    requester ! versionMessage
   }
 }

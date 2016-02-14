@@ -7,30 +7,28 @@ import io.scalechain.blockchain.proto.ProtocolMessage
 
 import scala.collection.mutable
 
-/** Forwards a message to a PeerNodes based on the remote address of the peer.
- * - A peer broker knows which peer node is for a specific remote address.
- * - Server consumer and client producer forwards messages to the peer broker.
- * - The peer broker forwards messages to a peer node based on the remote address of the peer.
+/** Forwards a message to a Peer based on the remote address of the peer.
+ * - A peer broker knows which peer is for a specific remote address.
+ * - The peer broker forwards messages to a peer based on the remote address of the peer.
  */
 class PeerBroker extends Actor {
-  val peerByAddress = mutable.HashMap[InetSocketAddress, ActorRef]()
+  val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
 
-  def getPeerByAddress(connectedPeer:ActorRef, remotePeerAddress : InetSocketAddress) : ActorRef = {
+  def getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer = {
     println("PeerBroker.getPeerByAddress")
     val peer = peerByAddress.get(remotePeerAddress) match {
-      case Some(node : ActorRef) => node
+      case Some(connectedPeer : Peer) => connectedPeer
       case None => {
         println("PeerBroker:None")
-        val node = context.actorOf(PeerNode(connectedPeer))
-        peerByAddress.put(remotePeerAddress, node)
-        node
+        peerByAddress.put(remotePeerAddress, connectedPeer)
+        connectedPeer
       }
     }
     peer
   }
 
   def receive = {
-    case (connectedPeer:ActorRef, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
+    case (connectedPeer:Peer, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
       println("PeerBroker.receive")
 
       // Create the peer node which is connected to the remote peer address.
@@ -38,7 +36,7 @@ class PeerBroker extends Actor {
 
       // forward a message if any.
       protocolMessageOption.map { protocolMessage =>
-        peer forward protocolMessage
+        peer.requester forward protocolMessage
       }
     }
   }

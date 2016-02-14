@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import akka.actor.ActorRef
 import akka.stream.FlowShape
 import akka.stream.scaladsl.{Merge, GraphDSL, Flow, Source}
 import akka.util.ByteString
@@ -13,7 +14,7 @@ object PeerLogic {
   * Created by kangmo on 2/14/16.
   */
 class PeerLogic {
-  def getFlow() = {
+  def getFlow() : (Flow[ByteString, ByteString, ActorRef], ProtocolMessageTransformer) = {
     /*
     Source.actorPublisher :
       def actorPublisher[T](props : akka.actor.Props) : akka.stream.scaladsl.Source[T, akka.actor.ActorRef]
@@ -92,7 +93,7 @@ class PeerLogic {
       }
     })
 
-    peerFlow
+    (peerFlow, messageTransformer)
   }
 }
 

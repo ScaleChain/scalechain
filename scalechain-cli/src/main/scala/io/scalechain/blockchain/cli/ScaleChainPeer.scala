@@ -81,18 +81,18 @@ object ScaleChainPeer {
 
     /** The peer broker that keeps multiple PeerNode(s) and routes messages based on the origin address of the message.
       */
-    //val peerBroker = system.actorOf(Props[PeerBroker], "peerBroker")
+    val peerBroker = system.actorOf(Props[PeerBroker], "peerBroker")
 
     /** The consumer that opens an inbound port, and waits for connections from other peers.
       */
-    val server = StreamServerLogic(system, materializer, new InetSocketAddress("127.0.0.1", params.inboundPort))
+    val server = StreamServerLogic(system, materializer, peerBroker, new InetSocketAddress("127.0.0.1", params.inboundPort))
 
     /** The mediator that creates outbound connections to other peers listed in the scalechain.p2p.peers configuration.
       */
     peers.map { peer =>
       if (!peer.isMyself()) {
         val peerAddress = new InetSocketAddress(peer.address, peer.port)
-        val client = StreamClientLogic(system, materializer, peerAddress)
+        val client = StreamClientLogic(system, materializer, peerBroker, peerAddress)
 
         // Send StartPeer message to the peer, so that it can initiate the node start-up process.
         //peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )

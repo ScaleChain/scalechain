@@ -16,32 +16,34 @@ import scala.util.{Failure, Success}
 
 
 object StreamClientLogic {
-  def apply(system : ActorSystem, materializer : Materializer, address : InetSocketAddress) = new StreamClientLogic(system, materializer, address)
+  def apply(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) = new StreamClientLogic(system, materializer, peerBroker, address)
 }
 
 /** Connect to a stream server.
   *
   * Source code copied from http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.3/scala/stream-io.html#streaming-tcp
   */
-class StreamClientLogic(system : ActorSystem, materializer : Materializer, address : InetSocketAddress) {
+class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerBroker : ActorRef, address : InetSocketAddress) {
   implicit val s = system
   implicit val m = materializer
 
   val connection = Tcp().outgoingConnection(address.getAddress.getHostAddress, address.getPort)
 
-  val protocolDecoder = new ProtocolDecoder()
-  val messageTransformer = new ProtocolMessageTransformer()
-
   val peerAddress = s"${address.getAddress.getHostAddress}:${address.getPort}"
 
   println(s"Connecting to server : $peerAddress")
 
-  val (outgoingConnection : Future[Tcp.OutgoingConnection], requester:ActorRef) = connection.joinMat(PeerLogic.flow())(Keep.both).run()
+  val (peerLogicFlow, messageTransformer) = PeerLogic.flow()
+  val (outgoingConnection : Future[Tcp.OutgoingConnection], requester:ActorRef) = connection.joinMat(peerLogicFlow)(Keep.both).run()
 
   import scala.concurrent.ExecutionContext.Implicits.global
   outgoingConnection.onComplete {
     case Success(outgoingConnection) => {
       println(s"Connected!")
+
+      val connectedPeer = Peer(requester, messageTransformer)
+      // Register the connected peer to the peer broker.
+      peerBroker ! (connectedPeer, outgoingConnection.remoteAddress, null /* Nothing to send */ )
 
       val versionMessage = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 
