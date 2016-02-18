@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.blockchain
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -46,7 +47,10 @@ case class GetTxOutResult(
                            coinbase : Boolean
                          ) extends RpcResult
 
-
+/** GetTxOut: returns details about a transaction output.
+  * Only unspent transaction outputs (UTXOs) are guaranteed to be available.
+  *
+  */
 object GetTxOut extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {
     GetTxOutResult(

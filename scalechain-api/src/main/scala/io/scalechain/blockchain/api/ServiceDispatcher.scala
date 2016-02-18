@@ -1,6 +1,8 @@
 package io.scalechain.blockchain.api
 
 import io.scalechain.blockchain.api.command._
+import io.scalechain.blockchain.api.command.blockchain.GetTxOut
+import io.scalechain.blockchain.api.command.control.GetInfo
 import io.scalechain.blockchain.api.domain.{RpcResult, RpcError, RpcResponse, RpcRequest}
 import spray.json._
 

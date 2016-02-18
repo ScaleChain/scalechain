@@ -6,7 +6,9 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives
 import akka.stream.ActorMaterializer
-import io.scalechain.blockchain.api.command.{GetTxOutResult, ScriptPubKey, GetInfoResult, RpcCommand}
+import io.scalechain.blockchain.api.command.blockchain.{GetTxOutResult, ScriptPubKey}
+import io.scalechain.blockchain.api.command.control.GetInfoResult
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcResponse, RpcRequest, RpcResult}
 import spray.json._
 import io.scalechain.util.Config

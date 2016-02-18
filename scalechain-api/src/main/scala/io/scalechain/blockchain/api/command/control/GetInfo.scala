@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.control
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -47,6 +48,11 @@ case class GetInfoResult(
                           errors: String
                         ) extends RpcResult
 
+/** GetInfo: prints various information about the node and the network.
+  *
+  * Updated in 0.10.0, Deprecated
+  *
+  */
 object GetInfo extends RpcCommand {
 
   def invoke(request : RpcRequest) : RpcResult = {
