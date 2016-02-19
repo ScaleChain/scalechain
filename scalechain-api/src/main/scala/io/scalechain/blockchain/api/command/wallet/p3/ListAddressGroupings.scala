@@ -4,10 +4,33 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet listaddressgroupings
+
+  CLI output :
+    [
+        [
+            [
+                "mgKgzJ7HR64CrB3zm1B4FUUCLtaSqUKfDb",
+                0.00000000
+            ],
+            [
+                "mnUbTmdAFD5EAg3348Ejmonub7JcWtrMck",
+                0.00000000,
+                "test1"
+            ]
+        ]
+    ]
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "listaddressgroupings", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** ListAddressGroupings: lists groups of addresses that

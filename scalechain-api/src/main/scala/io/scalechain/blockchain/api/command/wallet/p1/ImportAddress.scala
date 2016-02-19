@@ -4,10 +4,22 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet importaddress \
+      muhtvdmsnbQEPFuEmxcChX58fGvXaaUoVt "watch-only test" true
+
+  CLI output :
+    (no output)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "importaddress", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** ImportAddress: adds an address or pubkey script to the wallet without the associated private key,

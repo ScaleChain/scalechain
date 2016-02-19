@@ -4,10 +4,21 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet stop
+
+  CLI output :
+    Bitcoin server stopping
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "stop", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** Stop: safely shuts down the Bitcoin Core server.

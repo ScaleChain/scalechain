@@ -4,10 +4,22 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet prioritisetransaction \
+        fe0165147da737e16f5096ab6c1709825217377a95a882023ed089a89af4cff9 \
+        1234 456789
+  CLI output :
+    true
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "prioritisetransaction", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** PrioritiseTransaction: adds virtual priority or fee to a transaction,

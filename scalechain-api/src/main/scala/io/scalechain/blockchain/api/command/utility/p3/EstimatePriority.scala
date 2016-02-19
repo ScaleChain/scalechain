@@ -4,10 +4,28 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli estimatepriority 6
+
+  CLI output :
+    718158904.10958910
+
+  CLI command :
+    # Requesting data the node can’t calculate yet.
+    bitcoin-cli estimatepriority 100
+
+  CLI output :
+    -1.00000000
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "estimatepriority", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** EstimatePriority: estimates the priority that a transaction needs

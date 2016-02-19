@@ -4,10 +4,31 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet getaddednodeinfo true
+
+  CLI output :
+    [
+        {
+            "addednode" : "bitcoind.example.com:18333",
+            "connected" : true,
+            "addresses" : [
+                {
+                    "address" : "192.0.2.113:18333",
+                    "connected" : "outbound"
+                }
+            ]
+        }
+    ]
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getaddednodeinfo", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** GetAddedNodeInfo: returns information about the given added node, or

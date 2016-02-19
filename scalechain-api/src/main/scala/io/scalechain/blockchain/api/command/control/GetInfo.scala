@@ -4,29 +4,37 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
-// Json-RPC request : {"jsonrpc": "1.0", "id":"curltest", "method": "getinfo", "params": [] }
-// Json-RPC response :
-{
-  "result": {
-    "version": 110100,
-    "protocolversion": 70002,
-    "walletversion": 60000,
-    "balance": 0,
-    "blocks": 394722,
-    "timeoffset": -24,
-    "connections": 8,
-    "proxy": "",
-    "difficulty": 113354299801.47,
-    "testnet": false,
-    "keypoololdest": 1445528771,
-    "keypoolsize": 101,
-    "paytxfee": 0,
-    "relayfee": 5.0e-5,
-    "errors": ""
-  },
-  "error": null,
-  "id": "curltest"
-}
+  CLI command :
+    bitcoin-cli -testnet getinfo
+
+  CLI output :
+    {
+      "version": 110100,
+      "protocolversion": 70002,
+      "walletversion": 60000,
+      "balance": 0,
+      "blocks": 394722,
+      "timeoffset": -24,
+      "connections": 8,
+      "proxy": "",
+      "difficulty": 113354299801.47,
+      "testnet": false,
+      "keypoololdest": 1445528771,
+      "keypoolsize": 101,
+      "paytxfee": 0,
+      "relayfee": 5.0e-5,
+      "errors": ""
+    }
+
+  Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getinfo", "params": [] }
+
+  Json-RPC response :
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 case class GetInfoResult(

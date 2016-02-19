@@ -4,10 +4,24 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet importprivkey \
+      cU8Q2jGeX3GNKNa5etiC8mgEgFSeVUTRQfWE2ZCzszyqYNK4Mepy \
+      "test label" \
+      true
+
+  CLI output :
+    (no output)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "importprivkey", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** ImportPrivKey: adds a private key to your wallet.

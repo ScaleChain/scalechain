@@ -4,10 +4,21 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet walletlock
+
+  CLI output :
+    (no output)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "walletlock", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** WalletLock: removes the wallet encryption key from memory, locking the wallet.

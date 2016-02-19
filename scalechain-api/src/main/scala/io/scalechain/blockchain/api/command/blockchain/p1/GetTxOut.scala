@@ -4,30 +4,38 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet gettxout \
+      184c6195ddd4204219644e2d4169d22cf264144ef5b6a49a09a571f4639a60b9 \
+      0
 
-Json-RPC request : {"jsonrpc": "1.0", "id":"curltest", "method": "gettxout", "params": ["184c6195ddd4204219644e2d4169d22cf264144ef5b6a49a09a571f4639a60b9", 0] }
+  CLI output :
+    {
+      "bestblock": "000000000000000001ef38012ed2e2f674e59bf2314e55f2b4e6f71a7657df50",
+      "confirmations": 5,
+      "value": 15,
+      "scriptPubKey": {
+        "asm": "OP_DUP OP_HASH160 60692856b3121dab03f477f130b9fee7e6e60234 OP_EQUALVERIFY OP_CHECKSIG",
+        "hex": "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
+        "reqSigs": 1,
+        "type": "pubkeyhash",
+        "addresses": [
+          "19nmqtjciexd6NU9VNp5JTu4hht98pULn5"
+        ]
+      },
+      "version": 1,
+      "coinbase": false
+    }
 
-Json-RPC response :
-{
-  "result": {
-    "bestblock": "000000000000000001ef38012ed2e2f674e59bf2314e55f2b4e6f71a7657df50",
-    "confirmations": 5,
-    "value": 15,
-    "scriptPubKey": {
-      "asm": "OP_DUP OP_HASH160 60692856b3121dab03f477f130b9fee7e6e60234 OP_EQUALVERIFY OP_CHECKSIG",
-      "hex": "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
-      "reqSigs": 1,
-      "type": "pubkeyhash",
-      "addresses": [
-        "19nmqtjciexd6NU9VNp5JTu4hht98pULn5"
-      ]
-    },
-    "version": 1,
-    "coinbase": false
-  },
-  "error": null,
-  "id": "curltest"
-}
+  Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "gettxout", "params": ["184c6195ddd4204219644e2d4169d22cf264144ef5b6a49a09a571f4639a60b9", 0] }
+
+  Json-RPC response :
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 case class ScriptPubKey(

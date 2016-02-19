@@ -4,10 +4,21 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet importwallet /tmp/dump.txt
+
+  CLI output :
+    (no output)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "importwallet", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** ImportWallet: imports private keys from a file in wallet dump file format (see the dumpwallet RPC).

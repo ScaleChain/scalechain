@@ -4,10 +4,22 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    # Unlock the wallet for 10 minutes (the passphrase is “test”).
+    bitcoin-cli -testnet walletpassphrase test 600
+
+  CLI output :
+    (no output)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "walletpassphrase", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** WalletPassphrase: stores the wallet decryption key in memory for the indicated number of seconds.

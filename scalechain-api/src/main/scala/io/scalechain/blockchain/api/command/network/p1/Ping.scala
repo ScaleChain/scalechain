@@ -4,10 +4,21 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
+  CLI command :
+    bitcoin-cli -testnet ping
+
+  CLI output :
+    (Success: no result printed.)
+
   Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "ping", "params": [] }
 
   Json-RPC response :
-
+    {
+      "result": null,
+      "error": null,
+      "id": "curltest"
+    }
 */
 
 /** Ping: sends a P2P ping message to all connected nodes to measure ping time.
