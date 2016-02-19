@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.wallet.p1
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -15,6 +16,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Since - New in 0.10.0
   *
+  * https://bitcoin.org/en/developer-reference#importaddress
   */
 object ImportAddress extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

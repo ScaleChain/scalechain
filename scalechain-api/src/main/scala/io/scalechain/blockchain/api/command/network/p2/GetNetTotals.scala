@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** GetNetTotals: returns information about network traffic,
   * including bytes in, bytes out, and the current time.
   *
+  * https://bitcoin.org/en/developer-reference#getnettotals
   */
 object GetNetTotals extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

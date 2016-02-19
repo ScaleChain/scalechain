@@ -52,6 +52,7 @@ case class GetInfoResult(
   *
   * Updated in 0.10.0, Deprecated
   *
+  * https://bitcoin.org/en/developer-reference#getinfo
   */
 object GetInfo extends RpcCommand {
 

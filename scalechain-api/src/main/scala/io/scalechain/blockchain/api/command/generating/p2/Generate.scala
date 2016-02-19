@@ -13,6 +13,8 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** Generate: nearly instantly generates blocks (in regtest mode only)
   *
   * Since - New in master
+  *
+  * https://bitcoin.org/en/developer-reference#generate
   */
 object Generate extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

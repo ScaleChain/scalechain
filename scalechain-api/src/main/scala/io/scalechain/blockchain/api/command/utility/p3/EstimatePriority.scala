@@ -15,6 +15,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Since - New in 0.10.0
   *
+  * https://bitcoin.org/en/developer-reference#estimatepriority
   */
 object EstimatePriority extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

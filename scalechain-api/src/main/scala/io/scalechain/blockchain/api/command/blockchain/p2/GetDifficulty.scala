@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetDifficulty: returns the proof-of-work difficulty as a multiple of the minimum difficulty.
   *
+  * https://bitcoin.org/en/developer-reference#getdifficulty
   */
 object GetDifficulty extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

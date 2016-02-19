@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetBlockTemplate: gets a block template or proposal for use with mining software.
   *
+  * https://bitcoin.org/en/developer-reference#getblocktemplate
   */
 object GetBlockTemplate extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

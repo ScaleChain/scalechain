@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** DecodeScript: decodes a hex-encoded P2SH redeem script.
   *
+  * https://bitcoin.org/en/developer-reference#decodescript
   */
 object DecodeScript extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

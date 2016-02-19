@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** GetRawChangeAddress: returns a new Bitcoin address for receiving change.
   * This is for use with raw transactions, not normal use.
   *
+  * https://bitcoin.org/en/developer-reference#getrawchangeaddress
   */
 object GetRawChangeAddress extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** Stop: safely shuts down the Bitcoin Core server.
   *
+  * https://bitcoin.org/en/developer-reference#stop
   */
 object Stop extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

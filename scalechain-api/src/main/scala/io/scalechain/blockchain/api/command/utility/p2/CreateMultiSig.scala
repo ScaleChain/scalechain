@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** CreateMultiSig: creates a P2SH multi-signature address.
   *
+  * https://bitcoin.org/en/developer-reference#createmultisig
   */
 object CreateMultiSig extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

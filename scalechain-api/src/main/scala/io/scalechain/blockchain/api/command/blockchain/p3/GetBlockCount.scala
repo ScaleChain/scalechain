@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetBlockCount: returns the number of blocks in the local best block chain.
   *
+  * https://bitcoin.org/en/developer-reference#getblockcount
   */
 object GetBlockCount extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -13,6 +13,8 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** GetChainTips: returns information about the highest-height block (tip) of each local block chain.
   *
   * Since - New in 0.10.0
+  *
+  * https://bitcoin.org/en/developer-reference#getchaintips
   */
 object GetChainTips extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

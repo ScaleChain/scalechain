@@ -13,6 +13,8 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** GetBlockChainInfo: provides information about the current state of the block chain.
   *
   * Since - New in 0.9.2, Updated in 0.10.0
+  *
+  * https://bitcoin.org/en/developer-reference#getblockchaininfo
   */
 object GetBlockChainInfo extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

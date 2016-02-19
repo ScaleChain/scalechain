@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** BackupWallet: safely copies wallet.dat to the specified file, which can be a directory or a path with filename.
   *
+  * https://bitcoin.org/en/developer-reference#backupwallet
   */
 object BackupWallet extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

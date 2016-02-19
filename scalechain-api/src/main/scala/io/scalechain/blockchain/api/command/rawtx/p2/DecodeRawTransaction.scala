@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** DecodeRawTransaction: decodes a serialized transaction hex string into a JSON object describing the transaction.
   *
+  * https://bitcoin.org/en/developer-reference#decoderawtransaction
   */
 object DecodeRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

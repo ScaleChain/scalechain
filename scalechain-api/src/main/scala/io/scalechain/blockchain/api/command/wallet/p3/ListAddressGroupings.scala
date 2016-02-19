@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * may have had their common ownership made public by common use as inputs in the same transaction or
   * from being used as change from a previous transaction.
   *
+  * https://bitcoin.org/en/developer-reference#listaddressgroupings
   */
 object ListAddressGroupings extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

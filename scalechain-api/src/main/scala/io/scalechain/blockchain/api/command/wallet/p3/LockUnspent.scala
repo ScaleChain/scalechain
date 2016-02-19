@@ -16,6 +16,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * Locks are stored in memory only, so nodes start with zero locked outputs and
   * the locked output list is always cleared when a node stops or fails.
   *
+  * https://bitcoin.org/en/developer-reference#lockunspent
   */
 object LockUnspent extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * in transactions with the specified number of confirmations.
   * It does not count coinbase transactions.
   *
+  * https://bitcoin.org/en/developer-reference#getreceivedbyaddress
   */
 object GetReceivedByAddress extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** SignMessage: signs a message with the private key of an address.
   *
+  * https://bitcoin.org/en/developer-reference#signmessage
   */
 object SignMessage extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

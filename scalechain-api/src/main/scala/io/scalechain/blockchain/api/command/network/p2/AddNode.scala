@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** AddNode: attempts to add or remove a node from the addnode list, or to try a connection to a node once.
   *
+  * https://bitcoin.org/en/developer-reference#addnode
   */
 object AddNode extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

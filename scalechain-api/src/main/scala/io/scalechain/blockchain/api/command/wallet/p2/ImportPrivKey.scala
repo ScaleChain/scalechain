@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** ImportPrivKey: adds a private key to your wallet.
   * The key should be formatted in the wallet import format created by the dumpprivkey RPC.
   *
+  * https://bitcoin.org/en/developer-reference#importprivkey
   */
 object ImportPrivKey extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

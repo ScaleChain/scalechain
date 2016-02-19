@@ -15,6 +15,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * After calling this method, you will need to call walletpassphrase again
   * before being able to call any methods which require the wallet to be unlocked.
   *
+  * https://bitcoin.org/en/developer-reference#walletlock
   */
 object WalletLock extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

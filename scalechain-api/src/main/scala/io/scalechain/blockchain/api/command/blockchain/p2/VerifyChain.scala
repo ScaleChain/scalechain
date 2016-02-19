@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** VerifyChain: verifies each entry in the local block chain database.
   *
+  * https://bitcoin.org/en/developer-reference#verifychain
   */
 object VerifyChain extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Since - New in 0.11.0
   *
+  * https://bitcoin.org/en/developer-reference#gettxoutproof
   */
 object GetTxOutProof extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Updated in 0.10.0
   *
+  * https://bitcoin.org/en/developer-reference#listtransactions
   */
 object ListTransactions extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

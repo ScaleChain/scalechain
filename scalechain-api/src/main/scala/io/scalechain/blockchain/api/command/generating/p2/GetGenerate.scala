@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetGenerate: returns true if the node is set to generate blocks using its CPU.
   *
+  * https://bitcoin.org/en/developer-reference#getgenerate
   */
 object GetGenerate extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Extra parameters are ignored by Bitcoin Core but may be used by mining pools or other programs.
   *
+  * https://bitcoin.org/en/developer-reference#submitblock
   */
 object SubmitBlock extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

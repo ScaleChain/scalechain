@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.wallet.p1
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -14,6 +15,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * This call may need to rescan all or parts of the block chain for transactions affecting the newly-added keys,
   * which may take several minutes.
   *
+  * https://bitcoin.org/en/developer-reference#importwallet
   */
 object ImportWallet extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

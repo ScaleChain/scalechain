@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** ListAccounts: lists accounts and their balances.
   * - Updated in 0.10.0
   *
+  * https://bitcoin.org/en/developer-reference#listaccounts
   */
 object ListAccounts extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

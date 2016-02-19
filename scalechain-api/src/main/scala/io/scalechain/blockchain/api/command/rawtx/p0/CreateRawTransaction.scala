@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.rawtx.p0
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -14,6 +15,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * The transaction is not stored in the wallet or transmitted to the network.
   *
+  * https://bitcoin.org/en/developer-reference#createrawtransaction
   */
 object CreateRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

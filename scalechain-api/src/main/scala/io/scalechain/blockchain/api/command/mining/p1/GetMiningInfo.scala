@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.mining.p1
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -13,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Updated in master
   *
+  * https://bitcoin.org/en/developer-reference#getmininginfo
   */
 object GetMiningInfo extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** SetAccount: puts the specified address in the given account.
   *
+  * https://bitcoin.org/en/developer-reference#setaccount
   */
 object SetAccount extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** KeyPoolRefill: fills the cache of unused pre-generated keys (the keypool).
   *
+  * https://bitcoin.org/en/developer-reference#keypoolrefill
   */
 object KeyPoolRefill extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

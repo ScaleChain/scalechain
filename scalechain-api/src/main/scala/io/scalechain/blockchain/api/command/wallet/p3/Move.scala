@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** Move: moves a specified amount from one account in your wallet to another using an off-block-chain transaction.
   *
+  * https://bitcoin.org/en/developer-reference#move
   */
 object Move extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

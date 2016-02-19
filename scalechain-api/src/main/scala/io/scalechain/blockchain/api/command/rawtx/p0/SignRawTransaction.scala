@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.rawtx.p0
 
+import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
@@ -12,6 +13,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** SignRawTransaction: signs a transaction in the serialized transaction format
   * using private keys stored in the wallet or provided in the call.
   *
+  * https://bitcoin.org/en/developer-reference#signrawtransaction
   */
 object SignRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

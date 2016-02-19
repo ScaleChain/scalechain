@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** WalletPassphraseChange: changes the wallet passphrase from ‘old passphrase’ to ‘new passphrase’.
   *
+  * https://bitcoin.org/en/developer-reference#walletpassphrasechange
   */
 object WalletPassphraseChange extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

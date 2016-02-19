@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 /** GetTransaction: gets detailed information about an in-wallet transaction.
   * Updated in 0.10.0
   *
+  * https://bitcoin.org/en/developer-reference#gettransaction
   */
 object GetTransaction extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

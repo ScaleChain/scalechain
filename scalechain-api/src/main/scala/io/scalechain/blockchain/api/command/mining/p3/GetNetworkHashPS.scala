@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetNetworkHashPS: returns the estimated current or historical network hashes per second based on the last n blocks.
   *
+  * https://bitcoin.org/en/developer-reference#getnetworkhashps
   */
 object GetNetworkHashPS extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

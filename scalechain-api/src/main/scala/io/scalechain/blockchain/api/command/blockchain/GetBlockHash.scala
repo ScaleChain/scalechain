@@ -11,6 +11,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetBlockHash: returns the header hash of a block at the given height in the local best block chain.
   *
+  * https://bitcoin.org/en/developer-reference#getblockhash
   */
 object GetBlockHash extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

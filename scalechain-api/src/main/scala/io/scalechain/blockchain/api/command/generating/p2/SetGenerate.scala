@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   * Since - Updated in master
   *
+  * https://bitcoin.org/en/developer-reference#setgenerate
   */
 object SetGenerate extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** GetUnconfirmedBalance: returns the wallet’s total unconfirmed balance.
   *
+  * https://bitcoin.org/en/developer-reference#getunconfirmedbalance
   */
 object GetUnconfirmedBalance extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

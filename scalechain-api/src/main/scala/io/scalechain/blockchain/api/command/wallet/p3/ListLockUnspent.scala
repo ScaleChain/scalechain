@@ -12,6 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /** ListLockUnspent: returns a list of temporarily unspendable (locked) outputs.
   *
+  * https://bitcoin.org/en/developer-reference#listlockunspent
   */
 object ListLockUnspent extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {

@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * Note that this call may take some time and that it only counts outputs from confirmed transactions.
   * it does not count outputs from the memory pool.
   *
+  * https://bitcoin.org/en/developer-reference#gettxoutsetinfo
   */
 object GetTxOutSetInfo extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {
