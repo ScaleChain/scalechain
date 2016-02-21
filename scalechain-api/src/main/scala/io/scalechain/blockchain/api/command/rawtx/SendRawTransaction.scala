@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.api.command.rawtx.p0
+package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}

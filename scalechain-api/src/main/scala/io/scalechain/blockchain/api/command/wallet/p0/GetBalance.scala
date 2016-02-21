@@ -1,17 +1,17 @@
-package io.scalechain.blockchain.api.command.wallet.p1
+package io.scalechain.blockchain.api.command.wallet.p0
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
 
 /*
   CLI command :
-    bitcoin-cli -testnet getaccount mjSk1Ny9spzU2fouzYgLqGUD8U41iR35QN
+    bitcoin-cli -testnet getbalance "test1" 1 true
 
   CLI output :
-    doc test
+    1.99900000
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getaccount", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getbalance", "params": [] }
 
   Json-RPC response :
     {
@@ -21,11 +21,11 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
     }
 */
 
-/** GetAccount: returns the name of the account associated with the given address.
+/** GetBalance: gets the balance in decimal bitcoins across all accounts or for a particular account.
   *
-  * https://bitcoin.org/en/developer-reference#getaccount
+  * https://bitcoin.org/en/developer-reference#getbalance
   */
-object GetAccount extends RpcCommand {
+object GetBalance extends RpcCommand {
   def invoke(request : RpcRequest ) : RpcResult = {
     // TODO : Implement
     assert(false)

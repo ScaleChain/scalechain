@@ -8,8 +8,8 @@ import akka.http.scaladsl.server.Directives
 import akka.stream.ActorMaterializer
 import io.scalechain.blockchain.api.command.blockchain.GetTxOutResult
 import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
-import io.scalechain.blockchain.api.command.control.GetInfoResult
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
 import io.scalechain.blockchain.api.domain.{RpcError, RpcResponse, RpcRequest, RpcResult}
 import spray.json._
 import io.scalechain.util.Config

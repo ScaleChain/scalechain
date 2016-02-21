@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.api.command.control
+package io.scalechain.blockchain.api.command.control.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
