@@ -1,0 +1,2 @@
+./listunspent.sh
+./submitblock.sh

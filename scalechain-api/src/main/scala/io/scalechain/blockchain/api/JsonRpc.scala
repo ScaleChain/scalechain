@@ -87,6 +87,7 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
     def write(result : RpcResult) = result match {
 
       case StringResult(value)            => JsString(value)
+      case NumberResult(value)            => JsNumber(value)
 
       case GetPeerInfoResult( items )     => items.toJson
       case ListTransactionsResult(items)  => items.toJson
@@ -123,6 +124,37 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 
 
   implicit val implicitJsonRpcError = jsonFormat3(RpcError.apply)
+
+  implicit object AnyJsonFormat extends RootJsonFormat[Any] {
+    def write( any : Any ) = {
+      // Not used.
+      assert(false);
+      "".toJson
+    }
+
+    def read( value: JsValue ) : Any = {
+      value match {
+        case v : JsString => v.convertTo[String]
+        case v : JsNumber => v.convertTo[scala.math.BigDecimal]
+        case v : JsBoolean => v.convertTo[Boolean]
+        case _ => assert(false)
+      }
+    }
+
+  }
+
+  implicit object RpcParamsJsonFormat extends RootJsonFormat[RpcParams] {
+    def write( anyList : RpcParams ) = {
+      // Not used.
+      assert(false);
+      "".toJson
+    }
+
+    def read( value: JsValue ) : RpcParams = {
+      RpcParams( value.convertTo[List[Any]] )
+    }
+  }
+
   implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
 
   /** Serializes RpcResponse to Json string.

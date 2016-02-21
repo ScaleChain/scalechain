@@ -72,10 +72,10 @@ object Help extends RpcCommand {
     """.stripMargin
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    if (request.params.length == 0) {
+    if (request.params.paramValues.length == 0) {
       Right( Some( StringResult(helpForAllCommands) ) )
-    } else if (request.params.length == 1) {
-      val command = request.params(0)
+    } else if (request.params.paramValues.length == 1) {
+      val command = request.params.paramValues(0).toString
 
       val serviceOption = Services.serviceByCommand.get(command)
       if (serviceOption.isDefined) {

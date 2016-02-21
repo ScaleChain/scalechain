@@ -1,8 +1,11 @@
 package io.scalechain.blockchain.api.domain
 
+
+case class RpcParams(paramValues:List[Any])
+
 // BUGBUG : A Int value may come as an element of params.
 // Ex> ["abc", 1]
-case class RpcRequest(jsonrpc:String, id:String, method:String, params:Array[String])
+case class RpcRequest(jsonrpc:String, id:String, method:String, params:RpcParams)
 
 
 // TODO : Make sure the format matches the one used by Bitcoin.
