@@ -40,6 +40,13 @@ object Services {
   // The map from the command to the service object.
   // The command equals to the class name (lower case) of the service object.
   // For example, service GetBestBlockHash has command "getbestblockhash"
-  val serviceByCommand = (all.map(_.getClass.getSimpleName.toLowerCase) zip all).toMap
+  //
+  // Following steps are the necessary to get the command string from the object singleton.
+  //
+  // getSimpleName => GetBestBlockHash$
+  // toLowerCase   => getbestblockhash$
+  // dropRight(1)  => getbestblockhash
+  val serviceByCommand = (all.map(_.getClass.getSimpleName.toLowerCase.dropRight(1)) zip all).toMap
+
 }
 

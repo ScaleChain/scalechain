@@ -46,7 +46,7 @@ object ByteArray {
   implicit def stringToByteArray(value : String)
     = ByteArray.arrayToByteArray(HexUtil.bytes(value))
   implicit def byteArrayToString(value : ByteArray)
-    = new String( ByteArray.byteArrayToArray(value) )
+    = HexUtil.hex( ByteArray.byteArrayToArray(value) )
 }
 
 object ByteArrayAndVectorConverter {

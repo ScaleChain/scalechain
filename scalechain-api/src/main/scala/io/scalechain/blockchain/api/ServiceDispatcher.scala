@@ -12,6 +12,7 @@ trait ServiceDispatcher {
 
     val methodName = request.method
     val serviceOption = Services.serviceByCommand.get(methodName)
+
     if (serviceOption.isDefined) {
       val serviceResult = serviceOption.get.invoke(request)
       serviceResult match {
