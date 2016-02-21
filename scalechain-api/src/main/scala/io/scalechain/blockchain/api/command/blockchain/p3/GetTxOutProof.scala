@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain.p3
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -48,11 +48,34 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#gettxoutproof
   */
 object GetTxOutProof extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """gettxoutproof ["txid",...] ( blockhash )
+      |
+      |Returns a hex-encoded proof that "txid" was included in a block.
+      |
+      |NOTE: By default this function only works sometimes. This is when there is an
+      |unspent output in the utxo for this transaction. To make it always work,
+      |you need to maintain a transaction index, using the -txindex command line option or
+      |specify the block in which the transaction is included in manually (by blockhash).
+      |
+      |Return the raw transaction data.
+      |
+      |Arguments:
+      |1. "txids"       (string) A json array of txids to filter
+      |    [
+      |      "txid"     (string) A transaction hash
+      |      ,...
+      |    ]
+      |2. "block hash"  (string, optional) If specified, looks for txid in the block with this hash
+      |
+      |Result:
+      |"data"           (string) A string that is a serialized, hex-encoded data for the proof.
+    """.stripMargin
 }
 
 

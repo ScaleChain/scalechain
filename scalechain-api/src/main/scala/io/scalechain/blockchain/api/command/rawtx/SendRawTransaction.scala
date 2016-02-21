@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -28,16 +28,48 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
     }
 */
 
+case class SendRawTransactionResult(
+) extends RpcResult
+
+
 /** SendRawTransaction: validates a transaction and broadcasts it to the peer-to-peer network.
   *
   * https://bitcoin.org/en/developer-reference#sendrawtransaction
   */
 object SendRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """sendrawtransaction "hexstring" ( allowhighfees )
+      |
+      |Submits raw transaction (serialized, hex-encoded) to local node and network.
+      |
+      |Also see createrawtransaction and signrawtransaction calls.
+      |
+      |Arguments:
+      |1. "hexstring"    (string, required) The hex string of the raw transaction)
+      |2. allowhighfees    (boolean, optional, default=false) Allow high fees
+      |
+      |Result:
+      |"hex"             (string) The transaction hash in hex
+      |
+      |Examples:
+      |
+      |Create a transaction
+      |> bitcoin-cli createrawtransaction "[{\"txid\" : \"mytxid\",\"vout\":0}]" "{\"myaddress\":0.01}"
+      |Sign the transaction, and get back the hex
+      |> bitcoin-cli signrawtransaction "myhex"
+      |
+      |Send the transaction (signed hex)
+      |> bitcoin-cli sendrawtransaction "signedhex"
+      |
+      |As a json rpc call
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendrawtransaction", "params": ["signedhex"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
+
 }
 
 

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -27,11 +27,28 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#dumpprivkey
   */
 object DumpPrivKey extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """dumpprivkey "bitcoinaddress"
+      |
+      |Reveals the private key corresponding to 'bitcoinaddress'.
+      |Then the importprivkey can be used with this output
+      |
+      |Arguments:
+      |1. "bitcoinaddress"   (string, required) The bitcoin address for the private key
+      |
+      |Result:
+      |"key"                (string) The private key
+      |
+      |Examples:
+      |> bitcoin-cli dumpprivkey "myaddress"
+      |> bitcoin-cli importprivkey "mykey"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "dumpprivkey", "params": ["myaddress"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

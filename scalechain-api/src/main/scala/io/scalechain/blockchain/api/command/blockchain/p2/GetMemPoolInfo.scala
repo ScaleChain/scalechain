@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -31,11 +31,30 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getmempoolinfo
   */
 object GetMemPoolInfo extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getmempoolinfo
+      |
+      |Returns details on the active state of the TX memory pool.
+      |
+      |Result:
+      |{
+      |  "size": xxxxx,               (numeric) Current tx count
+      |  "bytes": xxxxx,              (numeric) Sum of all tx sizes
+      |  "usage": xxxxx,              (numeric) Total memory usage for the mempool
+      |  "maxmempool": xxxxx,         (numeric) Maximum memory usage for the mempool
+      |  "mempoolminfee": xxxxx       (numeric) Minimum fee for tx to be accepted
+      |}
+      |
+      |Examples:
+      |> bitcoin-cli getmempoolinfo
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getmempoolinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+      |
+    """.stripMargin
 }
 
 

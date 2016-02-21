@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -26,11 +26,23 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#backupwallet
   */
 object BackupWallet extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """backupwallet "destination"
+      |
+      |Safely copies wallet.dat to destination, which can be a directory or a path with filename.
+      |
+      |Arguments:
+      |1. "destination"   (string) The destination directory or file
+      |
+      |Examples:
+      |> bitcoin-cli backupwallet "backup.dat"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "backupwallet", "params": ["backup.dat"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

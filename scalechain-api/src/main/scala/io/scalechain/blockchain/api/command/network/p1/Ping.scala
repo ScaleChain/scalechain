@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.network.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -29,11 +29,15 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   *
   */
 object Ping extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+"""
+
+"""
 }
 
 

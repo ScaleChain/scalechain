@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet.p0
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -30,11 +30,29 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getaddressesbyaccount
   */
 object GetAddressesByAccount extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getaddressesbyaccount "account"
+      |
+      |DEPRECATED. Returns the list of addresses for the given account.
+      |
+      |Arguments:
+      |1. "account"  (string, required) The account name.
+      |
+      |Result:
+      |[                     (json array of string)
+      |  "bitcoinaddress"  (string) a bitcoin address associated with the given account
+      |  ,...
+      |]
+      |
+      |Examples:
+      |> bitcoin-cli getaddressesbyaccount "tabby"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getaddressesbyaccount", "params": ["tabby"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

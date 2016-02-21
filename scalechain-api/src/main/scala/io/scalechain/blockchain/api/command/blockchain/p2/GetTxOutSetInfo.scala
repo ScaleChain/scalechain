@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -36,11 +36,33 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#gettxoutsetinfo
   */
 object GetTxOutSetInfo extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+  """gettxoutsetinfo
+    |
+    |Returns statistics about the unspent transaction output set.
+    |Note this call may take some time.
+    |
+    |Result:
+    |{
+    |  "height":n,     (numeric) The current block height (index)
+    |  "bestblock": "hex",   (string) the best block hash hex
+    |  "transactions": n,      (numeric) The number of transactions
+    |  "txouts": n,            (numeric) The number of output transactions
+    |  "bytes_serialized": n,  (numeric) The serialized size
+    |  "hash_serialized": "hash",   (string) The serialized hash
+    |  "total_amount": x.xxx          (numeric) The total amount
+    |}
+    |
+    |Examples:
+    |> bitcoin-cli gettxoutsetinfo
+    |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettxoutsetinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    |
+  """.stripMargin
 }
 
 

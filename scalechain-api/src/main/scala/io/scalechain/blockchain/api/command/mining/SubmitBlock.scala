@@ -1,6 +1,7 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.mining
 
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -29,6 +30,9 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
     }
 */
 
+case class SubmitBlockResult(
+) extends RpcResult
+
 /** SubmitBlock: accepts a block, verifies it is a valid addition to the block chain, and
   * broadcasts it to the network.
   *
@@ -37,11 +41,31 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#submitblock
   */
 object SubmitBlock extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """submitblock "hexdata" ( "jsonparametersobject" )
+      |
+      |Attempts to submit new block to network.
+      |The 'jsonparametersobject' parameter is currently ignored.
+      |See https://en.bitcoin.it/wiki/BIP_0022 for full specification.
+      |
+      |Arguments
+      |1. "hexdata"    (string, required) the hex-encoded block data to submit
+      |2. "jsonparametersobject"     (string, optional) object of optional parameters
+      |    {
+      |      "workid" : "id"    (string, optional) if the server provided a workid, it MUST be included with submissions
+      |    }
+      |
+      |Result:
+      |
+      |Examples:
+      |> bitcoin-cli submitblock "mydata"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": ["mydata"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

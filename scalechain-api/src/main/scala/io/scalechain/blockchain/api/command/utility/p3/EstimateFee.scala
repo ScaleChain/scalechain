@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.utility.p3
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -29,11 +29,29 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#estimatefee
   */
 object EstimateFee extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """estimatefee nblocks
+      |
+      |Estimates the approximate fee per kilobyte needed for a transaction to begin
+      |confirmation within nblocks blocks.
+      |
+      |Arguments:
+      |1. nblocks     (numeric)
+      |
+      |Result:
+      |n              (numeric) estimated fee-per-kilobyte
+      |
+      |A negative value is returned if not enough transactions and blocks
+      |have been observed to make an estimate.
+      |
+      |Example:
+      |> bitcoin-cli estimatefee 6
+    """.stripMargin
 }
 
 

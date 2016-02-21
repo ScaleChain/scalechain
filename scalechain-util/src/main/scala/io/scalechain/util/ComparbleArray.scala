@@ -42,6 +42,11 @@ case class ByteArray(override val array : Array[Byte]) extends ComparableArray[B
 object ByteArray {
   implicit def byteArrayToArray (barray : ByteArray   ) = barray.array
   implicit def arrayToByteArray (array  : Array[Byte] ) = ByteArray(array)
+
+  implicit def stringToByteArray(value : String)
+    = ByteArray.arrayToByteArray(HexUtil.bytes(value))
+  implicit def byteArrayToString(value : ByteArray)
+    = new String( ByteArray.byteArrayToArray(value) )
 }
 
 object ByteArrayAndVectorConverter {

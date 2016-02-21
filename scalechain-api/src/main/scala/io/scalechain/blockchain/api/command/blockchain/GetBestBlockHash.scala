@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, StringResult, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -29,11 +29,22 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getbestblockhash
   */
 object GetBestBlockHash extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
-    assert(false)
-    null
+    Right(StringResult("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887"))
   }
+  def help() : String =
+    """getbestblockhash
+      |
+      |Returns the hash of the best (tip) block in the longest block chain.
+      |
+      |Result
+      |"hex"      (string) the block hash hex encoded
+      |
+      |Examples
+      |> bitcoin-cli getbestblockhash
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getbestblockhash", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

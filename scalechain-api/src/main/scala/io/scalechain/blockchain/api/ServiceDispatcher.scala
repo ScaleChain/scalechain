@@ -8,24 +8,31 @@ import spray.json._
 
 trait ServiceDispatcher {
   // A map from Json-Rpc method to the actual JsonRpcService object that handles it.
-  val serviceMap = Map[String, RpcCommand](
-    ("getinfo" -> GetInfo),
-    ("gettxout" -> GetTxOut)
-  )
   def dispatch(request : RpcRequest) : RpcResponse = {
 
     val methodName = request.method
-    val serviceOption = serviceMap.get(methodName)
+    val serviceOption = Services.serviceByCommand.get(methodName)
     if (serviceOption.isDefined) {
       val serviceResult = serviceOption.get.invoke(request)
-      RpcResponse(
-        result = Some(serviceResult),
-        error = None,
-        id = request.id
-      )
+      serviceResult match {
+        case Left(rpcError) => {
+          RpcResponse(
+            result = None,
+            error = Some(rpcError),
+            id = request.id
+          )
+        }
+        case Right(rpcResult) => {
+          RpcResponse(
+            result = Some(rpcResult),
+            error = None,
+            id = request.id
+          )
+        }
+      }
     } else {
       RpcResponse(
-        result = None,
+        result = None, // TODO : Need to make sure if this is converted to a json string, "result = null".
         error = Some(RpcError(
           code = RpcError.METHOD_NOT_FOUND.code,
           message = RpcError.METHOD_NOT_FOUND.message,

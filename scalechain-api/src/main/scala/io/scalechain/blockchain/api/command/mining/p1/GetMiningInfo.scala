@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.mining.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -41,11 +41,33 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getmininginfo
   */
 object GetMiningInfo extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getmininginfo
+      |
+      |Returns a json object containing mining-related information.
+      |Result:
+      |{
+      |  "blocks": nnn,             (numeric) The current block
+      |  "currentblocksize": nnn,   (numeric) The last block size
+      |  "currentblocktx": nnn,     (numeric) The last block transaction
+      |  "difficulty": xxx.xxxxx    (numeric) The current difficulty
+      |  "errors": "..."          (string) Current errors
+      |  "generate": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)
+      |  "genproclimit": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)
+      |  "pooledtx": n              (numeric) The size of the mem pool
+      |  "testnet": true|false      (boolean) If using testnet or not
+      |  "chain": "xxxx",         (string) current network name as defined in BIP70 (main, test, regtest)
+      |}
+      |
+      |Examples:
+      |> bitcoin-cli getmininginfo
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getmininginfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

@@ -6,7 +6,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-all",
 			base = file(".")).
-			aggregate(util, crypto, proto, proto_codec, script, transaction, storage, net, main, cli)
+			aggregate(util, crypto, proto, proto_codec, script, transaction, storage, net, api_domain, api, main, cli)
 
 	lazy val util =
 		Project(

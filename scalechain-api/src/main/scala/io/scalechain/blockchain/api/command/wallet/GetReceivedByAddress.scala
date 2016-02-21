@@ -1,6 +1,7 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.wallet
 
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -21,6 +22,10 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
     }
 */
 
+case class GetReceivedByAddressResult(
+) extends RpcResult
+
+
 /** GetReceivedByAddress: returns the total amount received by the specified address
   * in transactions with the specified number of confirmations.
   * It does not count coinbase transactions.
@@ -28,11 +33,37 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getreceivedbyaddress
   */
 object GetReceivedByAddress extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getreceivedbyaddress "bitcoinaddress" ( minconf )
+      |
+      |Returns the total amount received by the given bitcoinaddress in transactions with at least minconf confirmations.
+      |
+      |Arguments:
+      |1. "bitcoinaddress"  (string, required) The bitcoin address for transactions.
+      |2. minconf             (numeric, optional, default=1) Only include transactions confirmed at least this many times.
+      |
+      |Result:
+      |amount   (numeric) The total amount in BTC received at this address.
+      |
+      |Examples:
+      |
+      |The amount from transactions with at least 1 confirmation
+      |> bitcoin-cli getreceivedbyaddress "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ"
+      |
+      |The amount including unconfirmed transactions, zero confirmations
+      |> bitcoin-cli getreceivedbyaddress "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ" 0
+      |
+      |The amount with at least 6 confirmation, very safe
+      |> bitcoin-cli getreceivedbyaddress "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ" 6
+      |
+      |As a json rpc call
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": ["1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

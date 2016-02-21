@@ -1,6 +1,8 @@
-package io.scalechain.blockchain.api.command
+package io.scalechain.blockchain.api.command.network
 
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -43,6 +45,10 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
     }
 */
 
+case class GetPeerInfoResult(
+) extends RpcResult
+
+
 /** GetPeerInfo: returns data about each connected network node.
   *
   * Updated in 0.10.0
@@ -50,11 +56,60 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getpeerinfo
   */
 object GetPeerInfo extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getpeerinfo
+      |
+      |Returns data about each connected network node as a json array of objects.
+      |
+      |Result:
+      |[
+      |  {
+      |    "id": n,                   (numeric) Peer index
+      |    "addr":"host:port",      (string) The ip address and port of the peer
+      |    "addrlocal":"ip:port",   (string) local address
+      |    "services":"xxxxxxxxxxxxxxxx",   (string) The services offered
+      |    "relaytxes":true|false,    (boolean) Whether peer has asked us to relay transactions to it
+      |    "lastsend": ttt,           (numeric) The time in seconds since epoch (Jan 1 1970 GMT) of the last send
+      |    "lastrecv": ttt,           (numeric) The time in seconds since epoch (Jan 1 1970 GMT) of the last receive
+      |    "bytessent": n,            (numeric) The total bytes sent
+      |    "bytesrecv": n,            (numeric) The total bytes received
+      |    "conntime": ttt,           (numeric) The connection time in seconds since epoch (Jan 1 1970 GMT)
+      |    "timeoffset": ttt,         (numeric) The time offset in seconds
+      |    "pingtime": n,             (numeric) ping time
+      |    "minping": n,              (numeric) minimum observed ping time
+      |    "pingwait": n,             (numeric) ping wait
+      |    "version": v,              (numeric) The peer version, such as 7001
+      |    "subver": "/Satoshi:0.8.5/",  (string) The string version
+      |    "inbound": true|false,     (boolean) Inbound (true) or Outbound (false)
+      |    "startingheight": n,       (numeric) The starting height (block) of the peer
+      |    "banscore": n,             (numeric) The ban score
+      |    "synced_headers": n,       (numeric) The last header we have in common with this peer
+      |    "synced_blocks": n,        (numeric) The last block we have in common with this peer
+      |    "inflight": [
+      |       n,                        (numeric) The heights of blocks we're currently asking from this peer
+      |       ...
+      |    ]
+      |    "bytessent_per_msg": {
+      |       "addr": n,             (numeric) The total bytes sent aggregated by message type
+      |       ...
+      |    }
+      |    "bytesrecv_per_msg": {
+      |       "addr": n,             (numeric) The total bytes received aggregated by message type
+      |       ...
+      |    }
+      |  }
+      |  ,...
+      |]
+      |
+      |Examples:
+      |> bitcoin-cli getpeerinfo
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getpeerinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

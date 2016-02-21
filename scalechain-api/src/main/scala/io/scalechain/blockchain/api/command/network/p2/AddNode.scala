@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.network.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -27,11 +27,25 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#addnode
   */
 object AddNode extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """addnode "node" "add|remove|onetry"
+      |
+      |Attempts add or remove a node from the addnode list.
+      |Or try a connection to a node once.
+      |
+      |Arguments:
+      |1. "node"     (string, required) The node (see getpeerinfo for nodes)
+      |2. "command"  (string, required) 'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once
+      |
+      |Examples:
+      |> bitcoin-cli addnode "192.168.0.6:8333" "onetry"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "addnode", "params": ["192.168.0.6:8333", "onetry"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

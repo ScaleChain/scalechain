@@ -2,9 +2,13 @@ package io.scalechain.blockchain.api.domain
 
 trait RpcResult
 
+case class StringResult(result:String) extends RpcResult
+
+
 // BUGBUG : A Int value may come as an element of params.
 // Ex> ["abc", 1]
 case class RpcRequest(jsonrpc:String, id:String, method:String, params:Array[String])
+
 
 // TODO : Make sure the format matches the one used by Bitcoin.
 case class RpcError(code : Int, message : String, data : String)

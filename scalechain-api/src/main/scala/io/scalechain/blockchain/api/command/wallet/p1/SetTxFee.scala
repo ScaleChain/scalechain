@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -27,11 +27,26 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#settxfee
   */
 object SetTxFee extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """settxfee amount
+      |
+      |Set the transaction fee per kB. Overwrites the paytxfee parameter.
+      |
+      |Arguments:
+      |1. amount         (numeric or sting, required) The transaction fee in BTC/kB
+      |
+      |Result
+      |true|false        (boolean) Returns true if successful
+      |
+      |Examples:
+      |> bitcoin-cli settxfee 0.00001
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "settxfee", "params": [0.00001] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

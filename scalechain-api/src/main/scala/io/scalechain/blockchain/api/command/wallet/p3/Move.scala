@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet.p3
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -27,11 +27,37 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#move
   */
 object Move extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """move "fromaccount" "toaccount" amount ( minconf "comment" )
+      |
+      |DEPRECATED. Move a specified amount from one account in your wallet to another.
+      |
+      |Arguments:
+      |1. "fromaccount"   (string, required) The name of the account to move funds from. May be the default account using "".
+      |2. "toaccount"     (string, required) The name of the account to move funds to. May be the default account using "".
+      |3. amount            (numeric) Quantity of BTC to move between accounts.
+      |4. minconf           (numeric, optional, default=1) Only use funds with at least this many confirmations.
+      |5. "comment"       (string, optional) An optional comment, stored in the wallet only.
+      |
+      |Result:
+      |true|false           (boolean) true if successful.
+      |
+      |Examples:
+      |
+      |Move 0.01 BTC from the default account to the account named tabby
+      |> bitcoin-cli move "" "tabby" 0.01
+      |
+      |Move 0.01 BTC timotei to akiko with a comment and funds have 6 confirmations
+      |> bitcoin-cli move "timotei" "akiko" 0.01 6 "happy birthday!"
+      |
+      |As a json rpc call
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "move", "params": ["timotei", "akiko", 0.01, 6, "happy birthday!"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

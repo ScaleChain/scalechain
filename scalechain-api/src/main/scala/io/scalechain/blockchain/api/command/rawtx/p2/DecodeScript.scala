@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.rawtx.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -39,11 +39,36 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#decodescript
   */
 object DecodeScript extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """decodescript "hex"
+      |
+      |Decode a hex-encoded script.
+      |
+      |Arguments:
+      |1. "hex"     (string) the hex encoded script
+      |
+      |Result:
+      |{
+      |  "asm":"asm",   (string) Script public key
+      |  "hex":"hex",   (string) hex encoded public key
+      |  "type":"type", (string) The output type
+      |  "reqSigs": n,    (numeric) The required signatures
+      |  "addresses": [   (json array of string)
+      |     "address"     (string) bitcoin address
+      |     ,...
+      |  ],
+      |  "p2sh","address" (string) script address
+      |}
+      |
+      |Examples:
+      |> bitcoin-cli decodescript "hexstring"
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "decodescript", "params": ["hexstring"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

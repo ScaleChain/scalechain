@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.utility.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -35,11 +35,39 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#createmultisig
   */
 object CreateMultiSig extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """createmultisig nrequired ["key",...]
+      |
+      |Creates a multi-signature address with n signature of m keys required.
+      |It returns a json object with the address and redeemScript.
+      |
+      |Arguments:
+      |1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.
+      |2. "keys"       (string, required) A json array of keys which are bitcoin addresses or hex-encoded public keys
+      |     [
+      |       "key"    (string) bitcoin address or hex-encoded public key
+      |       ,...
+      |     ]
+      |
+      |Result:
+      |{
+      |  "address":"multisigaddress",  (string) The value of the new multisig address.
+      |  "redeemScript":"script"       (string) The string value of the hex-encoded redemption script.
+      |}
+      |
+      |Examples:
+      |
+      |Create a multisig address from 2 addresses
+      |> bitcoin-cli createmultisig 2 "[\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\",\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\"]"
+      |
+      |As a json rpc call
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "createmultisig", "params": [2, "[\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\",\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\"]"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+    """.stripMargin
 }
 
 

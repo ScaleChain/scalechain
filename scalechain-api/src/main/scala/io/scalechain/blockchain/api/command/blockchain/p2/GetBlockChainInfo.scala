@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain.p2
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -36,11 +36,47 @@ import io.scalechain.blockchain.api.domain.{RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getblockchaininfo
   */
 object GetBlockChainInfo extends RpcCommand {
-  def invoke(request : RpcRequest ) : RpcResult = {
+  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
     // TODO : Implement
     assert(false)
-    null
+    Right(null)
   }
+  def help() : String =
+    """getblockchaininfo
+      |Returns an object containing various state info regarding block chain processing.
+      |
+      |Result:
+      |{
+      |  "chain": "xxxx",        (string) current network name as defined in BIP70 (main, test, regtest)
+      |  "blocks": xxxxxx,         (numeric) the current number of blocks processed in the server
+      |  "headers": xxxxxx,        (numeric) the current number of headers we have validated
+      |  "bestblockhash": "...", (string) the hash of the currently best block
+      |  "difficulty": xxxxxx,     (numeric) the current difficulty
+      |  "mediantime": xxxxxx,     (numeric) median time for the current best block
+      |  "verificationprogress": xxxx, (numeric) estimate of verification progress [0..1]
+      |  "chainwork": "xxxx"     (string) total amount of work in active chain, in hexadecimal
+      |  "pruned": xx,             (boolean) if the blocks are subject to pruning
+      |  "pruneheight": xxxxxx,    (numeric) heighest block available
+      |  "softforks": [            (array) status of softforks in progress
+      |     {
+      |        "id": "xxxx",        (string) name of softfork
+      |        "version": xx,         (numeric) block version
+      |        "enforce": {           (object) progress toward enforcing the softfork rules for new-version blocks
+      |           "status": xx,       (boolean) true if threshold reached
+      |           "found": xx,        (numeric) number of blocks with the new version found
+      |           "required": xx,     (numeric) number of blocks required to trigger
+      |           "window": xx,       (numeric) maximum size of examined window of recent blocks
+      |        },
+      |        "reject": { ... }      (object) progress toward rejecting pre-softfork blocks (same fields as "enforce")
+      |     }, ...
+      |  ]
+      |}
+      |
+      |Examples:
+      |> bitcoin-cli getblockchaininfo
+      |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getblockchaininfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+      |
+    """.stripMargin
 }
 
 
