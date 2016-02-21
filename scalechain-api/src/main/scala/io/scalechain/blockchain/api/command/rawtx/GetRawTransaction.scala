@@ -2,6 +2,7 @@ package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.Hash
 
 /*
   CLI command :
@@ -88,7 +89,11 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getrawtransaction", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getrawtransaction", "params": ["ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"] }
+
+  Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getrawtransaction", "params": ["ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e", 1] }
+
 
   Json-RPC response :
     {
@@ -98,9 +103,35 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetRawTransactionResult(
+case class RawTransaction(
+  // The serialized, hex-encoded data for 'txid'
+  hex           : String, // "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000"
+  // The transaction’s TXID encoded as hex in RPC byte order
+  txid          : Hash,   // "ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e",
+  // The transaction format version number
+  version       : Int,    // 1,
+  // The transaction’s locktime: either a Unix epoch date or block height; see the Locktime parsing rules
+  locktime      : Long,   // 0,
+  // An array of objects with each object being an input vector (vin) for this transaction.
+  // Input objects will have the same order within the array as they have in the transaction,
+  // so the first input listed will be input 0
+  vin           : List[RawTransactionInput],
+  // An array of objects each describing an output vector (vout) for this transaction.
+  // Output objects will have the same order within the array as they have in the transaction,
+  // so the first output listed will be output 0
+  vout          : List[RawTransactionOutput],
+  // If the transaction has been included in a block on the local best block chain,
+  // this is the hash of that block encoded as hex in RPC byte order
+  blockhash     : Option[Hash],   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
+  // If the transaction has been included in a block on the local best block chain,
+  // this is how many confirmations it has. Otherwise, this is 0
+  confirmations : Long,   // 88192,
+  // If the transaction has been included in a block on the local best block chain,
+  // this is the block header time of that block (may be in the future)
+  time          : Option[Long],   // 1398734825,
+  // This field is currently identical to the time field described above
+  blocktime     : Option[Long]    // 1398734825
 ) extends RpcResult
-
 
 /** GetRawTransaction: gets a hex-encoded serialized transaction or a JSON object describing the transaction.
   * By default, Bitcoin Core only stores complete transaction data for UTXOs and your own transactions,
@@ -109,10 +140,55 @@ case class GetRawTransactionResult(
   * https://bitcoin.org/en/developer-reference#getrawtransaction
   */
 object GetRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val rawTransactionOption =
+      Some(
+        RawTransaction(
+        "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
+        Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
+        1,
+        0L,
+        List(
+          RawGenerationTransactionInput(
+            "Kangmo's transaction",
+            4294967295L
+          ),
+          RawNormalTransactionInput(
+            Hash( "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
+            0,
+            RawScriptSig(
+              "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+              "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+            ),
+            4294967295L
+          )
+        ),
+        List(
+          RawTransactionOutput(
+            0.39890000,
+            0,
+            RawScriptPubKey(
+              "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+              "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+              Some(1),
+              Some("pubkeyhash"),
+              List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
+            )
+          )
+        ),
+        Some( Hash("00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317") ),
+        88192L,
+        Some( 1398734825L ),
+        Some( 1398734825L )
+      )
+    )
+
+    // If the transaction wasn’t found, the result will be JSON null.
+    // This can occur because the transaction doesn’t exist in the block chain or memory pool,
+    // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
+
+    Right( rawTransactionOption )
   }
   def help() : String =
     """getrawtransaction "txid" ( verbose )

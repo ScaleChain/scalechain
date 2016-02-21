@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -12,7 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     mft61jjkmiEJwJ7Zw3r1h344D6aL1xwhma
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": ["doc test"] }
 
   Json-RPC response :
     {
@@ -22,20 +22,17 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetNewAddressResult(
-) extends RpcResult
-
-
 /** GetNewAddress: returns a new Bitcoin address for receiving payments.
   * If an account is specified, payments received with the address will be credited to that account.
   *
   * https://bitcoin.org/en/developer-reference#getnewaddress
   */
 object GetNewAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val newAddress = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
+
+    Right( Some( StringResult( newAddress) ) )
   }
   def help() : String =
     """getnewaddress ( "account" )

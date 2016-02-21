@@ -38,10 +38,10 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#listaccounts
   */
 object ListAccounts extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     assert(false)
-    Right(null)
+    Right(None)
   }
   def help() : String =
     """listaccounts ( minconf includeWatchonly)

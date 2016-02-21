@@ -47,6 +47,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
       blockStorage.storeBlock(block)
     }
 
+    // BUGBUG : Change to case class
     case (from : InetSocketAddress, inventories : List[InvVector]) => {
       //assert(inventory.invType == InvType.MSG_BLOCK)
       println("BlockProcessor received InvVector(MSG_BLOCK)")

@@ -38,23 +38,23 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 */
 
 case class GetInfoResult(
-                          version : Int,
-                          protocolversion : Int,
-                          walletversion : Int,
-                          balance: Int,
-                          blocks: Int,
-                          timeoffset: Int,
-                          connections : Int,
-                          proxy: String,
-                          difficulty: scala.math.BigDecimal,
-                          testnet: Boolean,
-                          keypoololdest: Long,
-                          keypoolsize: Int,
-                          paytxfee : Int,
-                          // Make sure the Json serialized format is like "5.0e-5"
-                          relayfee: scala.math.BigDecimal,
-                          errors: String
-                        ) extends RpcResult
+  version : Int,
+  protocolversion : Int,
+  walletversion : Int,
+  balance: Int,
+  blocks: Int,
+  timeoffset: Int,
+  connections : Int,
+  proxy: String,
+  difficulty: scala.math.BigDecimal,
+  testnet: Boolean,
+  keypoololdest: Long,
+  keypoolsize: Int,
+  paytxfee : Int,
+  // Make sure the Json serialized format is like "5.0e-5"
+  relayfee: scala.math.BigDecimal,
+  errors: String
+) extends RpcResult
 
 /** GetInfo: prints various information about the node and the network.
   *
@@ -63,26 +63,28 @@ case class GetInfoResult(
   * https://bitcoin.org/en/developer-reference#getinfo
   */
 object GetInfo extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     Right(
-      GetInfoResult(
-        version = 110100,
-        protocolversion = 70002,
-        walletversion = 60000,
-        balance = 0,
-        blocks = 394722,
-        timeoffset = -24,
-        connections = 8,
-        proxy = "",
-        difficulty = new java.math.BigDecimal(113354299801.47),
-        testnet = false,
-        keypoololdest = 1445528771,
-        keypoolsize = 101,
-        paytxfee = 0,
-        // Make sure the Json serialized format is like "5.0e-5"
-        relayfee = new java.math.BigDecimal(5.0e-5),
-        errors = ""
+      Some(
+        GetInfoResult(
+          version = 110100,
+          protocolversion = 70002,
+          walletversion = 60000,
+          balance = 0,
+          blocks = 394722,
+          timeoffset = -24,
+          connections = 8,
+          proxy = "",
+          difficulty = new java.math.BigDecimal(113354299801.47),
+          testnet = false,
+          keypoololdest = 1445528771,
+          keypoolsize = 101,
+          paytxfee = 0,
+          // Make sure the Json serialized format is like "5.0e-5"
+          relayfee = new java.math.BigDecimal(5.0e-5),
+          errors = ""
+        )
       )
     )
   }

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -12,7 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getaccountaddress", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getaccountaddress", "params": [""] }
 
   Json-RPC response :
     {
@@ -22,10 +22,6 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetAccountAddressResult(
-) extends RpcResult
-
-
 /** GetAccountAddress: returns the current Bitcoin address for receiving payments to this account.
   * If the account doesn’t exist, it creates both the account and a new address for receiving payment.
   * Once a payment has been received to an address, future calls to this RPC for the same account will return a different address.
@@ -33,10 +29,10 @@ case class GetAccountAddressResult(
   * https://bitcoin.org/en/developer-reference#getaccountaddress
   */
 object GetAccountAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
+    Right( Some( StringResult( address) ) )
   }
   def help() : String =
     """getaccountaddress "account"

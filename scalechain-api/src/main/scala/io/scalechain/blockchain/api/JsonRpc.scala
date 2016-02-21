@@ -22,7 +22,7 @@ import io.scalechain.blockchain.api.command.utility._
 import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.proto.Hash
 import spray.json._
-import io.scalechain.util.{HexUtil, Config}
+import io.scalechain.util.{ByteArray, HexUtil, Config}
 
 
 
@@ -34,50 +34,119 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
     def read(value :JsValue) = ""
   }
 */
+  implicit object HashFormat extends RootJsonFormat[Hash] {
+    // Instead of { value : "cafebebe" }, we need to serialize the hash to "cafebebe"
+    def write(hash : Hash) = JsString( ByteArray.byteArrayToString(hash.value) )
 
-  implicit val implcitGetInfoResult = jsonFormat15(GetInfoResult.apply)
-  implicit val implcitScriptPubKey = jsonFormat5(ScriptPubKey.apply)
+    // Not used.
+    def read(value:JsValue) = {
+      assert(false)
+      null
+    }
+  }
 
-  implicit val implcitGetTxOutResult = jsonFormat6(GetTxOutResult.apply)
+  implicit val implicitGetInfoResult = jsonFormat15(GetInfoResult.apply)
+
+  implicit val implicitScriptPubKey = jsonFormat5(ScriptPubKey.apply)
+  implicit val implicitGetTxOutResult = jsonFormat6(GetTxOutResult.apply)
+
+  implicit val implicitGetBlockResult = jsonFormat14(GetBlockResult.apply)
+
+  implicit val implicitPeerInfoResult = jsonFormat20(PeerInfo.apply)
+
+  implicit val implicitRawScriptSig           = jsonFormat2(RawScriptSig.apply)
+
+  implicit val implicitRawGenerationTransactionInput = jsonFormat2(RawGenerationTransactionInput.apply)
+  implicit val implicitRawNormalTransactionInput     = jsonFormat4(RawNormalTransactionInput.apply)
+
+  implicit object RawTransactionInputFormat extends RootJsonFormat[RawTransactionInput] {
+    def write(txInput : RawTransactionInput) = txInput match {
+      case tx : RawGenerationTransactionInput => tx.toJson
+      case tx : RawNormalTransactionInput     => tx.toJson
+    }
+
+    // Not used.
+    def read(value:JsValue) = {
+      assert(false)
+      null
+    }
+  }
+
+  implicit val implicitRawScriptPubKey               = jsonFormat5(RawScriptPubKey.apply)
+  implicit val implicitRawTransactionOutput          = jsonFormat3(RawTransactionOutput.apply)
+  implicit val implicitDecodedRawTransaction         = jsonFormat5(DecodedRawTransaction.apply)
+  implicit val implicitRawTransaction                = jsonFormat10(RawTransaction.apply)
+
+  implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
+
+  implicit val implicitTransactionItem               = jsonFormat19(TransactionItem.apply)
+
+  implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoin.apply)
 
   implicit object JsonRpcResultFormat extends RootJsonFormat[RpcResult] {
-    case class Dummy() extends RpcResult
     def write(result : RpcResult) = result match {
-      // Need to set the string result value instead of a serialized json object with field name/value mappings.
-      case r : StringResult => r.result.toJson
-/*
-      // Need to set the string result value instead of a serialized json object with field name/value mappings.
-      //case r : Hash => HexUtil.hex(r.value.array).toJson
-*/
+
+      case StringResult(value)            => JsString(value)
+
+      case GetPeerInfoResult( items )     => items.toJson
+      case ListTransactionsResult(items)  => items.toJson
+      case ListUnspentResult(items)       => items.toJson
+
+      case r : DecodedRawTransaction      => r.toJson
+      case r : RawTransaction             => r.toJson
+
       case r : GetInfoResult              => r.toJson
       case r : GetTxOutResult             => r.toJson
 
       case r : GetBlockResult             => r.toJson
-      case r : HelpResult                 => r.toJson
-      case r : SubmitBlockResult          => r.toJson
-      case r : GetPeerInfoResult          => r.toJson
-      case r : DecodeRawTransactionResult => r.toJson
-      case r : GetRawTransactionResult    => r.toJson
-      case r : SendRawTransactionResult   => r.toJson
       case r : SignRawTransactionResult   => r.toJson
-      case r : GetAccountResult           => r.toJson
-      case r : GetAccountAddressResult    => r.toJson
-      case r : GetNewAddressResult        => r.toJson
-      case r : GetReceivedByAddressResult => r.toJson
-      case r : ListTransactionsResult     => r.toJson
-      case r : ListUnspentResult          => r.toJson
-      case r : SendFromResult             => r.toJson
 
-      // RPCs that returns StringResult to not require to map the result to Json
+      // RPCs that returns String do not require to map the result to Json
       // case r : GetBestBlockHashResult     => r.toJson
       // case r : GetBlockHashResult         => r.toJson
+      // case r : GetAccountResult           => r.toJson
+      // case r : GetNewAddressResult        => r.toJson
+      // case r : GetAccountAddressResult    => r.toJson
+      // case r : GetReceivedByAddressResult => r.toJson
+      // case r : SubmitBlockResult          => r.toJson
+      // case r : SendRawTransactionResult   => r.toJson
+      // case r : SendFromResult             => r.toJson
+      // case r : HelpResult                 => r.toJson
     }
-    def read(value:JsValue) = Dummy()
+
+    // Not used.
+    def read(value:JsValue) = {
+      assert(false)
+      null
+    }
   }
 
-  implicit val implcitJsonRpcError = jsonFormat3(RpcError.apply)
-  implicit val implcitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
-  implicit val implcitJsonRpcResponse = jsonFormat3(RpcResponse.apply)
+
+  implicit val implicitJsonRpcError = jsonFormat3(RpcError.apply)
+  implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
+
+  /** Serializes RpcResponse to Json string.
+    *
+    * Reason of not using jsonFormat3 :
+    *   We need to serialize RpcResponse.result to null when it is None.
+    *   ( Need to do the same serialization for the RpcResponse.error field. )
+    */
+  implicit object RpcResponseJsonFormat extends RootJsonFormat[RpcResponse] {
+    def write(rpcResponse: RpcResponse) =
+      JsObject(
+        //"result" -> rpcResponse.result.map( JsonRpcResultFormat.write(_) ).getOrElse(JsNull),
+        "result" -> rpcResponse.result.map( _.toJson ).getOrElse(JsNull),
+        //"error"  -> rpcResponse.error.map( implicitJsonRpcError.write(_) ).getOrElse(JsNull),
+        "error"  -> rpcResponse.error.map( _.toJson ).getOrElse(JsNull),
+        "id" -> JsString(rpcResponse.id)
+      )
+
+    // Not used.
+    def read(value: JsValue) = {
+      assert(false)
+      null
+    }
+  }
 
   // format: OFF
   val routes = {
@@ -101,6 +170,13 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 //   Content-Type: plain/text
 //   Content-Type: plain/text;
 object JsonRpcMicroservice extends App with JsonRpc {
+  /*
+  case class A(x : String, y : Option[String])
+  implicit val x = jsonFormat2( A.apply )
+
+  println(s"test: ${(A("aa", None)).toJson}");
+  */
+
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()
   implicit val ec = system.dispatcher

@@ -44,10 +44,10 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getblocktemplate
   */
 object GetBlockTemplate extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     assert(false)
-    Right(null)
+    Right(None)
   }
   def help() : String =
     """getblocktemplate ( "jsonrequestobject" )

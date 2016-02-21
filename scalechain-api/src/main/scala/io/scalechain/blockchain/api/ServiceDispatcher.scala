@@ -3,7 +3,7 @@ package io.scalechain.blockchain.api
 import io.scalechain.blockchain.api.command._
 import io.scalechain.blockchain.api.command.blockchain.p1.GetTxOut
 import io.scalechain.blockchain.api.command.control.p1.GetInfo
-import io.scalechain.blockchain.api.domain.{RpcResult, RpcError, RpcResponse, RpcRequest}
+import io.scalechain.blockchain.api.domain.{ RpcError, RpcResponse, RpcRequest}
 import spray.json._
 
 trait ServiceDispatcher {
@@ -22,9 +22,9 @@ trait ServiceDispatcher {
             id = request.id
           )
         }
-        case Right(rpcResult) => {
+        case Right(rpcResultOption) => {
           RpcResponse(
-            result = Some(rpcResult),
+            result = rpcResultOption,
             error = None,
             id = request.id
           )

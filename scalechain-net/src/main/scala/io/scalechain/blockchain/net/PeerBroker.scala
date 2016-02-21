@@ -42,7 +42,7 @@ class PeerBroker extends Actor {
   import PeerBroker._
 
   def receive = {
-
+    // BUGBUG : Change to case class
     case (connectedPeer:Peer, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
       println("PeerBroker.receive")
 

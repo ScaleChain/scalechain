@@ -35,10 +35,10 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#createmultisig
   */
 object CreateMultiSig extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     assert(false)
-    Right(null)
+    Right(None)
   }
   def help() : String =
     """createmultisig nrequired ["key",...]

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -12,7 +12,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     0.30000000
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": ["mjSk1Ny9spzU2fouzYgLqGUD8U41iR35QN", 6] }
 
   Json-RPC response :
     {
@@ -22,10 +22,6 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetReceivedByAddressResult(
-) extends RpcResult
-
-
 /** GetReceivedByAddress: returns the total amount received by the specified address
   * in transactions with the specified number of confirmations.
   * It does not count coinbase transactions.
@@ -33,10 +29,10 @@ case class GetReceivedByAddressResult(
   * https://bitcoin.org/en/developer-reference#getreceivedbyaddress
   */
 object GetReceivedByAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val totalReceived = scala.math.BigDecimal(0.1)
+    Right( Some( NumberResult( totalReceived) ) )
   }
   def help() : String =
     """getreceivedbyaddress "bitcoinaddress" ( minconf )

@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.api.command.wallet
+package io.scalechain.blockchain.api.command.wallet.p3
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
@@ -58,10 +58,10 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#gettransaction
   */
 object GetTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     assert(false)
-    Right(null)
+    Right(None)
   }
   def help() : String =
     """gettransaction "txid" ( includeWatchonly )

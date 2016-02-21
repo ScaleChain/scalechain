@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -11,7 +11,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     doc test
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "getaccount", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getaccount", "params": ["mjSk1Ny9spzU2fouzYgLqGUD8U41iR35QN"] }
 
   Json-RPC response :
     {
@@ -21,19 +21,15 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetAccountResult(
-) extends RpcResult
-
-
 /** GetAccount: returns the name of the account associated with the given address.
   *
   * https://bitcoin.org/en/developer-reference#getaccount
   */
 object GetAccount extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val accountName = "account_name"
+    Right( Some( StringResult(accountName ) )  )
   }
   def help() : String =
     """getaccount "bitcoinaddress"

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.Hash
 
 /*
   CLI command :
@@ -75,7 +76,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "decoderawtransaction", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "decoderawtransaction", "params": ["0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000"] }
 
   Json-RPC response :
     {
@@ -85,7 +86,104 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class DecodeRawTransactionResult(
+case class RawScriptSig(
+  // The signature script in decoded form with non-data-pushing opcodes listed
+  asm : String, // "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+  // The signature script encoded as hex
+  hex : String  // "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+)
+
+trait RawTransactionInput
+
+case class RawNormalTransactionInput(
+  // The TXID of the outpoint being spent, encoded as hex in RPC byte order. Not present if this is a coinbase transaction
+  txid      : Hash,          // "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26",
+
+  // The output index number (vout) of the outpoint being spent.
+  // The first output in a transaction has an index of 0.
+  // Not present if this is a coinbase transaction
+  vout      : Int,          // 0,
+
+  // An object describing the signature script of this input.
+  // Not present if this is a coinbase transaction
+  scriptSig : RawScriptSig,
+
+  // The input sequence number
+  sequence  : Long          // 4294967295
+) extends RawTransactionInput
+
+
+case class RawGenerationTransactionInput(
+  // The coinbase (similar to the hex field of a scriptSig) encoded as hex. Only present if this is a coinbase transaction
+  coinbase  : String,
+
+  // The input sequence number
+  sequence  : Long          // 4294967295
+) extends RawTransactionInput
+
+
+case class RawScriptPubKey(
+  // The pubkey script in decoded form with non-data-pushing opcodes listed
+  asm       : String,      // "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+
+  // The pubkey script encoded as hex
+  hex       : String,      // "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+
+  // The number of signatures required; this is always 1 for P2PK, P2PKH,
+  // and P2SH (including P2SH multisig because the redeem script is not available in the pubkey script).
+  // It may be greater than 1 for bare multisig.
+  // This value will not be returned for nulldata or nonstandard script types
+  reqSigs   : Option[Int], // 1,
+
+  // The type of script. This will be one of the following:
+  // • pubkey for a P2PK script
+  // • pubkeyhash for a P2PKH script
+  // • scripthash for a P2SH script
+  // • multisig for a bare multisig script
+  // • nulldata for nulldata scripts
+  // • nonstandard for unknown scripts
+  `type`    : Option[String],  //"pubkeyhash",
+
+  // The P2PKH or P2SH addresses used in this transaction, or the computed P2PKH address of any pubkeys in this transaction.
+  // This array will not be returned for nulldata or nonstandard script types
+  //
+  // addresses item : A P2PKH or P2SH address
+  addresses : List[String] //["moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7"]
+)
+
+
+
+
+case class RawTransactionOutput(
+  // The number of bitcoins paid to this output. May be 0
+  value        : scala.math.BigDecimal, // 0.39890000
+  // The output index number of this output within this transaction
+  n            : Int,                   // 0
+  // An object describing the pubkey script
+  scriptPubKey : RawScriptPubKey
+)
+
+case class DecodedRawTransaction(
+  // The transaction’s TXID encoded as hex in RPC byte order
+  txid     : Hash, // "ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e",
+
+  // The transaction format version number
+  version  : Int, // 1,
+
+  // The transaction’s locktime: either a Unix epoch date or block height; see the Locktime parsing rules
+  locktime : Long, // 0,
+
+  // An array of objects with each object being an input vector (vin) for this transaction.
+  // Input objects will have the same order within the array as they have in the transaction,
+  // so the first input listed will be input 0
+  // vin item : An object describing one of this transaction’s inputs. May be a regular input or a coinbase
+  vin      : List[RawTransactionInput],
+
+  // An array of objects each describing an output vector (vout) for this transaction.
+  // Output objects will have the same order within the array as they have in the transaction,
+  // so the first output listed will be output 0
+  // vout item : An object describing one of this transaction’s outputs
+  vout     : List[RawTransactionOutput]
 ) extends RpcResult
 
 
@@ -94,10 +192,45 @@ case class DecodeRawTransactionResult(
   * https://bitcoin.org/en/developer-reference#decoderawtransaction
   */
 object DecodeRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    Right(
+      Some(
+        DecodedRawTransaction(
+          Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
+          1,
+          0L,
+          List(
+            RawGenerationTransactionInput(
+              "Kangmo's transaction",
+              4294967295L
+            ),
+            RawNormalTransactionInput(
+              Hash( "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
+              0,
+              RawScriptSig(
+                "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+                "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+              ),
+              4294967295L
+            )
+          ),
+          List(
+            RawTransactionOutput(
+              0.39890000,
+              0,
+              RawScriptPubKey(
+                "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+                "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+                Some(1),
+                Some("pubkeyhash"),
+                List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
+              )
+            )
+          )
+        )
+      )
+    )
   }
   def help() : String =
     """decoderawtransaction "hexstring"

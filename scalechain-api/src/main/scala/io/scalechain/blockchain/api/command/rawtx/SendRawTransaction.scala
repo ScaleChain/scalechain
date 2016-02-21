@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -18,7 +18,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     f5a5ce5988cc72b9b90e8d1d6c910cda53c88d2175177357cc2f2cf0899fbaad
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "sendrawtransaction", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "sendrawtransaction", "params": ["01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e000000006a47304402200ebea9f630f3ee35fa467ffc234592c79538ecd6eb1c9199eb23c4a16a0485a20220172ecaf6975902584987d295b8dddf8f46ec32ca19122510e22405ba52d1f13201210256d16d76a49e6c8e2edc1c265d600ec1a64a45153d45c29a2fd0228c24c3a524ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac0000000"] }
 
   Json-RPC response :
     {
@@ -28,19 +28,15 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class SendRawTransactionResult(
-) extends RpcResult
-
-
 /** SendRawTransaction: validates a transaction and broadcasts it to the peer-to-peer network.
   *
   * https://bitcoin.org/en/developer-reference#sendrawtransaction
   */
 object SendRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val txHashString = "f5a5ce5988cc72b9b90e8d1d6c910cda53c88d2175177357cc2f2cf0899fbaad"
+    Right( Some( StringResult(txHashString) ) )
   }
   def help() : String =
     """sendrawtransaction "hexstring" ( allowhighfees )

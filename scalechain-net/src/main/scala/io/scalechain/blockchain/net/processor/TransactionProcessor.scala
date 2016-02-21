@@ -27,6 +27,7 @@ class TransactionProcessor(peerBroker : ActorRef) extends Actor {
       }
     }
 
+    // BUGBUG : Change to case class
     case (from:InetSocketAddress, inventories : List[InvVector]) => {
       //assert(inventory.invType == InvType.MSG_TRANSACTION)
       println("TransactionProcessor received InvVector(MSG_TRANSACTION)")

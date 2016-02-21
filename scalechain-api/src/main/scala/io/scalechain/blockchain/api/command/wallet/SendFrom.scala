@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.ByteArray
 
 /*
   CLI command :
@@ -20,7 +22,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "sendfrom", "params": [] }
+    {"jsonrpc": "1.0", "id":" ", "method": "sendfrom", "params": ["mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe", 0.1, 6, "Example spend", "Example.com"] }
 
   Json-RPC response :
     {
@@ -30,19 +32,19 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class SendFromResult(
-) extends RpcResult
 
 /** SendFrom: spends an amount from a local account to a bitcoin address.
   *
   * https://bitcoin.org/en/developer-reference#sendfrom
   */
 object SendFrom extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
+
+    Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))
   }
+
   def help() : String =
     """sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
       |

@@ -61,22 +61,24 @@ case class GetTxOutResult(
   * https://bitcoin.org/en/developer-reference#gettxout
   */
 object GetTxOut extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     Right(
-      GetTxOutResult(
-        bestblock = "000000000000000001ef38012ed2e2f674e59bf2314e55f2b4e6f71a7657df50",
-        confirmations = 5,
-        value = 15,
-        scriptPubKey = ScriptPubKey (
-          asm = "OP_DUP OP_HASH160 60692856b3121dab03f477f130b9fee7e6e60234 OP_EQUALVERIFY OP_CHECKSIG",
-          hex = "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
-          reqSigs = 1,
-          `type` = "pubkeyhash",
-          addresses = Array[String]( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
-        ),
-        version = 1,
-        coinbase = false
+      Some(
+        GetTxOutResult(
+          bestblock = "000000000000000001ef38012ed2e2f674e59bf2314e55f2b4e6f71a7657df50",
+          confirmations = 5,
+          value = 15,
+          scriptPubKey = ScriptPubKey (
+            asm = "OP_DUP OP_HASH160 60692856b3121dab03f477f130b9fee7e6e60234 OP_EQUALVERIFY OP_CHECKSIG",
+            hex = "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
+            reqSigs = 1,
+            `type` = "pubkeyhash",
+            addresses = Array[String]( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
+          ),
+          version = 1,
+          coinbase = false
+        )
       )
     )
   }

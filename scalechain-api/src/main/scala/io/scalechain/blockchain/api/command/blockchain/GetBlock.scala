@@ -45,20 +45,38 @@ import Hash._
 */
 
 case class GetBlockResult(
+  // The hash of this block’s block header encoded as hex in RPC byte order. This is the same as the hash provided in parameter #1
   hash : Hash,                        // "000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"
+  // The number of confirmations the transactions in this block have,
+  // starting at 1 when this block is at the tip of the best block chain.
+  // This score will be -1 if the the block is not part of the best block chain
   confirmations : Long,               // 88029
+  // The size of this block in serialized block format, counted in bytes
   size : Int,                         // 189
+  // The height of this block on its block chain
   height : Long,                      // 227252
+  // This block’s version number. See block version numbers
   version : Int,                      // 2
+  // The merkle root for this block, encoded as hex in RPC byte order
   merkleroot : Hash,                  // "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"
+  // An array containing the TXIDs of all transactions in this block.
+  // The transactions appear in the array in the same order they appear in the serialized block
+  // tx item : The TXID of a transaction in this block, encoded as hex in RPC byte order
   tx : List[Hash],                    // [ "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a" ]
+  // The value of the time field in the block header, indicating approximately when the block was created
   time : Long,                        // 1398824312
-  nonce : Int,                        // 1883462912
+  // The nonce which was successful at turning this particular block into one that could be added to the best block chain
+  nonce : Long,                        // 1883462912
+  // The value of the nBits field in the block header, indicating the target threshold this block’s header had to pass
   bits : String,                      // "1d00ffff"
+  // The estimated amount of work done to find this block relative to the estimated amount of work done to find block 0
   difficulty : scala.math.BigDecimal, // 1.00000000
+  // The estimated number of block header hashes miners had to check from the genesis block to this block, encoded as big-endian hex
   chainwork : Hash,                   // "000000000000000000000000000000000000000000000000083ada4a4009841a"
-  previousblockhash : Hash,           // "00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df"
-  nextblockhash : Hash                // "00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"*/
+  // The hash of the header of the previous block, encoded as hex in RPC byte order. Not returned for genesis block
+  previousblockhash : Option[Hash],   // "00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df"
+  // The hash of the next block on the best block chain, if known, encoded as hex in RPC byte order
+  nextblockhash : Option[Hash]        // "00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"*/
 ) extends RpcResult
 
 /** GetBlock: gets a block with a particular header hash
@@ -67,24 +85,26 @@ case class GetBlockResult(
   * https://bitcoin.org/en/developer-reference#getblock
   */
 object GetBlock extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     Right(
-      GetBlockResult(
-        Hash("000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"),
-        88029,
-        189,
-        227252,
-        2,
-        Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"),
-        List(Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a")),
-        1398824312,
-        1883462912,
-        "1d00ffff",
-        1.00000000,
-        Hash("000000000000000000000000000000000000000000000000083ada4a4009841a"),
-        Hash("00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df"),
-        Hash("00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188")
+      Some(
+        GetBlockResult(
+          Hash("000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"),
+          88029,
+          189,
+          227252,
+          2,
+          Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"),
+          List(Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a")),
+          1398824312,
+          1883462912,
+          "1d00ffff",
+          1.00000000,
+          Hash("000000000000000000000000000000000000000000000000083ada4a4009841a"),
+          Some(Hash("00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df")),
+          Some(Hash("00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"))
+        )
       )
     )
   }

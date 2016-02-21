@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command.mining
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -16,11 +16,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
       650f529332c47646dac00000000 \
       '{ "workid": "test" }'
 
+
+
   CLI output :
     duplicate
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": ["02000000df11c014a8d798395b5059c722ebdf3171a4217ead71bf6e0e99f4c7000000004a6f6a2db225c81e77773f6f0457bcb05865a94900ed11356d0b75228efb38c7785d6053ffff001d005d43700101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0d03b477030164062f503253482fffffffff0100f9029500000000232103adb7d8ef6b63de74313e0cd4e07670d09a169b13e4eda2d650f529332c47646dac00000000", '{ "workid": "test" }'] }
 
   Json-RPC response :
     {
@@ -30,9 +32,6 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class SubmitBlockResult(
-) extends RpcResult
-
 /** SubmitBlock: accepts a block, verifies it is a valid addition to the block chain, and
   * broadcasts it to the network.
   *
@@ -41,10 +40,11 @@ case class SubmitBlockResult(
   * https://bitcoin.org/en/developer-reference#submitblock
   */
 object SubmitBlock extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    assert(false)
-    Right(null)
+    val errorMessageOption = Some("duplicate")
+    val resultOption = errorMessageOption.map( StringResult( _ ) )
+    Right( resultOption )
   }
   def help() : String =
     """submitblock "hexdata" ( "jsonparametersobject" )

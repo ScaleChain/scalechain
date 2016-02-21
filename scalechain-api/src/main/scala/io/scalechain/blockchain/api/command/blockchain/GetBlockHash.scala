@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, StringResult, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.ByteArray
 
 /*
   CLI command :
@@ -26,9 +28,11 @@ import io.scalechain.blockchain.api.domain.{RpcError, StringResult, RpcRequest, 
   * https://bitcoin.org/en/developer-reference#getblockhash
   */
 object GetBlockHash extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
-    Right(StringResult("00000000a0faf83ab5799354ae9c11da2a2bd6db44058e03c528851dee0a3fff"))
+    val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
+    val hashString = ByteArray.byteArrayToString(blockHash.value)
+    Right( Some( StringResult(hashString) ) )
   }
   def help() : String =
     """getblockhash index

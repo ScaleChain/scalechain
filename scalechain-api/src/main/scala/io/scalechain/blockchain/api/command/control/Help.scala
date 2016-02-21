@@ -2,7 +2,7 @@ package io.scalechain.blockchain.api.command.help
 
 import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, StringResult, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 
 /*
   CLI command :
@@ -30,9 +30,6 @@ import io.scalechain.blockchain.api.domain.{RpcError, StringResult, RpcRequest, 
     }
 */
 
-case class HelpResult(
-) extends RpcResult
-
 /** Help: lists all available public RPC commands, or gets help for the specified RPC.
   *
   * Commands which are unavailable will not be listed, such as wallet RPCs if wallet support is disabled.
@@ -40,7 +37,6 @@ case class HelpResult(
   * https://bitcoin.org/en/developer-reference#help
   */
 object Help extends RpcCommand {
-  // BUGBUG : This is API layer, but the following commands should be defined at CLI layer.
   val helpForAllCommands =
     """
       |== Blockchain ==
@@ -75,15 +71,15 @@ object Help extends RpcCommand {
       |sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
     """.stripMargin
 
-  def invoke(request : RpcRequest) : Either[RpcError, RpcResult] = {
+  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     if (request.params.length == 0) {
-      Right(StringResult(helpForAllCommands))
+      Right( Some( StringResult(helpForAllCommands) ) )
     } else if (request.params.length == 1) {
       val command = request.params(0)
 
       val serviceOption = Services.serviceByCommand.get(command)
       if (serviceOption.isDefined) {
-        Right(StringResult(serviceOption.get.help))
+        Right( Some( StringResult( serviceOption.get.help ) ) )
       } else {
         Left(RpcError(0, "Invalid command", command))
       }
