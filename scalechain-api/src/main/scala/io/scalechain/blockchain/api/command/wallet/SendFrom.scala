@@ -35,6 +35,39 @@ import io.scalechain.util.ByteArray
 
 /** SendFrom: spends an amount from a local account to a bitcoin address.
   *
+  * Parameter #1 : From Account (String, Required)
+  *   The name of the account from which the coins should be spent.
+  *   Use an empty string (“”) for the default account.
+  *
+  * Parameter #2 : To Address (String , Required)
+  *   A P2PKH or P2SH address to which the coins should be sent.
+  *
+  * Parameter #3 : Amount (Number;coins, Required)
+  *   The amount to spend in coins. We will ensure the account has sufficient coins to pay this amount
+  *   (but the transaction fee paid is not included in the calculation,
+  *    so an account can spend a total of its balance plus the transaction fee)
+  *
+  * Parameter #4 : Confirmations (Number;int, Optional)
+  *   The minimum number of confirmations an incoming transaction must have
+  *   for its outputs to be credited to this account’s balance.
+  *
+  *   Outgoing transactions are always counted, as are move transactions made with the move RPC.
+  *   If an account doesn’t have a balance high enough to pay for this transaction,
+  *   the payment will be rejected. Use 0 to spend unconfirmed incoming payments. Default is 1.
+  *
+  *   Warning : if account1 receives an unconfirmed payment and transfers it to account2 with the move RPC,
+  *   account2 will be able to spend those bitcoins even if this parameter is set to 1 or higher.
+  *
+  * Parameter #5 : Comment (String, Optional)
+  *   A locally-stored (not broadcast) comment assigned to this transaction. Default is no comment.
+  *
+  * Parameter #6 : Comment To (String, Optional)
+  *   A locally-stored (not broadcast) comment assigned to this transaction.
+  *   Meant to be used for describing who the payment was sent to. Default is no comment.
+  *
+  * Result: (String)
+  *   The TXID of the sent transaction, encoded as hex in RPC byte order.
+  *
   * https://bitcoin.org/en/developer-reference#sendfrom
   */
 object SendFrom extends RpcCommand {

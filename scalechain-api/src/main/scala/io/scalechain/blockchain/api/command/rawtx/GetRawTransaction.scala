@@ -137,6 +137,24 @@ case class RawTransaction(
   * By default, Bitcoin Core only stores complete transaction data for UTXOs and your own transactions,
   * so the RPC may fail on historic transactions unless you use the non-default txindex=1 in your Bitcoin Core startup settings.
   *
+  * Parameter #1 : TXID (String;hex, Required)
+  *   The TXID of the transaction to get, encoded as hex in RPC byte order.
+  *
+  * Parameter #1 : Verbose (Number;int[0,1], Optional)
+  *   Set to 0 (the default) to return the serialized transaction as hex.
+  *   Set to 1 to return a decoded transaction.
+  *
+  * Result: (null)
+  *   If the transaction wasn’t found, the result will be JSON null.
+  *   This can occur because the transaction doesn’t exist in the block chain or memory pool,
+  *   or because it isn’t part of the transaction index. See the help entry for -txindex
+  *
+  * Result: (String;hex) (if Verbose = 0 )
+  *   If the transaction was found, this will be the serialized transaction encoded as hex.
+  *
+  * Result: (Object) (if Verbose = 1 )
+  *   If the transaction was found, this will be an object describing it.
+  *
   * https://bitcoin.org/en/developer-reference#getrawtransaction
   */
 object GetRawTransaction extends RpcCommand {

@@ -30,6 +30,25 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
 
 /** SendRawTransaction: validates a transaction and broadcasts it to the peer-to-peer network.
   *
+  * Parameter #1 : Transaction (String;hex, Required)
+  *   The serialized transaction to broadcast encoded as hex.
+  *
+  * Parameter #2 : Allow High Fees (Boolean, Optional)
+  *   Set to true to allow the transaction to pay a high transaction fee.
+  *   Set to false (the default) to prevent ScaleChain from broadcasting the transaction if it includes a high fee.
+  *   Transaction fees are the sum of the inputs minus the sum of the outputs,
+  *   so this high fees check helps ensures user including a change address
+  *   to return most of the difference back to themselves.
+  *
+  * Result: (String;hex)
+  *   If the transaction was accepted by the node for broadcast,
+  *   this will be the TXID of the transaction encoded as hex in RPC byte order.
+  *
+  * Result: (null)
+  *   If the transaction was rejected by the node, this will set to null,
+  *   the JSON-RPC error field will be set to a code,
+  *   and the JSON-RPC message field may contain an informative error message.
+  *
   * https://bitcoin.org/en/developer-reference#sendrawtransaction
   */
 object SendRawTransaction extends RpcCommand {

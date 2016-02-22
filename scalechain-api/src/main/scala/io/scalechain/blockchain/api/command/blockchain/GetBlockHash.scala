@@ -23,7 +23,15 @@ import io.scalechain.util.ByteArray
     }
 */
 
+
 /** GetBlockHash: returns the header hash of a block at the given height in the local best block chain.
+  *
+  * Parameter #1 : Block Height (Number;int, Required)
+  *   The height of the block whose header hash should be returned.
+  *   The height of the hardcoded genesis block is 0.
+  *
+  * Result: (String;hex)
+  *   The hash of the block at the requested height, encoded as hex in RPC byte order, or JSON null if an error occurred.
   *
   * https://bitcoin.org/en/developer-reference#getblockhash
   */

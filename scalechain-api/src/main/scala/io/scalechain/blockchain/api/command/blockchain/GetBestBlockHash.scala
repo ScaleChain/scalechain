@@ -28,6 +28,11 @@ import io.scalechain.util.ByteArray
   *
   * Since - New in 0.9.0
   *
+  * Parameters: none
+  *
+  * Result : (String;hex)
+  *   The hash of the block header from the most recent block on the best block chain, encoded as hex in RPC byte order
+  *
   * https://bitcoin.org/en/developer-reference#getbestblockhash
   */
 object GetBestBlockHash extends RpcCommand {

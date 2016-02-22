@@ -104,6 +104,12 @@ case class GetPeerInfoResult(peerInfos : List[PeerInfo]) extends RpcResult
   *
   * Updated in 0.10.0
   *
+  * Parameters: none
+  *
+  * Result: (Array)
+  *   An array of objects each describing one connected node.
+  *   If there are no connections, the array will be empty.
+  *
   * https://bitcoin.org/en/developer-reference#getpeerinfo
   */
 object GetPeerInfo extends RpcCommand {

@@ -23,6 +23,12 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
 
 /** GetAccount: returns the name of the account associated with the given address.
   *
+  * Parameter #1 : Address (String;base58, Required)
+  *   A P2PKH or P2SH address belonging either to a specific account or the default account (“”).
+  *
+  * Result: (String)
+  *   The name of an account, or an empty string (“”, the default account).
+  *
   * https://bitcoin.org/en/developer-reference#getaccount
   */
 object GetAccount extends RpcCommand {

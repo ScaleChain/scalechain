@@ -67,6 +67,23 @@ case class ListUnspentResult( unspentCoins : List[UnspentCoin] )  extends RpcRes
   *
   * Updated in 0.10.0
   *
+  * Parameter #1 : Minimum Confirmations (Number;int, Optional)
+  *   The minimum number of confirmations the transaction containing an output must have in order to be returned.
+  *   Use 0 to return outputs from unconfirmed transactions. Default is 1.
+  *
+  * Parameter #2 : Maximum Confirmations (Number;int, Optional)
+  *   The maximum number of confirmations the transaction containing an output may have in order to be returned.
+  *   Default is 9999999 (~10 million)
+  *
+  * Parameter #3 : Addresses (Array, Optional)
+  *   If present, only outputs which pay an address in this array will be returned.
+  *
+  *   Array item : (String;base58)
+  *     	A P2PKH or P2SH address.
+  *
+  * Result: (Array)
+  *   An array of objects each describing an unspent output. May be empty.
+  *
   * https://bitcoin.org/en/developer-reference#listunspent
   */
 object ListUnspent extends RpcCommand {

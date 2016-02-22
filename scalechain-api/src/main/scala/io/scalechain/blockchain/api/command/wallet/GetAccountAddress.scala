@@ -22,9 +22,16 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
     }
 */
 
-/** GetAccountAddress: returns the current Bitcoin address for receiving payments to this account.
+/** GetAccountAddress: returns the current address for receiving payments to this account.
   * If the account doesn’t exist, it creates both the account and a new address for receiving payment.
   * Once a payment has been received to an address, future calls to this RPC for the same account will return a different address.
+  *
+  * Parameter #1 : Account (String, Required)
+  *   The name of an account. Use an empty string (“”) for the default account.
+  *   If the account doesn’t exist, it will be created.
+  *
+  * Result: (String;base58)
+  *   An address, belonging to the account specified, which has not yet received any payments.
   *
   * https://bitcoin.org/en/developer-reference#getaccountaddress
   */

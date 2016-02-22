@@ -1,7 +1,16 @@
 package io.scalechain.blockchain.api.domain
 
 
-case class RpcParams(paramValues:List[Any])
+case class RpcParams(paramValues:List[Any]) {
+/*
+  def get(index : Int) = paramValues(index)
+  def getString(index : Int) =
+  def getLong(index : Int)
+  def getInt(index : Int)
+  def getBigDeceimal(index : Int)
+  def getObject[T](index : Int)
+*/
+}
 
 // BUGBUG : A Int value may come as an element of params.
 // Ex> ["abc", 1]

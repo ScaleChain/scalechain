@@ -82,6 +82,20 @@ case class GetBlockResult(
 /** GetBlock: gets a block with a particular header hash
   * from the local block database either as a JSON object or as a serialized block.
   *
+  * Parameter #1 : Header Hash (String, Required)
+  *   The hash of the header of the block to get, encoded as hex in RPC byte order
+  *
+  * Parameter #2 : Format (Boolean, Optional)
+  *   Set to false to get the block in serialized block format;
+  *   set to true (the default) to get the decoded block as a JSON object
+  *
+  * Result: (String;hex) (if Format was false)
+  *   The requested block as a serialized block, encoded as hex, or JSON null if an error occurred.
+  *
+  * Result: (Object;hex) (if Format was true or omitted)
+  *   An object containing the requested block, or JSON null if an error occurred
+  *
+  *
   * https://bitcoin.org/en/developer-reference#getblock
   */
 object GetBlock extends RpcCommand {

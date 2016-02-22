@@ -37,6 +37,21 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
   *
   * Extra parameters are ignored by Bitcoin Core but may be used by mining pools or other programs.
   *
+  * Parameter #1 : Block (String;hex, Required)
+  *   The full block to submit in serialized block format as hex.
+  *
+  * Parameter #2 : Parameters (Object, Optional)
+  *   A JSON object containing extra parameters. Not used directly by Bitcoin Core and also not broadcast to the network.
+  *   This is available for use by mining pools and other software. A common parameter is a workid string.
+  *
+  * Result :
+  *   If the block submission succeeded, set to JSON null.
+  *   If submission failed, set to one of the following strings: duplicate, duplicate-invalid, inconclusive, or rejected.
+  *   The JSON-RPC error field will still be set to null if submission failed for one of these reasons
+  *
+  * Result: (Type)
+  *   Description
+  *
   * https://bitcoin.org/en/developer-reference#submitblock
   */
 object SubmitBlock extends RpcCommand {

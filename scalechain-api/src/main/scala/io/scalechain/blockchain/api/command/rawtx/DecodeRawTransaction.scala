@@ -189,6 +189,12 @@ case class DecodedRawTransaction(
 
 /** DecodeRawTransaction: decodes a serialized transaction hex string into a JSON object describing the transaction.
   *
+  * Parameter #1 : Serialized Transaction (String;hex, Required)
+  *   The transaction to decode in serialized transaction format.
+  *
+  * Result: (Object)
+  *   An object describing the decoded transaction, or JSON null if the transaction could not be decoded.
+  *
   * https://bitcoin.org/en/developer-reference#decoderawtransaction
   */
 object DecodeRawTransaction extends RpcCommand {

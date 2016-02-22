@@ -41,6 +41,29 @@ case class SignRawTransactionResult(
 /** SignRawTransaction: signs a transaction in the serialized transaction format
   * using private keys stored in the wallet or provided in the call.
   *
+  * Parameter #1 : Transaction (String;hex, Required)
+  *   The transaction to sign as a serialized transaction.
+  *
+  * Parameter #2 : Dependencies (Array, Optional)
+  *   Unspent transaction output details. The previous outputs being spent by this transaction.
+  *
+  * Parameter #3 : Private Keys (Array, Optional)
+  *   An array holding private keys.
+  *   If any keys are provided, only they will be used to sign the transaction (even if the wallet has other matching keys).
+  *   If this array is empty or not used, and wallet support is enabled, keys from the wallet will be used.
+  *
+  *   Array item : String;base58
+  *     A private key in base58check format to use to create a signature for this transaction
+  *
+  * Parameter #4 : SigHash (String, Optional)
+  *   The type of signature hash to use for all of the signatures performed.
+  *   (You must use separate calls to the signrawtransaction RPC
+  *    if you want to use different signature hash types for different signatures.
+  *    The allowed values are: ALL, NONE, SINGLE, ALL|ANYONECANPAY, NONE|ANYONECANPAY, and SINGLE|ANYONECANPAY)
+  *
+  * Result: (Object)
+  *   The results of the signature.
+  *
   * https://bitcoin.org/en/developer-reference#signrawtransaction
   */
 object SignRawTransaction extends RpcCommand {

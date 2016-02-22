@@ -118,6 +118,29 @@ case class ListTransactionsResult( transactionItems : List[TransactionItem] ) ex
   *
   * Updated in 0.10.0
   *
+  * Parameter #1 : Account (Type, Optional)
+  *   The name of an account to get transactinos from. Use an empty string (“”) to get transactions for the default account. Default is * to get transactions for all accounts
+  *
+  * Parameter #2 : Count (Number;int, Optional)
+  *   The number of the most recent transactions to list. Default is 10.
+  *
+  * Parameter #3 : Skip (Number;int, Optional)
+  *   The number of the most recent transactions which should not be returned.
+  *   Allows for pagination of results. Default is 0.
+  *
+  * Parameter #4 : Include WatchOnly (Boolean, Optional)
+  *   ( Since : 0.10.0 )
+  *   If set to true, include watch-only addresses in details
+  *   and calculations as if they were regular addresses belonging to the wallet.
+  *
+  *   If set to false (the default), treat watch-only addresses as if they didn’t belong to this wallet.
+  *
+  * Result: (Array)
+  *   An array containing objects, with each object describing a payment or
+  *   internal accounting entry (not a transaction).
+  *
+  *   More than one object in this array may come from a single transaction. Array may be empty.
+  *
   * https://bitcoin.org/en/developer-reference#listtransactions
   */
 object ListTransactions extends RpcCommand {

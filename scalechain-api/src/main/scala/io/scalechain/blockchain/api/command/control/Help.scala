@@ -34,6 +34,14 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
   *
   * Commands which are unavailable will not be listed, such as wallet RPCs if wallet support is disabled.
   *
+  * Parameter #1 : RPC (String, Optional)
+  *   The name of the RPC to get help for.
+  *   If omitted, display a categorized list of commands.
+  *
+  * Result: (String)
+  *   The help text for the specified RPC or the list of commands.
+  *   The scalechain-cli command will parse this text and format it as human-readable text.
+  *
   * https://bitcoin.org/en/developer-reference#help
   */
 object Help extends RpcCommand {
