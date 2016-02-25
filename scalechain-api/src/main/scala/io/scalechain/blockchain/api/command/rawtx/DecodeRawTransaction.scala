@@ -2,7 +2,9 @@ package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -120,6 +122,28 @@ case class RawGenerationTransactionInput(
   // The input sequence number
   sequence  : Long          // 4294967295
 ) extends RawTransactionInput
+
+object RawTransactionInputJsonFormat {
+  import HashFormat._
+
+  implicit val implicitRawScriptSig                  = jsonFormat2(RawScriptSig.apply)
+
+  implicit val implicitRawGenerationTransactionInput = jsonFormat2(RawGenerationTransactionInput.apply)
+  implicit val implicitRawNormalTransactionInput     = jsonFormat4(RawNormalTransactionInput.apply)
+
+  implicit object rawTransactionInputJsonFormat extends RootJsonFormat[RawTransactionInput] {
+    def write(txInput : RawTransactionInput) = txInput match {
+      case tx : RawGenerationTransactionInput => tx.toJson
+      case tx : RawNormalTransactionInput     => tx.toJson
+    }
+
+    // Not used.
+    def read(value:JsValue) = {
+      assert(false)
+      null
+    }
+  }
+}
 
 
 case class RawScriptPubKey(

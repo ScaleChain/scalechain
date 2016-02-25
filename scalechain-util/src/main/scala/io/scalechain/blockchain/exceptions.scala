@@ -47,30 +47,45 @@ object ErrorCode {
   val OutOfFileSpace = ErrorCode("out_of_file_space")
   val BlockFilePathNotExists = ErrorCode("block_file_path_not_exists")
   val InvalidFileNumber = ErrorCode("invalid_file_number")
+
+  // RPC errors
+  val RpcRequestParseFailure = ErrorCode("rpc_request_parse_failure")
+  val RpcParameterTypeConversionFailure = ErrorCode("rpc_parameter_type_conversion_failure")
+  val RpcMissingRequiredParameter = ErrorCode("rpc_missing_required_parameter")
+  val RpcArgumentLessThanMinValue = ErrorCode("rpc_argument_less_than_min_value")
+  val RpcArgumentGreaterThanMaxValue = ErrorCode("rpc_argument_greater_than_max_value")
 }
 
+
 case class ErrorCode(val code:String)
+
+trait ExceptionWithErrorCode extends Exception {
+  val message : String = ""
+  val code : ErrorCode
+}
 
 /**
  * Created by kangmo on 11/2/15.
  */
-class FatalException(val code:ErrorCode) extends Exception
+class FatalException(val code:ErrorCode) extends ExceptionWithErrorCode
 
-class ScriptEvalException(val code:ErrorCode) extends Exception
+class ScriptEvalException(val code:ErrorCode) extends ExceptionWithErrorCode
 
-class ScriptParseException(val code:ErrorCode) extends Exception
+class ScriptParseException(val code:ErrorCode) extends ExceptionWithErrorCode
 
-class ProtocolCodecException(val code : ErrorCode, val message : String = "") extends Exception
+class ProtocolCodecException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
-class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String ) extends Exception
+class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String ) extends ExceptionWithErrorCode
 
-class TransactionStorageException(val code : ErrorCode) extends Exception
+class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
-class BlockStorageException(val code : ErrorCode) extends Exception
+class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
-class TransactionVerificationException(val code:ErrorCode, val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends Exception
+class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends ExceptionWithErrorCode
 {
   override def toString() = {
     s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"
   }
 }
+
+class RpcException(val code :ErrorCode, override val message : String = "") extends ExceptionWithErrorCode

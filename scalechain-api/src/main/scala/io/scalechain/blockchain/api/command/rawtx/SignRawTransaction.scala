@@ -1,8 +1,12 @@
 package io.scalechain.blockchain.api.command.rawtx
 
+import io.scalechain.blockchain.{ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.HashFormat
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 /*
   CLI command :
     bitcoin-cli -testnet signrawtransaction 01000000011da9283b4ddf8d\
@@ -38,6 +42,19 @@ case class SignRawTransactionResult(
   complete : Boolean//true
 ) extends RpcResult
 
+
+case class UnspentTranasctionOutput(
+  // The TXID of the transaction the output appeared in. The TXID must be encoded in hex in RPC byte order
+  txid      : Hash,
+  // The index number of the output (vout) as it appeared in its transaction, with the first output being 0
+  vout      : Int,
+  // The output’s pubkey script encoded as hex
+  scriptPubKey : String,
+  // If the pubkey script was a script hash, this must be the corresponding redeem script
+  redeemScript : Option[String]
+)
+
+
 /** SignRawTransaction: signs a transaction in the serialized transaction format
   * using private keys stored in the wallet or provided in the call.
   *
@@ -66,17 +83,49 @@ case class SignRawTransactionResult(
   *
   * https://bitcoin.org/en/developer-reference#signrawtransaction
   */
+class InvalidRpcParameter extends Exception
 object SignRawTransaction extends RpcCommand {
+
+  val rpcErrorMap = Map(
+    ErrorCode.RpcRequestParseFailure -> RpcError.RPC_INVALID_REQUEST,
+    ErrorCode.RpcParameterTypeConversionFailure -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.RpcMissingRequiredParameter -> RpcError.RPC_INVALID_REQUEST
+  )
+
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    Right(
-      Some(
-        SignRawTransactionResult(
-          "01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e000000006a47304402200ebea9f630f3ee35fa467ffc234592c79538ecd6eb1c9199eb23c4a16a0485a20220172ecaf6975902584987d295b8dddf8f46ec32ca19122510e22405ba52d1f13201210256d16d76a49e6c8e2edc1c265d600ec1a64a45153d45c29a2fd0228c24c3a524ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
-          true
+
+    try {
+      import HashFormat._
+      implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTranasctionOutput.apply)
+
+      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
+      val transaction : String = request.params.get[String]("Transaction", 0)
+      val dependencies : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
+      val privateKeys : Option[List[String]] = request.params.getListOption[String]("Private Keys", 2)
+      val sigHash : Option[String] = request.params.getOption[String]("SigHash", 3)
+
+      // TODO : Implement
+      Right(
+        Some(
+          SignRawTransactionResult(
+            "01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e000000006a47304402200ebea9f630f3ee35fa467ffc234592c79538ecd6eb1c9199eb23c4a16a0485a20220172ecaf6975902584987d295b8dddf8f46ec32ca19122510e22405ba52d1f13201210256d16d76a49e6c8e2edc1c265d600ec1a64a45153d45c29a2fd0228c24c3a524ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
+            true
+          )
         )
       )
-    )
+    } catch {
+      case e : ExceptionWithErrorCode => {
+        val rpcError = rpcErrorMap(e.code)
+        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.message))
+      }
+    }
+/*
+      {
+
+      case e : InvalidRpcParameter  => {
+        Left(RpcError( RpcError.RPC_INVALID_PARAMS.code, RpcError.RPC_INVALID_PARAMS.messagePrefix, e.toString))
+    }
+*/
   }
   def help() : String =
     """signrawtransaction "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] ["privatekey1",...] sighashtype )

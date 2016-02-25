@@ -20,30 +20,14 @@ import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.api.command.utility._
 
 import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import spray.json.DefaultJsonProtocol._
 import spray.json._
 import io.scalechain.util.{ByteArray, HexUtil, Config}
 
-
-
-// use it wherever json (un)marshalling is needed
-trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
-/*
-  implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
-    def write(value : AnyRef) = value.toJson
-    def read(value :JsValue) = ""
-  }
-*/
-  implicit object HashFormat extends RootJsonFormat[Hash] {
-    // Instead of { value : "cafebebe" }, we need to serialize the hash to "cafebebe"
-    def write(hash : Hash) = JsString( ByteArray.byteArrayToString(hash.value) )
-
-    // Not used.
-    def read(value:JsValue) = {
-      assert(false)
-      null
-    }
-  }
+// TODO : Need to move to scalechain-api-domain?
+object RpcResultJsonFormat {
+  import HashFormat._
 
   implicit val implicitGetInfoResult = jsonFormat15(GetInfoResult.apply)
 
@@ -54,23 +38,8 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 
   implicit val implicitPeerInfoResult = jsonFormat20(PeerInfo.apply)
 
-  implicit val implicitRawScriptSig           = jsonFormat2(RawScriptSig.apply)
 
-  implicit val implicitRawGenerationTransactionInput = jsonFormat2(RawGenerationTransactionInput.apply)
-  implicit val implicitRawNormalTransactionInput     = jsonFormat4(RawNormalTransactionInput.apply)
-
-  implicit object RawTransactionInputFormat extends RootJsonFormat[RawTransactionInput] {
-    def write(txInput : RawTransactionInput) = txInput match {
-      case tx : RawGenerationTransactionInput => tx.toJson
-      case tx : RawNormalTransactionInput     => tx.toJson
-    }
-
-    // Not used.
-    def read(value:JsValue) = {
-      assert(false)
-      null
-    }
-  }
+  import RawTransactionInputJsonFormat._
 
   implicit val implicitRawScriptPubKey               = jsonFormat5(RawScriptPubKey.apply)
   implicit val implicitRawTransactionOutput          = jsonFormat3(RawTransactionOutput.apply)
@@ -83,7 +52,8 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 
   implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoin.apply)
 
-  implicit object JsonRpcResultFormat extends RootJsonFormat[RpcResult] {
+
+  implicit object format extends RootJsonFormat[RpcResult] {
     def write(result : RpcResult) = result match {
 
       case StringResult(value)            => JsString(value)
@@ -121,49 +91,20 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
       null
     }
   }
+}
 
+/** Serializes RpcResponse to Json string.
+  *
+  * Reason of not using jsonFormat3 :
+  *   We need to serialize RpcResponse.result to null when it is None.
+  *   ( Need to do the same serialization for the RpcResponse.error field. )
+  */
+object RpcResponseJsonFormat {
+  import RpcResultJsonFormat._
 
   implicit val implicitJsonRpcError = jsonFormat3(RpcError.apply)
 
-  implicit object AnyJsonFormat extends RootJsonFormat[Any] {
-    def write( any : Any ) = {
-      // Not used.
-      assert(false);
-      "".toJson
-    }
-
-    def read( value: JsValue ) : Any = {
-      value match {
-        case v : JsString => v.convertTo[String]
-        case v : JsNumber => v.convertTo[scala.math.BigDecimal]
-        case v : JsBoolean => v.convertTo[Boolean]
-        case _ => assert(false)
-      }
-    }
-
-  }
-
-  implicit object RpcParamsJsonFormat extends RootJsonFormat[RpcParams] {
-    def write( anyList : RpcParams ) = {
-      // Not used.
-      assert(false);
-      "".toJson
-    }
-
-    def read( value: JsValue ) : RpcParams = {
-      RpcParams( value.convertTo[List[Any]] )
-    }
-  }
-
-  implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
-
-  /** Serializes RpcResponse to Json string.
-    *
-    * Reason of not using jsonFormat3 :
-    *   We need to serialize RpcResponse.result to null when it is None.
-    *   ( Need to do the same serialization for the RpcResponse.error field. )
-    */
-  implicit object RpcResponseJsonFormat extends RootJsonFormat[RpcResponse] {
+  implicit object formatter extends RootJsonFormat[RpcResponse] {
     def write(rpcResponse: RpcResponse) =
       JsObject(
         //"result" -> rpcResponse.result.map( JsonRpcResultFormat.write(_) ).getOrElse(JsNull),
@@ -179,6 +120,46 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
       null
     }
   }
+}
+
+
+// use it wherever json (un)marshalling is needed
+trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
+/*
+  implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
+    def write(value : AnyRef) = value.toJson
+    def read(value :JsValue) = ""
+  }
+*/
+
+  import RpcResultJsonFormat._
+
+
+
+  /*
+  implicit object AnyJsonFormat extends RootJsonFormat[Any] {
+    def write( any : Any ) = {
+      // Not used.
+      assert(false);
+      "".toJson
+    }
+
+    def read( value: JsValue ) : Any = {
+      value match {
+        case v : JsString => v.convertTo[String]
+        case v : JsNumber => v.convertTo[scala.math.BigDecimal]
+        case v : JsBoolean => v.convertTo[Boolean]
+        case _ => assert(false)
+      }
+    }
+  }
+  */
+
+  import RpcParamsJsonFormat._
+
+  implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
+
+  import RpcResponseJsonFormat._
 
   // format: OFF
   val routes = {

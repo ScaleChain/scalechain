@@ -7,7 +7,7 @@ import ByteArray._
 
 import io.scalechain.util.BigIntUtil
 import BigIntUtil._
-
+import spray.json.{JsValue, JsString, RootJsonFormat}
 
 
 abstract class AbstractHash(private val value : ByteArray) extends ProtocolMessage
@@ -29,6 +29,19 @@ abstract class AbstractHash(private val value : ByteArray) extends ProtocolMessa
 case class Hash(value : ByteArray) extends AbstractHash(value) {
   override def toString() = s"Hash($value)"
 }
+object HashFormat {
+  implicit object hashFormat extends RootJsonFormat[Hash] {
+    // Instead of { value : "cafebebe" }, we need to serialize the hash to "cafebebe"
+    def write(hash : Hash) = JsString( ByteArray.byteArrayToString(hash.value) )
+
+    // Not used.
+    def read(value:JsValue) = {
+      assert(false)
+      null
+    }
+  }
+}
+
 
 case class BlockHash(value : ByteArray) extends AbstractHash(value) {
   override def toString() = s"BlockHash($value)"

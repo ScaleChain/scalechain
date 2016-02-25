@@ -35,8 +35,8 @@ trait ServiceDispatcher {
       RpcResponse(
         result = None, // TODO : Need to make sure if this is converted to a json string, "result = null".
         error = Some(RpcError(
-          code = RpcError.METHOD_NOT_FOUND.code,
-          message = RpcError.METHOD_NOT_FOUND.message,
+          code = RpcError.RPC_METHOD_NOT_FOUND.code,
+          message = RpcError.RPC_METHOD_NOT_FOUND.messagePrefix,
           data = methodName
         )),
         id = request.id
