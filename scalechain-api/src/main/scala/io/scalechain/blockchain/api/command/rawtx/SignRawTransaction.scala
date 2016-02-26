@@ -86,23 +86,18 @@ case class UnspentTranasctionOutput(
 class InvalidRpcParameter extends Exception
 object SignRawTransaction extends RpcCommand {
 
-  val rpcErrorMap = Map(
-    ErrorCode.RpcRequestParseFailure -> RpcError.RPC_INVALID_REQUEST,
-    ErrorCode.RpcParameterTypeConversionFailure -> RpcError.RPC_INVALID_PARAMETER,
-    ErrorCode.RpcMissingRequiredParameter -> RpcError.RPC_INVALID_REQUEST
-  )
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
 
-    try {
+    handlingException {
       import HashFormat._
       implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTranasctionOutput.apply)
 
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val transaction : String = request.params.get[String]("Transaction", 0)
-      val dependencies : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
-      val privateKeys : Option[List[String]] = request.params.getListOption[String]("Private Keys", 2)
-      val sigHash : Option[String] = request.params.getOption[String]("SigHash", 3)
+      val transaction   : String                                 = request.params.get[String]("Transaction", 0)
+      val dependencies  : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
+      val privateKeys   : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
+      val sigHash       : Option[String]                         = request.params.getOption[String]("SigHash", 3)
 
       // TODO : Implement
       Right(
@@ -113,11 +108,6 @@ object SignRawTransaction extends RpcCommand {
           )
         )
       )
-    } catch {
-      case e : ExceptionWithErrorCode => {
-        val rpcError = rpcErrorMap(e.code)
-        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.message))
-      }
     }
 /*
       {

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import spray.json._
@@ -223,44 +224,49 @@ case class DecodedRawTransaction(
   */
 object DecodeRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    Right(
-      Some(
-        DecodedRawTransaction(
-          Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
-          1,
-          0L,
-          List(
-            RawGenerationTransactionInput(
-              "Kangmo's transaction",
-              4294967295L
-            ),
-            RawNormalTransactionInput(
-              Hash( "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
-              0,
-              RawScriptSig(
-                "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
-                "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+    handlingException {
+      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
+      val serializedTransaction: String = request.params.get[String]("Serialized Transaction", 0)
+
+      // TODO : Implement
+      Right(
+        Some(
+          DecodedRawTransaction(
+            Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
+            1,
+            0L,
+            List(
+              RawGenerationTransactionInput(
+                "Kangmo's transaction",
+                4294967295L
               ),
-              4294967295L
-            )
-          ),
-          List(
-            RawTransactionOutput(
-              0.39890000,
-              0,
-              RawScriptPubKey(
-                "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
-                "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
-                Some(1),
-                Some("pubkeyhash"),
-                List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
+              RawNormalTransactionInput(
+                Hash("d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
+                0,
+                RawScriptSig(
+                  "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+                  "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+                ),
+                4294967295L
+              )
+            ),
+            List(
+              RawTransactionOutput(
+                0.39890000,
+                0,
+                RawScriptPubKey(
+                  "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+                  "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+                  Some(1),
+                  Some("pubkeyhash"),
+                  List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
+                )
               )
             )
           )
         )
       )
-    )
+    }
   }
   def help() : String =
     """decoderawtransaction "hexstring"

@@ -2,7 +2,10 @@ package io.scalechain.blockchain.api.command.help
 
 import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.HashFormat
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -80,19 +83,22 @@ object Help extends RpcCommand {
     """.stripMargin
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    if (request.params.paramValues.length == 0) {
-      Right( Some( StringResult(helpForAllCommands) ) )
-    } else if (request.params.paramValues.length == 1) {
-      val command = request.params.paramValues(0).toString
+    handlingException {
+      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
+      val rpcName: Option[String] = request.params.getOption[String]("RPC", 0)
 
-      val serviceOption = Services.serviceByCommand.get(command)
-      if (serviceOption.isDefined) {
-        Right( Some( StringResult( serviceOption.get.help ) ) )
+      if (rpcName.isEmpty) {
+        Right(Some(StringResult(helpForAllCommands)))
       } else {
-        Left(RpcError(0, "Invalid command", command))
+        val command = rpcName.get
+
+        val serviceOption = Services.serviceByCommand.get(command)
+        if (serviceOption.isDefined) {
+          Right(Some(StringResult(serviceOption.get.help)))
+        } else {
+          Left(RpcError(0, "Invalid command", command))
+        }
       }
-    } else {
-      Left(RpcError(0, "Need a specific command on the rpc parameter", ""))
     }
   }
 

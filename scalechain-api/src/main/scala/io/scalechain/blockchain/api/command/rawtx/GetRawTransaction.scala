@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -159,54 +161,59 @@ case class RawTransaction(
   */
 object GetRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val rawTransactionOption =
-      Some(
-        RawTransaction(
-        "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
-        Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
-        1,
-        0L,
-        List(
-          RawGenerationTransactionInput(
-            "Kangmo's transaction",
-            4294967295L
-          ),
-          RawNormalTransactionInput(
-            Hash( "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
-            0,
-            RawScriptSig(
-              "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
-              "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+    handlingException {
+      val txId    : String                = request.params.get[String]("TXID", 0)
+      val verbose : scala.math.BigDecimal = request.params.getOption[scala.math.BigDecimal]("Verbose", 1).getOrElse(scala.math.BigDecimal(0))
+
+      // TODO : Implement
+      val rawTransactionOption =
+        Some(
+          RawTransaction(
+            "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
+            Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
+            1,
+            0L,
+            List(
+              RawGenerationTransactionInput(
+                "Kangmo's transaction",
+                4294967295L
+              ),
+              RawNormalTransactionInput(
+                Hash("d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
+                0,
+                RawScriptSig(
+                  "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+                  "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+                ),
+                4294967295L
+              )
             ),
-            4294967295L
+            List(
+              RawTransactionOutput(
+                0.39890000,
+                0,
+                RawScriptPubKey(
+                  "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+                  "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+                  Some(1),
+                  Some("pubkeyhash"),
+                  List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
+                )
+              )
+            ),
+            Some(Hash("00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317")),
+            88192L,
+            Some(1398734825L),
+            Some(1398734825L)
           )
-        ),
-        List(
-          RawTransactionOutput(
-            0.39890000,
-            0,
-            RawScriptPubKey(
-              "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
-              "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
-              Some(1),
-              Some("pubkeyhash"),
-              List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
-            )
-          )
-        ),
-        Some( Hash("00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317") ),
-        88192L,
-        Some( 1398734825L ),
-        Some( 1398734825L )
-      )
-    )
+        )
 
-    // If the transaction wasn’t found, the result will be JSON null.
-    // This can occur because the transaction doesn’t exist in the block chain or memory pool,
-    // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
+      // If the transaction wasn’t found, the result will be JSON null.
+      // This can occur because the transaction doesn’t exist in the block chain or memory pool,
+      // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
 
-    Right( rawTransactionOption )
+      Right(rawTransactionOption)
+    }
   }
   def help() : String =
     """getrawtransaction "txid" ( verbose )

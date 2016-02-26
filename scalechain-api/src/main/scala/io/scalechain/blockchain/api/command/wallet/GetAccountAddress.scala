@@ -1,7 +1,10 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.HashFormat
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -37,9 +40,13 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
   */
 object GetAccountAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
-    Right( Some( StringResult( address) ) )
+    handlingException {
+      val account: String = request.params.get[String]("ACcount", 0)
+
+      // TODO : Implement
+      val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
+      Right(Some(StringResult(address)))
+    }
   }
   def help() : String =
     """getaccountaddress "account"

@@ -1,7 +1,10 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.HashFormat
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -46,9 +49,15 @@ import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, 
   */
 object GetReceivedByAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val totalReceived = scala.math.BigDecimal(0.1)
-    Right( Some( NumberResult( totalReceived) ) )
+    handlingException {
+      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
+      val address      : String                = request.params.get[String]("Address", 0)
+      val confirmation : scala.math.BigDecimal = request.params.getOption[scala.math.BigDecimal]("Confirmations", 1).getOrElse(scala.math.BigDecimal(1))
+
+      // TODO : Implement
+      val totalReceived = scala.math.BigDecimal(0.1)
+      Right(Some(NumberResult(totalReceived)))
+    }
   }
   def help() : String =
     """getreceivedbyaddress "bitcoinaddress" ( minconf )

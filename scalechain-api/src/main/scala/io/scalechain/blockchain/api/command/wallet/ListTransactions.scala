@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -118,7 +120,7 @@ case class ListTransactionsResult( transactionItems : List[TransactionItem] ) ex
   *
   * Updated in 0.10.0
   *
-  * Parameter #1 : Account (Type, Optional)
+  * Parameter #1 : Account (String, Optional)
   *   The name of an account to get transactinos from. Use an empty string (“”) to get transactions for the default account. Default is * to get transactions for all accounts
   *
   * Parameter #2 : Count (Number;int, Optional)
@@ -145,36 +147,44 @@ case class ListTransactionsResult( transactionItems : List[TransactionItem] ) ex
   */
 object ListTransactions extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
 
-    // An array containing objects, with each object describing a payment or internal accounting entry (not a transaction).
-    // More than one object in this array may come from a single transaction. Array may be empty
-    val transactionItems =
-      List(
-        TransactionItem(
-          involvesWatchonly = Some(true),
-          account = "someone else's address2",
-          address = Some("n3GNqMveyvaPvUbH469vDRadqpJMPc84JA"),
-          category = "receive",
-          amount = 0.00050000,
-          vout = Some(0),
-          fee = Some(0.0002),
-          confirmations = Some(34714),
-          generated = None,
-          blockhash = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
-          blockindex = Some(11),
-          blocktime = Some(1411051649),
-          txid = Some(Hash("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
-          List(),
-          time = 1418695703,
-          timereceived = Some(1418925580),
-          comment = None,
-          to = None,
-          otheraccount = None
+    handlingException {
+      val account         : String  = request.params.getOption[String] ("Account", 0).getOrElse("")
+      val count           : Int     = request.params.getOption[Int]    ("Count", 1).getOrElse(10)
+      val skip            : Long    = request.params.getOption[Long]   ("Skip", 2).getOrElse(0)
+      val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
+
+      // TODO : Implement
+
+      // An array containing objects, with each object describing a payment or internal accounting entry (not a transaction).
+      // More than one object in this array may come from a single transaction. Array may be empty
+      val transactionItems =
+        List(
+          TransactionItem(
+            involvesWatchonly = Some(true),
+            account = "someone else's address2",
+            address = Some("n3GNqMveyvaPvUbH469vDRadqpJMPc84JA"),
+            category = "receive",
+            amount = 0.00050000,
+            vout = Some(0),
+            fee = Some(0.0002),
+            confirmations = Some(34714),
+            generated = None,
+            blockhash = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
+            blockindex = Some(11),
+            blocktime = Some(1411051649),
+            txid = Some(Hash("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
+            List(),
+            time = 1418695703,
+            timereceived = Some(1418925580),
+            comment = None,
+            to = None,
+            otheraccount = None
+          )
         )
-      )
 
-    Right( Some( ListTransactionsResult(transactionItems) ) )
+      Right(Some(ListTransactionsResult(transactionItems)))
+    }
   }
   def help() : String =
     """listtransactions ( "account" count from includeWatchonly)

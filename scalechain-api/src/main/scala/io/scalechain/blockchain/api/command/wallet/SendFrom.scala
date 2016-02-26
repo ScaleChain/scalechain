@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import io.scalechain.util.ByteArray
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -22,7 +24,7 @@ import io.scalechain.util.ByteArray
     f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":" ", "method": "sendfrom", "params": ["mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe", 0.1, 6, "Example spend", "Example.com"] }
+    {"jsonrpc": "1.0", "id":" ", "method": "sendfrom", "params": ["", "mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe", 0.1, 6, "Example spend", "Example.com"] }
 
   Json-RPC response :
     {
@@ -72,10 +74,19 @@ import io.scalechain.util.ByteArray
   */
 object SendFrom extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
+    handlingException {
+      val fromAccount:   String                = request.params.get[String]("From Account", 0)
+      val toAddress:     String                = request.params.get[String]("To Address", 1)
+      val amount:        scala.math.BigDecimal = request.params.get[scala.math.BigDecimal]("Amount", 2)
+      val confirmations: Long                  = request.params.getOption[Long]("Confirmations", 3).getOrElse(1L)
+      val comment:       Option[String]        = request.params.getOption[String]("Comment", 4)
+      val commentTo:     Option[String]        = request.params.getOption[String]("Comment To", 5)
 
-    Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))
+      // TODO : Implement
+      val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
+
+      Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))
+    }
   }
 
   def help() : String =

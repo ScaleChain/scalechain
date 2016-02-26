@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.SignRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import io.scalechain.util.ByteArray
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -37,9 +39,11 @@ import io.scalechain.util.ByteArray
   */
 object GetBestBlockHash extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
-    Right( Some( StringResult(ByteArray.byteArrayToString(blockHash.value) ) ) )
+    handlingException {
+      // TODO : Implement
+      val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
+      Right(Some(StringResult(ByteArray.byteArrayToString(blockHash.value))))
+    }
   }
   def help() : String =
     """getbestblockhash

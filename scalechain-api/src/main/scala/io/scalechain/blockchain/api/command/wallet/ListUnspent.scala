@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -88,26 +90,33 @@ case class ListUnspentResult( unspentCoins : List[UnspentCoin] )  extends RpcRes
   */
 object ListUnspent extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
 
-    // A list of objects each describing an unspent output. May be empty
-    // item of the list : An object describing a particular unspent output belonging to this wallet
-    val unspentCoins =
-    List(
-      UnspentCoin(
-        txid = Hash("d54994ece1d11b19785c7248868696250ab195605b469632b7bd68130e880c9a"),
-        vout = 1,
-        address = Some("mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe"),
-        account = Some("test label"),
-        scriptPubKey = "76a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac",
-        redeemScript = None,
-        amount = 0.00010000,
-        confirmations = 6210,
-        spendable = true
-      )
-    )
+    handlingException {
+      val minimumConfirmations: Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
+      val maximumConfirmations: Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(9999999L)
+      val addressesOption     : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
 
-    Right( Some( ListUnspentResult( unspentCoins ) ) )
+      // TODO : Implement
+
+      // A list of objects each describing an unspent output. May be empty
+      // item of the list : An object describing a particular unspent output belonging to this wallet
+      val unspentCoins =
+        List(
+          UnspentCoin(
+            txid = Hash("d54994ece1d11b19785c7248868696250ab195605b469632b7bd68130e880c9a"),
+            vout = 1,
+            address = Some("mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe"),
+            account = Some("test label"),
+            scriptPubKey = "76a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac",
+            redeemScript = None,
+            amount = 0.00010000,
+            confirmations = 6210,
+            spendable = true
+          )
+        )
+
+      Right(Some(ListUnspentResult(unspentCoins)))
+    }
   }
   def help() : String =
     """listunspent ( minconf maxconf  ["address",...] )

@@ -1,7 +1,10 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.HashFormat
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -53,9 +56,15 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
   */
 object SendRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val txHashString = "f5a5ce5988cc72b9b90e8d1d6c910cda53c88d2175177357cc2f2cf0899fbaad"
-    Right( Some( StringResult(txHashString) ) )
+
+    handlingException {
+      val transaction  : String  = request.params.get[String]("Transaction", 0)
+      val allowHighFees: Boolean = request.params.getOption[Boolean]("Allow High Fees", 1).getOrElse(false)
+
+      // TODO : Implement
+      val txHashString = "f5a5ce5988cc72b9b90e8d1d6c910cda53c88d2175177357cc2f2cf0899fbaad"
+      Right(Some(StringResult(txHashString)))
+    }
   }
   def help() : String =
     """sendrawtransaction "hexstring" ( allowhighfees )

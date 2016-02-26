@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import io.scalechain.util.{HexUtil, ByteArray}
 import HexUtil._
 import ByteArray._
 import Hash._
+import spray.json.DefaultJsonProtocol._
+
 /*
   CLI command :
     scalechain-cli -testnet getblock \
@@ -100,27 +103,33 @@ case class GetBlockResult(
   */
 object GetBlock extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    Right(
-      Some(
-        GetBlockResult(
-          Hash("000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"),
-          88029,
-          189,
-          227252,
-          2,
-          Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"),
-          List(Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a")),
-          1398824312,
-          1883462912,
-          "1d00ffff",
-          1.00000000,
-          Hash("000000000000000000000000000000000000000000000000083ada4a4009841a"),
-          Some(Hash("00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df")),
-          Some(Hash("00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"))
+    handlingException {
+      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
+      val headerHash  : String  = request.params.get[String]("Header Hash", 0)
+      val format      : Boolean = request.params.getOption[Boolean]("Format", 1).getOrElse(true)
+
+      // TODO : Implement
+      Right(
+        Some(
+          GetBlockResult(
+            Hash("000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"),
+            88029,
+            189,
+            227252,
+            2,
+            Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"),
+            List(Hash("c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a")),
+            1398824312,
+            1883462912,
+            "1d00ffff",
+            1.00000000,
+            Hash("000000000000000000000000000000000000000000000000083ada4a4009841a"),
+            Some(Hash("00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df")),
+            Some(Hash("00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"))
+          )
         )
       )
-    )
+    }
   }
   def help() : String =
     """getblock "hash" ( verbose )
