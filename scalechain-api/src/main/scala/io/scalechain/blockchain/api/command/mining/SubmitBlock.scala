@@ -1,7 +1,11 @@
 package io.scalechain.blockchain.api.command.mining
 
+import io.scalechain.blockchain.{ErrorCode, RpcException}
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.rawtx.DecodeRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :
@@ -56,10 +60,18 @@ import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, 
   */
 object SubmitBlock extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    val errorMessageOption = Some("duplicate")
-    val resultOption = errorMessageOption.map( StringResult( _ ) )
-    Right( resultOption )
+    handlingException {
+      val serializedBlock : String  = request.params.get[String]("Block", 0)
+      val parameters      : JsObject = request.params.paramValues(1) match {
+        case jsObject : JsObject => jsObject
+        case _ => throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
+      }
+
+      // TODO : Implement
+      val errorMessageOption = Some("duplicate")
+      val resultOption = errorMessageOption.map(StringResult(_))
+      Right(resultOption)
+    }
   }
   def help() : String =
     """submitblock "hexdata" ( "jsonparametersobject" )

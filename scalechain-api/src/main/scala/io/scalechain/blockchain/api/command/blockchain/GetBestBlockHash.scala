@@ -40,6 +40,7 @@ import spray.json.DefaultJsonProtocol._
 object GetBestBlockHash extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
+
       // TODO : Implement
       val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
       Right(Some(StringResult(ByteArray.byteArrayToString(blockHash.value))))

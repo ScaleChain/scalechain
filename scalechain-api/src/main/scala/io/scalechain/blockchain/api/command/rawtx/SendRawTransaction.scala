@@ -58,7 +58,7 @@ object SendRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
 
     handlingException {
-      val transaction  : String  = request.params.get[String]("Transaction", 0)
+      val serializedTransaction  : String  = request.params.get[String]("Transaction", 0)
       val allowHighFees: Boolean = request.params.getOption[Boolean]("Allow High Fees", 1).getOrElse(false)
 
       // TODO : Implement

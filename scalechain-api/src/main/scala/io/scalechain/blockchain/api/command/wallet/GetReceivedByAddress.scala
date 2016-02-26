@@ -52,7 +52,7 @@ object GetReceivedByAddress extends RpcCommand {
     handlingException {
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
       val address      : String                = request.params.get[String]("Address", 0)
-      val confirmation : scala.math.BigDecimal = request.params.getOption[scala.math.BigDecimal]("Confirmations", 1).getOrElse(scala.math.BigDecimal(1))
+      val confirmation : Long = request.params.getOption[Long]("Confirmations", 1).getOrElse(1L)
 
       // TODO : Implement
       val totalReceived = scala.math.BigDecimal(0.1)

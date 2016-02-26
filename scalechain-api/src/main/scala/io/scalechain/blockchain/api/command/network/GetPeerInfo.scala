@@ -2,7 +2,9 @@ package io.scalechain.blockchain.api.command.network
 
 
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.mining.SubmitBlock._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+
 
 /*
   CLI command :
@@ -114,35 +116,36 @@ case class GetPeerInfoResult(peerInfos : List[PeerInfo]) extends RpcResult
   */
 object GetPeerInfo extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-
-    // TODO : Implement
-    val peerInfos =
-      List(
-        PeerInfo(
-          9,
-          "192.0.2.113:18333",
-          Some("192.0.2.51:18333"),
-          "0000000000000002",
-          1419277992,
-          1419277992,
-          4968,
-          105078,
-          1419265985,
-          0.05617800,
-          None,
-          70001,
-          "/Satoshi:0.8.6/",
-          false,
-          315280,
-          0,
-          -1,
-          -1,
-          List(),
-          false
+    handlingException {
+      // TODO : Implement
+      val peerInfos =
+        List(
+          PeerInfo(
+            9,
+            "192.0.2.113:18333",
+            Some("192.0.2.51:18333"),
+            "0000000000000002",
+            1419277992,
+            1419277992,
+            4968,
+            105078,
+            1419265985,
+            0.05617800,
+            None,
+            70001,
+            "/Satoshi:0.8.6/",
+            false,
+            315280,
+            0,
+            -1,
+            -1,
+            List(),
+            false
+          )
         )
-      )
 
-    Right( Some( GetPeerInfoResult( peerInfos ) ) )
+      Right(Some(GetPeerInfoResult(peerInfos)))
+    }
   }
   def help() : String =
     """getpeerinfo

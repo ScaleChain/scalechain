@@ -25,7 +25,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-/** GetNewAddress: returns a new Bitcoin address for receiving payments.
+/** GetNewAddress: returns a new coin address for receiving payments.
   * If an account is specified, payments received with the address will be credited to that account.
   *
   * Parameter #1 : Account (String, Optional)
