@@ -5,6 +5,7 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.wallet.UnspentTranasctionOutput
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 /*
@@ -41,19 +42,6 @@ case class SignRawTransactionResult(
   // The value true if transaction is fully signed; the value false if more signatures are required
   complete : Boolean//true
 ) extends RpcResult
-
-
-case class UnspentTranasctionOutput(
-  // The TXID of the transaction the output appeared in. The TXID must be encoded in hex in RPC byte order
-  txid      : Hash,
-  // The index number of the output (vout) as it appeared in its transaction, with the first output being 0
-  vout      : Int,
-  // The output’s pubkey script encoded as hex
-  scriptPubKey : String,
-  // If the pubkey script was a script hash, this must be the corresponding redeem script
-  redeemScript : Option[String]
-)
-
 
 /** SignRawTransaction: signs a transaction in the serialized transaction format
   * using private keys stored in the wallet or provided in the call.

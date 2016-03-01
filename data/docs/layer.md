@@ -12,6 +12,8 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +------------------------------------------------+
 |                   APIDomain                    |
 +------------------------------------------------+
+|                   Wallet                       |
++------------------------------------------------+
 |                   Net                          |
 +------------------------------------------------+
 |                   Transaction                  |
@@ -30,8 +32,6 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 ## Cli
 A jar package containing all CLI(command line interface) utilities such as DumpChain.
 
-## Main
-A jar package containing the ScaleChain main class to run P2P nodes.
 
 ## API
 The Json-RPC API layer. 100% Compatible with Bitcoin.
@@ -39,6 +39,10 @@ The Json-RPC API layer. 100% Compatible with Bitcoin.
 ## API Domain
 Contains domain objects such as Json-RPC request or response.
 These are implemented as case classes, and referenced by CLI and API layer.
+
+## Wallet
+The wallet layer. Contains all features related to a wallet, creating transactions, signing transactions,
+creating accounts, creating addresses an account etc.
 
 ## Net
 The P2P networking layer. 100% Compatible with Bitcoin. 

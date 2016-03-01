@@ -12,5 +12,5 @@ trait BlockStorage {
 
   def storeBlock(block : Block)
   def getBlock(hash : Hash) : Option[Block]
-  def hasBlock(hash:Hash) : Boolean
+  def hasBlock(hash : Hash) : Boolean
 }

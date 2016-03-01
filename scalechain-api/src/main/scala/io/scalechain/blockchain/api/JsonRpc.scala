@@ -20,7 +20,9 @@ import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.api.command.utility._
 
 import io.scalechain.blockchain.api.domain._
+import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import io.scalechain.wallet.UnspentCoin
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 import io.scalechain.util.{ByteArray, HexUtil, Config}

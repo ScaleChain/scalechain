@@ -5,8 +5,8 @@ import io.scalechain.blockchain.script.HashCalculator
 
 import scala.collection.mutable
 
-/**
-  * Created by kangmo on 2/14/16.
+/** Store/Retrieve transactions on a memory pool.
+  *
   */
 class TransientTransactionStorage extends TransactionStorage {
   val transactionsByHash = mutable.HashMap[Hash, Transaction]()
