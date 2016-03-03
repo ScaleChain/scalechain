@@ -47,7 +47,7 @@ import spray.json.DefaultJsonProtocol._
 object GetNewAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val account: String = request.params.getOption[String]("ACcount", 0).getOrElse("")
+      val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
 
       // TODO : Implement
       val newAddress = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
