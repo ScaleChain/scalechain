@@ -4,14 +4,14 @@ package io.scalechain.wallet
 class AccountStore {
   /** Find an account by coin address.
     *
-    * Used by : getaccount RPC.
-    *
-    * @param address The coin address, which is attached to the account.
-    * @return The found account.
+  * Used by : getaccount RPC.
+  *
+  * @param address The coin address, which is attached to the account.
+  * @return The found account.
     */
   def getAccount(address : CoinAddress) : Account = {
+
     // TODO : Implement
-    assert(false)
-    null
+    Account("getaccount")
   }
 }
