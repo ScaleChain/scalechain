@@ -45,8 +45,12 @@ object RecordStorage {
   case class FileRecordLocator(fileIndex : Int, recordLocator : RecordLocator)
 }
 
-/**
-  * Created by kangmo on 2/15/16.
+/** Maintains a list of record files.
+  *
+  * Why?
+  *   A record file has a maximum size. If a file reaches the maximum size, we need to add a new record file.
+  *   Record storage keeps track of multiple record files, enables us to search a record by a record locator,
+  *   which hash the file index of the multiple record files.
   */
 class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : String, maxFileSize : Long)(implicit protocol : NetworkProtocol ) {
   val logger = LoggerFactory.getLogger(classOf[RecordStorage[ProtocolMessage]])
