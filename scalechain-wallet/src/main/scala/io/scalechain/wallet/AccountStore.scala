@@ -20,4 +20,15 @@ class AccountStore {
       throw new RpcException(ErrorCode.RpcInvalidAddress)
     }
   }
+
+  /**
+    *
+    * @param account
+    * @return true or false (whether or not account name is valid)
+    */
+  def isValid(account: String) : Boolean = {
+
+    assert(false)
+    false
+  }
 }

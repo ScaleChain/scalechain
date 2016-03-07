@@ -1,9 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.HashFormat
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -45,6 +43,7 @@ import spray.json.DefaultJsonProtocol._
   * https://bitcoin.org/en/developer-reference#getnewaddress
   */
 object GetNewAddress extends RpcCommand {
+
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
       val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
@@ -55,6 +54,7 @@ object GetNewAddress extends RpcCommand {
       Right(Some(StringResult(newAddress)))
     }
   }
+
   def help() : String =
     """getnewaddress ( "account" )
       |

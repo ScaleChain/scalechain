@@ -26,4 +26,27 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
     thrown.code shouldBe ErrorCode.RpcInvalidAddress
   }
 
+  "isValid" should "return boolean value if the parameter exists" in {
+
+    val accountStore = new AccountStore()
+    val account = "test"
+
+    accountStore.isValid(account) shouldBe a [java.lang.Boolean]
+  }
+
+  "isValid" should "return true value if the account name is valid" in {
+
+    val accountStore = new AccountStore()
+    val account = "test"
+
+    accountStore.isValid(account) shouldEqual(true)
+  }
+
+  "isValid" should "return false value if the account name is invalid" in {
+
+    val accountStore = new AccountStore()
+    val account = "*"
+
+    accountStore.isValid(account) shouldEqual(false)
+  }
 }
