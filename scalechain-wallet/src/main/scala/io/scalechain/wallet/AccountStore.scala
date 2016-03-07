@@ -1,6 +1,6 @@
 package io.scalechain.wallet
 
-import io.scalechain.blockchain.{ErrorCode, WalletException}
+import io.scalechain.blockchain.{RpcException, ErrorCode}
 
 // [ Wallet layer ] Store/Retrieve accounts
 class AccountStore {
@@ -17,7 +17,7 @@ class AccountStore {
       val account = Some("getAccount") // TODO: Replace findAccount in storage layer
       Account(account.getOrElse(""))
     } else {
-      throw new WalletException(ErrorCode.AddressNotValid)
+      throw new RpcException(ErrorCode.RpcInvalidAddress)
     }
   }
 }

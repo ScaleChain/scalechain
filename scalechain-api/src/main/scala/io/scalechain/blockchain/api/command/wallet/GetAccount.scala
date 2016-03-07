@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.wallet._
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -39,11 +38,15 @@ object GetAccount extends RpcCommand {
     handlingException {
       val address: String = request.params.get[String]("Address", 0)
 
-      // TODO : Implement
-      val accountName = "account_name"
+      val accountStore = new AccountStore
+      val coinAddress = new CoinAddress(address)
+      val account = accountStore.getAccount(coinAddress)
+
+      val accountName = account.name
       Right(Some(StringResult(accountName)))
     }
   }
+
   def help() : String =
     """getaccount "bitcoinaddress"
       |

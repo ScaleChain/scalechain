@@ -1,6 +1,6 @@
 package io.scalechain.wallet
 
-import io.scalechain.blockchain.{WalletException, ErrorCode}
+import io.scalechain.blockchain.{RpcException, ErrorCode}
 import org.scalatest._
 
 /**
@@ -22,8 +22,8 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
     val accountStore = new AccountStore()
     val coinAddress = CoinAddress("1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62ia32d4s")
 
-    val thrown = the [WalletException] thrownBy accountStore.getAccount(coinAddress)
-    thrown.code shouldBe ErrorCode.AddressNotValid
+    val thrown = the [RpcException] thrownBy accountStore.getAccount(coinAddress)
+    thrown.code shouldBe ErrorCode.RpcInvalidAddress
   }
 
 }
