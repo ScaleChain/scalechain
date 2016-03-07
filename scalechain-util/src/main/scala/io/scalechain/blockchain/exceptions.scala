@@ -54,6 +54,9 @@ object ErrorCode {
   val RpcMissingRequiredParameter = ErrorCode("rpc_missing_required_parameter")
   val RpcArgumentLessThanMinValue = ErrorCode("rpc_argument_less_than_min_value")
   val RpcArgumentGreaterThanMaxValue = ErrorCode("rpc_argument_greater_than_max_value")
+
+  // Wallet errors
+  val AddressNotValid = ErrorCode("address_not_valid")
 }
 
 
@@ -89,3 +92,5 @@ class TransactionVerificationException(val code:ErrorCode, override val message 
 }
 
 class RpcException(val code :ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
+
+class WalletException(val code: ErrorCode) extends ExceptionWithErrorCode

@@ -1,5 +1,7 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.{ErrorCode, WalletException}
+
 // [ Wallet layer ] Store/Retrieve accounts
 class AccountStore {
   /** Find an account by coin address.
@@ -11,7 +13,11 @@ class AccountStore {
     */
   def getAccount(address : CoinAddress) : Account = {
 
-    // TODO : Implement
-    Account("getaccount")
+    if(address.isValid) {
+      val account = Some("getAccount") // TODO: Replace findAccount in storage layer
+      Account(account.getOrElse(""))
+    } else {
+      throw new WalletException(ErrorCode.AddressNotValid)
+    }
   }
 }
