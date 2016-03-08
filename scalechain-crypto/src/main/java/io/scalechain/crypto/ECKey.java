@@ -1,23 +1,60 @@
 package io.scalechain.crypto;
 
+import io.scalechain.util.Utils;
+
+import com.google.common.base.MoreObjects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
 import org.spongycastle.asn1.x9.X9ECParameters;
+import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.ec.CustomNamedCurves;
 import org.spongycastle.crypto.params.*;
 import org.spongycastle.crypto.signers.ECDSASigner;
+import org.spongycastle.crypto.generators.ECKeyPairGenerator;
 import org.spongycastle.math.ec.FixedPointUtil;
 
 import java.math.BigInteger;
 import java.io.*;
 import java.util.Objects;
+import java.security.SecureRandom;
 
 /**
  * Source code copied from Mike Hearn's BitcoinJ.
  */
 public class ECKey {
     private static final Logger log = LoggerFactory.getLogger(ECKey.class);
+
+    // The two parts of the key.
+    protected final BigInteger priv;
+    protected final LazyECPoint pub;
+
+    private byte[] pubKeyHash;
+
+    protected long creationTimeSeconds;
+
+    private static final SecureRandom secureRandom;
+
+    /**
+     * Generates an entirely new keypair. Point compression is used so the resulting public key will be 33 bytes
+     * (32 for the co-ordinate and 1 byte to represent the y bit).
+     */
+    public ECKey() {
+        this(secureRandom);
+    }
+
+    public ECKey(SecureRandom secureRandom) {
+        ECKeyPairGenerator generator = new ECKeyPairGenerator();
+        ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(CURVE, secureRandom);
+        generator.init(keygenParams);
+        AsymmetricCipherKeyPair keypair = generator.generateKeyPair();
+        ECPrivateKeyParameters privParams = (ECPrivateKeyParameters) keypair.getPrivate();
+        ECPublicKeyParameters pubParams = (ECPublicKeyParameters) keypair.getPublic();
+        priv = privParams.getD();
+        pub = new LazyECPoint(CURVE.getCurve(), pubParams.getQ().getEncoded(true));
+        creationTimeSeconds = Utils.currentTimeSeconds();
+    }
 
     /**
      * <p>Verifies the given ECDSA signature against the message bytes using the public key bytes.</p>
@@ -44,6 +81,41 @@ public class ECKey {
         }
     }
 
+    /**
+     * Gets the private key in the form of an integer field element. The public key is derived by performing EC
+     * point addition this number of times (i.e. point multiplying).
+     *
+     * @throws java.lang.IllegalStateException if the private key bytes are not available.
+     */
+    public BigInteger getPrivKey() {
+        if (priv == null)
+            throw new MissingPrivateKeyException();
+        return priv;
+    }
+
+    /**
+     * Returns a 32 byte array containing the private key.
+     * @throws io.scalechain.crypto.ECKey.MissingPrivateKeyException if the private key bytes are missing/encrypted.
+     */
+    public byte[] getPrivKeyBytes() {
+        return Utils.bigIntegerToBytes(getPrivKey(), 32);
+    }
+
+    public String getPrivateKeyAsHex() {
+        return Utils.HEX.encode(getPrivKeyBytes());
+    }
+
+    public String getPublicKeyAsHex() {
+        return Utils.HEX.encode(pub.getEncoded());
+    }
+
+    /** Gets the hash160 form of the public key (as seen in addresses). */
+    public byte[] getPubKeyHash() {
+        if (pubKeyHash == null)
+            pubKeyHash = HashFunctions.sha256hash160(this.pub.getEncoded());
+        return pubKeyHash;
+    }
+
     // The parameters of the secp256k1 curve that Bitcoin uses.
     private static final X9ECParameters CURVE_PARAMS = CustomNamedCurves.getByName("secp256k1");
 
@@ -63,9 +135,8 @@ public class ECKey {
         CURVE = new ECDomainParameters(CURVE_PARAMS.getCurve(), CURVE_PARAMS.getG(), CURVE_PARAMS.getN(),
                 CURVE_PARAMS.getH());
         HALF_CURVE_ORDER = CURVE_PARAMS.getN().shiftRight(1);
+        secureRandom = new SecureRandom();
     }
-
-
 
     /**
      * Groups the two components that make up a signature, and provides a way to encode to DER form, which is
@@ -211,7 +282,23 @@ public class ECKey {
                 return false; // S value excessively padded
             return true;
         }
+
     }
 
+    public static class MissingPrivateKeyException extends RuntimeException { }
+
+    @Override
+    public String toString() {
+        return toString(false);
+    }
+
+    private String toString(boolean includePrivate) {
+        final MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this).omitNullValues();
+        helper.add("pub Bytes", pub.getEncoded());
+        helper.add("pub HEX", getPublicKeyAsHex());
+        helper.add("priv", getPrivKey());
+        helper.add("priv HEX", getPrivateKeyAsHex());
+        return helper.toString();
+    }
 
 }

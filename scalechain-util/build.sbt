@@ -10,6 +10,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-core-experimental"          % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-experimental"               % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-spray-json-experimental"    % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaStreamV
+    "com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaStreamV,
+    "com.google.guava" % "guava" % "19.0"
   )
 }

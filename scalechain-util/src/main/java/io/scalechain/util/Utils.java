@@ -1,10 +1,13 @@
 package io.scalechain.util;
 
+import com.google.common.io.BaseEncoding;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.Date;
 
 /**
  * Copied some functions from BitcoinJ by Mike Hearn.
@@ -12,6 +15,11 @@ import java.math.BigInteger;
  * Source : core/src/main/java/org/bitcoinj/script/Script.java
  */
 public class Utils {
+
+    /**
+     * Hex encoding used throughout the framework. Use with HEX.encode(byte[]) or HEX.decode(CharSequence).
+     */
+    public static final BaseEncoding HEX = BaseEncoding.base16().lowerCase();
 
     public static long readUint32(InputStream stream) throws IOException {
         return (stream.read() & 0xFFL) |
@@ -47,6 +55,18 @@ public class Utils {
         stream.write((int) (0xFF & (val >> 40)));
         stream.write((int) (0xFF & (val >> 48)));
         stream.write((int) (0xFF & (val >> 56)));
+    }
+
+    public static byte[] bigIntegerToBytes(BigInteger b, int numBytes) {
+        if (b == null) {
+            return null;
+        }
+        byte[] bytes = new byte[numBytes];
+        byte[] biBytes = b.toByteArray();
+        int start = (biBytes.length == numBytes + 1) ? 1 : 0;
+        int length = Math.min(biBytes.length, numBytes);
+        System.arraycopy(biBytes, start, bytes, numBytes - length, length);
+        return bytes;
     }
 
     /**
@@ -240,6 +260,21 @@ public class Utils {
      */
     public static byte[] removeAllInstancesOfOp(byte[] inputScript, int opCode) {
         return removeAllInstancesOf(inputScript, new byte[] {(byte)opCode});
+    }
+
+    /**
+     * If non-null, overrides the return value of now().
+     */
+    public static volatile Date mockTime;
+
+    public static long currentTimeSeconds() {
+        return currentTimeMillis() / 1000;
+    }
+
+    // TODO: Replace usages of this where the result is / 1000 with currentTimeSeconds.
+    /** Returns the current time in milliseconds since the epoch, or a mocked out equivalent. */
+    public static long currentTimeMillis() {
+        return mockTime != null ? mockTime.getTime() : System.currentTimeMillis();
     }
 }
 

@@ -1,5 +1,7 @@
 package io.scalechain.wallet
 
+import io.scalechain.crypto.ECKey
+
 // [ Wallet layer ] An account, which is a group of addresses.
 case class Account(name:String) {
   /** Returns the current address for receiving payments to this account.
@@ -21,8 +23,11 @@ case class Account(name:String) {
     * @return the new address for receiving payments.
     */
   def newAddress : CoinAddress = {
-    // TODO : Implement
-    assert(false)
-    null
+    // TODO : Implement managing values(private key, public key, address) in storage layer
+    val key = new ECKey()
+    println("key --> \n" + key)
+    val address = new Address(0, key.getPubKeyHash)
+    println("address --> \n" + address)
+    CoinAddress(address.toString)
   }
 }

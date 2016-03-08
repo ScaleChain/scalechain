@@ -53,6 +53,32 @@ object HashFunctions {
   }
 
   /**
+    *
+    * @param input
+    * @param offset
+    * @param length
+    * @return
+    */
+  def sha256(input: Array[Byte], offset: Int, length: Int) : SHA256 = {
+    val md = MessageDigest.getInstance("SHA-256")
+    md.update(input, offset, length)
+    SHA256( md.digest() )
+  }
+
+  /**
+    *
+    * @param input
+    * @param offset
+    * @param length
+    * @return
+    */
+  def sha256Twice(input: Array[Byte], offset: Int, length: Int): SHA256 = {
+    val md = MessageDigest.getInstance("SHA-256")
+    md.update(input, offset, length)
+    SHA256( md.digest(md.digest) )
+  }
+
+  /**
    *
    * @param input
    * @return
@@ -81,5 +107,20 @@ object HashFunctions {
    */
   def hash256(input: Array[Byte]) : Hash256 = {
     Hash256( sha256( sha256(input).value ).value )
+  }
+
+  /** Return RIPEMD160(SHA256(input))
+    *
+    * @param input
+    * @return
+    */
+  def sha256hash160(input: Array[Byte]) : Array[Byte] = {
+    val shaHashVal: Array[Byte] = sha256(input, 0, input.length).value
+    val digest = new RIPEMD160Digest()
+    digest.update(shaHashVal, 0, shaHashVal.length)
+
+    val out = new Array[Byte](20)
+    digest.doFinal(out, 0)
+    out
   }
 }
