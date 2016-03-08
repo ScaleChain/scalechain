@@ -19,7 +19,19 @@ class GetNewAddressSpec extends FlatSpec with ShouldMatchers {
 
     val request = RpcRequest(jsonrpcValue, id, method, params)
 
-    GetNewAddress.invoke(request) shouldBe a [Either[RpcError, Option[RpcResult]]]
+    GetNewAddress.invoke(request) shouldBe a [Right[Option[RpcResult], Option[RpcResult]]]
+  }
+
+  "invoke" should "return RpcError if the parameter is invalid" in {
+
+    val jsonrpcValue = "1.0"
+    val id = "test"
+    val method = "getnewaddress"
+    val params = RpcParams(List(JsString("*")))
+
+    val request = RpcRequest(jsonrpcValue, id, method, params)
+
+    GetNewAddress.invoke(request) shouldBe a [Left[RpcError, RpcError]]
   }
 
 }

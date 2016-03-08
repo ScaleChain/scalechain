@@ -27,8 +27,9 @@ class AccountStore {
     * @return true or false (whether or not account name is valid)
     */
   def isValid(account: String) : Boolean = {
-
-    assert(false)
-    false
+    if(account == "*")
+      false
+    else
+      true
   }
 }
