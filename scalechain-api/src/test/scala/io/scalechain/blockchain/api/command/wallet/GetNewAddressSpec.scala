@@ -22,7 +22,7 @@ class GetNewAddressSpec extends FlatSpec with ShouldMatchers {
     GetNewAddress.invoke(request) shouldBe a [Right[Option[RpcResult], Option[RpcResult]]]
   }
 
-  "invoke" should "return RpcError if the parameter is invalid" in {
+  "invoke" should "return RpcError if the parameter(account name) is invalid" in {
 
     val jsonrpcValue = "1.0"
     val id = "test"

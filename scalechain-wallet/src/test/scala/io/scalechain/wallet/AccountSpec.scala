@@ -14,4 +14,10 @@ class AccountSpec extends FlatSpec with ShouldMatchers {
     account.newAddress shouldBe a [CoinAddress]
   }
 
+  "getReceivingAddress" should "return CoinAddress instance" in {
+
+    val account = new Account("test")
+    account.getReceivingAddress shouldBe a [CoinAddress]
+  }
+
 }

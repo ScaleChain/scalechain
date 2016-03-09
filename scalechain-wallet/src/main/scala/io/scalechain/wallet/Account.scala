@@ -4,6 +4,7 @@ import io.scalechain.crypto.ECKey
 
 // [ Wallet layer ] An account, which is a group of addresses.
 case class Account(name:String) {
+
   /** Returns the current address for receiving payments to this account.
     *
     * Used by : getaccountaddress RPC.

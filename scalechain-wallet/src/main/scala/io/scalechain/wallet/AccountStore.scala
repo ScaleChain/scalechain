@@ -24,6 +24,18 @@ class AccountStore {
   /**
     *
     * @param account
+    * @return account corresponding to account name
+    */
+  def getAccount(account: String) : Account = {
+
+    // TODO: Implement
+    assert(false)
+    null
+  }
+
+  /**
+    *
+    * @param account
     * @return true or false (whether or not account name is valid)
     */
   def isValid(account: String) : Boolean = {

@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.wallet.AccountStore
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -41,11 +40,23 @@ import spray.json.DefaultJsonProtocol._
 object GetAccountAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val account: String = request.params.get[String]("Account", 0)
+      val accountName: String = request.params.get[String]("Account", 0)
+      val accountStore = new AccountStore
 
-      // TODO : Implement
-      val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
-      Right(Some(StringResult(address)))
+      if(accountStore.isValid(accountName)) {
+
+        val account = accountStore.getAccount(accountName)
+        if(account==null) {
+          // TODO: Generate new account and new address
+        }
+
+        // TODO: Get address from account
+        val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
+        Right(Some(StringResult(address)))
+      } else {
+        // TODO: Check Rpc Error Code
+        Left(RpcError(0, "Invalid Account Name", accountName))
+      }
     }
   }
   def help() : String =
