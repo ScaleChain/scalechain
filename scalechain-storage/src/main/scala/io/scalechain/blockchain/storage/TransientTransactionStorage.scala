@@ -7,43 +7,50 @@ import scala.collection.mutable
 
 /** Store/Retrieve transactions on a memory pool.
   */
-class TransientTransactionStorage extends TransactionStorage {
+class TransientTransactionStorage {
   /** The map from the transaction hash to a transaction.
     */
   val transactionsByHash = mutable.HashMap[Hash, Transaction]()
 
+  def put(transaction : Transaction): Unit = {
+    val txHash = Hash( HashCalculator.transactionHash(transaction) )
+    transactionsByHash.put(txHash, transaction)
+  }
+
+
   /** Store a transaction on the storage.
     *
+    * @param txHash The transaction hash.
     * @param transaction The transaction to store.
     */
-  def storeTransaction(transaction : Transaction): Unit = {
-    val hash = Hash( HashCalculator.transactionHash(transaction) )
-    transactionsByHash.put(hash, transaction)
+  def put(txHash : Hash, transaction : Transaction): Unit = {
+//    val hash = Hash( HashCalculator.transactionHash(transaction) )
+    transactionsByHash.put(txHash, transaction)
   }
 
   /** Search a transaction by the transaction hash.
     *
-    * @param hash The transaction hash.
+    * @param txHash The transaction hash.
     * @return The found transaction
     */
-  def getTransaction(hash : Hash ) : Option[Transaction] = {
-    transactionsByHash.get(hash)
+  def get(txHash : Hash ) : Option[Transaction] = {
+    transactionsByHash.get(txHash)
   }
 
   /** Remove a transaction.
     *
-    * @param hash The hash of the transaction to remove.
+    * @param txHash The hash of the transaction to remove.
     */
-  def removeTransaction(hash : Hash) : Unit = {
-    transactionsByHash.remove(hash)
+  def del(txHash : Hash) : Unit = {
+    transactionsByHash.remove(txHash)
   }
 
   /** Check if the storage has a transaction.
     *
-    * @param hash The transaction hash to see if a transaction exists.
+    * @param txHash The transaction hash to see if a transaction exists.
     * @return true if the transaction exists. false otherwise.
     */
-  def hasTransaction(hash : Hash): Boolean = {
-    transactionsByHash.get(hash).isDefined
+  def exists(txHash : Hash): Boolean = {
+    transactionsByHash.get(txHash).isDefined
   }
 }

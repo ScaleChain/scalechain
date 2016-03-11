@@ -3,7 +3,7 @@ package io.scalechain.blockchain.net.processor
 import java.net.InetSocketAddress
 
 import akka.actor.{ActorRef, Actor, Props}
-import io.scalechain.blockchain.proto.{Hash, GetData, InvVector, Transaction}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.TransientTransactionStorage
 
@@ -22,8 +22,8 @@ class TransactionProcessor(peerBroker : ActorRef) extends Actor {
 
       // TOOD : Optimize : transactionHash is calculated twice. (1) in HashCalculator (2) in storeTransaction.
       val hash = Hash(HashCalculator.transactionHash(transaction))
-      if (! transactionStorage.hasTransaction(hash)) {
-        transactionStorage.storeTransaction(transaction)
+      if (! transactionStorage.exists(hash)) {
+        transactionStorage.put(transaction)
       }
     }
 
@@ -33,7 +33,7 @@ class TransactionProcessor(peerBroker : ActorRef) extends Actor {
       println("TransactionProcessor received InvVector(MSG_TRANSACTION)")
 
       val newTransactionInventories = inventories.filter { inventory =>
-        ! transactionStorage.hasTransaction(inventory.hash)
+        ! transactionStorage.exists(inventory.hash)
       }
 
       if (! newTransactionInventories.isEmpty) {

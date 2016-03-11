@@ -3,7 +3,7 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.proto.{Transaction, LockingScript, GenerationTransactionInput, NormalTransactionInput}
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushData}
-import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.{BlockIndex, BlockDatabase}
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
 import io.scalechain.util.Utils
 
@@ -38,7 +38,7 @@ class TransactionVerifier(spendingTransaction : Transaction) {
    *
    * @param blockIndex A block index that can search a transaction by its hash.
    */
-  def verify(blockIndex : BlockIndex) : Unit = {
+  def verify() : Unit = {
     for ( inputIndex <- 0 until spendingTransaction.inputs.length) {
       val txInput = spendingTransaction.inputs(inputIndex)
     }

@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.codec.{BitcoinProtocol, NetworkProtocol}
 import io.scalechain.blockchain.proto.{BlockHeader, ProtocolMessage, Block}
-import io.scalechain.blockchain.storage.RecordFile.RecordLocator
+import io.scalechain.blockchain.proto.{RecordLocator, FileRecordLocator}
 import io.scalechain.blockchain.{ErrorCode, BlockStorageException}
 import org.slf4j.LoggerFactory
 
@@ -41,9 +41,6 @@ object BlockFileName {
   }
 }
 
-object RecordStorage {
-  case class FileRecordLocator(fileIndex : Int, recordLocator : RecordLocator)
-}
 
 /** Maintains a list of record files.
   *
@@ -55,7 +52,6 @@ object RecordStorage {
 class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : String, maxFileSize : Long)(implicit protocol : NetworkProtocol ) {
   val logger = LoggerFactory.getLogger(classOf[RecordStorage[ProtocolMessage]])
 
-  import RecordStorage._
   val files = mutable.IndexedSeq[ RecordFile[T] ]()
 
   if (directoryPath.exists()) {

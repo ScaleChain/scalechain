@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 import io.scalechain.blockchain.{ErrorCode, BlockStorageException}
 import io.scalechain.blockchain.proto.codec.NetworkProtocol
 import io.scalechain.blockchain.proto.{ProtocolMessage, Block}
-import io.scalechain.blockchain.storage.RecordFile.RecordLocator
+import io.scalechain.blockchain.proto.RecordLocator
 import scodec.bits.BitVector
 
 class BlockAccessFile(path : File, maxFileSize : Long) {
@@ -48,9 +48,6 @@ class BlockAccessFile(path : File, maxFileSize : Long) {
 }
 
 
-object RecordFile {
-  case class RecordLocator(offset : Long, size : Int)
-}
 
 /** A record file that contains set of records.
   *
