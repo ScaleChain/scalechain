@@ -14,8 +14,11 @@ class AccountStore {
   def getAccount(address : CoinAddress) : Account = {
 
     if(address.isValid) {
-      val account = Some("getAccount") // TODO: Replace findAccount in storage layer
-      Account(account.getOrElse(""))
+      val wallet = new Wallet
+      if(wallet.addressBookByName.contains(address.address))
+        Account(wallet.addressBookByName(address.address))
+      else
+        Account("")
     } else {
       throw new RpcException(ErrorCode.RpcInvalidAddress)
     }

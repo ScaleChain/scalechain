@@ -2,7 +2,7 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.wallet.AccountStore
+import io.scalechain.wallet.{Account, AccountStore}
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -44,15 +44,12 @@ object GetAccountAddress extends RpcCommand {
       val accountStore = new AccountStore
 
       if(accountStore.isValid(accountName)) {
-
         val account = accountStore.getAccount(accountName)
         if(account==null) {
-          // TODO: Generate new account and new address
+          Right(Some(StringResult(Account(accountName).newAddress.address)))
+        } else {
+          Right(Some(StringResult(account.getReceivingAddress.address)))
         }
-
-        // TODO: Get address from account
-        val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
-        Right(Some(StringResult(address)))
       } else {
         // TODO: Check Rpc Error Code
         Left(RpcError(0, "Invalid Account Name", accountName))

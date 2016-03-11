@@ -2,8 +2,23 @@ package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.{TransactionHash, Transaction}
 
+import scala.collection.mutable.HashMap
+
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 class Wallet {
+
+  val addressBookByName = HashMap(
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dA" -> "test1",
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dB" -> "test1",
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dC" -> "test2"
+  )
+
+  val addressBookByPurpose = HashMap(
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dA" -> "received",
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dB" -> "unknown",
+    "1N11X5X9okJvwKt7MAa2ZnuiqFwJbHd8dC" -> "received"
+  )
+
   object SigHash extends Enumeration {
     val ALL                    = new Val(nextId, "ALL")
     val NONE                   = new Val(nextId, "NONE")
@@ -120,6 +135,17 @@ class Wallet {
     // TODO : Implement
     assert(false)
     null
+  }
+
+  /**
+    *
+    * @param address
+    * @param account
+    */
+  def setAddressBook(address: CoinAddress, account: Account) = {
+    addressBookByName += (address.address -> account.name)
+    addressBookByPurpose += (address.address -> address.purpose)
+    // TODO: Implement DB
   }
 
 }

@@ -24,11 +24,10 @@ case class Account(name:String) {
     * @return the new address for receiving payments.
     */
   def newAddress : CoinAddress = {
-    // TODO : Implement managing values(private key, public key, address) in storage layer
     val key = new ECKey()
     println("key --> \n" + key)
     val address = new Address(0, key.getPubKeyHash)
     println("address --> \n" + address)
-    CoinAddress(address.toString)
+    CoinAddress(address.toString, "received")
   }
 }

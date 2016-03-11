@@ -12,7 +12,7 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
   "getAccount" should "return Account instance if the parameter exists" in {
 
     val accountStore = new AccountStore()
-    val coinAddress = CoinAddress("mjSk1Ny9spzU2fouzYgLqGUD8U41iR35QN")
+    val coinAddress = CoinAddress("1AxwNopFNkQFuDsMgCS5ev2GvzB5fWo1ct", "unknown")
 
     accountStore.getAccount(coinAddress) shouldBe a [Account]
   }
@@ -20,7 +20,7 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
   "getAccount" should "throw an exception if the addreses is invalid" in {
 
     val accountStore = new AccountStore()
-    val coinAddress = CoinAddress("1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62ia32d4s")
+    val coinAddress = CoinAddress("1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62ia32d4s", "unknown")
 
     val thrown = the [RpcException] thrownBy accountStore.getAccount(coinAddress)
     thrown.code shouldBe ErrorCode.RpcInvalidAddress

@@ -5,7 +5,7 @@ import io.scalechain.util.{HashUtil, Base58Util}
 
 
 // [ Wallet layer ] A coin address for a specific account.
-case class CoinAddress(address:String) {
+case class CoinAddress(address:String, purpose:String) {
 
   /**
     *
