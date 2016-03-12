@@ -10,6 +10,7 @@ trait KeyValueDatabase {
   def get(key : Array[Byte] ) : Option[Array[Byte]]
   def put(key : Array[Byte], value : Array[Byte] ) : Unit
   def del(key : Array[Byte]) : Unit
+  def close() : Unit
 
   private def prefixedKey(prefix: Byte, key:Array[Byte]) = Array(prefix) ++ key
 
@@ -38,7 +39,5 @@ trait KeyValueDatabase {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     del(rawKey)
   }
-
-  def close() : Unit
 }
 
