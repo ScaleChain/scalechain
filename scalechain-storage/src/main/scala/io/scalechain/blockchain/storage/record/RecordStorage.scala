@@ -23,16 +23,24 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
 
   if (directoryPath.exists()) {
     // For each file in the path
-    for ( file <- directoryPath.listFiles.sortBy(_.getName() ) ) {
-      file.getName() match {
-        case BlockFileName(prefix, fileNumber) => {
-          if (prefix == filePrefix) {
-            if (files.length == fileNumber) {
-              files(files.length) = newFile(file)
-            } else {
-              logger.error(s"Invalid Block File Number. Expected : ${files.length}, Actual : ${fileNumber}")
-              throw new BlockStorageException(ErrorCode.InvalidFileNumber)
+    val fileList = directoryPath.listFiles
+    if (fileList.isEmpty) {
+      // Do nothing. no file exists
+    } else {
+      for ( file <- fileList.sortBy(_.getName() ) ) {
+        file.getName() match {
+          case BlockFileName(prefix, fileNumber) => {
+            if (prefix == filePrefix) {
+              if (files.length == fileNumber) {
+                files(files.length) = newFile(file)
+              } else {
+                logger.error(s"Invalid Block File Number. Expected : ${files.length}, Actual : ${fileNumber}")
+                throw new BlockStorageException(ErrorCode.InvalidFileNumber)
+              }
             }
+          }
+          case _ => {
+            // Ignore files that are not matching the block file name format.
           }
         }
       }
@@ -50,7 +58,7 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
 
   def lastFileIndex = files.length-1
 
-  def newFile(blockFile : File) : RecordFile = new RecordFile(blockFile, maxFileSize, "block" )
+  def newFile(blockFile : File) : RecordFile = new RecordFile(blockFile, maxFileSize )
 
   def newFile() : RecordFile = {
     val fileNumber = lastFileIndex + 1
@@ -90,5 +98,11 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
     val file = files(locator.fileIndex)
 
     file.readRecord(locator.recordLocator)
+  }
+
+  def close() = {
+    for ( file <- files) {
+      file.close()
+    }
   }
 }

@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.storage.record
 
+import java.io.File
+
 import io.scalechain.blockchain.storage.Storage
 import org.scalatest._
 
@@ -11,15 +13,31 @@ class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
 
   Storage.initialize()
 
+  var file : RecordFile = null
+  val MAX_SIZE = 64
+
   override def beforeEach() {
+
+    val f = new File("./target/unittests-RecordFileSpec")
+    if (f.exists())
+      f.delete()
+
+    file = new RecordFile(f, MAX_SIZE)
+
     super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
+    file.close()
   }
 
-  "method" should "" in {
+  "readRecord" should "" in {
   }
+
+
+  "appendRecord" should "" in {
+  }
+
 }

@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.storage.index
 
+import java.io.File
+
 import io.scalechain.blockchain.storage.Storage
+import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 /**
@@ -11,13 +14,22 @@ class RocksDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
   Storage.initialize()
 
+  var db : RocksDatabase = null
+
+
   override def beforeEach() {
+
+    val testPath = "./target/unittests-RocksDatabaseSpec"
+    FileUtils.deleteDirectory(new File(testPath))
+    db =  new RocksDatabase(testPath)
+
     super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
+    db.close()
   }
 
   "putObject(rawKey)/getObject(rawKey)" should "" in {

@@ -18,7 +18,7 @@ import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
   * Details :
   * http://tutorials.jenkov.com/java-nio/file-channel.html
   */
-class RecordFile(path : File, maxFileSize : Long, messageType : String) extends BlockAccessFile(path, maxFileSize){
+class RecordFile(path : File, maxFileSize : Long) extends BlockAccessFile(path, maxFileSize){
   def readRecord[T <: ProtocolMessage](locator : RecordLocator)(implicit codec : MessagePartCodec[T]) : T = {
 
     val buffer = read(locator.offset, locator.size)

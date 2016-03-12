@@ -42,4 +42,8 @@ class BlockAccessFile(path : File, maxFileSize : Long) {
     fileChannel.force(true)
   }
 
+  def close() = {
+    fileChannel.close()
+    file.close()
+  }
 }

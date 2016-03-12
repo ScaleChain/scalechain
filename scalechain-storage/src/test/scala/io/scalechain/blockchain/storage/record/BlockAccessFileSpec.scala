@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.storage.record
 
+import java.io.File
+
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.record.BlockAccessFile
 import org.scalatest._
 
 /**
@@ -11,13 +14,23 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
   Storage.initialize()
 
+  var file : BlockAccessFile = null
+  val MAX_SIZE = 64
+
   override def beforeEach() {
+    val f = new File("./target/unittests-BlockAccessFileSpec")
+    if (f.exists())
+      f.delete()
+
+    file = new BlockAccessFile(f, MAX_SIZE)
+
     super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
+    file.close()
   }
 
   "offset" should "" in {

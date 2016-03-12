@@ -144,7 +144,6 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     }
   }
 
-
   /** Get the header hash of the most recent block on the best block chain.
     *
     * Used by : getbestblockhash RPC.
@@ -178,5 +177,10 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
   def getTransaction(transactionHash : TransactionHash) : Option[Transaction] = {
     getTransaction(Hash(transactionHash.value))
+  }
+
+  def close() : Unit = {
+    blockRecordStorage.close()
+    blockIndex.close()
   }
 }

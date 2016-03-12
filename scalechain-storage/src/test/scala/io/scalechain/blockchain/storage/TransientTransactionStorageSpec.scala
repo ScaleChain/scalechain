@@ -11,13 +11,17 @@ class TransientTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach w
 
   Storage.initialize()
 
+  var storage : TransientTransactionStorage = null
   override def beforeEach() {
+    storage = new TransientTransactionStorage()
+
     super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
+    storage = null
   }
 
   "put(tx)" should "" in {

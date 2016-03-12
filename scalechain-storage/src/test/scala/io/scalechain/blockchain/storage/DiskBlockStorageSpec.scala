@@ -1,6 +1,10 @@
 package io.scalechain.blockchain.storage
 
+import java.io.File
+
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.record.BlockRecordStorage
+import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 /**
@@ -11,13 +15,22 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   Storage.initialize()
 
+  var storage : DiskBlockStorage = null
   override def beforeEach() {
+
+    val testPath = new File("./target/unittests-DiskBlockStorageSpec/")
+    FileUtils.deleteDirectory(testPath)
+    testPath.mkdir()
+
+    storage = new DiskBlockStorage(testPath)
+
     super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
+    storage.close()
   }
 
   "checkBestBlockHash" should "" in {
@@ -46,7 +59,6 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   "getBestBlockHash" should "" in {
   }
 
-
   "hasBlock" should "" in {
   }
 
@@ -56,10 +68,10 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   "hasBlockHeader" should "" in {
   }
 
-  "getBlock" should "" in {
+  "getBlock(BlockHash)" should "" in {
   }
 
-  "getTransaction" should "" in {
+  "getTransaction(TransactionHash)" should "" in {
   }
 
 }
