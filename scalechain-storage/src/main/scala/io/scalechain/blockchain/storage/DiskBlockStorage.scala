@@ -3,21 +3,23 @@ package io.scalechain.blockchain.storage
 import java.io.File
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.db.RocksDatabase
+import io.scalechain.blockchain.storage.index.{BlockDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
-class DiskBlockStorage(directoryPath : File) {
-  val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
+class DiskBlockStorage(directoryPath : File) extends BlockIndex {
+  private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
 
+  protected[storage] val blockIndex = new BlockDatabase( new RocksDatabase( directoryPath.getPath ) )
+  protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath)
 
-  val blockIndex = new BlockDatabase( new RocksDatabase( directoryPath.getPath ) )
-  val blockRecordStorage = new BlockRecordStorage(directoryPath)
+  protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
 
-  var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
-  def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
+  protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
     if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) {
       bestBlockHeightOption = Some(height)
       blockIndex.putBestBlockHash(blockHash)
@@ -41,7 +43,7 @@ class DiskBlockStorage(directoryPath : File) {
     val blockLocatorOption =
     if (blockInfo.isDefined) {
       if (blockInfo.get.blockLocatorOption.isEmpty) {
-        val blockLocator = blockRecordStorage.appendRecord(block)
+        val blockLocator = blockRecordStorage.appendRecord(block)(BlockCodec)
         val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(blockLocator))
         Some(blockIndex.putBlockInfo(blockHash, newBlockInfo))
       } else {
@@ -54,7 +56,7 @@ class DiskBlockStorage(directoryPath : File) {
       val prevBlockHeightOption : Option[Int] = blockIndex.getBlockHeight(blockHash)
 
       if (prevBlockHeightOption.isDefined) {
-        val blockLocator = blockRecordStorage.appendRecord(block)
+        val blockLocator = blockRecordStorage.appendRecord(block)(BlockCodec)
 
         val blockHeight = prevBlockHeightOption.get + 1
         val blockInfo = BlockInfo(
@@ -119,27 +121,38 @@ class DiskBlockStorage(directoryPath : File) {
 
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
-    //txLocatorOption.map( blockRecordStorage. )
-    // TODO : Implement
-    assert(false)
-    None
+    txLocatorOption.map( blockRecordStorage.readRecord(_)(TransactionCodec) )
   }
 
-  /** Get a block by its hash.
+  /** Get a block searching by the header hash.
     *
-    * @param blockHash The hash of the block header to search.
+    * Used by : getblock RPC.
+    *
+    * @param blockHash The header hash of the block to search.
+    * @return The searched block.
     */
   def getBlock(blockHash : Hash) : Option[Block] = {
     val blockInfoOption = blockIndex.getBlockInfo(blockHash)
     if (blockInfoOption.isDefined) {
       if (blockInfoOption.get.blockLocatorOption.isDefined) {
-        Some( blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get) )
+        Some( blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec) )
       } else {
         None
       }
     } else {
       None
     }
+  }
+
+
+  /** Get the header hash of the most recent block on the best block chain.
+    *
+    * Used by : getbestblockhash RPC.
+    *
+    * @return The header hash of the most recent block.
+    */
+  def getBestBlockHash() : Option[Hash] = {
+    blockIndex.getBestBlockHash()
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
@@ -157,5 +170,13 @@ class DiskBlockStorage(directoryPath : File) {
 
   def hasBlockHeader(blockHash : Hash) : Boolean = {
     getBlockHeader(blockHash).isDefined
+  }
+
+  def getBlock(blockHash : BlockHash) : Option[Block] = {
+    getBlock(Hash(blockHash.value))
+  }
+
+  def getTransaction(transactionHash : TransactionHash) : Option[Transaction] = {
+    getTransaction(Hash(transactionHash.value))
   }
 }

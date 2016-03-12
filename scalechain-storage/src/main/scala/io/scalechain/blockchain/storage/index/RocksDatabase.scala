@@ -1,10 +1,7 @@
-package io.scalechain.blockchain.storage.db
+package io.scalechain.blockchain.storage.index
 
-import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.storage.Storage
-
-import org.rocksdb.RocksDB;
-import org.rocksdb.Options;
+import org.rocksdb.{Options, RocksDB};
 
 /**
   * Created by kangmo on 3/11/16.
@@ -14,8 +11,8 @@ class RocksDatabase(path : String) extends KeyValueDatabase {
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  val options = new Options().setCreateIfMissing(true);
-  val db = RocksDB.open(options, path)
+  private val options = new Options().setCreateIfMissing(true);
+  private val db = RocksDB.open(options, path)
 
   def get(key : Array[Byte] ) : Option[Array[Byte]] = {
     val value = db.get(key)

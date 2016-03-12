@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage.db
+package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.MessagePartCodec

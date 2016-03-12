@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.proto.{Transaction, TransactionHash, BlockHash, Block}
+import io.scalechain.blockchain.proto._
 
 /**
   * Created by kangmo on 11/16/15.

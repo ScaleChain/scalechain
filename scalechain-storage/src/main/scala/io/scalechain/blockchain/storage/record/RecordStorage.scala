@@ -1,46 +1,13 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.storage.record
 
 import java.io.File
 
-import io.scalechain.blockchain.proto.codec.{BitcoinProtocol, NetworkProtocol}
-import io.scalechain.blockchain.proto.{BlockHeader, ProtocolMessage, Block}
-import io.scalechain.blockchain.proto.{RecordLocator, FileRecordLocator}
-import io.scalechain.blockchain.{ErrorCode, BlockStorageException}
+import io.scalechain.blockchain.proto.codec.MessagePartCodec
+import io.scalechain.blockchain.proto.{FileRecordLocator, ProtocolMessage}
+import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-
-
-/** Block file name extractor
-  * http://www.tutorialspoint.com/scala/scala_extractors.htm
-  */
-object BlockFileName {
-  val PREFIX_LENGTH = 3
-  val POSTFIX = ".dat"
-  def apply(prefix : String, fileNumber : Int) = {
-    assert(prefix.length == PREFIX_LENGTH)
-    s"${prefix}${"%05d".format(fileNumber)}.dat"
-  }
-  def unapply(fileName : String) : Option[(String, Int)] = {
-    if (fileName.endsWith(POSTFIX)) {
-      val prefix = fileName.substring(0, PREFIX_LENGTH)
-      val fileNumberPart =
-        fileName.substring(
-          PREFIX_LENGTH, // start offset - inclusive
-          fileName.length - POSTFIX.length) // end offset - exclusive
-      try {
-        Some(prefix, fileNumberPart.toInt)
-      } catch {
-        case e : NumberFormatException => {
-          None
-        }
-      }
-    } else {
-      None
-    }
-  }
-}
-
 
 /** Maintains a list of record files.
   *
@@ -49,10 +16,10 @@ object BlockFileName {
   *   Record storage keeps track of multiple record files, enables us to search a record by a record locator,
   *   which hash the file index of the multiple record files.
   */
-class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : String, maxFileSize : Long)(implicit protocol : NetworkProtocol ) {
-  val logger = LoggerFactory.getLogger(classOf[RecordStorage[ProtocolMessage]])
+class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Long) {
+  private val logger = LoggerFactory.getLogger(classOf[RecordStorage])
 
-  val files = mutable.IndexedSeq[ RecordFile[T] ]()
+  val files = mutable.IndexedSeq[ RecordFile ]()
 
   if (directoryPath.exists()) {
     // For each file in the path
@@ -83,9 +50,9 @@ class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : St
 
   def lastFileIndex = files.length-1
 
-  def newFile(blockFile : File) : RecordFile[T] = new RecordFile[T](blockFile, maxFileSize, "block" )
+  def newFile(blockFile : File) : RecordFile = new RecordFile(blockFile, maxFileSize, "block" )
 
-  def newFile() : RecordFile[T] = {
+  def newFile() : RecordFile = {
     val fileNumber = lastFileIndex + 1
     val blockFile = new File(BlockFileName(filePrefix, fileNumber))
     newFile(blockFile)
@@ -98,7 +65,7 @@ class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : St
     files(files.length) = newFile()
   }
 
-  def appendRecord(record : T): FileRecordLocator = {
+  def appendRecord[T <: ProtocolMessage ](record : T)(implicit codec : MessagePartCodec[T]): FileRecordLocator = {
     try {
       val recordLocator = lastFile.appendRecord(record)
       FileRecordLocator( lastFileIndex, recordLocator )
@@ -115,7 +82,7 @@ class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : St
     }
   }
 
-  def readRecord(locator : FileRecordLocator) : T = {
+  def readRecord[T <: ProtocolMessage ](locator : FileRecordLocator)(implicit codec : MessagePartCodec[T]) : T = {
     if (locator.fileIndex < 0 || locator.fileIndex >= files.length) {
       throw new BlockStorageException(ErrorCode.InvalidFileNumber)
     }
@@ -125,20 +92,3 @@ class RecordStorage[T <: ProtocolMessage ](directoryPath : File, filePrefix : St
     file.readRecord(locator.recordLocator)
   }
 }
-
-object HeaderRecordStorage {
-  val FILE_PREFIX = "hdr"
-  val MAX_FILE_SIZE = 1024 * 1024 * 10
-}
-
-class HeaderRecordStorage(directoryPath : File) extends
-  RecordStorage[BlockHeader](directoryPath, HeaderRecordStorage.FILE_PREFIX, HeaderRecordStorage.MAX_FILE_SIZE)(new BitcoinProtocol())
-
-
-object BlockRecordStorage {
-  val FILE_PREFIX = "blk"
-  val MAX_FILE_SIZE = 1024 * 1024 * 100
-}
-
-class BlockRecordStorage(directoryPath : File) extends
-  RecordStorage[Block](directoryPath, BlockRecordStorage.FILE_PREFIX, BlockRecordStorage.MAX_FILE_SIZE)(new BitcoinProtocol())

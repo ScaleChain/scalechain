@@ -3,7 +3,7 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.proto.{Transaction, LockingScript, GenerationTransactionInput, NormalTransactionInput}
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushData}
-import io.scalechain.blockchain.storage.{BlockIndex, BlockDatabase}
+import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode, TransactionVerificationException}
 import io.scalechain.util.Utils
 

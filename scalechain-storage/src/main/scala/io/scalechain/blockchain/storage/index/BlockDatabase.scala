@@ -1,8 +1,7 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
-import io.scalechain.blockchain.storage.db.KeyValueDatabase
 import org.slf4j.LoggerFactory
 
 object BlockDatabase {
@@ -13,8 +12,7 @@ object BlockDatabase {
   val BEST_BLOCK_HASH : Byte = 'b'
 }
 
-/**
-  * Created by kangmo on 3/11/16.
+/** Maintains block chains with different height, it knows which one is the best one.
   */
 class BlockDatabase(db : KeyValueDatabase) {
   val logger = LoggerFactory.getLogger(BlockDatabase.getClass)

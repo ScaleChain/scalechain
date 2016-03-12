@@ -1,17 +1,16 @@
-package io.scalechain.blockchain.storage.db
+package io.scalechain.blockchain.storage.index
 
 import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.{Storage, BlockDatabase}
+import io.scalechain.blockchain.storage.Storage
 import io.scalechain.io.HexFileLoader
-import io.scalechain.util.HexUtil
+import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 import scodec.bits.BitVector
-import HexUtil._
 
 /**
   * Created by kangmo on 11/2/15.
