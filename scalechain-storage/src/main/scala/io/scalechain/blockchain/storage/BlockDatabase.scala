@@ -3,6 +3,16 @@ package io.scalechain.blockchain.storage
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.db.KeyValueDatabase
 
+object BlockDatabase {
+  val BLOCK_INFO_PREFIX = 'b'
+  val TRANSACTION_PREFIX = 't'
+  val BLOCK_FILE_INFO_PREFIX = 'f'
+  val LAST_BLOCK_FILE = 'l'
+  val BEST_BLOCK_HASH = 'b'
+}
+
+
+
 /**
   * Created by kangmo on 3/11/16.
   */
@@ -26,6 +36,11 @@ class BlockDatabase(db : KeyValueDatabase) {
     * @return
     */
   def putTransactions(blockLocator : FileRecordLocator, transactions : List[Transaction]) = {
+    assert(false)
+    null
+  }
+
+  def getTransactionLocator(txHash : Hash) : Option[FileRecordLocator] = {
     assert(false)
     null
   }

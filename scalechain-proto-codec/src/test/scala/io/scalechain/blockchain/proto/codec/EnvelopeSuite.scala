@@ -17,28 +17,7 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
   val payload : Array[Byte]
 
   def payloadBits() = BitVector.view(payload)
-/*
-  "test" should "pass" in {
-    BlockInfo(100,1004,0,
-      BlockHeader(version=4,
-        hashPrevBlock=BlockHash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
-        hashMerkleRoot=MerkleRootHash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
-        timestamp=1234567890L,
-        target=1000000L,
-        nonce=1234L),
-      None) shouldBe(
 
-      BlockInfo(100,1004,0,
-        BlockHeader(version=4,
-          hashPrevBlock=BlockHash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
-          hashMerkleRoot=MerkleRootHash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
-          timestamp=1234567890L,
-          target=1000000L,
-          nonce=1234L),
-        None)
-      )
-  }
-*/
   "payload" should "be correctly encoded" in {
     if (message != null) {
       val encodedBits = encode(message)
