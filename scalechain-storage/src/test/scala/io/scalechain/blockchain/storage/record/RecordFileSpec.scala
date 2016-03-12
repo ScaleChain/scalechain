@@ -2,13 +2,15 @@ package io.scalechain.blockchain.storage.record
 
 import java.io.File
 
+import io.scalechain.blockchain.proto.FileNumber
+import io.scalechain.blockchain.proto.codec.{FileNumberCodec, CodecTestUtil}
 import io.scalechain.blockchain.storage.Storage
 import org.scalatest._
 
 /**
   * Created by kangmo on 11/2/15.
   */
-class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers with CodecTestUtil {
   this: Suite =>
 
   Storage.initialize()
@@ -33,11 +35,25 @@ class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
     file.close()
   }
 
-  "readRecord" should "" in {
+  "appendRecord/readRecord" should "be able to append/read a case class instance" in {
+    val record = FileNumber(1)
+    val locator = file.appendRecord(record)(FileNumberCodec)
+    file.readRecord(locator)(FileNumberCodec) shouldBe record
   }
 
+  "appendRecord/readRecord" should "be able to append/read multiple case class instance" in {
+    val record1 = FileNumber(1)
+    val record2 = FileNumber(2)
+    val record3 = FileNumber(3)
 
-  "appendRecord" should "" in {
+    val locator1 = file.appendRecord(record1)(FileNumberCodec)
+    val locator2 = file.appendRecord(record2)(FileNumberCodec)
+    val locator3 = file.appendRecord(record3)(FileNumberCodec)
+
+
+    file.readRecord(locator1)(FileNumberCodec) shouldBe record1
+    file.readRecord(locator2)(FileNumberCodec) shouldBe record2
+    file.readRecord(locator3)(FileNumberCodec) shouldBe record3
   }
 
 }

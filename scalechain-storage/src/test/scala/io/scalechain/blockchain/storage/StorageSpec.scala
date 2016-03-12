@@ -9,7 +9,6 @@ import org.scalatest._
 class StorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
   this: Suite =>
 
-  Storage.initialize()
 
   override def beforeEach() {
     super.beforeEach()
@@ -20,6 +19,8 @@ class StorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
 
   }
 
-  "initialize" should "" in {
+  "initialized" should "return true after initialize is invoked" in {
+    Storage.initialize()
+    Storage.initialized() shouldBe true
   }
 }
