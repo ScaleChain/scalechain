@@ -32,7 +32,10 @@ class DiskBlockStorage(directoryPath : File) {
       assert(blockInfo.get.blockLocatorOption.isEmpty)
       val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(blockLocator))
       blockIndex.putBlockInfo(blockHash, newBlockInfo)
-      blockIndex.putTransactions(blockLocator, block.transactions)
+
+      // TODO : Need to construct an array of (tranasction hash, transaction locator) pairs
+      assert(false)
+      //blockIndex.putTransactions(blockLocator, block.transactions)
     } else {
       assert(false);
     }

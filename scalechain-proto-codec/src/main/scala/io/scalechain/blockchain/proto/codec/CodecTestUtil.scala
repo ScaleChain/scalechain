@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto.ProtocolMessage
 import scodec.Codec
 import scodec.bits.BitVector
 

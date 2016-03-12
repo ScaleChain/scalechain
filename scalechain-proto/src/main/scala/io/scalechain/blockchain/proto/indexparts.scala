@@ -23,3 +23,7 @@ case class BlockInfo(
   blockHeader : BlockHeader,
   blockLocatorOption : Option[FileRecordLocator]
 ) extends ProtocolMessage
+
+case class FileNumber(
+  fileNumber : Int
+) extends ProtocolMessage

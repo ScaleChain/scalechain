@@ -38,3 +38,9 @@ object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
     ("blockLocatorOption" | optional(bool(8), FileRecordLocatorCodec.codec) )
   }.as[BlockInfo]
 }
+
+object FileNumberCodec extends MessagePartCodec[FileNumber] {
+  val codec : Codec[FileNumber] = {
+    ("file_number" | int32L)
+  }.as[FileNumber]
+}

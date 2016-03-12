@@ -32,8 +32,8 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
   override def afterEach() {
     super.afterEach()
-    // tear-down code
-    //
+
+    db.close()
   }
 
 
@@ -41,8 +41,8 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
   val rawBlockBits = BitVector.view(rawBlockBytes)
 
   implicit val codec = BlockCodec.codec
-
   val block : Block = decodeFully(rawBlockBits)
+
   val blockHash = Hash (HashCalculator.blockHeaderHash(block.header))
 
   val BLOCK_LOCATOR = FileRecordLocator(
@@ -50,7 +50,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     RecordLocator( 10, 15)
   )
 
-  val DUMMY_HASH = Hash(bytes("0"*32))
+  val DUMMY_HASH = Hash(bytes("0"*64))
 
 
   "putBlockInfo/getBlockInfo" should "successfully put/get data" in {
@@ -78,7 +78,6 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     db.getBlockInfo(blockHash) shouldBe Some(newBlockInfo)
   }
 
-
   "putTransactions" should "successfully put transactions onto database" in {
     // At first, we should not have any tranasctions on the database.
     for( transaction <- block.transactions) {
@@ -86,7 +85,19 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
       db.getTransactionLocator(txHash) shouldBe None
     }
 
-    db.putTransactions(BLOCK_LOCATOR, block.transactions)
+    var i = 1
+
+    // Create (transaction hash, transaction locator pair )
+    val hashLocatorPairs = for(
+      transaction <- block.transactions;
+      txHash = Hash (HashCalculator.transactionHash(transaction));
+      txLocator = BLOCK_LOCATOR.copy(recordLocator = BLOCK_LOCATOR.recordLocator.copy(offset = BLOCK_LOCATOR.recordLocator.offset + i * 100))
+    ) yield {
+      i += 1
+      (txHash,txLocator)
+    }
+
+    db.putTransactions(hashLocatorPairs)
 
     // Now, we have transactions on the database.
     for( transaction <- block.transactions) {
@@ -102,7 +113,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
   }
 
   "putBlockFileInfo/getBlockFileInfo" should "successfully put/get data" in {
-    val FILE_NUMBER = 1
+    val FILE_NUMBER = FileNumber(1)
     db.getBlockFileInfo(FILE_NUMBER) shouldBe None
 
     val blockFileInfo = BlockFileInfo(
@@ -131,8 +142,8 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
 
   "putBlockFileInfo/getBlockFileInfo" should "successfully put/get data with two blocks" in {
-    val FILE_NUMBER_1 = 1
-    val FILE_NUMBER_2 = 2
+    val FILE_NUMBER_1 = FileNumber(1)
+    val FILE_NUMBER_2 = FileNumber(2)
     db.getBlockFileInfo(FILE_NUMBER_1) shouldBe None
     db.getBlockFileInfo(FILE_NUMBER_2) shouldBe None
 
@@ -163,7 +174,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
 
   "putBlockFileInfo/getBlockFileInfo" should "hit an assertion if the new block info is incorrect." in {
-    val FILE_NUMBER = 1
+    val FILE_NUMBER = FileNumber(1)
     db.getBlockFileInfo(FILE_NUMBER) shouldBe None
 
     val blockFileInfo = BlockFileInfo(
@@ -214,6 +225,14 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
       )
     }
 
+    // Block count should increase
+    intercept[AssertionError] {
+      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+          blockCount = blockFileInfo.blockCount
+        )
+      )
+    }
+
     // File size should not be decreased
     intercept[AssertionError] {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
@@ -222,27 +241,37 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
       )
     }
 
+    // File size should increase
+    intercept[AssertionError] {
+      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+          fileSize = blockFileInfo.fileSize
+        )
+      )
+    }
+
+
     // The last block height should not be decreased.
     intercept[AssertionError] {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           lastBlockHeight = blockFileInfo.lastBlockHeight - 1
         )
       )
-
     }
 
-    // The last block timestamp should not be decreased.
+    // The last block height should increase.
     intercept[AssertionError] {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
-          lastBlockTimestamp = blockFileInfo.lastBlockTimestamp -1
+          lastBlockHeight = blockFileInfo.lastBlockHeight
         )
       )
     }
+
+    // Caution : The last block timestamp can decrease.
   }
 
   "putLastBlockFile/getLastBlockFile" should "successfully put/get data" in {
-    val FILE_NUMBER_1 = 1
-    val FILE_NUMBER_2 = 2
+    val FILE_NUMBER_1 = FileNumber(1)
+    val FILE_NUMBER_2 = FileNumber(2)
 
     db.getLastBlockFile() shouldBe None
 
@@ -254,8 +283,8 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
   }
 
   "putLastBlockFile/getLastBlockFile" should "fail with incorrect data" in {
-    val FILE_NUMBER_1 = 1
-    val FILE_NUMBER_2 = 2
+    val FILE_NUMBER_1 = FileNumber(1)
+    val FILE_NUMBER_2 = FileNumber(2)
 
     db.getLastBlockFile() shouldBe None
 
@@ -266,9 +295,12 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     intercept[AssertionError] {
       db.putLastBlockFile(FILE_NUMBER_1)
     }
+
+    // The file number should increase.
+    intercept[AssertionError] {
+      db.putLastBlockFile(FILE_NUMBER_2)
+    }
   }
-
-
 
   "putBestBlockHash/getBestBlockHash" should "successfully put/get data" in {
     db.getBestBlockHash() shouldBe None
