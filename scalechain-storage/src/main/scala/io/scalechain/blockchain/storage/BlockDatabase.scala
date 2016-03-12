@@ -3,6 +3,7 @@ package io.scalechain.blockchain.storage
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.storage.db.KeyValueDatabase
+import org.slf4j.LoggerFactory
 
 object BlockDatabase {
   val BLOCK_INFO : Byte = 'b'
@@ -16,13 +17,34 @@ object BlockDatabase {
   * Created by kangmo on 3/11/16.
   */
 class BlockDatabase(db : KeyValueDatabase) {
+  val logger = LoggerFactory.getLogger(BlockDatabase.getClass)
+
   import BlockDatabase._
 
   def getBlockInfo(hash : Hash) : Option[BlockInfo] = {
     db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
   }
 
+  def getBlockHeight(hash : Hash) : Option[Int] = {
+    getBlockInfo(hash).map(_.height)
+  }
+
   def putBlockInfo(hash : Hash, info : BlockInfo) : Unit = {
+    val blockInfoOption = getBlockInfo(hash)
+    if (blockInfoOption.isDefined) {
+      val currentBlockInfo = blockInfoOption.get
+      // hit an assertion : put a block info with different height
+      assert(currentBlockInfo.height == info.height)
+
+      // hit an assertion : put a block info with a block locator, even though the block info has some locator.
+      if (info.blockLocatorOption.isDefined) {
+        assert(currentBlockInfo.blockLocatorOption.isEmpty)
+      }
+
+      // hit an assertion : change any field on the block header
+      assert(currentBlockInfo.blockHeader == info.blockHeader)
+    }
+
     db.putObject(BLOCK_INFO, hash, info)(HashCodec, BlockInfoCodec)
   }
 

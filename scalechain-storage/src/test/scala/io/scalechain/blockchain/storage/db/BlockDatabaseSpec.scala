@@ -66,6 +66,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
     db.putBlockInfo(blockHash, blockInfo)
     db.getBlockInfo(blockHash) shouldBe Some(blockInfo)
+    db.getBlockHeight(blockHash) shouldBe Some(1)
 
     val newBlockInfo = blockInfo.copy(
       transactionCount = 10,
@@ -76,6 +77,92 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
     db.putBlockInfo(blockHash, newBlockInfo)
     db.getBlockInfo(blockHash) shouldBe Some(newBlockInfo)
+  }
+
+  "putBlockInfo" should "hit an assertion if the new block info is incorrect." in {
+    db.getBlockInfo(blockHash) shouldBe None
+
+    val blockInfo = BlockInfo(
+      height = 1,
+      transactionCount = 0,
+      status = 0,
+      blockHeader = block.header,
+      blockLocatorOption = Some(BLOCK_LOCATOR)
+    )
+
+    db.putBlockInfo(blockHash, blockInfo)
+
+    // hit an assertion : put a block info with different height
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        height = blockInfo.height + 1
+      ))
+    }
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        height = blockInfo.height - 1
+      ))
+    }
+
+    // hit an assertion : put a block info with a block locator, even though the block info has some locator.
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockLocatorOption = Some(BLOCK_LOCATOR)
+      ))
+    }
+
+    // hit an assertion : change any field on the block header
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+          version = blockInfo.blockHeader.version + 1
+        )
+      ))
+    }
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+          hashPrevBlock = BlockHash(DUMMY_HASH.value)
+        )
+      ))
+    }
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+          hashMerkleRoot = MerkleRootHash(DUMMY_HASH.value)
+        )
+      ))
+    }
+
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+          timestamp = blockInfo.blockHeader.timestamp + 1
+        )
+      ))
+    }
+
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+        target = blockInfo.blockHeader.target + 1
+      )
+      ))
+    }
+
+
+    intercept[AssertionError] {
+      db.putBlockInfo(blockHash, blockInfo.copy(
+        blockHeader = blockInfo.blockHeader.copy(
+          nonce = blockInfo.blockHeader.nonce + 1
+        )
+      ))
+    }
   }
 
   "putTransactions" should "successfully put transactions onto database" in {
@@ -173,7 +260,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
   }
 
 
-  "putBlockFileInfo/getBlockFileInfo" should "hit an assertion if the new block info is incorrect." in {
+  "putBlockFileInfo" should "hit an assertion if the new block info is incorrect." in {
     val FILE_NUMBER = FileNumber(1)
     db.getBlockFileInfo(FILE_NUMBER) shouldBe None
 
@@ -282,7 +369,7 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     db.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
   }
 
-  "putLastBlockFile/getLastBlockFile" should "fail with incorrect data" in {
+  "putLastBlockFile" should "fail with incorrect data" in {
     val FILE_NUMBER_1 = FileNumber(1)
     val FILE_NUMBER_2 = FileNumber(2)
 
