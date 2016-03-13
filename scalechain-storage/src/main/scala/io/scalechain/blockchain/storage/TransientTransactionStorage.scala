@@ -17,14 +17,12 @@ class TransientTransactionStorage {
     transactionsByHash.put(txHash, transaction)
   }
 
-
   /** Store a transaction on the storage.
     *
     * @param txHash The transaction hash.
     * @param transaction The transaction to store.
     */
   def put(txHash : Hash, transaction : Transaction): Unit = {
-//    val hash = Hash( HashCalculator.transactionHash(transaction) )
     transactionsByHash.put(txHash, transaction)
   }
 
