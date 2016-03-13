@@ -56,9 +56,11 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
 
   protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
-    if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) {
+    if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) { // case 1 : the block height of the new block is greater than the highest one.
       bestBlockHeightOption = Some(height)
       blockIndex.putBestBlockHash(blockHash)
+    } else { // case 2 : the block height of the new block is less than the highest one.
+      // do nothing
     }
   }
   protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, blockHeight : Int, blockTimestamp : Long): Unit = {
@@ -66,8 +68,11 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
     // Are we writing at the beginning of the file?
     // If yes, we need to update the last block file, because it means we created a file now.
-    if (headerLocator.recordLocator.offset == 0) {
+
+    if (headerLocator.recordLocator.offset == 0) { // case 1 : a new record file was created.
       blockIndex.putLastBlockFile(lastFileNumber)
+    } else { // case 2 : the block was written on the existing record file.
+      // do nothing.
     }
 
     // Update the block info.
@@ -110,8 +115,9 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
 
     val txLocators : List[TransactionLocator] =
-    if (blockInfo.isDefined) {
-      if (blockInfo.get.blockLocatorOption.isEmpty) {
+
+    if (blockInfo.isDefined) { // case 1 : block info was found
+      if (blockInfo.get.blockLocatorOption.isEmpty) { // case 1.1 : block info without a block locator was found
 
         val appendResult = blockWriter.appendBlock(block)
         val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(appendResult.headerLocator))
@@ -119,16 +125,16 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         updateFileInfo(appendResult.headerLocator, newBlockInfo.height, block.header.timestamp)
 
         appendResult.txLocators
-      } else {
+      } else { // case 1.2 block info with a block locator was found
         // The block already exists. Do not put it once more.
         logger.warn("The block already exists. block hash : {}", blockHash)
         List()
       }
-    } else {
+    } else { // case 2 : no block info was found.
       // get the height of the previous block, to calculate the height of the given block.
       val prevBlockHeightOption : Option[Int] = blockIndex.getBlockHeight(blockHash)
 
-      if (prevBlockHeightOption.isDefined) {
+      if (prevBlockHeightOption.isDefined) { // case 2.1 : no block info was found, previous block header exists.
         val appendResult = blockWriter.appendBlock(block)
 
         val blockHeight = prevBlockHeightOption.get + 1
@@ -145,13 +151,13 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         checkBestBlockHash(blockHash, blockHeight)
 
         appendResult.txLocators
-      } else {
+      } else { // case 2.2 : no block info was found, previous block header does not exists.
         logger.warn("An orphan block was discarded while saving a block. block hash : {}", blockHash)
         List()
       }
     }
 
-    if ( ! txLocators.isEmpty ) {
+    if ( ! txLocators.isEmpty ) { // case 1.1 and case 2.1 has newly stored transactions.
       blockIndex.putTransactions(txLocators)
     }
   }
@@ -165,13 +171,13 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     // get the height of the previous block, to calculate the height of the given block.
     val prevBlockHeightOption : Option[Int] = blockIndex.getBlockHeight(blockHash)
 
-    if (prevBlockHeightOption.isDefined) {
+    if (prevBlockHeightOption.isDefined) { // case 1 : the previous block header was found.
       val blockHeight = prevBlockHeightOption.get + 1
 
       assert(blockHeight > 0)
 
       val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
-      if (blockInfo.isEmpty) {
+      if (blockInfo.isEmpty) { // case 1.1 : the same block header was not found.
         val blockInfo = BlockInfo(
           height = blockHeight,
           transactionCount = 0,
@@ -182,7 +188,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         )
         blockIndex.putBlockInfo(blockHash, blockInfo)
         checkBestBlockHash(blockHash, blockHeight)
-      } else {
+      } else { // case 1.2 : the same block header already exists.
         logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
 
         // blockIndex hits an assertion if the block header is changed for the same block hash.
@@ -191,7 +197,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         //  blockHeader = blockHeader
         //))
       }
-    } else {
+    } else { // case 2 : the previous block header was not found.
       logger.warn("An orphan block was discarded while saving a block header. block hash : {}", blockHash)
     }
   }
@@ -210,13 +216,13 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     */
   def getBlock(blockHash : Hash) : Option[Block] = {
     val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-    if (blockInfoOption.isDefined) {
-      if (blockInfoOption.get.blockLocatorOption.isDefined) {
+    if (blockInfoOption.isDefined) { // case 1 : The block info was found.
+      if (blockInfoOption.get.blockLocatorOption.isDefined) { // case 1.1 : the block info with a block locator was found.
         Some( blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec) )
-      } else {
+      } else { // case 1.2 : the block info without a block locator was found.
         None
       }
-    } else {
+    } else { // case 2 : The block info was not found
       None
     }
   }
@@ -237,9 +243,9 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
   def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
     val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-    if (blockInfoOption.isDefined) {
+    if (blockInfoOption.isDefined) { // case 1 : the block info was found.
       Some(blockInfoOption.get.blockHeader)
-    } else {
+    } else { // case 2 : the block info was not found.
       None
     }
   }
