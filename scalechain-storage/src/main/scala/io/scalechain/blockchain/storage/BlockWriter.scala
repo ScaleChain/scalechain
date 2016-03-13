@@ -8,7 +8,7 @@ import io.scalechain.blockchain.storage.record.BlockRecordStorage
 
 case class TransactionLocator(txHash : Hash, txLocator : FileRecordLocator)
 
-case class AppendBlockResult(headerLocator : FileRecordLocator, txLocators : List[TransactionLocator])
+case class AppendBlockResult(blockLocator : FileRecordLocator, headerLocator : FileRecordLocator, txLocators : List[TransactionLocator])
 
 /** Write a block on the disk block storage.
   *
@@ -49,6 +49,18 @@ class BlockWriter(storage : BlockRecordStorage) {
            txLocator = storage.appendRecord(transaction)(TransactionCodec)
       ) yield TransactionLocator(txHash, txLocator)
 
-    AppendBlockResult(blockHeaderLocator, txLocators)
+    // Step 4 : Calculate block locator
+    // The AppendBlockResult.headerLocator has its size 80(the size of block header)
+    // We need to use the last transaction's (offset + size), which is the block size to get the block locator.
+    val lastTxLocator = txLocators.last.txLocator.recordLocator
+    val blockSize = lastTxLocator.offset + lastTxLocator.size
+
+    val blockLocator = blockHeaderLocator.copy(
+      recordLocator = blockHeaderLocator.recordLocator.copy (
+        size = blockSize.toInt
+      )
+    )
+
+    AppendBlockResult(blockLocator, blockHeaderLocator, txLocators)
   }
 }

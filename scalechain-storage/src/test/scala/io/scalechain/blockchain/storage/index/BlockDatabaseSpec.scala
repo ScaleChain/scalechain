@@ -22,9 +22,9 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
 
   var db : BlockDatabase = null
   override def beforeEach() {
-    val testPath = "./target/unittests-BlockDatabaseSpec"
-    FileUtils.deleteDirectory(new File(testPath))
-    db = new BlockDatabase( new RocksDatabase(testPath) )
+    val testPath = new File("./target/unittests-BlockDatabaseSpec")
+    FileUtils.deleteDirectory( testPath )
+    db = new BlockDatabase( new RocksDatabase( testPath ) )
 
     super.beforeEach()
   }

@@ -77,20 +77,8 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     // Step 1 : Write using appendBlock
     val appendBlockResult : AppendBlockResult = writer.appendBlock(block1)
 
-    // Step 2 : Get the block locator.
-    // The AppendBlockResult.headerLocator has its size 80(the size of block header)
-    // We need to use the last transaction's (offset + size), which is the block size to get the block locator.
-    val lastTxLocator = appendBlockResult.txLocators.last.txLocator.recordLocator
-    val blockSize = lastTxLocator.offset + lastTxLocator.size
-
-    val blockLocator = appendBlockResult.headerLocator.copy(
-      recordLocator = appendBlockResult.headerLocator.recordLocator.copy (
-        size = blockSize.toInt
-      )
-    )
-
-    // Step 3 : Read using BlockCodec
-    val readBlock = storage.readRecord(blockLocator)(BlockCodec)
+    // Step 2 : Read using BlockCodec
+    val readBlock = storage.readRecord(appendBlockResult.blockLocator)(BlockCodec)
 
     readBlock shouldBe block1
   }
