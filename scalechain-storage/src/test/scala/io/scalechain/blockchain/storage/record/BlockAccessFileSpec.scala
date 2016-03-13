@@ -33,6 +33,9 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
     file.close()
   }
 
+  "size" should "" in {
+  }
+
   "offset" should "" in {
   }
 

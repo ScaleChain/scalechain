@@ -10,6 +10,7 @@ class BlockAccessFile(path : File, maxFileSize : Long) {
   val file = new RandomAccessFile(path, "rw")
   val fileChannel = file.getChannel
 
+  def size()   : Long = fileChannel.size()
 
   def offset() : Long = fileChannel.position()
 

@@ -44,3 +44,11 @@ object FileNumberCodec extends MessagePartCodec[FileNumber] {
     ("file_number" | int32L)
   }.as[FileNumber]
 }
+
+/** Writes only one byte, to test the case where a record file has a remaining space.
+  */
+object OneByteCodec extends MessagePartCodec[OneByte]{
+  val codec : Codec[OneByte] = {
+    ("value" | byte)
+  }.as[OneByte]
+}

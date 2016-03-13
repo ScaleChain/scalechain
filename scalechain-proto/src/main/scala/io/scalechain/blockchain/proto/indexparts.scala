@@ -27,3 +27,10 @@ case class BlockInfo(
 case class FileNumber(
   fileNumber : Int
 ) extends ProtocolMessage
+
+/** For testing purpose. For testing record files, we need to create a record file which has remaining space.
+  * Ex> The file size limit is 12 bytes, but we need to be able to write only 11 bytes.
+  */
+case class OneByte( value : Byte ) extends ProtocolMessage
+
+
