@@ -38,6 +38,7 @@ class BlockRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   }
 
   "readRecord" should "successfully read a block after a block was appended" in {
+
   }
 
   "readRecord" should "successfully read a transaction after a block was appended" in {

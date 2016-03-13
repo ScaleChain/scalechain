@@ -14,7 +14,7 @@ class BlockAccessFile(path : File, maxFileSize : Long) {
 
   def offset() : Long = fileChannel.position()
 
-  def moveTo(offset : Long) : Unit = {
+  protected[storage] def moveTo(offset : Long) : Unit = {
     if ( fileChannel.position() != offset ) {
       fileChannel.position(offset)
     }
@@ -27,23 +27,28 @@ class BlockAccessFile(path : File, maxFileSize : Long) {
     fileChannel.read(buffer)
     buffer
   }
-
+/*
   def write(offset : Long, buffer : ByteBuffer) = {
     moveTo(offset)
 
     fileChannel.write(buffer)
   }
-
+*/
   def append(buffer:ByteBuffer) : Unit = {
+    // If we are not at the end of the file, move to the end of it.
+    if (offset() != size()) {
+      moveTo(size())
+    }
+
     fileChannel.write(buffer)
   }
-
 
   def flush() : Unit = {
     fileChannel.force(true)
   }
 
   def close() = {
+    fileChannel.force(true)
     fileChannel.close()
     file.close()
   }
