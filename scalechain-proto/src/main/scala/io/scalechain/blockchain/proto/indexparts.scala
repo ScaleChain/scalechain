@@ -33,4 +33,14 @@ case class FileNumber(
   */
 case class OneByte( value : Byte ) extends ProtocolMessage
 
+/** To get a record locator of each transaction we write while we write a block,
+  * We need to write (1) block header (2) transaction count (3) each transaction.
+  *
+  * This is why we need a separate case class for the transaction count.
+  * If we write a block as a whole, we can't get record locators for each transaction in a block.
+  *
+  * @param count The number of transactions.
+  */
+case class TransactionCount( count : Int) extends ProtocolMessage
+
 

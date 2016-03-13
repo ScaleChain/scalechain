@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.codec.primitive.VarInt
 import scodec.Codec
 import scodec.codecs._
 
@@ -51,4 +52,10 @@ object OneByteCodec extends MessagePartCodec[OneByte]{
   val codec : Codec[OneByte] = {
     ("value" | byte)
   }.as[OneByte]
+}
+
+object TransactionCountCodec extends MessagePartCodec[TransactionCount] {
+  val codec : Codec[TransactionCount] = {
+    ("transaction_count" | VarInt.countCodec )
+  }.as[TransactionCount]
 }

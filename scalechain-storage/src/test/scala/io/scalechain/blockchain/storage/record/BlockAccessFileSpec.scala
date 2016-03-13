@@ -47,6 +47,15 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
     ByteBuffer.wrap( value.getBytes )
   }
 
+  /** Convert a byte buffer to a byte array.
+    *
+    * @param buffer The byte buffer to convert.
+    * @return The converted array of byte.
+    */
+  def L(buffer : ByteBuffer) : Array[Byte] = {
+    buffer.array
+  }
+
   /** Make sure that the offset and size attributes are set with the values we expect.
     *
     * @param offset The offset where we are reading/writing the file.
@@ -68,8 +77,8 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     expect(offset=6, size=6)
 
-    file.read(0, 4) shouldBe B("abcd")
-    file.read(4, 2) shouldBe B("12")
+    L(file.read(0, 4)) shouldBe L(B("abcd"))
+    L(file.read(4, 2)) shouldBe L(B("12"))
   }
 
   "append" should "append data at the end of the file even after reading data at the mid of the file " in {
@@ -83,13 +92,13 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     expect(offset=6, size=6)
 
-    file.read(0, 4) shouldBe B("abcd")
+    L(file.read(0, 4)) shouldBe L(B("abcd"))
 
     file.append(B("XY"))
 
     expect(offset=8, size=8)
-    file.read(4, 2) shouldBe B("12")
-    file.read(6, 2) shouldBe B("XY")
+    L(file.read(4, 2)) shouldBe L(B("12"))
+    L(file.read(6, 2)) shouldBe L(B("XY"))
   }
 
   "read" should "read values even after closing and re-opening the file." in {
@@ -101,8 +110,8 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     expect(offset=0, size=6)
 
-    file.read(4, 2) shouldBe B("12")
-    file.read(0, 4) shouldBe B("abcd")
+    L(file.read(4, 2)) shouldBe L(B("12"))
+    L(file.read(0, 4)) shouldBe L(B("abcd"))
   }
 
   "append" should "append values even after closing and re-opening the file." in {
@@ -116,9 +125,9 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     file.append(B("XY"))
 
-    file.read(0, 4) shouldBe B("abcd")
-    file.read(6, 2) shouldBe B("XY")
-    file.read(4, 2) shouldBe B("12")
+    L(file.read(0, 4)) shouldBe L(B("abcd"))
+    L(file.read(6, 2)) shouldBe L(B("XY"))
+    L(file.read(4, 2)) shouldBe L(B("12"))
   }
 
   "moveTo" should "be able to move at the beginning of the file" in {
@@ -160,8 +169,8 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
     file.close()
 
     file = openFile()
-    file.read(4, 2) shouldBe B("12")
-    file.read(0, 4) shouldBe B("abcd")
+    L(file.read(4, 2)) shouldBe L(B("12"))
+    L(file.read(0, 4)) shouldBe L(B("abcd"))
   }
 
 }

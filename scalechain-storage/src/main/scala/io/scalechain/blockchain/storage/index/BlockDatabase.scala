@@ -2,6 +2,7 @@ package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
+import io.scalechain.blockchain.storage.TransactionLocator
 import org.slf4j.LoggerFactory
 
 object BlockDatabase {
@@ -53,11 +54,9 @@ class BlockDatabase(db : KeyValueDatabase) {
     * @param transactions
     * @return
     */
-  def putTransactions(transactions : List[(Hash, FileRecordLocator)]) = {
+  def putTransactions(transactions : List[TransactionLocator]) = {
     for ( tx <- transactions) {
-      val txHash  = tx._1 // transaction hash
-      val locator = tx._2 // file record locator
-      db.putObject(TRANSACTION, txHash, locator)(HashCodec, FileRecordLocatorCodec)
+      db.putObject(TRANSACTION, tx.txHash, tx.txLocator)(HashCodec, FileRecordLocatorCodec)
     }
   }
 

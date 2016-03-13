@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.{TransactionLocator, Storage}
 import io.scalechain.io.HexFileLoader
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
@@ -174,16 +174,16 @@ class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     var i = 1
 
     // Create (transaction hash, transaction locator pair )
-    val hashLocatorPairs = for(
+    val txLocators = for(
       transaction <- block.transactions;
       txHash = Hash (HashCalculator.transactionHash(transaction));
       txLocator = BLOCK_LOCATOR.copy(recordLocator = BLOCK_LOCATOR.recordLocator.copy(offset = BLOCK_LOCATOR.recordLocator.offset + i * 100))
     ) yield {
       i += 1
-      (txHash,txLocator)
+      TransactionLocator(txHash,txLocator)
     }
 
-    db.putTransactions(hashLocatorPairs)
+    db.putTransactions(txLocators)
 
     // Now, we have transactions on the database.
     for( transaction <- block.transactions) {

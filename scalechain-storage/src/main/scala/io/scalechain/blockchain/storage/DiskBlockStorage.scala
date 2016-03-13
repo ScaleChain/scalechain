@@ -16,6 +16,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
   protected[storage] val blockIndex = new BlockDatabase( new RocksDatabase( directoryPath.getPath ) )
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath)
+  protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
   protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
 
@@ -40,23 +41,25 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
     val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
 
-    val blockLocatorOption =
+    val txLocators : List[TransactionLocator] =
     if (blockInfo.isDefined) {
       if (blockInfo.get.blockLocatorOption.isEmpty) {
-        val blockLocator = blockRecordStorage.appendRecord(block)(BlockCodec)
-        val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(blockLocator))
-        Some(blockIndex.putBlockInfo(blockHash, newBlockInfo))
+
+        val appendResult = blockWriter.appendBlock(block)
+        val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(appendResult.headerLocator))
+        blockIndex.putBlockInfo(blockHash, newBlockInfo)
+        appendResult.txLocators
       } else {
         // The block already exists. Do not put it once more.
         logger.warn("The block already exists. block hash : {}", blockHash)
-        blockInfo.get.blockLocatorOption
+        List()
       }
     } else {
       // get the height of the previous block, to calculate the height of the given block.
       val prevBlockHeightOption : Option[Int] = blockIndex.getBlockHeight(blockHash)
 
       if (prevBlockHeightOption.isDefined) {
-        val blockLocator = blockRecordStorage.appendRecord(block)(BlockCodec)
+        val appendResult = blockWriter.appendBlock(block)
 
         val blockHeight = prevBlockHeightOption.get + 1
         val blockInfo = BlockInfo(
@@ -65,20 +68,19 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
           // BUGBUG : Need to use enumeration
           status = 0,
           blockHeader = block.header,
-          Some(blockLocator)
+          Some(appendResult.headerLocator)
         )
         blockIndex.putBlockInfo(blockHash, blockInfo)
         checkBestBlockHash(blockHash, blockHeight)
-        Some(blockLocator)
+        appendResult.txLocators
       } else {
         logger.warn("An orphan block was discarded while saving a block. block hash : {}", blockHash)
-        None
+        List()
       }
     }
 
-    if ( blockLocatorOption.isDefined) {
-      // TODO : Need to construct an array of (tranasction hash, transaction locator) pairs
-      //blockIndex.putTransactions(blockLocatorOption.get, block.transactions)
+    if ( ! txLocators.isEmpty ) {
+      blockIndex.putTransactions(txLocators)
     }
   }
 
