@@ -53,7 +53,8 @@ class BlockWriter(storage : BlockRecordStorage) {
     // The AppendBlockResult.headerLocator has its size 80(the size of block header)
     // We need to use the last transaction's (offset + size), which is the block size to get the block locator.
     val lastTxLocator = txLocators.last.txLocator.recordLocator
-    val blockSize = lastTxLocator.offset + lastTxLocator.size
+    val blockSizeExceptTheLastTransaction = lastTxLocator.offset - blockHeaderLocator.recordLocator.offset
+    val blockSize = blockSizeExceptTheLastTransaction + lastTxLocator.size
 
     val blockLocator = blockHeaderLocator.copy(
       recordLocator = blockHeaderLocator.recordLocator.copy (

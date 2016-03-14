@@ -149,9 +149,9 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     storage.putBlock(block2)
 
     // Step 3 : should get the blocks
-    storage.getBlock(blockHash1) shouldBe Some(block1)
+    storage.getBlock(blockHash1) shouldBe None // We put an header only.
     storage.getBlock(blockHash2) shouldBe Some(block2)
-    storage.hasBlock(blockHash1) shouldBe true
+    storage.hasBlock(blockHash1) shouldBe false // We put an header only.
     storage.hasBlock(blockHash2) shouldBe true
   }
 

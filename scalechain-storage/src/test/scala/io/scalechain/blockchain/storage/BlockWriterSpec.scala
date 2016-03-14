@@ -73,7 +73,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     }
   }
 
-  "appendBlock" should "be compatible with BlockCodec" in {
+  "appendBlock" should "be compatible with BlockCodec. (1 block)" in {
     // Step 1 : Write using appendBlock
     val appendBlockResult : AppendBlockResult = writer.appendBlock(block1)
 
@@ -82,5 +82,19 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
 
     readBlock shouldBe block1
   }
+
+  "appendBlock" should "be compatible with BlockCodec. (2 blocks)" in {
+    // Step 1 : Write using appendBlock
+    val appendBlockResult1 : AppendBlockResult = writer.appendBlock(block1)
+    val appendBlockResult2 : AppendBlockResult = writer.appendBlock(block2)
+
+    // Step 2 : Read using BlockCodec
+    val readBlock1 = storage.readRecord(appendBlockResult1.blockLocator)(BlockCodec)
+    val readBlock2 = storage.readRecord(appendBlockResult2.blockLocator)(BlockCodec)
+
+    readBlock1 shouldBe block1
+    readBlock2 shouldBe block2
+  }
+
 }
 

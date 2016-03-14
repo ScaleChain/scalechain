@@ -111,7 +111,6 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
 
   def putBlock(block : Block) : Unit = {
-    println("in putBlock1")
     val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
     putBlock(blockHash, block)
   }
@@ -122,8 +121,6 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     * @param block the block to store.
     */
   def putBlock(blockHash : Hash, block : Block) : Unit = {
-    println("in putBlock2")
-
     val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
 
     val txLocators : List[TransactionLocator] =
@@ -135,14 +132,10 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         blockIndex.putBlockInfo(blockHash, newBlockInfo)
         updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, newBlockInfo.height, block.header.timestamp)
 
-        println("1")
-
         appendResult.txLocators
       } else { // case 1.2 block info with a block locator was found
         // The block already exists. Do not put it once more.
         logger.warn("The block already exists. block hash : {}", blockHash)
-
-        println("2")
 
         List()
       }
@@ -166,13 +159,9 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, blockInfo.height, block.header.timestamp)
         checkBestBlockHash(blockHash, blockHeight)
 
-        println("3")
-
         appendResult.txLocators
       } else { // case 2.2 : no block info was found, previous block header does not exists.
         logger.warn("An orphan block was discarded while saving a block. block hash : {}", blockHash)
-
-        println("4")
 
         List()
       }
@@ -210,8 +199,6 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         blockIndex.putBlockInfo(blockHash, blockInfo)
         checkBestBlockHash(blockHash, blockHeight)
 
-        println("A")
-
       } else { // case 1.2 : the same block header already exists.
         logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
 
@@ -221,13 +208,9 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
         //  blockHeader = blockHeader
         //))
 
-        println("B")
-
       }
     } else { // case 2 : the previous block header was not found.
       logger.warn("An orphan block was discarded while saving a block header. block hash : {}", blockHash)
-
-      println("C")
     }
   }
 
