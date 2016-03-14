@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorRef
 import akka.stream.stage.{SyncDirective, PushStage, Context}
+import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.proto._
 
 /**
@@ -26,8 +27,9 @@ class ProtocolMessageTransformer(domainMessageRouter : ActorRef, remoteAddress: 
         case Pong(nonce)                   => {
           pongReceivedAt = System.currentTimeMillis()
         }
+        case verack      : Verack          => domainMessageRouter ! verack
         case addr        : Addr            => domainMessageRouter ! addr
-        case inv         : Inv             => domainMessageRouter ! (remoteAddress, inv)
+        case inv         : Inv             => domainMessageRouter ! InventoriesFrom(remoteAddress, inv.inventories)
         case headers     : Headers         => domainMessageRouter ! headers
         case transaction : Transaction     => domainMessageRouter ! transaction
         case block       : Block           => domainMessageRouter ! block

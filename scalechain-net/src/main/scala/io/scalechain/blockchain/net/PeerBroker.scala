@@ -11,6 +11,7 @@ object PeerBroker {
   val props = Props[PeerBroker]
   case class SendToAny(message : ProtocolMessage)
   case class SendToAll(message : ProtocolMessage)
+  case class RegisterPeer(connectedPeer:Peer, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage])
 }
 
 /** Forwards a message to a Peer based on the remote address of the peer.
@@ -20,10 +21,14 @@ object PeerBroker {
 class PeerBroker extends Actor {
   val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
 
-  def anyLivePeer() : Peer = {
+  def anyLivePeer() : Option[Peer] = {
     val livePeers = peerByAddress.values.filter(_.messageTransformer.isLive)
-    val randomLivePeer = CollectionUtil.random(livePeers)
-    randomLivePeer
+    if (livePeers.isEmpty) {
+      None
+    } else {
+      val randomLivePeer = CollectionUtil.random(livePeers)
+      Some(randomLivePeer)
+    }
   }
 
   def getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer = {
@@ -42,8 +47,7 @@ class PeerBroker extends Actor {
   import PeerBroker._
 
   def receive = {
-    // BUGBUG : Change to case class
-    case (connectedPeer:Peer, remotePeerAddress:InetSocketAddress, protocolMessageOption:Option[ProtocolMessage]) => {
+    case RegisterPeer(connectedPeer, remotePeerAddress, protocolMessageOption) => {
       println("PeerBroker.receive")
 
       // Create the peer node which is connected to the remote peer address.
@@ -54,7 +58,19 @@ class PeerBroker extends Actor {
         peer.requester forward protocolMessage
       }
     }
-    case SendToAny(message) => anyLivePeer.requester ! message
+    case SendToAny(message) => {
+      anyLivePeer match {
+        case None => {
+          // TODo : Implement.
+          //assert(false);
+          //
+          println("PeerBroker:No live peer, Unable to send message:" + message)
+        }
+        case Some(livePeer) => {
+          livePeer.requester ! message
+        }
+      }
+    }
     case SendToAll(message) => {
       peerByAddress.values.filter(_.messageTransformer.isLive).map { peer =>
         peer.requester ! message

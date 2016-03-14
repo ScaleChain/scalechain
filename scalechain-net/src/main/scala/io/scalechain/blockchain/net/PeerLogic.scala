@@ -35,7 +35,7 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   // BUGBUG : The ping schedule should be created
-  val pingSchedule = context.system.scheduler.schedule( initialDelay = 15 second, interval = PING_INTERVAL_SECONDS second, self, ServerRequester.SendPing)
+  val pingSchedule = context.system.scheduler.schedule( initialDelay = 30 second, interval = PING_INTERVAL_SECONDS second, self, ServerRequester.SendPing)
 
   // We need to canel the ping schedule right before this actor stops.
   // http://doc.akka.io/docs/akka/current/scala/howto.html#Scheduling_Periodic_Messages
@@ -50,7 +50,7 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
     //sender ! RequestDenied
 
     case SendPing if buffer.size == MaxBufferSize =>
-    //sender ! RequestDenie
+    //sender ! RequestDenied
 
     case SendPing =>
       appendToBuffer(Ping(System.currentTimeMillis()))
