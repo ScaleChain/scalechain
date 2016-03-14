@@ -66,3 +66,4 @@ object VarInt {
   // TODO : Add a unit test.
   val countCodec : Codec[Int] = VarInt.varIntCodec.xmap((_:Long).toInt, (_:Int).toLong)
 }
+

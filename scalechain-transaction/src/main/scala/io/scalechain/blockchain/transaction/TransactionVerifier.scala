@@ -38,7 +38,7 @@ class TransactionVerifier(spendingTransaction : Transaction) {
    *
    * @param blockIndex A block index that can search a transaction by its hash.
    */
-  def verify(blockIndex : BlockIndex) : Unit = {
+  def verify() : Unit = {
     for ( inputIndex <- 0 until spendingTransaction.inputs.length) {
       val txInput = spendingTransaction.inputs(inputIndex)
     }

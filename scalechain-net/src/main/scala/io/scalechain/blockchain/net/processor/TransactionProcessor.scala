@@ -3,7 +3,8 @@ package io.scalechain.blockchain.net.processor
 import java.net.InetSocketAddress
 
 import akka.actor.{ActorRef, Actor, Props}
-import io.scalechain.blockchain.proto.{Hash, GetData, InvVector, Transaction}
+import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.TransientTransactionStorage
 
@@ -22,18 +23,18 @@ class TransactionProcessor(peerBroker : ActorRef) extends Actor {
 
       // TOOD : Optimize : transactionHash is calculated twice. (1) in HashCalculator (2) in storeTransaction.
       val hash = Hash(HashCalculator.transactionHash(transaction))
-      if (! transactionStorage.hasTransaction(hash)) {
-        transactionStorage.storeTransaction(transaction)
+      if (! transactionStorage.exists(hash)) {
+        transactionStorage.put(transaction)
       }
     }
 
-    // BUGBUG : Change to case class
-    case (from:InetSocketAddress, inventories : List[InvVector]) => {
+    case InventoriesFrom(from, inventories) => {
       //assert(inventory.invType == InvType.MSG_TRANSACTION)
       println("TransactionProcessor received InvVector(MSG_TRANSACTION)")
 
       val newTransactionInventories = inventories.filter { inventory =>
-        ! transactionStorage.hasTransaction(inventory.hash)
+        // BUGBUG : We also need to check if the transaction exists on the DiskBlockStorage
+        ! transactionStorage.exists(inventory.hash)
       }
 
       if (! newTransactionInventories.isEmpty) {

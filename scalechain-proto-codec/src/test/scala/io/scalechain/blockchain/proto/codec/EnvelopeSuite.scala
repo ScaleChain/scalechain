@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto.codec
-import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto._
+import io.scalechain.util.HexUtil._
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import scodec.Codec
@@ -19,13 +20,20 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
 
   "payload" should "be correctly encoded" in {
     if (message != null) {
-      encode(message) shouldBe payloadBits
+      val encodedBits = encode(message)
+
+      println("Encoded bits : " + encodedBits.bytes.toString)
+
+      encodedBits shouldBe payloadBits
     }
   }
 
   "payload" should "be correctly decoded" in {
     val actual = decodeFully(payloadBits)
-    println("actual payload = " + actual)
+
+    println("actual message = " + actual)
+    println("expected message = " + message)
+
     if (message != null) {
       decodeFully(payloadBits) shouldBe message
     }

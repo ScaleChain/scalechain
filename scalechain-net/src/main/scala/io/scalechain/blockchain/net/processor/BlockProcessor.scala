@@ -3,9 +3,10 @@ package io.scalechain.blockchain.net.processor
 import java.net.InetSocketAddress
 
 import akka.actor.{Actor, ActorRef, Props}
+import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.LocalDiskBlockStorage
+import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.HexUtil._
 
@@ -22,7 +23,7 @@ object BlockProcessor {
   * Created by kangmo on 2/14/16.
   */
 class BlockProcessor(peerBroker : ActorRef) extends Actor {
-  val blockStorage = new LocalDiskBlockStorage(new File("."))
+  val blockStorage = new DiskBlockStorage(new File("./target/"))
   import BlockProcessor._
 
   def receive : Receive = {
@@ -44,11 +45,10 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
 
     case block : Block => {
       println("BlockProcessor received Block")
-      blockStorage.storeBlock(block)
+      blockStorage.putBlock(block)
     }
 
-    // BUGBUG : Change to case class
-    case (from : InetSocketAddress, inventories : List[InvVector]) => {
+    case InventoriesFrom(from : InetSocketAddress, inventories : List[InvVector]) => {
       //assert(inventory.invType == InvType.MSG_BLOCK)
       println("BlockProcessor received InvVector(MSG_BLOCK)")
 
@@ -65,7 +65,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
 
   def storeBlockHeaders(headers : List[BlockHeader]) : Unit = {
     headers.foreach { header =>
-      blockStorage.storeHeader(header)
+      blockStorage.putBlockHeader(header)
     }
   }
 
