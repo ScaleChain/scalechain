@@ -47,7 +47,7 @@ class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerB
 
     val connectedPeer = Peer(requester, messageTransformer)
     // Register the connected peer to the peer broker.
-    peerBroker ! RegisterPeer(connectedPeer, connection.remoteAddress, null /* Nothing to send */ )
+    peerBroker ! RegisterPeer(connectedPeer, connection.remoteAddress, None /* Nothing to send */ )
 
     val versionMessage = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 

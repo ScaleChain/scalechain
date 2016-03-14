@@ -112,6 +112,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
   def putBlock(block : Block) : Unit = {
     val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+
     putBlock(blockHash, block)
   }
 
@@ -121,6 +122,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     * @param block the block to store.
     */
   def putBlock(blockHash : Hash, block : Block) : Unit = {
+
     val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
 
     val txLocators : List[TransactionLocator] =
@@ -174,6 +176,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
 
   def putBlockHeader(blockHeader : BlockHeader) : Unit = {
     val blockHash = Hash( HashCalculator.blockHeaderHash(blockHeader) )
+
     putBlockHeader(blockHash, blockHeader)
   }
 

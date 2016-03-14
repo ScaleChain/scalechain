@@ -10,14 +10,16 @@ object HashCalculator {
     // Run SHA256 twice and reverse bytes.
     val hash = io.scalechain.crypto.HashFunctions.hash256( serializedBytes )
 
-    hash.value
+    hash.value.reverse
   }
 
   def blockHeaderHash(blockheader:BlockHeader) : Array[Byte] = {
     val serializedBlockHeader = BlockHeaderCodec.serialize(blockheader)
+
+    // Run SHA256 twice and reverse bytes.
     val blockHeaderHash = io.scalechain.crypto.HashFunctions.hash256( serializedBlockHeader )
 
-    blockHeaderHash.value
+    blockHeaderHash.value.reverse
   }
 }
 
