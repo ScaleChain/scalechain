@@ -3,6 +3,7 @@ package io.scalechain.blockchain.cli
 import java.net.InetSocketAddress
 
 import akka.actor.{Props, ActorSystem}
+import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.util
 import com.typesafe.config.{ConfigFactory, Config}
@@ -10,12 +11,14 @@ import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto.{ProtocolMessage, IPv6Address, NetworkAddress, Version}
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.util.Config
 import io.scalechain.util.HexUtil._
 import scala.collection.JavaConverters._
+import io.scalechain.blockchain.api.JsonRpc
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
-object ScaleChainPeer {
+object ScaleChainPeer extends JsonRpc {
   case class Parameters(
     peerAddress : Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
     peerPort : Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
@@ -82,7 +85,7 @@ object ScaleChainPeer {
       */
     implicit val system = ActorSystem("ScaleChainPeer", ConfigFactory.load.getConfig("server"))
 
-    val materializer = ActorMaterializer()
+    implicit val materializer = ActorMaterializer()
 
     /** The peer broker that keeps multiple PeerNode(s) and routes messages based on the origin address of the message.
       */
@@ -109,5 +112,15 @@ object ScaleChainPeer {
         //peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )
       }
     }
+
+    /** Start RPC server.
+      *
+      */
+    implicit val ec = system.dispatcher
+
+    val port = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port")
+    val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
+
+    println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
   }
 }

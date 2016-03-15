@@ -185,24 +185,21 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 //   Content-Type: plain/text
 //   Content-Type: plain/text;
 object JsonRpcMicroservice extends App with JsonRpc {
-  /*
-  case class A(x : String, y : Option[String])
-  implicit val x = jsonFormat2( A.apply )
+  runService()
+  
+  def runService() = {
+    implicit val system = ActorSystem("my-system")
+    implicit val materializer = ActorMaterializer()
+    implicit val ec = system.dispatcher
 
-  println(s"test: ${(A("aa", None)).toJson}");
-  */
+    val port = Config.scalechain.getInt("scalechain.api.port")
+    val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
 
-  implicit val system = ActorSystem("my-system")
-  implicit val materializer = ActorMaterializer()
-  implicit val ec = system.dispatcher
-
-  val port = Config.scalechain.getInt("scalechain.api.port")
-  val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
-
-  println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
-  Console.readLine() // for the future transformations
-  bindingFuture
-    .flatMap(_.unbind()) // trigger unbinding from the port
-    .onComplete(_ ⇒ system.shutdown()) // and shutdown when done
+    println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
+    Console.readLine() // for the future transformations
+    bindingFuture
+      .flatMap(_.unbind()) // trigger unbinding from the port
+      .onComplete(_ ⇒ system.shutdown()) // and shutdown when done
+  }
 }
 
