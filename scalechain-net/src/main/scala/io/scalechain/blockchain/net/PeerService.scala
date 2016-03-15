@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import akka.actor.ActorRef
 import io.scalechain.blockchain.proto.TransactionHash
 import spray.json.JsObject
 
@@ -58,7 +59,7 @@ case class PeerInfo(
 
 
 // [Net Layer] Send requests to peers, get information about peers.
-class PeerService(broker : PeerBroker) {
+class PeerService(broker : ActorRef) {
   /** List of responses for submitblock RPC.
     */
   object SubmitBlockResult extends Enumeration {

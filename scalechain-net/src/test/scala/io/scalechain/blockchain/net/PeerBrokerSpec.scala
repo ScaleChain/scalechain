@@ -1,18 +1,23 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{ TestActors, TestKit, ImplicitSender }
+import io.scalechain.blockchain.net.processor.BlockProcessor
+
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import akka.actor._
+import akka.testkit._
 import org.scalatest._
 
 class PeerBrokerSpec extends TestKit(ActorSystem("PeerBrokerSpec")) with ImplicitSender
 with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
+  var actor : ActorRef = null
+
   override def beforeEach() {
     // set-up code
     //
+    actor = system.actorOf(PeerBroker.props)
 
     super.beforeEach()
   }

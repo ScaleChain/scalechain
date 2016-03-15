@@ -1,19 +1,32 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{ TestActors, TestKit, ImplicitSender }
+import java.net.{InetAddress, InetSocketAddress}
+
+import akka.stream.ActorMaterializer
+
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import akka.actor._
+import akka.testkit._
 import org.scalatest._
 
 class StreamClientLogicSpec extends TestKit(ActorSystem("StreamClientLogicSpec")) with ImplicitSender
 with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
+  val REMOTE_ADDRESS = new InetSocketAddress( InetAddress.getByName("localhost"), 8333)
+
+  var clientLogic : StreamClientLogic = null
+  var peerBrokerProbe : TestProbe = null
+  var domainMessageRouterProbe : TestProbe = null
+
   override def beforeEach() {
     // set-up code
     //
+    peerBrokerProbe = TestProbe()
+    domainMessageRouterProbe = TestProbe()
 
+    clientLogic = StreamClientLogic(system, ActorMaterializer(), peerBrokerProbe.ref, domainMessageRouterProbe.ref, REMOTE_ADDRESS)
     super.beforeEach()
   }
 

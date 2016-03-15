@@ -1,18 +1,21 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{ TestActors, TestKit, ImplicitSender }
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import akka.actor._
+import akka.testkit._
 import org.scalatest._
 
-class ProtocolCodecSpec extends TestKit(ActorSystem("ProtocolCodecSpec")) with ImplicitSender
+class ServerRequesterSpec extends TestKit(ActorSystem("ServerRequesterSpec")) with ImplicitSender
 with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
+
+  var actor : ActorRef = null
 
   override def beforeEach() {
     // set-up code
     //
+    actor = system.actorOf(ServerRequester.props)
 
     super.beforeEach()
   }

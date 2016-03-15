@@ -1,10 +1,10 @@
 package io.scalechain.blockchain.cli.blockchain
 
-import io.scalechain.blockchain.api.command.blockchain.{GetBlockHash, GetBlockResult, GetBlock}
+import io.scalechain.blockchain.api.command.blockchain.{GetBlockResult, GetBlock}
 import io.scalechain.blockchain.api.domain.{RpcError, StringResult}
 import io.scalechain.blockchain.cli.APITestSuite
 import org.scalatest._
-import spray.json.{JsBoolean, JsString, JsNumber}
+import spray.json.{JsBoolean, JsString}
 
 /**
   * Created by kangmo on 11/2/15.

@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.net
 
-import akka.actor.ActorSystem
-import akka.actor.Actor
-import akka.actor.Props
-import akka.testkit.{ TestActors, TestKit, ImplicitSender }
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import akka.actor._
+import akka.testkit._
 import org.scalatest._
 
 class PeerSpec extends TestKit(ActorSystem("PeerSpec")) with ImplicitSender
@@ -28,13 +28,5 @@ with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfte
     TestKit.shutdownActorSystem(system)
   }
 
-  "actor" should {
-    "do something" in {
-      /*
-            val echo = system.actorOf(TestActors.echoActorProps)
-            echo ! "hello world"
-            expectMsg("hello world")
-      */
-    }
-  }
+  // Peer class is a case class representing a peer. Nothing to test.
 }
