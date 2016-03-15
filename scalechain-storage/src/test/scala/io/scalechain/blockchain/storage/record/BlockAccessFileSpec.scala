@@ -4,7 +4,7 @@ import java.io.File
 import java.nio.ByteBuffer
 
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.blockchain.storage.record.BlockAccessFile
+
 import org.scalatest._
 
 /**

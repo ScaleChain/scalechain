@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.storage.Storage
 import org.scalatest._
 
 /**
