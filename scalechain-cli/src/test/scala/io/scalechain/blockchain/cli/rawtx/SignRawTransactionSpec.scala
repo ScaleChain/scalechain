@@ -1,0 +1,38 @@
+package io.scalechain.blockchain.cli.rawtx
+
+import io.scalechain.blockchain.api.command.rawtx.SignRawTransaction
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.cli.APITestSuite
+import org.scalatest._
+
+/**
+  * Created by kangmo on 11/2/15.
+  */
+class SignRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+  this: Suite =>
+
+  override def beforeEach() {
+    // set-up code
+    //
+
+    super.beforeEach()
+  }
+
+  override def afterEach() {
+    super.afterEach()
+
+    // tear-down code
+    //
+  }
+
+  "SignRawTransaction" should "" in {
+    // TODO : Implement.
+  }
+
+  "SignRawTransaction" should "return an error if no parameter was specified." in {
+    val response = invoke(SignRawTransaction)
+    val result = response.left.get
+    result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
+  }
+
+}

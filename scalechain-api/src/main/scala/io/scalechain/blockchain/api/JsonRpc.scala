@@ -186,7 +186,7 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
 //   Content-Type: plain/text;
 object JsonRpcMicroservice extends App with JsonRpc {
   runService()
-  
+
   def runService() = {
     implicit val system = ActorSystem("my-system")
     implicit val materializer = ActorMaterializer()
