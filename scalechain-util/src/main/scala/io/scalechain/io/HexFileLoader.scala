@@ -21,6 +21,23 @@ object HexFileLoader {
     }
     HexUtil.bytes(buffer.toString)
   }
+
+  /**
+    * by mijeong
+    */
+  def loadWallet(path:String) : Array[Byte] = {
+    implicit val codec = Codec("UTF-8")
+    codec.onMalformedInput(CodingErrorAction.REPLACE)
+    codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+
+    val buffer = new StringBuffer()
+
+    for( line <- Source.fromFile(path).getLines()) {
+      buffer.append(line)
+      buffer.append("\n")
+    }
+    HexUtil.bytes(buffer.toString)
+  }
 }
 
 

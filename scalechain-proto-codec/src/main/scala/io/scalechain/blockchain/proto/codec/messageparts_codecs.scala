@@ -274,3 +274,29 @@ object NetworkAddressWithTimestampCodec extends MessagePartCodec[NetworkAddressW
     ("network_address" | NetworkAddressCodec.codec)
   }.as[NetworkAddressWithTimestamp]
 }
+
+
+/**
+  * by mijeong
+  *
+  * TODO: Implement full WalletHeaderCodec
+  *
+  * WalletHeaderCodec Prototype
+  */
+object WalletHeaderCodec extends MessagePartCodec[WalletHeader]{
+  val codec : Codec[WalletHeader] = {
+      ("lsn"                   | int64L                                 ) ::
+      ("pgno"                  | int32L                                 ) ::
+      ("magic"                 | int32L                                 ) ::
+      ("version"               | int32L                                 ) ::
+      ("pagesize"              | int32L                                 ) ::
+      ("unused1"               | int8L                                  ) ::
+      ("type"                  | int8L                                  ) ::
+      ("unused2"               | int8L                                  ) ::
+      ("free"                  | int32L                                 ) ::
+      ("alloc_lsn"             | int64L                                 ) ::
+      ("key_count"             | int32L                                 ) ::
+      ("record_count"          | int32L                                 ) ::
+      ("flags"                 | int32L                                 )
+  }.as[WalletHeader]
+}

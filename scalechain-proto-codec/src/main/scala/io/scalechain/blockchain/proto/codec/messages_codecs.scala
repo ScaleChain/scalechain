@@ -826,3 +826,19 @@ object SendHeadersCodec extends ProtocolMessageCodec[SendHeaders] {
   val codec : Codec[SendHeaders] = provide(SendHeaders())
 }
 
+/**
+  * by mijeong
+  *
+  * TODO: Implement full Codec
+  *
+  * WalletCodec Prototype - just Header
+  */
+object WalletCodec extends ProtocolMessageCodec[Wallet] {
+  val command = "wallet"
+  val clazz = classOf[Wallet]
+
+  val codec : Codec[Wallet] = {
+    ("walletheader"         | WalletHeaderCodec.codec)
+  }.as[Wallet]
+}
+
