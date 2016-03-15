@@ -89,7 +89,7 @@ object ScaleChainPeer extends JsonRpc {
 
     /** The peer broker that keeps multiple PeerNode(s) and routes messages based on the origin address of the message.
       */
-    val peerBroker = system.actorOf(PeerBroker.props, "peerBroker")
+    val peerBroker = PeerBroker.create(system)
 
     /** The domain message router receives messages from all peers.
       * The ProtocolMessageTransformer in the TCP connection flow sends

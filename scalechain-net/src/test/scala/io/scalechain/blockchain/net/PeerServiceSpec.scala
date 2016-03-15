@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net
 
 import io.scalechain.blockchain.net.processor.TransactionProcessor
+import io.scalechain.blockchain.net.service.PeerService
 
 import scala.concurrent.duration._
 import scala.concurrent.Future

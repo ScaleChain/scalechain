@@ -9,8 +9,8 @@ import io.scalechain.util.HexUtil._
 
 object DomainMessageRouter {
   def props(peerBroker : ActorRef ) = Props[DomainMessageRouter]( new DomainMessageRouter(peerBroker))
-  case class InventoriesFrom(from: InetSocketAddress, inventories:List[InvVector])
-
+  case class InventoriesFrom(address: InetSocketAddress, inventories:List[InvVector])
+  case class VersionFrom(address: InetSocketAddress, version: Version)
 }
 
 /**
@@ -18,50 +18,51 @@ object DomainMessageRouter {
   */
 class DomainMessageRouter(peerBroker : ActorRef ) extends Actor {
 
-  val blockProcessor = context.system.actorOf(BlockProcessor.props(peerBroker))
+  val blockProcessor = BlockProcessor.create( context.system, peerBroker)
+
   val peerClientProcessor = context.system.actorOf(PeerClientProcessor.props)
-  val transactionProcessor = context.system.actorOf(TransactionProcessor.props(peerBroker))
 
-  // Need to move the genesis hash to a configuration case class.
-  val GENESIS_BLOCK_HASH = Hash( bytes("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f") )
-
+  val transactionProcessor = TransactionProcessor.create(context.system, peerBroker)
 
   import DomainMessageRouter._
 
   def receive() : Receive = {
+    case versionFrom : VersionFrom => {
+      peerBroker forward versionFrom
+    }
     case verack : Verack => {
-      // BUGBUG : Send from the latest block header intead of the genesis block.
-      // Get the latest block header from BlockStorage
-      blockProcessor ! BlockProcessor.DownloadBlocksFrom( GENESIS_BLOCK_HASH )
+      blockProcessor ! BlockProcessor.StartInitialBlockDownload()
+      println("Sent StartInitialBlockDownload to the block processor." )
     }
     case message : Addr => {
-      println("ProtocolMessageReceiver received : " + message)
+      println("[DomainMessageRouter] received address : " + message)
       peerClientProcessor forward message
     }
-    case message @ InventoriesFrom(from, inventories) => {
+    case message @ InventoriesFrom(address, inventories) => {
       val blockInventories = inventories.filter( _.invType == InvType.MSG_BLOCK)
       if (!blockInventories.isEmpty) {
-        blockProcessor forward InventoriesFrom(from, blockInventories)
+        blockProcessor forward InventoriesFrom(address, blockInventories)
+        println("[DomainMessageRouter] forwarded block inventories.")
       }
 
       val transactionInventories = inventories.filter( _.invType == InvType.MSG_TX)
       if (!transactionInventories.isEmpty) {
-        transactionProcessor forward InventoriesFrom(from, transactionInventories)
+        transactionProcessor forward InventoriesFrom(address, transactionInventories)
+        //println("[DomainMessageRouter] forwarded transaction inventories.")
       }
 
       // Inventory vectors whose InvType(s) are InvType.ERROR and InvType.MSG_FILTERED_BLOCK are ignored.
-      println("ProtocolMessageReceiver received : " + message)
     }
     case message : Headers => {
-      println("ProtocolMessageReceiver received : " + message)
+      println("[DomainMessageRouter] forwarded block headers. ")
       blockProcessor forward message
     }
     case message : Transaction => {
-      println("ProtocolMessageReceiver received : " + message)
+      //println("[DomainMessageRouter] forwarded transaction. ")
       transactionProcessor forward message
     }
     case message : Block => {
-      println("ProtocolMessageReceiver received : " + message)
+      println("[DomainMessageRouter] forwarded block. ")
       blockProcessor forward message
     }
   }

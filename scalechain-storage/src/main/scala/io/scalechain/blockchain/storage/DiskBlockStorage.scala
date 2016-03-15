@@ -2,6 +2,7 @@ package io.scalechain.blockchain.storage
 
 import java.io.File
 
+import akka.actor.{ActorSystem, ActorRef}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
 import io.scalechain.blockchain.script.HashCalculator
@@ -10,6 +11,27 @@ import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
+
+
+object DiskBlockStorage {
+  var theBlockStorage : DiskBlockStorage = null
+
+  def create(storagePath : File) : DiskBlockStorage = {
+    assert(theBlockStorage == null)
+    theBlockStorage = new DiskBlockStorage(storagePath)
+    theBlockStorage
+  }
+
+  /** Get the block storage. This actor is a singleton, used by transaction validator.
+    *
+    * @return The block storage.
+    */
+  def get() : DiskBlockStorage = {
+    assert(theBlockStorage != null)
+    theBlockStorage  }
+
+}
+
 
 /** Stores block header, block, and transactions in the block.
   *
@@ -54,6 +76,12 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
   protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
+
+
+  // See if we have genesis block. If not, put one.
+  if ( ! hasBlock(GenesisBlock.HASH) ) {
+    putBlock(GenesisBlock.BLOCK)
+  }
 
   protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
     if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) { // case 1 : the block height of the new block is greater than the highest one.
@@ -110,116 +138,154 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   }
 
 
-  def putBlock(block : Block) : Unit = {
-    val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+  def putBlock(block : Block) : Boolean = {
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
 
-    putBlock(blockHash, block)
+      putBlock(blockHash, block)
+    }
   }
 
   /** Store a block.
     *
     * @param blockHash the hash of the header of the block to store.
     * @param block the block to store.
+    *
+    * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
+    *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
-  def putBlock(blockHash : Hash, block : Block) : Unit = {
+  def putBlock(blockHash : Hash, block : Block) : Boolean = {
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
 
-    val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
+      val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
+      var isNewBlock = false
 
-    val txLocators : List[TransactionLocator] =
+      val txLocators: List[TransactionLocator] =
+        if (blockInfo.isDefined) {
+          // case 1 : block info was found
+          if (blockInfo.get.blockLocatorOption.isEmpty) {
+            // case 1.1 : block info without a block locator was found
+            val appendResult = blockWriter.appendBlock(block)
+            val newBlockInfo = blockInfo.get.copy(blockLocatorOption = Some(appendResult.blockLocator))
+            blockIndex.putBlockInfo(blockHash, newBlockInfo)
+            updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, newBlockInfo.height, block.header.timestamp)
 
-    if (blockInfo.isDefined) { // case 1 : block info was found
-      if (blockInfo.get.blockLocatorOption.isEmpty) { // case 1.1 : block info without a block locator was found
-        val appendResult = blockWriter.appendBlock(block)
-        val newBlockInfo= blockInfo.get.copy(blockLocatorOption = Some(appendResult.blockLocator))
-        blockIndex.putBlockInfo(blockHash, newBlockInfo)
-        updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, newBlockInfo.height, block.header.timestamp)
+            appendResult.txLocators
+          } else {
+            // case 1.2 block info with a block locator was found
+            // The block already exists. Do not put it once more.
+            logger.warn("The block already exists. block hash : {}", blockHash)
 
-        appendResult.txLocators
-      } else { // case 1.2 block info with a block locator was found
-        // The block already exists. Do not put it once more.
-        logger.warn("The block already exists. block hash : {}", blockHash)
+            List()
+          }
+        } else {
+          // case 2 : no block info was found.
+          // get the height of the previous block, to calculate the height of the given block.
+          val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(block.header.hashPrevBlock.value))
 
-        List()
+          if (prevBlockHeightOption.isDefined) {
+            // case 2.1 : no block info was found, previous block header exists.
+            val appendResult = blockWriter.appendBlock(block)
+
+            val blockHeight = prevBlockHeightOption.get + 1
+            val blockInfo = BlockInfo(
+              height = blockHeight,
+              transactionCount = 0,
+              // BUGBUG : Need to use enumeration
+              status = 0,
+              blockHeader = block.header,
+              Some(appendResult.blockLocator)
+            )
+            blockIndex.putBlockInfo(blockHash, blockInfo)
+            updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, blockInfo.height, block.header.timestamp)
+            checkBestBlockHash(blockHash, blockHeight)
+
+            isNewBlock = true
+
+            appendResult.txLocators
+          } else {
+            // case 2.2 : no block info was found, previous block header does not exists.
+            logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
+
+            List()
+          }
+        }
+
+      if (!txLocators.isEmpty) {
+        // case 1.1 and case 2.1 has newly stored transactions.
+        blockIndex.putTransactions(txLocators)
       }
-    } else { // case 2 : no block info was found.
-      // get the height of the previous block, to calculate the height of the given block.
-      val prevBlockHeightOption : Option[Int] = getBlockHeight( Hash(block.header.hashPrevBlock.value) )
 
-      if (prevBlockHeightOption.isDefined) { // case 2.1 : no block info was found, previous block header exists.
-        val appendResult = blockWriter.appendBlock(block)
-
-        val blockHeight = prevBlockHeightOption.get + 1
-        val blockInfo = BlockInfo(
-          height = blockHeight,
-          transactionCount = 0,
-          // BUGBUG : Need to use enumeration
-          status = 0,
-          blockHeader = block.header,
-          Some(appendResult.blockLocator)
-        )
-        blockIndex.putBlockInfo(blockHash, blockInfo)
-        updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, blockInfo.height, block.header.timestamp)
-        checkBestBlockHash(blockHash, blockHeight)
-
-        appendResult.txLocators
-      } else { // case 2.2 : no block info was found, previous block header does not exists.
-        logger.warn("An orphan block was discarded while saving a block. block hash : {}", blockHash)
-
-        List()
-      }
-    }
-
-    if ( ! txLocators.isEmpty ) { // case 1.1 and case 2.1 has newly stored transactions.
-      blockIndex.putTransactions(txLocators)
+      isNewBlock
     }
   }
 
   def putBlockHeader(blockHeader : BlockHeader) : Unit = {
-    val blockHash = Hash( HashCalculator.blockHeaderHash(blockHeader) )
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      val blockHash = Hash(HashCalculator.blockHeaderHash(blockHeader))
 
-    putBlockHeader(blockHash, blockHeader)
+      putBlockHeader(blockHash, blockHeader)
+    }
   }
 
   def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader) : Unit = {
-    // get the height of the previous block, to calculate the height of the given block.
-    val prevBlockHeightOption : Option[Int] = getBlockHeight(Hash(blockHeader.hashPrevBlock.value))
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      // get the height of the previous block, to calculate the height of the given block.
+      val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(blockHeader.hashPrevBlock.value))
 
-    if (prevBlockHeightOption.isDefined) { // case 1 : the previous block header was found.
-      val blockHeight = prevBlockHeightOption.get + 1
+      if (prevBlockHeightOption.isDefined) {
+        // case 1 : the previous block header was found.
+        val blockHeight = prevBlockHeightOption.get + 1
 
-      assert(blockHeight >= 0)
+        assert(blockHeight >= 0)
 
-      val blockInfo : Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
-      if (blockInfo.isEmpty) { // case 1.1 : the header does not exist yet.
-        val blockInfo = BlockInfo(
-          height = blockHeight,
-          transactionCount = 0,
-          // BUGBUG : Need to use enumeration
-          status = 0,
-          blockHeader = blockHeader,
-          None
-        )
-        blockIndex.putBlockInfo(blockHash, blockInfo)
-        checkBestBlockHash(blockHash, blockHeight)
+        val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
+        if (blockInfo.isEmpty) {
+          // case 1.1 : the header does not exist yet.
+          val blockInfo = BlockInfo(
+            height = blockHeight,
+            transactionCount = 0,
+            // BUGBUG : Need to use enumeration
+            status = 0,
+            blockHeader = blockHeader,
+            None
+          )
+          blockIndex.putBlockInfo(blockHash, blockInfo)
+          checkBestBlockHash(blockHash, blockHeight)
 
-      } else { // case 1.2 : the same block header already exists.
-        logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
+        } else {
+          // case 1.2 : the same block header already exists.
+          logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
 
-        // blockIndex hits an assertion if the block header is changed for the same block hash.
-        // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
-        //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
-        //  blockHeader = blockHeader
-        //))
+          // blockIndex hits an assertion if the block header is changed for the same block hash.
+          // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
+          //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
+          //  blockHeader = blockHeader
+          //))
 
+        }
+      } else {
+        // case 2 : the previous block header was not found.
+        logger.warn("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
       }
-    } else { // case 2 : the previous block header was not found.
-      logger.warn("An orphan block was discarded while saving a block header. block hash : {}", blockHash)
     }
   }
 
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-    val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
-    txLocatorOption.map( blockRecordStorage.readRecord(_)(TransactionCodec) )
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
+      txLocatorOption.map(blockRecordStorage.readRecord(_)(TransactionCodec))
+    }
   }
 
   /** Get a block searching by the header hash.
@@ -230,15 +296,23 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     * @return The searched block.
     */
   def getBlock(blockHash : Hash) : Option[Block] = {
-    val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-    if (blockInfoOption.isDefined) { // case 1 : The block info was found.
-      if (blockInfoOption.get.blockLocatorOption.isDefined) { // case 1.1 : the block info with a block locator was found.
-        Some( blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec) )
-      } else { // case 1.2 : the block info without a block locator was found.
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
+      if (blockInfoOption.isDefined) {
+        // case 1 : The block info was found.
+        if (blockInfoOption.get.blockLocatorOption.isDefined) {
+          // case 1.1 : the block info with a block locator was found.
+          Some(blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec))
+        } else {
+          // case 1.2 : the block info without a block locator was found.
+          None
+        }
+      } else {
+        // case 2 : The block info was not found
         None
       }
-    } else { // case 2 : The block info was not found
-      None
     }
   }
 
@@ -249,36 +323,66 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     * @return The header hash of the most recent block.
     */
   def getBestBlockHash() : Option[Hash] = {
-    blockIndex.getBestBlockHash()
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      blockIndex.getBestBlockHash()
+    }
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
-    getBlock(blockHash).isDefined
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      getBlock(blockHash).isDefined
+    }
   }
 
   def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-    if (blockInfoOption.isDefined) { // case 1 : the block info was found.
-      Some(blockInfoOption.get.blockHeader)
-    } else { // case 2 : the block info was not found.
-      None
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
+      if (blockInfoOption.isDefined) {
+        // case 1 : the block info was found.
+        Some(blockInfoOption.get.blockHeader)
+      } else {
+        // case 2 : the block info was not found.
+        None
+      }
     }
   }
 
   def hasBlockHeader(blockHash : Hash) : Boolean = {
-    getBlockHeader(blockHash).isDefined
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      getBlockHeader(blockHash).isDefined
+    }
   }
 
   def getBlock(blockHash : BlockHash) : Option[Block] = {
-    getBlock(Hash(blockHash.value))
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      getBlock(Hash(blockHash.value))
+    }
   }
 
   def getTransaction(transactionHash : TransactionHash) : Option[Transaction] = {
-    getTransaction(Hash(transactionHash.value))
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      getTransaction(Hash(transactionHash.value))
+    }
   }
 
   def close() : Unit = {
-    blockRecordStorage.close()
-    blockIndex.close()
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      blockRecordStorage.close()
+      blockIndex.close()
+    }
   }
 }

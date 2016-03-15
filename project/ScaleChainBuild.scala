@@ -65,7 +65,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-api",
 			base = file("scalechain-api"))
-				.dependsOn(util, net, api_domain, wallet)
+				.dependsOn(util, net, api_domain, transaction, wallet)
 
 	lazy val wallet =
 		Project(

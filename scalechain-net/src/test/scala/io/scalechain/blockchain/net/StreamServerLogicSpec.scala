@@ -10,7 +10,7 @@ import akka.actor._
 import akka.testkit._
 import org.scalatest._
 
-class StreamServerLogic extends TestKit(ActorSystem("StreamServerLogic")) with ImplicitSender
+class StreamServerLogicSpec extends TestKit(ActorSystem("StreamServerLogic")) with ImplicitSender
 with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 

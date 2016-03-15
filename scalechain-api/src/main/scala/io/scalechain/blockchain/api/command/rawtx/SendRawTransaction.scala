@@ -1,10 +1,15 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.command.{TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.proto.{Hash, HashFormat}
+import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.storage.DiskBlockStorage
+import io.scalechain.util.{ByteArray, HexUtil}
 import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.transaction.TransactionVerifier
 
 /*
   CLI command :
@@ -61,9 +66,24 @@ object SendRawTransaction extends RpcCommand {
       val serializedTransaction  : String  = request.params.get[String]("Transaction", 0)
       val allowHighFees: Boolean = request.params.getOption[Boolean]("Allow High Fees", 1).getOrElse(false)
 
-      // TODO : Implement
-      val txHashString = "f5a5ce5988cc72b9b90e8d1d6c910cda53c88d2175177357cc2f2cf0899fbaad"
-      Right(Some(StringResult(txHashString)))
+      // Step 1 : Decode the transaction and run validation.
+      val transaction = TransactionDecoder.decodeTransaction(serializedTransaction)
+      new TransactionVerifier(transaction).verify(DiskBlockStorage.get)
+
+      // Step 2 : Check if the transaction already exists.
+      val txHash = Hash( HashCalculator.transactionHash(transaction))
+      val transactionOption = SubSystem.getTransaction(txHash)
+
+      if (transactionOption.isDefined) {
+        // BUGBUG : check bitcoin core code to make sure the error code matches.
+        Left(RpcError(
+              RpcError.RPC_INVALID_PARAMETER.code,
+              RpcError.RPC_INVALID_PARAMETER.messagePrefix,
+              "The transaction already exists."))
+      } else {
+        SubSystem.peerService.sendRawTransaction(transaction, allowHighFees)
+        Right(Some(StringResult(ByteArray.byteArrayToString(txHash.value))))
+      }
     }
   }
   def help() : String =

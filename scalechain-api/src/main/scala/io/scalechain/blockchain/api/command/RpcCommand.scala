@@ -32,6 +32,6 @@ object RpcCommand {
     ErrorCode.RpcParameterTypeConversionFailure -> RpcError.RPC_INVALID_PARAMETER,
     ErrorCode.RpcMissingRequiredParameter -> RpcError.RPC_INVALID_REQUEST,
     ErrorCode.RpcArgumentLessThanMinValue -> RpcError.RPC_INVALID_PARAMETER,
-    ErrorCode. RpcArgumentGreaterThanMaxValue -> RpcError.RPC_INVALID_PARAMETER
+    ErrorCode.RpcArgumentGreaterThanMaxValue -> RpcError.RPC_INVALID_PARAMETER
   )
 }

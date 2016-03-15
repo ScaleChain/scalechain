@@ -39,7 +39,6 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
 
 
       if ( (envelope.payload.length / 8) < envelope.length  ) { // Not enough data received for an envelope.
-        println("Not enough data.")
         bitVector
       } else {
         BitcoinMessageEnvelope.verify(envelope)

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
@@ -40,8 +41,12 @@ object GetAccount extends RpcCommand {
       val address: String = request.params.get[String]("Address", 0)
 
       // TODO : Implement
+/*
       val accountName = "account_name"
       Right(Some(StringResult(accountName)))
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
     }
   }
   def help() : String =

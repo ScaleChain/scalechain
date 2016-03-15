@@ -45,7 +45,7 @@ class ProtocolDecoder {
 
     decodedMessages foreach {
       message =>
-        println("decoded : " + message)
+        //println("decoded : " + message)
     }
 
     decodedMessages

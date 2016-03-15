@@ -20,7 +20,7 @@ import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.api.command.utility._
 
 import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.net.PeerInfo
+import io.scalechain.blockchain.net.service.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import io.scalechain.wallet.UnspentCoin
 import spray.json.DefaultJsonProtocol._
@@ -36,17 +36,17 @@ object RpcResultJsonFormat {
   implicit val implicitScriptPubKey = jsonFormat5(ScriptPubKey.apply)
   implicit val implicitGetTxOutResult = jsonFormat6(GetTxOutResult.apply)
 
-  implicit val implicitGetBlockResult = jsonFormat14(GetBlockResult.apply)
+  implicit val implicitGetBlockResult = jsonFormat8(GetBlockResult.apply)
 
-  implicit val implicitPeerInfoResult = jsonFormat20(PeerInfo.apply)
+  implicit val implicitPeerInfoResult = jsonFormat4(PeerInfo.apply)
 
 
   import RawTransactionInputJsonFormat._
 
-  implicit val implicitRawScriptPubKey               = jsonFormat5(RawScriptPubKey.apply)
+  implicit val implicitRawScriptPubKey               = jsonFormat1(RawScriptPubKey.apply)
   implicit val implicitRawTransactionOutput          = jsonFormat3(RawTransactionOutput.apply)
   implicit val implicitDecodedRawTransaction         = jsonFormat5(DecodedRawTransaction.apply)
-  implicit val implicitRawTransaction                = jsonFormat10(RawTransaction.apply)
+  implicit val implicitRawTransaction                = jsonFormat6(RawTransaction.apply)
 
   implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
 

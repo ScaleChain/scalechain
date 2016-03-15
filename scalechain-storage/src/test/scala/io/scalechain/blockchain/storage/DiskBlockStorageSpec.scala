@@ -106,8 +106,8 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   }
 
   "putBlock(block)" should "store a block without hash" in {
-    storage.putBlock(block1)
-    storage.putBlock(block2)
+    storage.putBlock(block1) shouldBe true
+    storage.putBlock(block2) shouldBe true
 
     storage.getBlock(blockHash1) shouldBe Some(block1)
     storage.getBlock(blockHash2) shouldBe Some(block2)
@@ -120,7 +120,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     storage.putBlockHeader(block1.header)
 
     // Step 2 : put the genesis block
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe false
 
     // Step 3 : should get the block
     storage.getBlock(blockHash1) shouldBe Some(block1)
@@ -130,10 +130,10 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   "putBlock(hash,block)" should "pass case 1.2 block info with a block locator was found." in {
     // Step 1 : put the genesis block
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
 
     // Step 2 : put the same block
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
 
     // Step 3 : should get the block
     storage.getBlock(blockHash1) shouldBe Some(block1)
@@ -145,7 +145,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     storage.putBlockHeader(block1.header)
 
     // Step 2 : put the second block
-    storage.putBlock(block2)
+    storage.putBlock(block2) shouldBe true
 
     // Step 3 : should get the blocks
     storage.getBlock(blockHash1) shouldBe None // We put an header only.
@@ -156,10 +156,10 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   "putBlock(hash,block)" should "pass case 2.1 : no block info was found, previous block header exists. Full block data exists for the previous block" in {
     // Step 1 : put the genesis block
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
 
     // Step 2 : put the second block
-    storage.putBlock(block2)
+    storage.putBlock(block2) shouldBe true
 
     // Step 3 : should get the blocks
     storage.getBlock(blockHash1) shouldBe Some(block1)
@@ -171,7 +171,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   "putBlock(hash,block)" should "pass case 2.2 : no block info was found, previous block header does not exists." in {
     // Step 1 : put the second block
-    storage.putBlock(block2)
+    storage.putBlock(block2) shouldBe true
 
     // Step 2 : should get None for the second block hash
     storage.getBlock(blockHash2) shouldBe None
@@ -226,7 +226,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   }
 
   "getTransaction" should "return Some(transaction) if the transaction is found." in {
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
 
     // Step 3 : After putting a block, the transaction not exist.
     for (transaction <- block1.transactions) {
@@ -240,7 +240,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   }
 
   "getBlock" should "return Some(block) if the block is found." in {
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
     storage.getBlock(blockHash1) shouldBe Some(block1)
   }
 
@@ -278,14 +278,14 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
   }
 
   "hasBlockHeader" should "return Some(block header) if the block was put." in {
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
     storage.getBlockHeader(blockHash1) shouldBe Some(block1.header)
   }
 
   // This method is a wrapper of the getBlock(Hash). Just do a sanity test.
   "getBlock(BlockHash)" should "get a block" in {
-    storage.putBlock(block1)
-    storage.putBlock(block2)
+    storage.putBlock(block1) shouldBe true
+    storage.putBlock(block2) shouldBe true
 
     storage.getBlock(BlockHash(blockHash1.value)) shouldBe Some(block1)
     storage.getBlock(BlockHash(blockHash2.value)) shouldBe Some(block2)
@@ -300,7 +300,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     }
 
     // Step 2 : Put a block.
-    storage.putBlock(block1)
+    storage.putBlock(block1) shouldBe true
 
     // Step 3 : After putting a block, the transaction not exist.
     for (transaction <- block1.transactions) {

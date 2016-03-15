@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorRef
 import akka.stream.stage.{SyncDirective, PushStage, Context}
-import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
+import io.scalechain.blockchain.net.DomainMessageRouter.{VersionFrom, InventoriesFrom}
 import io.scalechain.blockchain.proto._
 
 /**
@@ -14,7 +14,9 @@ class ProtocolMessageTransformer(domainMessageRouter : ActorRef, remoteAddress: 
   var pongReceivedAt : Long = 0L
 
   def isLive(): Boolean = {
-    System.currentTimeMillis() - pongReceivedAt < (ServerRequester.PING_INTERVAL_SECONDS + 1) * 1000
+    true
+    // BUGBUG : Need to make sure the remote peer is alive by checking the ping receival time.
+    //System.currentTimeMillis() - pongReceivedAt < (ServerRequester.PING_INTERVAL_SECONDS + 1) * 1000
   }
 
   override def onPush(elems: List[ProtocolMessage], ctx: Context[List[ProtocolMessage]]): SyncDirective = {
@@ -22,7 +24,10 @@ class ProtocolMessageTransformer(domainMessageRouter : ActorRef, remoteAddress: 
     var messages = List[ProtocolMessage]()
     elems foreach { elem =>
       elem match {
-        case version     : Version         => messages :+= Verack()
+        case version     : Version         => {
+          messages :+= Verack()
+          domainMessageRouter ! VersionFrom(remoteAddress, version)
+        }
         case Ping(nonce)                   => messages :+= Pong(nonce)
         case Pong(nonce)                   => {
           pongReceivedAt = System.currentTimeMillis()
@@ -33,7 +38,7 @@ class ProtocolMessageTransformer(domainMessageRouter : ActorRef, remoteAddress: 
         case headers     : Headers         => domainMessageRouter ! headers
         case transaction : Transaction     => domainMessageRouter ! transaction
         case block       : Block           => domainMessageRouter ! block
-        case m           : ProtocolMessage => println("Received a message : " + m.toString);
+        case m           : ProtocolMessage => println("Received a message : " + m.getClass.getName);
       }
     }
     ctx.push(messages)

@@ -18,7 +18,7 @@ object ProtocolEncoder {
     // Step 1 : Map protocol messages to byte strings.
     val byteStrings = messages map {
       message => {
-        println("encoding : " + message)
+        //println("encoding : " + message)
         ByteString( codec.encode(message) )
       }
     }
