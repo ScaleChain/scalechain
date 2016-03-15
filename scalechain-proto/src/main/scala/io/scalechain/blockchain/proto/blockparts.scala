@@ -210,8 +210,7 @@ case class Wallet(val header : WalletHeader) extends ProtocolMessage {
   *
   * WalletHeader Prototype
   */
-case class WalletHeader(lsn : Long, pgno : Int, magic : Int, version : Int, pageSize : Int, unused1: Int, `type` : Int, unused2 : Int, free : Int, allocLsn : Long, keyCount : Int, recordCount : Int, flags : Int )  extends ProtocolMessage {
-  override def toString() : String = {
-    s"WalletHeader(lsn=${lsn}L, pgno=$pgno, magic=$magic, version=$version, pageSize=$pageSize, unused1=$unused1, type1=$`type`, unused2=$unused2, free=$free, allocLsn=${allocLsn}L, keyCount=$keyCount, recordCount=$recordCount, flags=$flags)"
-  }
+case class WalletHeader(lsn : Long, pgno : Int, magic : Int, version : Int, pagesize : Int, unused1: Int, `type` : Int, unused2 : Int, free : Int, allocLsn : Long, keyCount : Int, recordCount : Int, flags : Int )  extends ProtocolMessage {
+  override def toString() : String =
+    s"WalletHeader(lsn=${lsn}L, pgno=${pgno}, magic=${magic}, version=${version}, pagesize=${pagesize}, unused1=${unused1}, type1=${`type`}, unused2=${unused2}, free=${free}, allocLsn=${allocLsn}L, keyCount=${keyCount}, recordCount=${recordCount}, flags=${flags})"
 }

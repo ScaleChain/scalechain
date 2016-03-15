@@ -43,4 +43,16 @@ case class OneByte( value : Byte ) extends ProtocolMessage
   */
 case class TransactionCount( count : Int) extends ProtocolMessage
 
+/**
+  * by mijeong
+  *
+  * TODO : Implement full WalletInfo
+  *
+  * WalletInfo Prototype
+  */
+case class WalletInfo(
+  status : Int,
+  walletHeader : WalletHeader
+) extends ProtocolMessage
+
 

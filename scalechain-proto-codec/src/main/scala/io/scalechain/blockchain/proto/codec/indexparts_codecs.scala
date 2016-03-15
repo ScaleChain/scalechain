@@ -59,3 +59,17 @@ object TransactionCountCodec extends MessagePartCodec[TransactionCount] {
     ("transaction_count" | VarInt.countCodec )
   }.as[TransactionCount]
 }
+
+/**
+  * by mijeong
+  *
+  * TODO : Implement full WalletInfoCodec
+  *
+  * WalletInfoCodec Prototype
+  */
+object WalletInfoCodec extends MessagePartCodec[WalletInfo]{
+  val codec : Codec[WalletInfo] = {
+      ("status" | int32L) ::
+      ("walletHeader" | WalletHeaderCodec.codec)
+  }.as[WalletInfo]
+}
