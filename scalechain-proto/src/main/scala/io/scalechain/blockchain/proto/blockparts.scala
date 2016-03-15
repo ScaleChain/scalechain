@@ -196,10 +196,10 @@ case class NetworkAddressWithTimestamp(timestamp:Long, address:NetworkAddress) e
   *
   * Wallet Prototype - just Header
   */
-case class Wallet(val header : WalletHeader) extends ProtocolMessage {
+case class Wallet(val header : WalletHeader, val keyPairs: List[KeyPair]) extends ProtocolMessage {
 
   override def toString() : String = {
-    s"Wallet(header=$header)"
+    s"Wallet(header=$header, keypairs=${keyPairs})"
   }
 }
 
@@ -210,7 +210,19 @@ case class Wallet(val header : WalletHeader) extends ProtocolMessage {
   *
   * WalletHeader Prototype
   */
-case class WalletHeader(lsn : Long, pgno : Int, magic : Int, version : Int, pagesize : Int, unused1: Int, `type` : Int, unused2 : Int, free : Int, allocLsn : Long, keyCount : Int, recordCount : Int, flags : Int )  extends ProtocolMessage {
+case class WalletHeader(lsn : Long, pgno : Int, magic : Int, version : Int, pagesize : Int, unused1: Int, `type` : Int, unused2 : Int, free : Int, allocLsn : Long, keyCount : Int, recordCount : Int, flags : Int, uid : Int )  extends ProtocolMessage {
   override def toString() : String =
-    s"WalletHeader(lsn=${lsn}L, pgno=${pgno}, magic=${magic}, version=${version}, pagesize=${pagesize}, unused1=${unused1}, type1=${`type`}, unused2=${unused2}, free=${free}, allocLsn=${allocLsn}L, keyCount=${keyCount}, recordCount=${recordCount}, flags=${flags})"
+    s"WalletHeader(lsn=${lsn}L, pgno=${pgno}, magic=${magic}, version=${version}, pagesize=${pagesize}, unused1=${unused1}, type1=${`type`}, unused2=${unused2}, free=${free}, allocLsn=${allocLsn}L, keyCount=${keyCount}, recordCount=${recordCount}, flags=${flags}, uid=${uid})"
+}
+
+/**
+  * by mijeong
+  *
+  * TODO : Implement full WalletHeader
+  *
+  * WalletHeader Prototype
+  */
+case class KeyPair(version : Int, publicKey : Hash, privateKey : Hash)  extends ProtocolMessage {
+  override def toString() : String =
+    s"KeyPair(version=${version}, publicKey=${publicKey}, privateKey=${privateKey})"
 }

@@ -48,6 +48,16 @@ object HashCodec extends MessagePartCodec[Hash] {
   }.as[Hash]
 }
 
+/**
+  * by mijeong
+  *
+  * WalletHashCodec Prototype
+  */
+object WalletHashCodec extends MessagePartCodec[Hash] {
+  val codec : Codec[Hash] = {
+    ("hash" | FixedByteArray.codec(33))
+  }.as[Hash]
+}
 
 object BlockHashCodec extends MessagePartCodec[BlockHash]{
   val codec : Codec[BlockHash] = {
@@ -297,6 +307,20 @@ object WalletHeaderCodec extends MessagePartCodec[WalletHeader]{
       ("alloc_lsn"             | int64L                                 ) ::
       ("key_count"             | int32L                                 ) ::
       ("record_count"          | int32L                                 ) ::
-      ("flags"                 | int32L                                 )
+      ("flags"                 | int32L                                 ) ::
+      ("uid"                   | int8L                                  )
   }.as[WalletHeader]
+}
+
+/**
+  * by mijeong
+  *
+  * KeyPaireCodec Prototype
+  */
+object KeyPairCodec extends MessagePartCodec[KeyPair]{
+  val codec : Codec[KeyPair] = {
+      ("version"                 | int32L                                 ) ::
+      ("publickey"               | WalletHashCodec.codec                  ) ::
+      ("privatekey"              | HashCodec.codec                        )
+  }.as[KeyPair]
 }

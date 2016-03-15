@@ -8,6 +8,7 @@ import io.scalechain.blockchain.proto.codec.primitive._
 import io.scalechain.io.{BlockDataInputStream, BlockDataOutputStream}
 import scodec.bits.{ByteVector, BitVector}
 import scodec.{DecodeResult, Attempt, Codec}
+import scodec.Codec._
 import scodec.codecs._
 
 
@@ -838,7 +839,9 @@ object WalletCodec extends ProtocolMessageCodec[Wallet] {
   val clazz = classOf[Wallet]
 
   val codec : Codec[Wallet] = {
-    ("walletheader"         | WalletHeaderCodec.codec)
+    ("walletheader"         | WalletHeaderCodec.codec           ) ::
+    ("keys"                 | VarList.list(KeyPairCodec.codec  ))
   }.as[Wallet]
 }
+
 
