@@ -208,8 +208,8 @@ class GenerationTransactionVerifier(transaction : GenerationTransactionInput) {
     * @throws TransactionVerificationException if the verification failed.
     */
   def verify(env : ScriptEnvironment, blockIndex : BlockIndex): Unit = {
-    assert(env == null)
-    assert(blockIndex == null)
+    //assert(env == null)
+    //assert(blockIndex == null)
     // Do nothing.
     // TODO : Verify that 100 blocks are created after the generation transaction was created.
   }

@@ -50,6 +50,10 @@ class TransactionProcessor(peerBroker : ActorRef) extends Actor {
       // TOOD : Optimize : transactionHash is calculated twice. (1) in HashCalculator (2) in storeTransaction.
       val hash = Hash(HashCalculator.transactionHash(transaction))
       if (! transactionStorage.exists(hash)) {
+
+        // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
+        // new TransactionVerifier(transaction).verify(DiskBlockStorage.get)
+
         //println("The transaction was stored : " + hash)
         transactionStorage.put(transaction)
       }

@@ -42,7 +42,7 @@ class DomainMessageRouter(peerBroker : ActorRef ) extends Actor {
       val blockInventories = inventories.filter( _.invType == InvType.MSG_BLOCK)
       if (!blockInventories.isEmpty) {
         blockProcessor forward InventoriesFrom(address, blockInventories)
-        println("[DomainMessageRouter] forwarded block inventories.")
+        //println("[DomainMessageRouter] forwarded block inventories.")
       }
 
       val transactionInventories = inventories.filter( _.invType == InvType.MSG_TX)
@@ -54,7 +54,7 @@ class DomainMessageRouter(peerBroker : ActorRef ) extends Actor {
       // Inventory vectors whose InvType(s) are InvType.ERROR and InvType.MSG_FILTERED_BLOCK are ignored.
     }
     case message : Headers => {
-      println("[DomainMessageRouter] forwarded block headers. ")
+      //println("[DomainMessageRouter] forwarded block headers. ")
       blockProcessor forward message
     }
     case message : Transaction => {
@@ -62,7 +62,7 @@ class DomainMessageRouter(peerBroker : ActorRef ) extends Actor {
       transactionProcessor forward message
     }
     case message : Block => {
-      println("[DomainMessageRouter] forwarded block. ")
+      //println("[DomainMessageRouter] forwarded block. ")
       blockProcessor forward message
     }
   }

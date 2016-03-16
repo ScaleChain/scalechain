@@ -146,6 +146,8 @@ object TransactionFormatter {
     val txHash = Hash( HashCalculator.transactionHash(transaction) )
     val serializedTransaction = getSerializedTranasction(transaction)
 
+    println(s"transaction.inputs: ${transaction.inputs}")
+
     RawTransaction(
       hex      = serializedTransaction,
       txid     = txHash,

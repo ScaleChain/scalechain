@@ -26,14 +26,14 @@ class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITes
     //
   }
 
-  val TRANSACTION_ID = JsString("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e")
+  val TRANSACTION_ID = JsString("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b")
 
   "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 0" in {
     val response = invoke(GetRawTransaction, List(TRANSACTION_ID, JsNumber(0)))
     val result = response.right.get.get.asInstanceOf[StringResult]
   }
 
-  "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 0" in {
+  "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 1" in {
     val response = invoke(GetRawTransaction, List(TRANSACTION_ID, JsNumber(1)))
     val result = response.right.get.get.asInstanceOf[RawTransaction]
     // TODO : Copy-paste the transaction object from unittest output.
