@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net.processor
 import java.net.InetSocketAddress
 
 import akka.actor.{ActorSystem, Actor, ActorRef, Props}
+import io.scalechain.blockchain.{BlockVerificationException, TransactionVerificationException}
 import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.net.PeerBroker.SendToOne
@@ -12,8 +13,11 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{GenesisBlock, DiskBlockStorage}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.transaction.BlockVerifier
 
 import java.io.File
+
+import org.slf4j.LoggerFactory
 
 object BlockProcessor {
   val ZERO_FILLED_HASH   = Hash( bytes("0"*64) )
@@ -56,9 +60,11 @@ object BlockProcessor {
   * Created by kangmo on 2/14/16.
   */
 class BlockProcessor(peerBroker : ActorRef) extends Actor {
+  private val logger = LoggerFactory.getLogger(classOf[BlockProcessor])
+
   var blockDownloadStarted = false
 
-  val blockStorage = DiskBlockStorage.create(new File("./target/"))
+  val blockStorage = DiskBlockStorage.create(new File("./target/blockdata/"))
   import BlockProcessor._
 
   def receive : Receive = {
@@ -119,8 +125,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
     }
 
     case block : Block => {
-      println("BlockProcessor received Block : The block was stored.")
-      blockStorage.putBlock(block)
+      storeBlock(block)
     }
 
     case InventoriesFrom(address : InetSocketAddress, inventories : List[InvVector]) => {
@@ -134,6 +139,27 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
       if (! newBlockInventories.isEmpty) {
         peerBroker ! SendToOne( address, GetData(newBlockInventories) )
         println(s"Sent GetData(block inventories). to : ${address}")
+      }
+    }
+  }
+
+  def storeBlock(block : Block) : Unit = {
+    // Step 1 : Validate block
+    try {
+      /*
+        BUGBUG : getLockingScript is not able to find the transaction hash on the Outpoint of inputs.
+        new BlockVerifier(block).verify(DiskBlockStorage.get)
+      */
+      blockStorage.putBlock(block)
+      println("BlockProcessor received Block : The block was stored.")
+    } catch {
+      case e: BlockVerificationException => {
+        println(s"Block verification failed. block header : ${block.header}, error : $e")
+        logger.warn(s"Block verification failed. block header : ${block.header}, error : $e" )
+      }
+      case e: TransactionVerificationException => {
+        println(s"Transaction verification failed. block header : ${block.header}, error : $e")
+        logger.warn(s"Transaction verification failed. block header : ${block.header}, error : $e" )
       }
     }
   }

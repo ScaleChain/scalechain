@@ -53,7 +53,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-net",
 			base = file("scalechain-net"))
-		.dependsOn(util, proto, proto_codec, script, storage)
+		.dependsOn(util, proto, proto_codec, script, storage, transaction)
 
 	lazy val api_domain =
 		Project(

@@ -71,6 +71,8 @@ object DiskBlockStorage {
 class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
 
+  directoryPath.mkdir()
+
   protected[storage] val blockIndex = new BlockDatabase( new RocksDatabase( directoryPath ) )
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
@@ -170,9 +172,13 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
           if (blockInfo.get.blockLocatorOption.isEmpty) {
             // case 1.1 : block info without a block locator was found
             val appendResult = blockWriter.appendBlock(block)
-            val newBlockInfo = blockInfo.get.copy(blockLocatorOption = Some(appendResult.blockLocator))
+            val newBlockInfo = blockInfo.get.copy(
+              transactionCount = block.transactions.size,
+              blockLocatorOption = Some(appendResult.blockLocator)
+            )
             blockIndex.putBlockInfo(blockHash, newBlockInfo)
-            updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, newBlockInfo.height, block.header.timestamp)
+            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+            updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
 
             appendResult.txLocators
           } else {
@@ -194,14 +200,16 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
             val blockHeight = prevBlockHeightOption.get + 1
             val blockInfo = BlockInfo(
               height = blockHeight,
-              transactionCount = 0,
+              transactionCount = block.transactions.size,
               // BUGBUG : Need to use enumeration
               status = 0,
               blockHeader = block.header,
               Some(appendResult.blockLocator)
             )
             blockIndex.putBlockInfo(blockHash, blockInfo)
-            updateFileInfo(appendResult.headerLocator, blockRecordStorage.lastFile.size, blockInfo.height, block.header.timestamp)
+
+            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+            updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
             checkBestBlockHash(blockHash, blockHeight)
 
             isNewBlock = true

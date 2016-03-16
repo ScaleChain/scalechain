@@ -84,7 +84,8 @@ class BlockDatabase(db : KeyValueDatabase) {
 
       // File size should not be decreased
       // File size should increase
-      assert( currentInfo.fileSize < blockFileInfo.fileSize)
+      assert( currentInfo.fileSize < blockFileInfo.fileSize )
+
 
       // The last block height should not be decreased.
       // The last block height should increase
