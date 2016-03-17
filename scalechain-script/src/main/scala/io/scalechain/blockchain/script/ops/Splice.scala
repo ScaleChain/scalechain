@@ -46,7 +46,7 @@ case class OpSize() extends Splice {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSize")
     }
 
     val topValue = env.stack.top()

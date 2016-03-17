@@ -73,7 +73,7 @@ class UnsupportedFeature(val code : ErrorCode) extends ExceptionWithErrorCode
  */
 class FatalException(val code:ErrorCode) extends ExceptionWithErrorCode
 
-class ScriptEvalException(val code:ErrorCode) extends ExceptionWithErrorCode
+class ScriptEvalException(val code:ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class ScriptParseException(val code:ErrorCode) extends ExceptionWithErrorCode
 

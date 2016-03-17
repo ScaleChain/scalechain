@@ -25,7 +25,7 @@ object TransactionSignature {
   def calculateHash(transaction : Transaction, transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Hash256 = {
     // Step 1 : Check if the transactionInputIndex is valid.
     if (transactionInputIndex < 0 || transactionInputIndex >= transaction.inputs.length) {
-      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex)
+      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex, "calculateHash: invalid transaction input")
     }
 
     // Step 2: copy each field of this transaction and create a new one.
@@ -81,10 +81,10 @@ object TransactionSignature {
         }
       }
       case TransactionSigHash.NONE => {
-        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
+        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : NONE")
       }
       case TransactionSigHash.SINGLE => {
-        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
+        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : SINGLE")
       }
     }
   }

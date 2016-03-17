@@ -22,7 +22,7 @@ case class OpRIPEMD160() extends Crypto {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpRIPEMD160")
     }
 
     val topItem = env.stack.pop()
@@ -40,7 +40,7 @@ case class OpSHA1() extends Crypto {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSHA1")
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.sha1(topItem.value)
@@ -57,7 +57,7 @@ case class OpSHA256() extends Crypto {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSHA256")
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.sha256(topItem.value)
@@ -74,7 +74,7 @@ case class OpHash160() extends Crypto {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpHash160")
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.hash160(topItem.value)
@@ -91,7 +91,7 @@ case class OpHash256() extends Crypto {
 
   def execute(env : ScriptEnvironment): Unit = {
     if (env.stack.size() < 1) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpHash256")
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.hash256(topItem.value)
@@ -160,7 +160,7 @@ trait CheckSig extends Crypto {
     //   2. a signature
     if (env.stack.size() < 2) {
       // TODO : Write a test for this branch.
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:CheckSig")
     }
 
     val publicKey = env.stack.pop()
@@ -169,7 +169,7 @@ trait CheckSig extends Crypto {
     // Check if the signature format is valid.
     // BUGBUG : See if we always have to check the signature format.
     if (!ECDSASignature.isEncodingCanonical(rawSignature.value)) {
-      throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat)
+      throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat, "ScriptOp:CheckSig")
     }
 
     val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
@@ -203,14 +203,14 @@ trait CheckSig extends Crypto {
     //   5. dummy
     if (env.stack.size() < 5) {
       // TODO : Write a test for this branch.
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:CheckMultiSig, the total number of stack items")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // Step 1 : Get the public key count
     val publicKeyCount = env.stack.popInt().intValue()
     if (publicKeyCount < 0 || publicKeyCount > Config.MAX_PUBLIC_KEYS_FOR_MULTSIG)
-      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys)
+      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys, "ScriptOp:CheckMultiSig, the number of public keys")
 
     // Now, we need to have at least publicKeyCount + 3 items on the stack.
     //   1. publicKeyCount public keys.
@@ -219,7 +219,7 @@ trait CheckSig extends Crypto {
     //   4. dummy
     if (env.stack.size() < publicKeyCount + 3) {
       // TODO : Write a test for this branch.
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:CheckMultiSig, the remaining number of stack items after getting the public key count")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -232,14 +232,14 @@ trait CheckSig extends Crypto {
     // Step 3 : Get the signature count
     val signatureCount = env.stack.popInt().intValue()
     if (signatureCount < 0 || signatureCount > publicKeyCount)
-      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys)
+      throw new ScriptEvalException(ErrorCode.TooManyPublicKeys, "ScriptOp:CheckMultiSig, the public key count")
 
     // Now, we need to have at least signatureKeyCount + 1 items on the stack.
     //   1. signatureCount signatures
     //   2. dummy
     if (env.stack.size() < signatureCount + 1) {
       // TODO : Write a test for this branch.
-      throw new ScriptEvalException(ErrorCode.NotEnoughInput)
+      throw new ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:CheckMultiSig, the signature count")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ trait CheckSig extends Crypto {
       // Step 6.1 : Check the signature format.
       // BUGBUG : See if we always have to check the signature format.
       if (!ECDSASignature.isEncodingCanonical(rawSignature.value)) {
-        throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat)
+        throw new ScriptEvalException(ErrorCode.InvalidSignatureFormat, "ScriptOp:CheckMultiSig, invalid raw signature format.")
       }
 
 

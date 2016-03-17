@@ -113,10 +113,10 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
     case headers : Headers => {
       val MAX_BLOCK_HEADERS_PER_MESSAGE = 2000
       if (headers.headers.size >= MAX_BLOCK_HEADERS_PER_MESSAGE) {
-        val lastblockHeaderHash = HashCalculator.blockHeaderHash(headers.headers.last)
+        val lastblockHeaderHash = Hash( HashCalculator.blockHeaderHash(headers.headers.last) )
         println("Got 2000 headers, Continuing to download block. Header hash : "+ lastblockHeaderHash)
 
-        self ! DownloadBlocksFrom( Hash(lastblockHeaderHash) )
+        self ! DownloadBlocksFrom( lastblockHeaderHash )
       } else {
         println(s"Got ${headers.headers.size} headers. Stopping.")
       }
@@ -148,10 +148,13 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
   def storeBlock(block : Block) : Unit = {
     // Step 1 : Validate block
     try {
-      // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
-      // new BlockVerifier(block).verify(DiskBlockStorage.get)
 
       blockStorage.putBlock(block)
+
+      // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
+      // BUGBUG : Need to put block after the verification step.
+      new BlockVerifier(block).verify(DiskBlockStorage.get)
+
 /*
       println("Stored a block with following transactions")
       for (tx <- block.transactions) {
@@ -162,12 +165,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
       // println("BlockProcessor received Block : The block was stored.")
     } catch {
       case e: BlockVerificationException => {
-        println(s"Block verification failed. block header : ${block.header}, error : $e")
         logger.warn(s"Block verification failed. block header : ${block.header}, error : $e" )
-      }
-      case e: TransactionVerificationException => {
-        println(s"Transaction verification failed. block header : ${block.header}, error : $e")
-        logger.warn(s"Transaction verification failed. block header : ${block.header}, error : $e" )
       }
     }
   }

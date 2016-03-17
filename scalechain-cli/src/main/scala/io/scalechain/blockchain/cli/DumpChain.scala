@@ -1,11 +1,13 @@
 package io.scalechain.blockchain.cli
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{File, ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, ScriptBytes}
+import io.scalechain.blockchain.script.{BlockPrinterSetter, HashCalculator, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
+import io.scalechain.blockchain.storage.{GenesisBlock, Storage, DiskBlockStorage}
+import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.{ByteArray, HexUtil}
 import HexUtil._
 import scala.collection._
@@ -97,6 +99,27 @@ object DumpChain {
 
     dump( blocksPath, new BlockListener() )
   }
+
+  def verifyBlocks(blocksPath: String) : Unit = {
+
+    val blockStoragePath = new File("./target/tempblockstorage/")
+    blockStoragePath.mkdir()
+    val storage = new DiskBlockStorage(blockStoragePath)
+    storage.putBlock( GenesisBlock.BLOCK )
+
+    var blockHeight = 0
+    class BlockListener extends BlockReadListener {
+      def onBlock(block: Block): Unit = {
+        storage.putBlock(block)
+        new BlockVerifier(block).verify(storage)
+        println(s"At block height : $blockHeight, ${BlockVerifier.statistics()}")
+        blockHeight += 1
+      }
+    }
+
+    dump( blocksPath, new BlockListener() )
+  }
+
 
 
   /** Verify that serializing parsed data produces the original serialized data.
@@ -256,14 +279,25 @@ object DumpChain {
    * @param args Has only one element, the path to blocks directory.
    */
   def main(args:Array[String]) : Unit = {
+    // Enable printing script operations
+    BlockPrinterSetter.initialize
+
+    // Initialize the storage subsystem. ex> Load dynamic libraries required for the storage layer.
+    Storage.initialize
+
     if (args.length < 2) {
       printUsage();
     } else {
       val blocksPath = args(0)
       val command = args(1)
 
+      println(s"blocks' path: $blocksPath")
+      println(s"command: $command")
+
       if ( command == "dump-blocks" ) {
         dumpBlocks(blocksPath)
+      } else if ( command == "verify-blocks") {
+        verifyBlocks(blocksPath)
       } else if ( command == "dump-hashes" ) {
         dumpHashes(blocksPath)
       } else if ( command == "dump-transactions" ) {
@@ -284,8 +318,10 @@ object DumpChain {
   def printUsage(): Unit = {
     println("DumpChain <path to the blocks folder which has blkNNNNN.dat files> <command>");
     println("ex> DumpChain <path> dump-blocks");
+    println("ex> DumpChain <path> verify-blocks");
     println("ex> DumpChain <path> dump-hashes");
     println("ex> DumpChain <path> dump-transactions");
+    println("ex> DumpChain <path> verify-transactions");
     println("ex> DumpChain <path> dump-block-index-data");
     println("ex> DumpChain <path> verify-serialization");
     println("ex> DumpChain <path> merge-scripts");

@@ -106,7 +106,7 @@ case class OpVerify() extends FlowControl {
   def opCode() = OpCode(0x69)
 
   def execute(env : ScriptEnvironment): Unit = {
-    super.verify(env);
+    super.verify(env)
   }
 }
 

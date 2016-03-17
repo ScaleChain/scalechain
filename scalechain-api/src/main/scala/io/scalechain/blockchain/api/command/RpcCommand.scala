@@ -15,14 +15,12 @@ trait RpcCommand {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
-        println(s"ExceptionWithErrorCode, while executing a command. exception : $e")
         logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e")
         val rpcError = RpcCommand.ERROR_MAP(e.code)
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }
       // In case any error happens, return as RpcError.
       case e : Exception => {
-        println(s"Internal Error, while executing a command. exception : $e")
         logger.error(s"Internal Error, while executing a command. exception : $e")
         val rpcError = RpcError.RPC_INTERNAL_ERROR
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))

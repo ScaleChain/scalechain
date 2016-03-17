@@ -21,7 +21,7 @@ class TransactionVerifier(spendingTransaction : Transaction) {
     val env = new ScriptEnvironment(spendingTransaction, Some(inputIndex))
 
     if (inputIndex < 0 || inputIndex >= spendingTransaction.inputs.length) {
-      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex)
+      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex, "Invalid Input Index on Transaction Verifier")
     }
 
     spendingTransaction.inputs(inputIndex) match {
@@ -43,6 +43,39 @@ class TransactionVerifier(spendingTransaction : Transaction) {
   }
 }
 
+object NormalTransactionVerifier {
+  var successCount = 0
+  var verificationFailureCount = 0
+  var parseFailureCount = 0
+  var evalFailureCount = 0
+  var generalFailureCount = 0
+
+  def totalFailureCount =  verificationFailureCount + parseFailureCount + evalFailureCount + generalFailureCount
+
+  def success() : Unit = {
+    successCount += 1
+  }
+
+  def verificationFailure() : Unit = {
+    verificationFailureCount += 1
+  }
+
+  def parseFailure() : Unit = {
+    parseFailureCount += 1
+  }
+
+  def evalFailure() : Unit = {
+    evalFailureCount += 1
+  }
+
+  def generalFailure() : Unit = {
+    generalFailureCount += 1
+  }
+
+  def stats() = {
+    s"TransactionVerification( success:$successCount, failure:$totalFailureCount, verificationFailure:$verificationFailureCount, parseFailure:$parseFailureCount, evalFailure:$evalFailureCount, generalFailure:$generalFailureCount)"
+  }
+}
 
 /**
   * Created by kangmo on 1/3/16.
@@ -56,19 +89,32 @@ class NormalTransactionVerifier(transaction : NormalTransactionInput) {
     */
   protected def throwingTransactionVerificationException[T]( body : => T ) : T = {
     try {
-      body
-    } catch {
-      case e : TransactionVerificationException => {
-        throw e
+      val returnValue = body
+
+      try {
+        try {
+          NormalTransactionVerifier.success()
+        } catch {
+          case e : Exception => {
+            NormalTransactionVerifier.generalFailure()
+            throw new TransactionVerificationException(ErrorCode.GeneralFailure, s"message=${e.getMessage}", e.getStackTrace())
+          }
+        }
+      } catch {
+        case e: TransactionVerificationException => {
+          NormalTransactionVerifier.verificationFailure()
+          throw e
+        }
       }
+      returnValue
+    } catch {
       case e : ScriptParseException => {
-        throw new TransactionVerificationException(ErrorCode.ScriptParseFailure, e.getMessage(), e.getStackTrace())
+        NormalTransactionVerifier.parseFailure()
+        throw new TransactionVerificationException(ErrorCode.ScriptParseFailure, s"[${e.code}]message=${e.message}", e.getStackTrace())
       }
       case e : ScriptEvalException => {
-        throw new TransactionVerificationException(ErrorCode.ScriptEvalFailure, e.getMessage(), e.getStackTrace())
-      }
-      case e : Exception => {
-        throw new TransactionVerificationException(ErrorCode.GeneralFailure, e.getMessage(), e.getStackTrace())
+        NormalTransactionVerifier.evalFailure()
+        throw new TransactionVerificationException(ErrorCode.ScriptEvalFailure, s"[${e.code}]message=${e.message}", e.getStackTrace())
       }
     }
   }
@@ -83,18 +129,17 @@ class NormalTransactionVerifier(transaction : NormalTransactionInput) {
     val outputTxOption = blockIndex.getTransaction(transaction.outputTransactionHash)
     if (outputTxOption.isEmpty) {
       // The transaction which produced the UTXO does not exist.
-      throw new TransactionVerificationException(ErrorCode.InvalidOutputTransactionHash)
+      throw new TransactionVerificationException(ErrorCode.InvalidOutputTransactionHash, message = s"Invalid Output Tranasction Hash")
     }
     // The transaction that produced UTXO exists.
     val outputTx = outputTxOption.get
     if (transaction.outputIndex < 0 || transaction.outputIndex >= outputTx.outputs.length) {
-      throw new TransactionVerificationException(ErrorCode.InvalidOutputIndex)
+      throw new TransactionVerificationException(ErrorCode.InvalidOutputIndex, message = s"Invalid Output Index")
     }
 
     /**
       *  BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
       */
-
     outputTx.outputs(transaction.outputIndex.toInt).lockingScript
   }
 
@@ -176,7 +221,7 @@ class NormalTransactionVerifier(transaction : NormalTransactionInput) {
       // Step 5 : Check the top value of the stack
       val top = env.stack.pop()
       if ( !Utils.castToBool(top.value) ) {
-        throw new TransactionVerificationException(ErrorCode.TopValueFalse)
+        throw new TransactionVerificationException(ErrorCode.TopValueFalse, message = s"Result of unlocking script execution : ${top.value}")
       }
 
       // Step 6 : If we have any redeeming script, parse it, and run it.
@@ -188,9 +233,11 @@ class NormalTransactionVerifier(transaction : NormalTransactionInput) {
         // Step 6.1 : See if the result of the redeem script execution is true.
         val top = env.stack.pop()
         if ( !Utils.castToBool(top.value) ) {
-          throw new TransactionVerificationException(ErrorCode.TopValueFalse)
+          throw new TransactionVerificationException(ErrorCode.TopValueFalse, message = s"Result of redeem script execution : ${top.value}")
         }
       }
+
+      // BUGBUG : Is there any case that redeemScript is None even though there is a redeem script?
     }
   }
 
