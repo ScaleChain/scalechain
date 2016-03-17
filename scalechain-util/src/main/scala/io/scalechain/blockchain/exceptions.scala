@@ -28,6 +28,7 @@ object ErrorCode {
   val GeneralFailure= ErrorCode("general_failure")
   val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
   val UnsupportedHashType = ErrorCode("unsupported_hash_type")
+  val NotEnoughStackValues = ErrorCode("not_enough_stack_values")
 
   // HTTP errors
   val HttpRequestFailure = ErrorCode("http_request_failure")
@@ -85,7 +86,7 @@ class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErr
 
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
-class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends ExceptionWithErrorCode
+class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array(), var debuggingInfo : Option[AnyRef] = None) extends ExceptionWithErrorCode
 {
   override def toString() = {
     s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"

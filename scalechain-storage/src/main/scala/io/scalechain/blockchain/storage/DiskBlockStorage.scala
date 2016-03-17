@@ -68,6 +68,7 @@ object DiskBlockStorage {
   *
   * @param directoryPath The path where database files are located.
   */
+
 class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
 
