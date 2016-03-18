@@ -35,7 +35,7 @@ Supported Features
 ==================
 - All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
 - Spark Integration; [load bitcoin transaction/block data onto Spark](data/docs/spark-integration.md) for real-time analysis.
-- (In-progress) P2P networking; Bitcoin testnet integration.
+- P2P networking; Bitcoin main-net integration.
 
 Customization
 =============
