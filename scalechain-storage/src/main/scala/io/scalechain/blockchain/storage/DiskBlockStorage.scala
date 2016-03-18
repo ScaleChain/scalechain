@@ -19,6 +19,12 @@ object DiskBlockStorage {
   def create(storagePath : File) : DiskBlockStorage = {
     assert(theBlockStorage == null)
     theBlockStorage = new DiskBlockStorage(storagePath)
+
+    // See if we have genesis block. If not, put one.
+    if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
+      theBlockStorage.putBlock(GenesisBlock.BLOCK)
+    }
+
     theBlockStorage
   }
 
@@ -79,12 +85,6 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
   protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
-
-
-  // See if we have genesis block. If not, put one.
-  if ( ! hasBlock(GenesisBlock.HASH) ) {
-    putBlock(GenesisBlock.BLOCK)
-  }
 
   protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
     if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) { // case 1 : the block height of the new block is greater than the highest one.

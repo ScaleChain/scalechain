@@ -36,8 +36,10 @@ object BlockVerifier {
       builder.append(s"[$message] count = ${tracker.count}\n")
       builder.append("------------------------------------\n")
       builder.append(s"blockHash=${Hash(HashCalculator.blockHeaderHash(tracker.block.header))}\n")
+/*
       builder.append("------------------------------------\n")
       builder.append(s"block=${tracker.block}\n")
+*/
       builder.append("------------------------------------\n")
       builder.append(s"transaction=${tracker.transaction}\n")
       builder.append("------------------------------------\n")

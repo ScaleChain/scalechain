@@ -133,7 +133,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     storage.putBlock(block1) shouldBe true
 
     // Step 2 : put the same block
-    storage.putBlock(block1) shouldBe true
+    storage.putBlock(block1) shouldBe false
 
     // Step 3 : should get the block
     storage.getBlock(blockHash1) shouldBe Some(block1)
@@ -171,7 +171,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   "putBlock(hash,block)" should "pass case 2.2 : no block info was found, previous block header does not exists." in {
     // Step 1 : put the second block
-    storage.putBlock(block2) shouldBe true
+    storage.putBlock(block2) shouldBe false
 
     // Step 2 : should get None for the second block hash
     storage.getBlock(blockHash2) shouldBe None
