@@ -25,18 +25,16 @@ object Services {
     GetPeerInfo,
     DecodeRawTransaction,
     GetRawTransaction,
-    SendRawTransaction
-    /*
-        SignRawTransaction,
-        GetAccount,
-        GetAccountAddress,
-        GetNewAddress,
-        GetReceivedByAddress,
-        GetTransaction,
-        ListTransactions,
-        ListUnspent,
-        SendFrom
-    */
+//    SendRawTransactio,
+    SignRawTransaction,
+    GetAccount,
+    GetAccountAddress,
+    GetNewAddress,
+    GetReceivedByAddress,
+    GetTransaction,
+    ListTransactions,
+    ListUnspent,
+    SendFrom
   )
 
   // The map from the command to the service object.
