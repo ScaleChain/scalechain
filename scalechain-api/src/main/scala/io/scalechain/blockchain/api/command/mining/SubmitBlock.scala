@@ -1,11 +1,17 @@
 package io.scalechain.blockchain.api.command.mining
 
-import io.scalechain.blockchain.{ErrorCode, RpcException}
-import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.transaction.TransactionVerifier
+import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, RpcException}
+import io.scalechain.blockchain.api.command.{BlockDecoder, RpcCommand}
 import io.scalechain.blockchain.api.command.rawtx.DecodeRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.util.HexUtil
 import spray.json._
 import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.transaction.BlockVerifier
 
 /*
   CLI command :
@@ -66,11 +72,31 @@ object SubmitBlock extends RpcCommand {
         case jsObject : JsObject => jsObject
         case _ => throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
       }
+/*
+      // Step 1 : decode the block
+      val block = BlockDecoder.decodeBlock(serializedBlock)
 
+      // Step 2 : verify the block, including all transactions in it.
+      new BlockVerifier(block).verify()
+
+      // Step 3 : try to save block
+      val isNewBlock = SubSystem.blockDatabaseService.putBlock(block)
+
+      val response =
+        if (isNewBlock) {
+          SubSystem.peerService.submitBlock(block, parameters)
+          NullResult..
+        } else {
+          None
+        }
+*/
+/*
       // TODO : Implement
       val errorMessageOption = Some("duplicate")
       val resultOption = errorMessageOption.map(StringResult(_))
       Right(resultOption)
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
   def help() : String =

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
@@ -74,7 +75,7 @@ object ListUnspent extends RpcCommand {
       val minimumConfirmations: Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
       val maximumConfirmations: Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(9999999L)
       val addressesOption     : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
-
+/*
       // TODO : Implement
 
       // A list of objects each describing an unspent output. May be empty
@@ -95,6 +96,9 @@ object ListUnspent extends RpcCommand {
         )
 
       Right(Some(ListUnspentResult(unspentCoins)))
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
     }
   }
   def help() : String =

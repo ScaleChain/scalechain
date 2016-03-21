@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
@@ -81,11 +82,13 @@ object SendFrom extends RpcCommand {
       val confirmations: Long                  = request.params.getOption[Long]("Confirmations", 3).getOrElse(1L)
       val comment:       Option[String]        = request.params.getOption[String]("Comment", 4)
       val commentTo:     Option[String]        = request.params.getOption[String]("Comment To", 5)
-
+/*
       // TODO : Implement
       val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
 
       Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
 

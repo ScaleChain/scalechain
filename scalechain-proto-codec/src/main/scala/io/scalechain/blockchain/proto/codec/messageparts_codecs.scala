@@ -180,7 +180,8 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
     * @return true if the give transaction input is the generation transaction. false otherwise.
     */
   private def isGenerationTransaction(txInput : TransactionInput) = {
-    txInput.outputTransactionHash.isAllZero() && (txInput.outputIndex == 0xFFFFFFFF)
+    // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
+    txInput.outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
   }
 
   private def normalTxToGenerationOrNormal(normalTxInput: NormalTransactionInput) : TransactionInput = {

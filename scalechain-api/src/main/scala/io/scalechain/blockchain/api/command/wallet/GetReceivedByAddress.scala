@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
@@ -53,10 +54,13 @@ object GetReceivedByAddress extends RpcCommand {
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
       val address      : String                = request.params.get[String]("Address", 0)
       val confirmation : Long = request.params.getOption[Long]("Confirmations", 1).getOrElse(1L)
-
+/*
       // TODO : Implement
       val totalReceived = scala.math.BigDecimal(0.1)
       Right(Some(NumberResult(totalReceived)))
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
     }
   }
   def help() : String =

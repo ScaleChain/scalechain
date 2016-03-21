@@ -43,48 +43,11 @@ class ProtocolDecoder {
     import collection.JavaConverters._
     val decodedMessages = messages.asScala.toList
 
-
     decodedMessages foreach {
       message =>
-        println("decoded : " + message)
+        //println("decoded : " + message)
     }
 
     decodedMessages
-  }
-}
-
-
-/** An empty protocol message. Whenever we have nothing to send to a peer, we use this case class.
-  *
-  */
-/*
-case class EmptyProtocolMessage extends ProtocolMessage {
-  override def toString = "EmptyProtocolMessage()"
-}
-*/
-
-/** ProtocolMessage encoder, which encodes a list of protocol messages to a byte string.
-  */
-object ProtocolEncoder {
-  private var codec: BitcoinProtocolCodec = new BitcoinProtocolCodec(new BitcoinProtocol)
-
-  /** Encode a list of protcol messages to a byte string.
-    *
-    * @param messages The list of protocol messages to encode.
-    * @return The encoded byte string.
-    */
-  def encode(messages : List[ProtocolMessage]) : ByteString = {
-    // Step 1 : Map protocol messages to byte strings.
-    val byteStrings = messages map {
-      message => {
-        println("encoding : " + message)
-        ByteString( codec.encode(message) )
-      }
-    }
-
-    // Step 2 : Merge all ByteString(s) into a ByteString.
-    byteStrings.foldLeft(ByteString("")) { (left, right) =>
-      left ++ right
-    }
   }
 }

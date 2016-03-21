@@ -19,22 +19,24 @@ object Services {
   val all = Seq (
     GetBestBlockHash,
     GetBlock,
-    GetBlockHash,
+//    GetBlockHash,
     Help,
-    SubmitBlock,
+//    SubmitBlock,
     GetPeerInfo,
     DecodeRawTransaction,
     GetRawTransaction,
-    SendRawTransaction,
-    SignRawTransaction,
-    GetAccount,
-    GetAccountAddress,
-    GetNewAddress,
-    GetReceivedByAddress,
-    GetTransaction,
-    ListTransactions,
-    ListUnspent,
-    SendFrom
+    SendRawTransaction
+    /*
+        SignRawTransaction,
+        GetAccount,
+        GetAccountAddress,
+        GetNewAddress,
+        GetReceivedByAddress,
+        GetTransaction,
+        ListTransactions,
+        ListUnspent,
+        SendFrom
+    */
   )
 
   // The map from the command to the service object.
@@ -47,6 +49,5 @@ object Services {
   // toLowerCase   => getbestblockhash$
   // dropRight(1)  => getbestblockhash
   val serviceByCommand = (all.map(_.getClass.getSimpleName.toLowerCase.dropRight(1)) zip all).toMap
-
 }
 

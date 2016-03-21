@@ -22,10 +22,11 @@ The following deck contains how financial companies can benefit from using Scale
 Releases
 ========
 * [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](data/docs/spark-integration.md) 
+* [Milestone 2 ; March 15, 2016](https://github.com/ScaleChain/scalechain/releases/tag/v0.2) - P2P networking;  Bitcoin main-net integration 
+
 
 Planned release dates
 =====================
-* Milestone 2 ; March 15, 2016 - P2P networking;  Bitcoin testnet integration 
 * Milestone 3 ; April 30, 2016 - Plugin Configuration; Support customizable plugins 
 * Milestone 4 ;  July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
 * Milestone 5 ;   Oct 30, 2016 - Data sharding ; Data partitioning across P2P nodes. Private blockchain only.
@@ -34,7 +35,7 @@ Supported Features
 ==================
 - All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
 - Spark Integration; [load bitcoin transaction/block data onto Spark](data/docs/spark-integration.md) for real-time analysis.
-- (In-progress) P2P networking; Bitcoin testnet integration.
+- P2P networking; Bitcoin main-net integration.
 
 Customization
 =============

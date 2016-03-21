@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.storage.TestData
 import org.scalatest._
 
 /**

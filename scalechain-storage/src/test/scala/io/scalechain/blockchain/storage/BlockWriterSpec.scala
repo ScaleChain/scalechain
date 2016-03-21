@@ -5,7 +5,6 @@ import java.io.File
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec, BlockHeaderCodec}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.storage.record.{BlockRecordStorage, RecordStorage}
 import org.apache.commons.io.FileUtils
 import org.scalatest._

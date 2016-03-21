@@ -53,7 +53,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-net",
 			base = file("scalechain-net"))
-		.dependsOn(util, proto, proto_codec, script, storage)
+		.dependsOn(util, proto, proto_codec, script, storage, transaction)
 
 	lazy val api_domain =
 		Project(
@@ -65,7 +65,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-api",
 			base = file("scalechain-api"))
-				.dependsOn(util, net, api_domain, wallet)
+				.dependsOn(util, net, api_domain, transaction, wallet)
 
 	lazy val wallet =
 		Project(
@@ -77,6 +77,6 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-cli",
 			base = file("scalechain-cli"))
-	  .dependsOn(util, net, transaction, api_domain)
+	  .dependsOn(util, api, net, transaction, api_domain)
 }
 

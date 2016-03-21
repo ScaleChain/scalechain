@@ -1,6 +1,8 @@
 package io.scalechain.blockchain
 
 object ErrorCode {
+  val UnsupportedFeature = ErrorCode("unsupported_feature")
+
   val InvalidBlockMagic = ErrorCode("invalid_block_magic")
   val InvalidScriptOperation = ErrorCode("invalid_script_operation")
   val ScriptTypeMismatch = ErrorCode("script_type_mismatch")
@@ -65,6 +67,8 @@ trait ExceptionWithErrorCode extends Exception {
   val code : ErrorCode
 }
 
+class UnsupportedFeature(val code : ErrorCode) extends ExceptionWithErrorCode
+
 /**
  * Created by kangmo on 11/2/15.
  */
@@ -88,5 +92,7 @@ class TransactionVerificationException(val code:ErrorCode, override val message 
     s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"
   }
 }
+
+class BlockVerificationException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class RpcException(val code :ErrorCode, override val message : String = "") extends ExceptionWithErrorCode

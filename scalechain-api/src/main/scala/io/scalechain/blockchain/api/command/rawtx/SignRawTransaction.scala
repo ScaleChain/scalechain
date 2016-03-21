@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.{ErrorCode, ExceptionWithErrorCode}
+import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.Hash
@@ -86,7 +86,7 @@ object SignRawTransaction extends RpcCommand {
       val dependencies  : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
       val privateKeys   : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
       val sigHash       : Option[String]                         = request.params.getOption[String]("SigHash", 3)
-
+/*
       // TODO : Implement
       Right(
         Some(
@@ -96,6 +96,9 @@ object SignRawTransaction extends RpcCommand {
           )
         )
       )
+*/
+
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
 /*
       {

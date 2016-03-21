@@ -5,6 +5,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % "2.4.2",
   "com.typesafe.akka" %% "akka-camel" % "2.4.2",
   "com.typesafe.akka" %% "akka-stream" % "2.4.2",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.2" % "test",
+  "com.typesafe.akka" %% "akka-stream-testkit" % "2.4.2" % "test",
   "com.typesafe" %% "ssl-config-akka" % "0.1.1",
 //  "org.reactivestreams" % "reactive-streams" % "1.0.0.final",
   "org.apache.camel" % "camel-core" % "2.16.1",
@@ -13,4 +15,5 @@ libraryDependencies ++= Seq(
   "commons-codec" % "commons-codec" % "1.10",
   "commons-httpclient" % "commons-httpclient" % "3.1",
   "commons-logging" % "commons-logging" % "1.2"
+
 )

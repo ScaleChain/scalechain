@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.{TransactionFormatter, TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import io.scalechain.blockchain.proto.{Transaction, HashFormat, Hash}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
@@ -91,7 +91,7 @@ import spray.json.DefaultJsonProtocol._
 
 case class RawScriptSig(
   // The signature script in decoded form with non-data-pushing opcodes listed
-  asm : String, // "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
+//  asm : String, // "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
   // The signature script encoded as hex
   hex : String  // "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
 )
@@ -127,7 +127,8 @@ case class RawGenerationTransactionInput(
 object RawTransactionInputJsonFormat {
   import HashFormat._
 
-  implicit val implicitRawScriptSig                  = jsonFormat2(RawScriptSig.apply)
+  implicit val implicitRawScriptPubKey               = jsonFormat1(RawScriptPubKey.apply)
+  implicit val implicitRawScriptSig                  = jsonFormat1(RawScriptSig.apply)
 
   implicit val implicitRawGenerationTransactionInput = jsonFormat2(RawGenerationTransactionInput.apply)
   implicit val implicitRawNormalTransactionInput     = jsonFormat4(RawNormalTransactionInput.apply)
@@ -149,16 +150,16 @@ object RawTransactionInputJsonFormat {
 
 case class RawScriptPubKey(
   // The pubkey script in decoded form with non-data-pushing opcodes listed
-  asm       : String,      // "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
+//  asm       : String,      // "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
 
   // The pubkey script encoded as hex
-  hex       : String,      // "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
+  hex       : String      // "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
 
   // The number of signatures required; this is always 1 for P2PK, P2PKH,
   // and P2SH (including P2SH multisig because the redeem script is not available in the pubkey script).
   // It may be greater than 1 for bare multisig.
   // This value will not be returned for nulldata or nonstandard script types
-  reqSigs   : Option[Int], // 1,
+//  reqSigs   : Option[Int], // 1,
 
   // The type of script. This will be one of the following:
   // • pubkey for a P2PK script
@@ -167,13 +168,13 @@ case class RawScriptPubKey(
   // • multisig for a bare multisig script
   // • nulldata for nulldata scripts
   // • nonstandard for unknown scripts
-  `type`    : Option[String],  //"pubkeyhash",
+//  `type`    : Option[String],  //"pubkeyhash",
 
   // The P2PKH or P2SH addresses used in this transaction, or the computed P2PKH address of any pubkeys in this transaction.
   // This array will not be returned for nulldata or nonstandard script types
   //
   // addresses item : A P2PKH or P2SH address
-  addresses : List[String] //["moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7"]
+//  addresses : List[String] //["moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7"]
 )
 
 
@@ -228,44 +229,9 @@ object DecodeRawTransaction extends RpcCommand {
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
       val serializedTransaction: String = request.params.get[String]("Serialized Transaction", 0)
 
-      // TODO : Implement
-      Right(
-        Some(
-          DecodedRawTransaction(
-            Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
-            1,
-            0L,
-            List(
-              RawGenerationTransactionInput(
-                "Kangmo's transaction",
-                4294967295L
-              ),
-              RawNormalTransactionInput(
-                Hash("d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
-                0,
-                RawScriptSig(
-                  "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
-                  "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
-                ),
-                4294967295L
-              )
-            ),
-            List(
-              RawTransactionOutput(
-                0.39890000,
-                0,
-                RawScriptPubKey(
-                  "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
-                  "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
-                  Some(1),
-                  Some("pubkeyhash"),
-                  List("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
-                )
-              )
-            )
-          )
-        )
-      )
+      val transaction : Transaction = TransactionDecoder.decodeTransaction(serializedTransaction)
+
+      Right( Some( TransactionFormatter.getDecodedRawTransaction(transaction) ) )
     }
   }
   def help() : String =

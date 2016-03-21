@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
@@ -153,7 +154,7 @@ object ListTransactions extends RpcCommand {
       val count           : Int     = request.params.getOption[Int]    ("Count", 1).getOrElse(10)
       val skip            : Long    = request.params.getOption[Long]   ("Skip", 2).getOrElse(0)
       val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
-
+/*
       // TODO : Implement
 
       // An array containing objects, with each object describing a payment or internal accounting entry (not a transaction).
@@ -184,6 +185,9 @@ object ListTransactions extends RpcCommand {
         )
 
       Right(Some(ListTransactionsResult(transactionItems)))
+*/
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
     }
   }
   def help() : String =
