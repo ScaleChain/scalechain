@@ -201,15 +201,28 @@ public class ECKey {
             if (lenR + lenS + 7 != signature.length || lenS == 0)
                 return false;
 
-            //    R value type mismatch          R value negative
-            if (signature[4-2] != 0x02 || (signature[4] & 0x80) == 0x80)
+            // R value type mismatch
+            if (signature[4-2] != 0x02)
                 return false;
+
+            // R value negative
+            if ((signature[4] & 0x80) == 0x80)
+                return false;
+
             if (lenR > 1 && signature[4] == 0x00 && (signature[4+1] & 0x80) != 0x80)
                 return false; // R value excessively padded
 
-            //       S value type mismatch                    S value negative
-            if (signature[6 + lenR - 2] != 0x02 || (signature[6 + lenR] & 0x80) == 0x80)
+            // S value type mismatch
+            if (signature[6 + lenR - 2] != 0x02)
                 return false;
+/*
+            Fix for : https://github.com/ScaleChain/scalechain/issues/33
+            BUGBUG : Need to make sure if we can safely get rid of this check.
+
+            // S value negative
+            if ((signature[6 + lenR] & 0x80) == 0x80)
+                return false;
+*/
             if (lenS > 1 && signature[6 + lenR] == 0x00 && (signature[6 + lenR + 1] & 0x80) != 0x80)
                 return false; // S value excessively padded
             return true;
