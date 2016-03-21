@@ -34,8 +34,8 @@ object DiskBlockStorage {
     */
   def get() : DiskBlockStorage = {
     assert(theBlockStorage != null)
-    theBlockStorage  }
-
+    theBlockStorage
+  }
 }
 
 

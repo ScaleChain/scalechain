@@ -204,11 +204,14 @@ public class ECKey {
             // R value type mismatch
             if (signature[4-2] != 0x02)
                 return false;
+/*
+            Fix for : https://github.com/ScaleChain/scalechain/issues/33
+            BUGBUG : Need to make sure if we can safely get rid of this check.
 
             // R value negative
             if ((signature[4] & 0x80) == 0x80)
                 return false;
-
+*/
             if (lenR > 1 && signature[4] == 0x00 && (signature[4+1] & 0x80) != 0x80)
                 return false; // R value excessively padded
 

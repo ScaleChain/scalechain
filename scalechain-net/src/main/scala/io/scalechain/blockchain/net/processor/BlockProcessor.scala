@@ -8,8 +8,6 @@ import io.scalechain.blockchain.{BlockVerificationException, TransactionVerifica
 import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.net.PeerBroker.SendToOne
-import io.scalechain.blockchain.net.processor.BlockProcessor.GetBestBlockHash
-import io.scalechain.blockchain.net.processor.TransactionProcessor.{GetTransactionResult, GetTransaction}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{GenesisBlock, DiskBlockStorage}
 import io.scalechain.blockchain.script.HashCalculator
@@ -26,17 +24,9 @@ object BlockProcessor {
 
   case class StartInitialBlockDownload()
   case class DownloadBlocksFrom(hash : Hash)
-  case class GetBlock(blockHash: Hash)
-  case class GetBlockResult(blockOption : Option[Block])
-
-  case class GetBestBlockHash()
-  case class GetBestBlockHashResult(blockHashOption : Option[Hash])
 
   case class PutBlock(block : Block)
   case class PutBlockResult(isNewBlock : Boolean)
-
-  case class GetTransaction(txHash : Hash)
-  case class GetTransactionResult(transactionOption : Option[Transaction])
 
   def props(peerBroker : ActorRef) = Props[BlockProcessor](new BlockProcessor(peerBroker))
 
@@ -70,24 +60,9 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
   import BlockProcessor._
 
   def receive : Receive = {
-    case BlockProcessor.GetTransaction(txHash) => {
-      sender ! BlockProcessor.GetTransactionResult( blockStorage.getTransaction(txHash) )
-      println("processed GetTransaction.")
-    }
-
     case PutBlock(block) => {
       sender ! PutBlockResult( blockStorage.putBlock(block) )
       println("processed PutBlock.")
-    }
-
-    case GetBlock(blockHash) => {
-      sender ! GetBlockResult( blockStorage.getBlock(blockHash) )
-      println("processed GetBlock.")
-    }
-
-    case GetBestBlockHash() => {
-      sender ! GetBestBlockHashResult( blockStorage.getBestBlockHash() )
-      println("processed GetBestBlockHash.")
     }
 
     case StartInitialBlockDownload() => {
