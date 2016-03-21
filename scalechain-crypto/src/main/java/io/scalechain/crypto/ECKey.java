@@ -174,19 +174,22 @@ public class ECKey {
         }
 
         public static boolean isEncodingCanonical(byte[] signature) {
-            // See reference client's IsCanonicalSignature, https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
+            // See reference client's IsValidSignatureEncoding, https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
             // A canonical signature exists of: <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
             // Where R and S are not negative (their first byte has its highest bit not set), and not
             // excessively padded (do not start with a 0 byte, unless an otherwise negative number follows,
             // in which case a single 0 byte is necessary and even required).
             if (signature.length < 9 || signature.length > 73)
                 return false;
-
+/*
             // BUGBUG : ANYONECANPAY was byte type, but changed it to int. Make sure it is OK.
             int hashType = signature[signature.length-1] & ~TransactionSigHash$.MODULE$.HASH_TYPE_MASK();
+            if (hashType == 0)
+                hashType = 1;
+
             if (hashType < (TransactionSigHash$.MODULE$.ALL()) || hashType > (TransactionSigHash$.MODULE$.SINGLE()))
                 return false;
-
+*/
             //                   "wrong type"                  "wrong length marker"
             if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length-3)
                 return false;

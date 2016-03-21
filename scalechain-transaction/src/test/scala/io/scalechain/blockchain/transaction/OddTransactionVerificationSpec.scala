@@ -89,7 +89,8 @@ class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach wi
             OpEqualVerify(),
             OpCheckSig(Script(bytes("76a914dc44b1164188067c3a32d4780f5996fa14a4f2d988ac"))))) */
         )
-      ),
+      )/*,
+
       ( "[[ErrorCode(invalid_signature_format)]message=ScriptOp:CheckMultiSig, invalid raw signature format.]",
         MergedScript(
           transaction=
@@ -138,10 +139,10 @@ class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach wi
                   OpNum(2),
                   OpCheckMultiSig(Script(bytes("514104cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4410461cbdcc5409fb4b4d42b51d33381354d80e550078cb532a34bfa2fcfdeb7d76519aecc62770f5b0e4ef8551946d8a540911abe3e7854a26f39f58b25c15342af52ae"))))) */
         )
-      )
+      )*/
     )
 
-  /*
+
   "scripts" should "be leave true value on top of the stack" in {
 
     forAll(transactionInputs) { ( subject : String, mergedScript : MergedScript ) =>
@@ -150,7 +151,5 @@ class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach wi
       verifyTransactionInput(subject, mergedScript.transaction, mergedScript.inputIndex, mergedScript.lockingScript);
     }
   }
-  */
-
 
 }
