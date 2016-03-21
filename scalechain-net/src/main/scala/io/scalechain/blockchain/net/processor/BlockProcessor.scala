@@ -125,6 +125,16 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
     try {
 
       blockStorage.putBlock(block)
+      // BUGBUG : this is too slow. remove it after we are confident.
+      try {
+        val Some((blockInfo, foundBlock)) = blockStorage.getBlock(Hash(HashCalculator.blockHeaderHash(block.header)))
+        assert( foundBlock == block )
+      } catch {
+        case e: Throwable => {
+          println("block not decodable : " + block)
+          assert(false)
+        }
+      }
 
       // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
       // BUGBUG : Need to put block after the verification step.

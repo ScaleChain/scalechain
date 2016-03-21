@@ -102,10 +102,9 @@ object ScriptParser {
         programCounter += bytesConsumed
       } else {
         // Encountered an invalid OP code. This could be an attack, so dump the raw script onto log.
-        logger.warn("InvalidScriptOperation. " +
-                    "code : ${HexUtil.prettyHex(Array(opCode.toByte))}" +
-                    "programCounter : $programCounter" +
-                    "rawScript : ${HexUtil.prettyHex(rawScript)}")
+        logger.warn(s"InvalidScriptOperation. " +
+                    s"code : ${HexUtil.prettyHex(Array(opCode.toByte))}" +
+                    s"programCounter : $programCounter" )
 
         throw new ScriptParseException(ErrorCode.InvalidScriptOperation)
       }

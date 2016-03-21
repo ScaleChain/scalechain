@@ -5,6 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.proto.{RecordLocator, FileNumber}
 import io.scalechain.blockchain.proto.codec.{RecordLocatorCodec, FileNumberCodec}
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.crypto.HashFunctions
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
@@ -204,6 +205,51 @@ class RocksDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatc
     L(db.get(B("k2"))) shouldBe L(Some(B("v2")))
     L(db.get(B("k3"))) shouldBe L(Some(B("v3")))
   }
+
+  val keyCount = 10000
+
+  "put/get" should "put/get 1M keys" in {
+    for (i <- 1 to keyCount ) {
+      val key = HashFunctions.sha256(i.toString.getBytes)
+      val value = HashFunctions.sha256((i*10).toString.getBytes)
+      db.put(key.value, value.value)
+    }
+
+    for (i <- 1 to keyCount ) {
+      val key = HashFunctions.sha256(i.toString.getBytes)
+      val value = HashFunctions.sha256((i*10).toString.getBytes)
+      L(db.get(key.value)) shouldBe L(Some(value.value))
+    }
+  }
+
+  "put/del/get" should "put/del/get 1M keys" in {
+    for (i <- 1 to keyCount ) {
+      val key = HashFunctions.sha256(i.toString.getBytes)
+      val value = HashFunctions.sha256((i*10).toString.getBytes)
+      db.put(key.value, value.value)
+    }
+
+    // Delete all keys genereted from the even numbers.
+    for (i <- 1 to keyCount ) {
+      if ( i % 2 == 0) {
+        val key = HashFunctions.sha256(i.toString.getBytes)
+        db.del(key.value)
+      }
+    }
+
+    for (i <- 1 to keyCount ) {
+      val key = HashFunctions.sha256(i.toString.getBytes)
+      val value = HashFunctions.sha256((i*10).toString.getBytes)
+
+      // Should get None for all keys genereted from the even numbers.
+      if ( i % 2 == 0 ) {
+        db.get(key.value) shouldBe None
+      } else {
+        L(db.get(key.value)) shouldBe L(Some(value.value))
+      }
+    }
+  }
+
 
   "del" should "delete a key" in {
     db.get(B("k1")) shouldBe None

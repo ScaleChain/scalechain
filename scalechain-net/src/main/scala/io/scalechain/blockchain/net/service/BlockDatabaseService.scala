@@ -5,7 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import io.scalechain.blockchain.net.processor.BlockProcessor
 import io.scalechain.blockchain.net.processor.BlockProcessor.{PutBlockResult}
-import io.scalechain.blockchain.proto.{Transaction, Block, Hash}
+import io.scalechain.blockchain.proto.{BlockInfo, Transaction, Block, Hash}
 import io.scalechain.blockchain.storage.DiskBlockStorage
 
 import scala.concurrent._
@@ -34,7 +34,7 @@ class BlockDatabaseService(blockProcessor : ActorRef) {
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash: Hash): Option[Block] = {
+  def getBlock(blockHash: Hash): Option[(BlockInfo, Block)] = {
     DiskBlockStorage.get.getBlock(blockHash)
   }
 

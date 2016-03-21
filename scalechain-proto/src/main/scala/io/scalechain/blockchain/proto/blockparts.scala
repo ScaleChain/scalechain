@@ -87,7 +87,7 @@ case class GenerationTransactionInput(override val outputTransactionHash : Trans
                                       val coinbaseData : CoinbaseData,
                                       val sequenceNumber : Long) extends TransactionInput {
   override def toString(): String = {
-    s"GenerationTransactionInput(transactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, coinbaseData=$coinbaseData, sequenceNumber= ${sequenceNumber}L)"
+    s"GenerationTransactionInput(outputTransactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, coinbaseData=$coinbaseData, sequenceNumber= ${sequenceNumber}L)"
   }
 }
 

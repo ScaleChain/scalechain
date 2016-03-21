@@ -180,7 +180,9 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
             blockIndex.putBlockInfo(blockHash, newBlockInfo)
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
+            checkBestBlockHash(blockHash, newBlockInfo.height)
 
+            //logger.info("The block locator was updated. block hash : {}", blockHash)
             appendResult.txLocators
           } else {
             // case 1.2 block info with a block locator was found
@@ -214,6 +216,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
             checkBestBlockHash(blockHash, blockHeight)
 
             isNewBlock = true
+            //logger.info("The new block was put. block hash : {}", blockHash)
 
             appendResult.txLocators
           } else {
@@ -268,8 +271,8 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
             None
           )
           blockIndex.putBlockInfo(blockHash, blockInfo)
-          checkBestBlockHash(blockHash, blockHeight)
-
+          // We are not checking if the block is the best block, because we received a header only.
+          // We put a block as a best block only if we have the block data as long as the header.
         } else {
           // case 1.2 : the same block header already exists.
           logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
@@ -304,7 +307,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash : Hash) : Option[Block] = {
+  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
@@ -312,14 +315,17 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
       if (blockInfoOption.isDefined) {
         // case 1 : The block info was found.
         if (blockInfoOption.get.blockLocatorOption.isDefined) {
+          //logger.info(s"getBlock - Found a block info with a locator. block hash : ${blockHash}, locator : ${blockInfoOption.get.blockLocatorOption}")
           // case 1.1 : the block info with a block locator was found.
-          Some(blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec))
+          Some( (blockInfoOption.get, blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec)) )
         } else {
           // case 1.2 : the block info without a block locator was found.
+          //logger.info("getBlock - Found a block info without a locator. block hash : {}", blockHash)
           None
         }
       } else {
         // case 2 : The block info was not found
+        //logger.info("getBlock - No block info found. block hash : {}", blockHash)
         None
       }
     }
@@ -370,7 +376,7 @@ class DiskBlockStorage(directoryPath : File) extends BlockIndex {
     }
   }
 
-  def getBlock(blockHash : BlockHash) : Option[Block] = {
+  def getBlock(blockHash : BlockHash) : Option[(BlockInfo, Block)] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {

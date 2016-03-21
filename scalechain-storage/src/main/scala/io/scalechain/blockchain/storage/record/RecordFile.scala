@@ -29,6 +29,11 @@ class RecordFile(val path : File, maxFileSize : Long) extends BlockAccessFile(pa
   }
 
   def appendRecord[T <: ProtocolMessage](record : T)(implicit codec : MessagePartCodec[T]) : RecordLocator = {
+    // Move to the end of the file if we are not.
+    if ( offset() <= size() ) {
+      moveTo(size())
+    }
+
     val serializedBytes = codec.serialize(record)
     val initialOffset = offset()
     val buffer = ByteBuffer.wrap(serializedBytes)

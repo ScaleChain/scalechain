@@ -54,7 +54,11 @@ class BlockWriter(storage : BlockRecordStorage) {
     // We need to use the last transaction's (offset + size), which is the block size to get the block locator.
     val lastTxLocator = txLocators.last.txLocator.recordLocator
     val blockSizeExceptTheLastTransaction = lastTxLocator.offset - blockHeaderLocator.recordLocator.offset
+
+    // CRITICAL BUGBUG : If a new record storage file is added, the last transaction and the block header is written in different file.
     val blockSize = blockSizeExceptTheLastTransaction + lastTxLocator.size
+
+    //println(s"blockHeaderLocator=${blockHeaderLocator}, txLocators.last.txLocator=${txLocators.last.txLocator}, blockSizeExceptTheLastTransaction=$blockSizeExceptTheLastTransaction, blockSize=$blockSize")
 
     val blockLocator = blockHeaderLocator.copy(
       recordLocator = blockHeaderLocator.recordLocator.copy (

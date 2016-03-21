@@ -36,7 +36,7 @@ object RpcResultJsonFormat {
   implicit val implicitScriptPubKey = jsonFormat5(ScriptPubKey.apply)
   implicit val implicitGetTxOutResult = jsonFormat6(GetTxOutResult.apply)
 
-  implicit val implicitGetBlockResult = jsonFormat8(GetBlockResult.apply)
+  implicit val implicitGetBlockResult = jsonFormat9(GetBlockResult.apply)
 
   implicit val implicitPeerInfoResult = jsonFormat4(PeerInfo.apply)
 
