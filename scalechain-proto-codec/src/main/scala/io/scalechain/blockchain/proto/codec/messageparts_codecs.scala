@@ -1,12 +1,11 @@
 package io.scalechain.blockchain.proto.codec
 
+import io.scalechain.blockchain.proto.walletparts.{Address, AccountHeader}
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
-import io.scalechain.io.InputOutputStream
-import io.scalechain.util.{ByteArray, ByteArrayAndVectorConverter}
 import scodec.{DecodeResult, Attempt, Codec}
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.{BitVector}
 import scodec.codecs._
 
 trait MessagePartCodec[T <: ProtocolMessage] {
@@ -324,4 +323,30 @@ object KeyPairCodec extends MessagePartCodec[KeyPair]{
       ("publickey"               | WalletHashCodec.codec                  ) ::
       ("privatekey"              | HashCodec.codec                        )
   }.as[KeyPair]
+}
+
+/**
+  * by mijeong
+  *
+  * AccountHeaderCodec
+  */
+object AccountHeaderCodec extends MessagePartCodec[AccountHeader]{
+  val codec : Codec[AccountHeader] = {
+    ("version"                 | int32L                                 ) ::
+    ("timestamp"               | uint32L                                )
+  }.as[AccountHeader]
+}
+
+/**
+  * by mijeong
+  *
+  * AddressCodec
+  */
+object AddressCodec extends MessagePartCodec[Address]{
+  val codec : Codec[Address] = {
+    ("address"                 | VarStr.codec                                 ) ::
+    ("publickey"               | FixedByteArray.codec(33)                     ) ::
+    ("privatekey"              | FixedByteArray.codec(32)                     ) ::
+    ("purpose"                 | FixedByteArray.codec(4)                      )
+  }.as[Address]
 }

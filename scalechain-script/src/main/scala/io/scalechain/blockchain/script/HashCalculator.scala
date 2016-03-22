@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.proto.{WalletHeader, BlockHeader, Block, Transaction}
-import io.scalechain.blockchain.proto.codec.{WalletHeaderCodec, BlockHeaderCodec, BlockCodec, TransactionCodec}
+import io.scalechain.blockchain.proto.walletparts.{Address, AccountHeader}
+import io.scalechain.blockchain.proto.{WalletHeader, BlockHeader, Transaction}
+import io.scalechain.blockchain.proto.codec._
 
 object HashCalculator {
   def transactionHash(transaction : Transaction ) : Array[Byte] = {
@@ -34,6 +35,36 @@ object HashCalculator {
     val walletHeaderHash = io.scalechain.crypto.HashFunctions.hash256( serializedWalletHeader )
 
     walletHeaderHash.value.reverse
+  }
+
+  /**
+    * by mijeong
+    *
+    * @param accountHeader
+    * @return hash value of account header
+    */
+  def accountHeaderHash(accountHeader:AccountHeader) : Array[Byte] = {
+    val serializedAccountHeader = AccountHeaderCodec.serialize(accountHeader)
+
+    // Run SHA256 twice and reverse bytes.
+    val accountHeaderHash = io.scalechain.crypto.HashFunctions.hash256( serializedAccountHeader )
+
+    accountHeaderHash.value.reverse
+  }
+
+  /**
+    * by mijeong
+    *
+    * @param address
+    * @return hash value of address
+    */
+  def addressHash(address : Address ) : Array[Byte] = {
+    val serializedBytes = AddressCodec.serialize(address)
+
+    // Run SHA256 twice and reverse bytes.
+    val hash = io.scalechain.crypto.HashFunctions.hash256( serializedBytes )
+
+    hash.value.reverse
   }
 }
 

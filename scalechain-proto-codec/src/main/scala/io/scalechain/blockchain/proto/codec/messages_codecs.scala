@@ -1,13 +1,10 @@
 package io.scalechain.blockchain.proto.codec
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
+import io.scalechain.blockchain.proto.walletparts.Account
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
-import io.scalechain.io.{BlockDataInputStream, BlockDataOutputStream}
-import scodec.bits.{ByteVector, BitVector}
-import scodec.{DecodeResult, Attempt, Codec}
+import scodec.bits.{ByteVector}
+import scodec.{Codec}
 import scodec.Codec._
 import scodec.codecs._
 
@@ -844,4 +841,19 @@ object WalletCodec extends ProtocolMessageCodec[Wallet] {
   }.as[Wallet]
 }
 
+/**
+  * by mijeong
+  *
+  * AccountCodec
+  */
+object AccountCodec extends ProtocolMessageCodec[Account] {
+  val command = "account"
+  val clazz = classOf[Account]
+
+  val codec : Codec[Account] = {
+    ("accountheader"          | AccountHeaderCodec.codec                 ) ::
+    ("account"                | VarStr.codec                             ) ::
+    ("addresses"              | VarList.list(AddressCodec.codec)         )
+  }.as[Account]
+}
 

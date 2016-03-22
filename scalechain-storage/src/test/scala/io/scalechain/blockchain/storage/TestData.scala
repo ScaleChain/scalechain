@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
+import io.scalechain.blockchain.proto.codec.{AccountCodec, BlockCodec, CodecTestUtil}
+import io.scalechain.blockchain.proto.walletparts.Address
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.io.HexFileLoader
 import io.scalechain.util.HexUtil._
@@ -42,4 +43,26 @@ object TestData extends CodecTestUtil {
     )
   )
   val blockHash2 = Hash( HashCalculator.blockHeaderHash(block2.header))
+
+
+  /**
+    * by mijeong
+    *
+    * test data for AccountRecordStorage
+    */
+  val rawAccountData = HexFileLoader.load("data/unittest/codec/wallet-size289000.hex")
+  val account = decodeFully(BitVector.view(rawAccountData))(AccountCodec.codec)
+
+  val account1 = account.copy(
+    header = account.header.copy(
+      version = 5,
+      timestamp = 123456789L
+    ),
+    account = "test"
+  )
+
+  val accountHash1 = Hash( HashCalculator.accountHeaderHash(account1.header))
+
+  val address1 = Address(addressNum = 34, address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum", publicKey = walletparts.Hash(bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")) , privateKey =walletparts.Hash(bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")), purpose = 1)
+  val addressHash1 = Hash(HashCalculator.addressHash(address1))
 }
