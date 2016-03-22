@@ -47,19 +47,19 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     db.getAccountAddress(accountName+"1") shouldBe None
 
-    db.putAccountAddress(accountName+"1", accountAddress1)
-    db.putAccountAddress(accountName+"2", accountAddress2)
+    db.putAccountAddress(accountName+"1", accountAddress1.address)
+    db.putAccountAddress(accountName+"2", accountAddress2.address)
 
-    db.getAccountAddress(accountName+"1") shouldBe accountAddress1
-    db.getAccountAddress(accountName+"2") shouldBe accountAddress2
+    db.getAccountAddress(accountName+"1") shouldBe accountAddress1.address
+    db.getAccountAddress(accountName+"2") shouldBe accountAddress2.address
   }
 
   "putAccountCount/getAccountCount" should "successfully put/get data" in {
 
     db.getAccountCount(accountName) shouldBe None
 
-    db.putAccountAddress(accountName+"1", accountAddress1)
-    db.putAccountAddress(accountName+"2", accountAddress2)
+    db.putAccountAddress(accountName+"1", accountAddress1.address)
+    db.putAccountAddress(accountName+"2", accountAddress2.address)
     db.putAccountCount(accountName, 2)
 
 
@@ -68,8 +68,8 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
   "putAccountCount" should "hit an assertion if account count is not number" in {
 
-    db.putAccountAddress(accountName+"1", accountAddress1)
-    db.putAccountAddress(accountName+"2", accountAddress2)
+    db.putAccountAddress(accountName+"1", accountAddress1.address)
+    db.putAccountAddress(accountName+"2", accountAddress2.address)
 
     intercept[AssertionError] {
       db.putAccountCount(accountName, "abc")
@@ -80,6 +80,34 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     intercept[AssertionError] {
       db.putAccountAddress(accountName+"1", "1dfdiekjfdkji30rf8df")
+    }
+  }
+
+  "putAddressInfo/getAddressInfo" should "successfully put/get data" in {
+
+    db.getAddressInfo(accountAddress1.address) shouldBe None
+
+    val addressInfo = AddressInfo(
+      account.account,
+      accountAddress1.purpose,
+      accountAddress1.publicKey
+    )
+
+    db.putAddressInfo(accountAddress1.address, addressInfo)
+
+    db.getAddressInfo(accountAddress1.address) shouldBe addressInfo
+  }
+
+  "putAddressInfo" should "hit an assertion if address is not valid" in {
+
+    val addressInfo = AddressInfo(
+      account.account,
+      accountAddress1.purpose,
+      accountAddress1.publicKey
+    )
+
+    intercept[AssertionError] {
+      db.putAddressInfo("12dhfusdhufhsd9eejlk", addressInfo)
     }
   }
 }
