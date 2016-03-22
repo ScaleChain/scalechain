@@ -19,7 +19,6 @@ object BlockFileName {
     */
   def apply(prefix : String, fileNumber : Int) = {
     assert(fileNumber >= 0)
-    assert(prefix.length == PREFIX_LENGTH)
     s"${prefix}${"%05d".format(fileNumber)}.dat"
   }
 

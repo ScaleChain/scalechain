@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage.record.wallet
+package io.scalechain.blockchain.storage.record
 
 import java.io.File
 
@@ -12,4 +12,4 @@ object AccountRecordStorage {
 }
 
 class AccountRecordStorage(directoryPath : File, account: String)
-  extends RecordStorage(directoryPath, AccountRecordStorage.FILE_PREFIX, account, AccountRecordStorage.MAX_FILE_SIZE)
+  extends RecordStorage(directoryPath, AccountRecordStorage.FILE_PREFIX + account, AccountRecordStorage.MAX_FILE_SIZE)

@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage.record.wallet
+package io.scalechain.blockchain.storage.record
 
 import java.io.File
 
@@ -26,8 +26,7 @@ class AccountRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Sho
     testPath.mkdir()
     rs = new RecordStorage(
       testPath,
-      AccountRecordStorage.FILE_PREFIX,
-      "test",
+      AccountRecordStorage.FILE_PREFIX + "test",
       AccountRecordStorage.MAX_FILE_SIZE
     )
 
