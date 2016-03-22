@@ -53,13 +53,12 @@ case class AddressHash(value : ByteArray) extends AbstractHash(value) {
   *
   */
 case class Account(header: AccountHeader,
-                   accountNum: Int,
                    account: String,
                    addresses : List[Address]) extends ProtocolMessage {
 
 
   override def toString() : String = {
-    s"Account(header=${header}, accountNum:${accountNum}, account=${account}, addresses=List(${addresses.mkString(",")}))"
+    s"Account(header=${header}, account=${account}, addresses=List(${addresses.mkString(",")}))"
   }
 }
 
@@ -67,17 +66,16 @@ case class AccountHeader(version : Int,
                          timestamp : Long)  extends ProtocolMessage {
 
   override def toString() : String = {
-    s"AccountHeader(version=${version}, timestamp=${timestamp}L)"
+    s"AccountHeader(version=${version}L, timestamp=${timestamp}L)"
   }
 }
 
-case class Address(addressNum : Int,
-                   address : String,
-                   publicKey: Hash,
-                   privateKey: Hash,
+case class Address(address : String,
+                   publicKey: ByteArray,
+                   privateKey: ByteArray,
                    purpose: Int)  extends ProtocolMessage {
 
   override def toString() : String = {
-    s"Address(addressNum=$addressNum, address=${address}, publicKey=${publicKey}, privateKey=${privateKey}, purpose=${purpose})"
+    s"Address(address=${address}, publicKey=${publicKey}, privateKey=${privateKey}, purpose=${purpose})"
   }
 }

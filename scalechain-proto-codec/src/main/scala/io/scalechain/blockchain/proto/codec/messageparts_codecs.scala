@@ -329,6 +329,11 @@ object KeyPairCodec extends MessagePartCodec[KeyPair]{
   * by mijeong
   *
   * AccountHeaderCodec
+  *
+  * [Protocol]
+  *
+  *  01 00 00 00 ................................. version: 1
+  *  12 33 54 02 ................................. timestamp
   */
 object AccountHeaderCodec extends MessagePartCodec[AccountHeader]{
   val codec : Codec[AccountHeader] = {
@@ -341,12 +346,25 @@ object AccountHeaderCodec extends MessagePartCodec[AccountHeader]{
   * by mijeong
   *
   * AddressCodec
+  *
+  * [Protocol]
+  *
+  *  22 ................................................. address number of bytes: 34
+  *  31 32 6e 39 50 52 71 64 59 51 70 39 44 50 47 56
+  *  39 79 67 68 62 4a 48 73 6f 4d 5a 63 64 35 78 63
+  *  75 6d .............................................. address
+  *  02 10 a8 16 7c 75 7b 3f 62 77 50 6e d0 16 eb db
+  *  cc 10 03 eb 62 f7 2b 37 8e 05 77 62 87 86 3d b2
+  *  d7 ................................................. public key
+  *  d8 b7 ee 13 19 be 14 a5 e2 b0 b8 9d 5c 3b a9 d3
+  *  df c8 20 e5 94 4a e7 30 e9 f1 87 5f a2 33 55 f9 .... private key
+  *  00 00 00 01 ........................................ purpose
   */
 object AddressCodec extends MessagePartCodec[Address]{
   val codec : Codec[Address] = {
     ("address"                 | VarStr.codec                                 ) ::
     ("publickey"               | FixedByteArray.codec(33)                     ) ::
     ("privatekey"              | FixedByteArray.codec(32)                     ) ::
-    ("purpose"                 | FixedByteArray.codec(4)                      )
+    ("purpose"                 | int32L                      )
   }.as[Address]
 }

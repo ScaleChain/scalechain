@@ -50,7 +50,7 @@ object TestData extends CodecTestUtil {
     *
     * test data for AccountRecordStorage
     */
-  val rawAccountData = HexFileLoader.load("data/unittest/codec/wallet-size289000.hex")
+  val rawAccountData = HexFileLoader.loadWallet("data/unittest/codec/wallet-account.hex")
   val account = decodeFully(BitVector.view(rawAccountData))(AccountCodec.codec)
 
   val account1 = account.copy(
@@ -60,9 +60,8 @@ object TestData extends CodecTestUtil {
     ),
     account = "test"
   )
-
   val accountHash1 = Hash( HashCalculator.accountHeaderHash(account1.header))
 
-  val address1 = Address(addressNum = 34, address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum", publicKey = walletparts.Hash(bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")) , privateKey =walletparts.Hash(bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")), purpose = 1)
+  val address1 = Address(address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum", publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7") , privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9"), purpose = 1)
   val addressHash1 = Hash(HashCalculator.addressHash(address1))
 }

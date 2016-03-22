@@ -1,10 +1,10 @@
-package io.scalechain.blockchain.storage.record
+package io.scalechain.blockchain.storage.record.wallet
 
 import java.io.File
 
 import io.scalechain.blockchain.proto.FileRecordLocator
-import io.scalechain.blockchain.proto.codec.{AddressCodec, AccountCodec}
-import io.scalechain.blockchain.storage.{TestData, Storage}
+import io.scalechain.blockchain.proto.codec.{AccountCodec, AddressCodec}
+import io.scalechain.blockchain.storage.{Storage, TestData}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
@@ -27,7 +27,9 @@ class AccountRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Sho
     rs = new RecordStorage(
       testPath,
       AccountRecordStorage.FILE_PREFIX,
-      maxFileSize = 1024 * 1024)
+      "test",
+      AccountRecordStorage.MAX_FILE_SIZE
+    )
 
     super.beforeEach()
   }

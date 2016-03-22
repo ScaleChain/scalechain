@@ -845,6 +845,14 @@ object WalletCodec extends ProtocolMessageCodec[Wallet] {
   * by mijeong
   *
   * AccountCodec
+  *
+  * [Protocol]
+  *
+  *  01 00 00 00 ................................. version: 1
+  *  12 33 54 02 ................................. timestamp
+  *  04 .......................................... account number of bytes
+  *
+  *  addresses...
   */
 object AccountCodec extends ProtocolMessageCodec[Account] {
   val command = "account"

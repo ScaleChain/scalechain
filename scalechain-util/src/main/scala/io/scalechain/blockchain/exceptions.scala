@@ -50,6 +50,9 @@ object ErrorCode {
   val BlockFilePathNotExists = ErrorCode("block_file_path_not_exists")
   val InvalidFileNumber = ErrorCode("invalid_file_number")
 
+  // Account Storage errors
+  val AccountFilePathNotExists = ErrorCode("account_file_path_not_exists")
+
   // RPC errors
   val RpcRequestParseFailure = ErrorCode("rpc_request_parse_failure")
   val RpcParameterTypeConversionFailure = ErrorCode("rpc_parameter_type_conversion_failure")
@@ -85,6 +88,8 @@ class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String 
 class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
+
+class AccountStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array()) extends ExceptionWithErrorCode
 {
