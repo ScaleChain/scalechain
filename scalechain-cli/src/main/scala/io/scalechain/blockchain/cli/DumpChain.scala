@@ -100,11 +100,13 @@ object DumpChain {
     dump( blocksPath, new BlockListener() )
   }
 
+
+  val DISK_BLOCK_FILE_SIZE = 1024 * 1024 * 128
   def verifyBlocks(blocksPath: String) : Unit = {
 
     val blockStoragePath = new File("./target/tempblockstorage/")
     blockStoragePath.mkdir()
-    val storage = new DiskBlockStorage(blockStoragePath)
+    val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
     storage.putBlock( GenesisBlock.BLOCK )
 
     var blockHeight = 0

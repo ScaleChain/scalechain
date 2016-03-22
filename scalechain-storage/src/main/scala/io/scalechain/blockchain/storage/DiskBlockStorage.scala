@@ -18,7 +18,7 @@ object DiskBlockStorage {
 
   def create(storagePath : File) : DiskBlockStorage = {
     assert(theBlockStorage == null)
-    theBlockStorage = new DiskBlockStorage(storagePath)
+    theBlockStorage = new DiskBlockStorage(storagePath, MAX_FILE_SIZE)
 
     // See if we have genesis block. If not, put one.
     if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
@@ -36,6 +36,9 @@ object DiskBlockStorage {
     assert(theBlockStorage != null)
     theBlockStorage
   }
+
+  val MAX_FILE_SIZE = 1024 * 1024 * 100
+  //val MAX_FILE_SIZE = 1024 * 128
 }
 
 
@@ -75,13 +78,13 @@ object DiskBlockStorage {
   * @param directoryPath The path where database files are located.
   */
 
-class DiskBlockStorage(directoryPath : File) extends BlockIndex {
+class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockIndex {
   private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
 
   directoryPath.mkdir()
 
   protected[storage] val blockIndex = new BlockDatabase( new RocksDatabase( directoryPath ) )
-  protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath)
+  protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath, maxFileSize)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
   protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)

@@ -18,6 +18,8 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
 
   Storage.initialize()
 
+  val TEST_RECORD_FILE_SIZE = 1024 * 1024
+
   var storage : DiskBlockStorage = null
   override def beforeEach() {
 
@@ -25,7 +27,7 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    storage = new DiskBlockStorage(testPath)
+    storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
 
     super.beforeEach()
   }
@@ -331,5 +333,22 @@ class DiskBlockStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldM
     }
   }
 
+  // Test case for Unable to decode a specific block.
+  // https://github.com/ScaleChain/scalechain/issues/36
+  "getBlock" should "read a block correctly on the file boundary" in {
+    storage.putBlock(block1)
+    var prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(block1.header))
+    while( storage.blockRecordStorage.files.size < 2) {
+      val newBlock = block1.copy(
+        header = block1.header.copy(
+          hashPrevBlock = prevBlockHash
+        )
+      )
+      storage.putBlock(newBlock)
+      prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(newBlock.header))
+
+      storage.getBlock(prevBlockHash).map(_._2) shouldBe Some(newBlock)
+    }
+  }
 }
 

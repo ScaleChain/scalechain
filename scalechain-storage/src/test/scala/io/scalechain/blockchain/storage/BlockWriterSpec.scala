@@ -18,7 +18,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
   import TestData._
 
   Storage.initialize()
-
+  val TEST_RECORD_FILE_SIZE = 1024 * 1024
   // Use record storage with maxFileSize 1M, instead of using BlockRecordStorage, which uses 100M file size limit.
   var writer : BlockWriter = null
   var storage : BlockRecordStorage = null
@@ -28,7 +28,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    storage = new BlockRecordStorage(testPath)
+    storage = new BlockRecordStorage(testPath, TEST_RECORD_FILE_SIZE)
     writer = new BlockWriter(storage)
 
     super.beforeEach()
