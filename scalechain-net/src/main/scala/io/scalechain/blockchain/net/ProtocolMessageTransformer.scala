@@ -6,6 +6,7 @@ import akka.actor.ActorRef
 import akka.stream.stage.{SyncDirective, PushStage, Context}
 import io.scalechain.blockchain.net.DomainMessageRouter.{VersionFrom, InventoriesFrom}
 import io.scalechain.blockchain.proto._
+import io.scalechain.util.HexUtil
 
 /**
   * Created by kangmo on 2/14/16.

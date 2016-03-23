@@ -74,8 +74,8 @@ trait TransactionInput extends ProtocolMessage {
 case class NormalTransactionInput(override val outputTransactionHash : TransactionHash,
                                   // BUGBUG : Change to Int
                                   override val outputIndex : Long,
-                                  var unlockingScript : UnlockingScript,
-                                  var sequenceNumber : Long) extends TransactionInput {
+                                  val unlockingScript : UnlockingScript,
+                                  val sequenceNumber : Long) extends TransactionInput {
   override def toString(): String = {
     s"NormalTransactionInput(outputTransactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, unlockingScript=$unlockingScript, sequenceNumber=${sequenceNumber}L)"
   }
@@ -87,7 +87,7 @@ case class GenerationTransactionInput(override val outputTransactionHash : Trans
                                       val coinbaseData : CoinbaseData,
                                       val sequenceNumber : Long) extends TransactionInput {
   override def toString(): String = {
-    s"GenerationTransactionInput(transactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, coinbaseData=$coinbaseData, sequenceNumber= ${sequenceNumber}L)"
+    s"GenerationTransactionInput(outputTransactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, coinbaseData=$coinbaseData, sequenceNumber= ${sequenceNumber}L)"
   }
 }
 

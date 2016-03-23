@@ -63,7 +63,7 @@ object ScriptValue {
   }
 
   def decodeStackInt(encoded: Array[Byte]): BigInteger = {
-    if (encoded.length > 4) throw new ScriptEvalException(ErrorCode.TooBigScriptInteger)
+    if (encoded.length > 4) throw new ScriptEvalException(ErrorCode.TooBigScriptInteger, "The integer stack value to decode has more than 4 bytes.")
     return Utils.castToBigInteger(encoded)
   }
 }

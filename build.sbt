@@ -1,6 +1,6 @@
 name := """scalechain"""
 
-version in ThisBuild := "0.1"
+version in ThisBuild := "0.2"
 
 scalaVersion in ThisBuild := "2.11.7"
 

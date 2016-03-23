@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command
 
+import io.scalechain.util.StackUtil
 import io.scalechain.blockchain.{ExceptionWithErrorCode, ErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
@@ -15,15 +16,13 @@ trait RpcCommand {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
-        println(s"ExceptionWithErrorCode, while executing a command. exception : $e")
-        logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e")
+        logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
         val rpcError = RpcCommand.ERROR_MAP(e.code)
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }
       // In case any error happens, return as RpcError.
       case e : Exception => {
-        println(s"Internal Error, while executing a command. exception : $e")
-        logger.error(s"Internal Error, while executing a command. exception : $e")
+        logger.error(s"Internal Error, while executing a command. exception : $e, message : ${e.getMessage}, occurred at : ${StackUtil.getStackTrace(e)}")
         val rpcError = RpcError.RPC_INTERNAL_ERROR
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }

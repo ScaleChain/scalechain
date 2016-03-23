@@ -2,7 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.io.ByteArrayOutputStream
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto.{UnlockingScript, NormalTransactionInput, TransactionInput, Transaction}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.{ErrorCode, TransactionVerificationException}
 import io.scalechain.crypto.{Hash256, HashFunctions, TransactionSigHash}
 import io.scalechain.io.BlockDataOutputStream
@@ -25,68 +25,86 @@ object TransactionSignature {
   def calculateHash(transaction : Transaction, transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Hash256 = {
     // Step 1 : Check if the transactionInputIndex is valid.
     if (transactionInputIndex < 0 || transactionInputIndex >= transaction.inputs.length) {
-      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex)
+      throw new TransactionVerificationException(ErrorCode.InvalidInputIndex, "calculateHash: invalid transaction input")
     }
 
-    // Step 2: copy each field of this transaction and create a new one.
-    //         Why? To change some fields of the transaction to calculate hash value from it.
-    val copiedTransaction : Transaction = transaction.copy()
+    // Step 2 : For each hash type, mutate the transaction.
+    val alteredTransaction = alter(transaction, transactionInputIndex, scriptData, howToHash)
 
-    // Step 3 : For each hash type, mutate the transaction.
-    alter(copiedTransaction, transactionInputIndex, scriptData, howToHash)
-
-    // Step 4 : calculate hash of the transaction.
-    calculateHash(copiedTransaction, howToHash)
-  }
-
-  /** Utility function : For each normal transaction inputs, call a mutate function.
-    * Pass the index to the inputs array and normal transaction input to the mutate function.
-    *
-    * @param transaction The transaction to iterate normal transaction inputs.
-    * @param mutate A function with two parameters. (1) transaction input index (2) normal transaction input
-    */
-  protected def forEachNormalTransaction(transaction : Transaction)(mutate : (Int, NormalTransactionInput) => Unit) : Unit = {
-    var txIndex = 0
-    for (txInput : TransactionInput <- transaction.inputs) {
-      txInput match {
-        case normalTxInput : NormalTransactionInput => {
-          mutate(txIndex, normalTxInput)
-        }
-        case _ => {
-          // nothing to do for the generation transaction.
-        }
-      }
-      txIndex += 1
-    }
+    // Step 3 : calculate hash of the transaction.
+    calculateHash(alteredTransaction, howToHash)
   }
 
   /** Alter transaction inputs to calculate hash value used for signing/verifying a signature.
+    *
+    * See CTransactionSignatureSerializer of the Bitcoin core implementation for the details.
     *
     * @param transaction The transaction to alter.
     * @param transactionInputIndex See hashForSignature
     * @param scriptData See hashForSignature
     * @param howToHash See hashForSignature
     */
-  // TODO Make NormalTransactionInput immutable.
-  protected def alter(transaction : Transaction, transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Unit = {
-    howToHash match {
-      case TransactionSigHash.ALL => {
-        // Set an empty unlocking script for all inputs
-        forEachNormalTransaction(transaction) { (txIndex, normalTxInput) =>
-          normalTxInput.unlockingScript =
-            if (txIndex == transactionInputIndex)
+  protected def alter(transaction : Transaction, transactionInputIndex : Int, scriptData : Array[Byte], howToHash : Int) : Transaction = {
+
+    var currentInputIndex = -1
+    val newInputs = transaction.inputs.map { input =>
+      currentInputIndex += 1
+      input match {
+        case normalTx : NormalTransactionInput => {
+          val newUnlockingScript =
+            if (currentInputIndex == transactionInputIndex) {
               UnlockingScript(scriptData)
-            else
+            } else {
               UnlockingScript(Array[Byte]())
+            }
+          normalTx.copy(
+            unlockingScript = newUnlockingScript
+          )
         }
-      }
-      case TransactionSigHash.NONE => {
-        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
-      }
-      case TransactionSigHash.SINGLE => {
-        throw new TransactionVerificationException(ErrorCode.UnsupportedHashType)
+        // No need to change the generation transaction
+        case generationTx : GenerationTransactionInput => generationTx
       }
     }
+
+    transaction.copy(
+      inputs = newInputs
+    )
+
+    /*
+        howToHash match {
+          case TransactionSigHash.ALL => {
+            var currentInputIndex = -1
+            val newInputs = transaction.inputs.map { input =>
+              currentInputIndex += 1
+              input match {
+                case normalTx : NormalTransactionInput => {
+                  val newUnlockingScript =
+                    if (currentInputIndex == transactionInputIndex) {
+                      UnlockingScript(scriptData)
+                    } else {
+                      UnlockingScript(Array[Byte]())
+                    }
+                  normalTx.copy(
+                    unlockingScript = newUnlockingScript
+                  )
+                }
+                // No need to change the generation transaction
+                case generationTx : GenerationTransactionInput => generationTx
+              }
+            }
+
+            transaction.copy(
+              inputs = newInputs
+            )
+          }
+          case TransactionSigHash.NONE => {
+            throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : NONE")
+          }
+          case TransactionSigHash.SINGLE => {
+            throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : SINGLE")
+          }
+    }
+    */
   }
 
   /** Calculate hash value of this transaction for signing/validating a signature.

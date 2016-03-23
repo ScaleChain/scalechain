@@ -17,7 +17,7 @@ object BlockFormatter {
     * @param block The block to format.
     * @return The GetBlockResult instance.
     */
-  def getBlockResult(block : Block) : GetBlockResult = {
+  def getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult = {
     val serializedBlock = BlockCodec.serialize(block)
 
     val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
@@ -29,6 +29,7 @@ object BlockFormatter {
     GetBlockResult(
       hash = blockHash,
       size = serializedBlock.length,
+      height = blockInfo.height,
       version = block.header.version,
       merkleroot = Hash(block.header.hashMerkleRoot.value),
       tx = txHashes,
@@ -145,8 +146,6 @@ object TransactionFormatter {
   def getRawTransaction(transaction : Transaction) : RawTransaction = {
     val txHash = Hash( HashCalculator.transactionHash(transaction) )
     val serializedTransaction = getSerializedTranasction(transaction)
-
-    println(s"transaction.inputs: ${transaction.inputs}")
 
     RawTransaction(
       hex      = serializedTransaction,

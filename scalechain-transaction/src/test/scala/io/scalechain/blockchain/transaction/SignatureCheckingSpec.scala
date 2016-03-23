@@ -8,10 +8,6 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.Tables.Table
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 
-case class MergedScript(transaction:Transaction, inputIndex:Int, unlockingScript:UnlockingScript, lockingScript:LockingScript) {
-  override def toString = s"MergedScript(transaction=$transaction, inputIndex=$inputIndex, unlockingScript=$unlockingScript, lockingScript=$lockingScript)"
-}
-
 /** Test signature validation operations in Crypto.scala
   *
   */

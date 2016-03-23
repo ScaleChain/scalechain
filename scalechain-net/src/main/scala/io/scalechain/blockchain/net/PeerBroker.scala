@@ -91,7 +91,6 @@ class PeerBroker extends Actor {
           peer.versionOption = Some(version)
         }
         case None => {
-          println(s"Got version from the peer($address), but the peer was not found by the peer broker.")
           logger.warn(s"Got version from the peer($address), but the peer was not found by the peer broker.")
         }
       }
@@ -129,7 +128,6 @@ class PeerBroker extends Actor {
           peer.requester forward message
         }
         case None => {
-          println(s"Got request to send a message($message) to the peer($address), but the peer was not found by the peer broker.")
           logger.warn(s"Got request to send a message($message) to the peer($address), but the peer was not found by the peer broker.")
         }
       }
