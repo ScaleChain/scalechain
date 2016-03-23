@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.storage.index
 
 import java.io.File
-import java.util
+import java.util.{ArrayList, Arrays, List}
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb._
 
@@ -16,10 +16,10 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
   private val options = new Options().setCreateIfMissing(true);
   private var db = RocksDB.open(options, path.getAbsolutePath)
 
-  private val columnFamilyDescriptors = util.Arrays.asList(
+  private val columnFamilyDescriptors = Arrays.asList(
     new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, new ColumnFamilyOptions())
   )
-  private val columnFamilyHandles = new util.ArrayList[ColumnFamilyHandle]()
+  private val columnFamilyHandles = new ArrayList[ColumnFamilyHandle]()
 
   def openWithColumnFamily = {
 
@@ -39,7 +39,7 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
     columnFamilyHandles.add(columnFamilyHandle)
   }
 
-  def listColumnFamilies(): util.List[Array[Byte]] = {
+  def listColumnFamilies(): List[Array[Byte]] = {
 
     // listColumnFamilies is static function
     val columnFamilyNames = RocksDB.listColumnFamilies(options, path.getAbsolutePath)
@@ -85,6 +85,19 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
     else None
   }
 
+  def getKeys(cf: ColumnFamilyHandle): ArrayList[String] = {
+    val keys = new ArrayList[String]
+    val cfIterator = iterator(cf)
+    cfIterator.seekToFirst()
+
+    while(cfIterator.isValid) {
+      keys.add(new String(cfIterator.key()))
+      cfIterator.next()
+    }
+
+    keys
+  }
+
   def put(key : Array[Byte], value : Array[Byte] ) : Unit = {
     db.put(key, value)
   }
@@ -95,6 +108,10 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
 
   def del(key : Array[Byte]) : Unit = {
     db.remove(key)
+  }
+
+  def iterator(cf: ColumnFamilyHandle): RocksIterator = {
+    db.newIterator(cf)
   }
 
   def close() = {

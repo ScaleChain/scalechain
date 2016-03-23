@@ -153,4 +153,25 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
     db.get(columnFamilyHandle, key2.getBytes()) shouldBe None
   }
 
+  "getKeys(column family)" should "return all keys of column family" in {
+    db.openWithColumnFamily
+
+    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    db.createColumnFamily(address1)
+
+    val columnFamilyHandle = db.getColumnFamilyHandle(address1)
+    val key1 = "test account key1"
+    val key2 = "test account key2"
+    val value1 = "test account value1"
+    val value2 = "test account value2"
+
+    db.put(columnFamilyHandle, key1.getBytes(), value1.getBytes())
+    db.put(columnFamilyHandle, key2.getBytes(), value2.getBytes())
+
+    val keys = db.getKeys(columnFamilyHandle)
+    keys.size() shouldBe 2
+    new String(keys.get(0)) shouldBe key1
+    new String(keys.get(1)) shouldBe key2
+  }
+
 }
