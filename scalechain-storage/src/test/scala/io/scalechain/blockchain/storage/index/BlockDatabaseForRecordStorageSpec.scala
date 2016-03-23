@@ -13,18 +13,18 @@ import org.scalatest._
 import scodec.bits.BitVector
 
 /**
-  * Created by kangmo on 11/2/15.
+  * Covers all methods in BlockDatabaseForRecordStorage as well as its super class, BlockDatabase
   */
-class BlockDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers with CodecTestUtil {
+class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers with CodecTestUtil {
   this: Suite =>
 
   Storage.initialize()
 
-  var db : BlockDatabase = null
+  var db : BlockDatabaseForRecordStorage = null
   override def beforeEach() {
     val testPath = new File("./target/unittests-BlockDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new BlockDatabase( new RocksDatabase( testPath ) )
+    db = new BlockDatabaseForRecordStorage( new RocksDatabase( testPath ) )
 
     super.beforeEach()
   }

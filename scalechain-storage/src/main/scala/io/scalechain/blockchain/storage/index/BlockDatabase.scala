@@ -14,6 +14,8 @@ object BlockDatabase {
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.
+  *
+  * This class is used by CassandraBlockStorage.
   */
 class BlockDatabase(db : KeyValueDatabase) {
   val logger = LoggerFactory.getLogger(BlockDatabase.getClass)
@@ -46,6 +48,27 @@ class BlockDatabase(db : KeyValueDatabase) {
 
     db.putObject(BLOCK_INFO, hash, info)(HashCodec, BlockInfoCodec)
   }
+
+  def putBestBlockHash(hash : Hash) : Unit = {
+    db.putObject(Array(BEST_BLOCK_HASH), hash)(HashCodec)
+  }
+
+  def getBestBlockHash() : Option[Hash] = {
+    db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
+  }
+
+  def close() = db.close()
+}
+
+/** BlockDatabase for use with RecordStorage.
+  *
+  * Additional features : tracking block file info, transaction locators.
+  *
+  * When storing blocks with RecordStorage, we need to keep track of block file information.
+  * We also should have a locator of each transactions keyed by the transaction hash.
+  */
+class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase(db){
+  import BlockDatabase._
 
   /** Put transactions into the transaction index.
     * Key : transaction hash
@@ -116,13 +139,4 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.getObject(Array(LAST_BLOCK_FILE))(FileNumberCodec)
   }
 
-  def putBestBlockHash(hash : Hash) : Unit = {
-    db.putObject(Array(BEST_BLOCK_HASH), hash)(HashCodec)
-  }
-
-  def getBestBlockHash() : Option[Hash] = {
-    db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
-  }
-
-  def close() = db.close()
 }

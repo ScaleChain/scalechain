@@ -11,7 +11,7 @@ object CassandraDatabase {
   val KEYSPACE_NAME = "scalechain"
   val TABLE_NAME = "kvtable"
 }
-class CassandraDatabase(path : File) extends KeyValueDatabase {
+class CassandraDatabase(path : File, tableName : String = CassandraDatabase.TABLE_NAME) extends KeyValueDatabase {
   import CassandraDatabase._
 
   EmbeddedCassandraServerHelper.startEmbeddedCassandra()
@@ -22,16 +22,16 @@ class CassandraDatabase(path : File) extends KeyValueDatabase {
   session.execute(s"CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE_NAME} WITH REPLICATION ={ 'class' : 'SimpleStrategy', 'replication_factor' : 3 }")
   session.execute(s"USE ${KEYSPACE_NAME}")
 
-  session.execute(s"CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (key blob primary key, value blob)")
+  session.execute(s"CREATE TABLE IF NOT EXISTS ${tableName} (key blob primary key, value blob)")
 
   // FOR UNIT TESTS
   protected[index] def truncateTable() : Unit = {
-    session.execute(s"TRUNCATE TABLE ${TABLE_NAME}")
+    session.execute(s"TRUNCATE TABLE ${tableName}")
   }
 
-  val preparedStmtGet = session.prepare(s"SELECT value FROM ${TABLE_NAME} WHERE key = :key")
-  val preparedStmtPut = session.prepare(s"INSERT INTO ${TABLE_NAME} (key, value) VALUES( :key, :value)")
-  val preparedStmtDel = session.prepare(s"DELETE FROM ${TABLE_NAME} WHERE key = :key")
+  val preparedStmtGet = session.prepare(s"SELECT value FROM ${tableName} WHERE key = :key")
+  val preparedStmtPut = session.prepare(s"INSERT INTO ${tableName} (key, value) VALUES( :key, :value)")
+  val preparedStmtDel = session.prepare(s"DELETE FROM ${tableName} WHERE key = :key")
 
   def get(key : Array[Byte] ) : Option[Array[Byte]] = {
     val row = session.execute( preparedStmtGet.bind(ByteBuffer.wrap(key))).all()
