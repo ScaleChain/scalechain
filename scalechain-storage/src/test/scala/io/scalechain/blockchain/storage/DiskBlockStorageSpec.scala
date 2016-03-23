@@ -4,6 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.apache.commons.io.FileUtils
 import org.scalatest._

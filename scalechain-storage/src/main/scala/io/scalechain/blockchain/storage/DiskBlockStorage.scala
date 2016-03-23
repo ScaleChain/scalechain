@@ -2,18 +2,19 @@ package io.scalechain.blockchain.storage
 
 import java.io.File
 
-import akka.actor.{ActorSystem, ActorRef}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
+import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.index.{BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable
-
 
 object DiskBlockStorage {
+  val MAX_FILE_SIZE = 1024 * 1024 * 100
+  //val MAX_FILE_SIZE = 1024 * 1024 * 1
+
+
   var theBlockStorage : DiskBlockStorage = null
 
   def create(storagePath : File) : DiskBlockStorage = {
@@ -37,8 +38,6 @@ object DiskBlockStorage {
     theBlockStorage
   }
 
-  val MAX_FILE_SIZE = 1024 * 1024 * 100
-  //val MAX_FILE_SIZE = 1024 * 128
 }
 
 

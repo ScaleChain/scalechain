@@ -9,7 +9,7 @@ import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.net.PeerBroker.SendToOne
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{GenesisBlock, DiskBlockStorage}
+import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil._
@@ -121,10 +121,34 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
   }
 
   def storeBlock(block : Block) : Unit = {
-    // Step 1 : Validate block
     try {
 
-      blockStorage.putBlock(block)
+      // Step 1 : Check if the previous block header and data exists.
+      val prevBlockIsComplete =
+        blockStorage.getBlock(block.header.hashPrevBlock) match {
+          case Some((_, _)) => {
+            true
+          }
+          case _ => {
+            false
+          }
+        }
+
+      // Step 2 : Verify the block and put the block only if the previous block exists.
+      if (prevBlockIsComplete) {
+        // TODO : Put the transactions into mempool. Verify the block first before putting into the chain.
+
+        // Put the block.
+        blockStorage.putBlock(block)
+
+        // Verify the block.
+        new BlockVerifier(block).verify(DiskBlockStorage.get)
+
+      } else {
+        logger.warn(s"The previous block data is not found yet. Discarding block. Header : ${block.header}")
+      }
+
+      /*
       // BUGBUG : this is too slow. remove it after we are confident.
       try {
         val Some((blockInfo, foundBlock)) = blockStorage.getBlock(Hash(HashCalculator.blockHeaderHash(block.header)))
@@ -135,10 +159,8 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
           assert(false)
         }
       }
+      */
 
-      // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
-      // BUGBUG : Need to put block after the verification step.
-      new BlockVerifier(block).verify(DiskBlockStorage.get)
 
 /*
       println("Stored a block with following transactions")

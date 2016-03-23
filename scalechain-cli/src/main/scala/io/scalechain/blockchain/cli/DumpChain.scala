@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter, HashCalculator, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.blockchain.storage.{GenesisBlock, Storage, DiskBlockStorage}
+import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock, Storage}
 import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.{ByteArray, HexUtil}
 import HexUtil._
