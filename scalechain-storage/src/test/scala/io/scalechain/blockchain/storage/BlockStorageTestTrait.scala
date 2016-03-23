@@ -11,6 +11,35 @@ import org.scalatest._
 trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
   var storage : BlockStorage
 
+  "checkBestBlockHash" should "pass case 1 : the block height of the new block is greater than the highest one." in {
+    storage.getBestBlockHash() shouldBe None
+    storage.checkBestBlockHash(blockHash1, 1)
+    storage.getBestBlockHash() shouldBe Some(blockHash1)
+    storage.checkBestBlockHash(blockHash2, 2)
+    storage.getBestBlockHash() shouldBe Some(blockHash2)
+  }
+
+  "checkBestBlockHash" should "pass case 2 : the block height of the new block is less than the highest one." in {
+    storage.getBestBlockHash() shouldBe None
+    storage.checkBestBlockHash(blockHash2, 2)
+    storage.getBestBlockHash() shouldBe Some(blockHash2)
+    storage.checkBestBlockHash(blockHash1, 1)
+    storage.getBestBlockHash() shouldBe Some(blockHash2)
+  }
+
+
+  "getBlockHeight" should "return -1 for the hash with all zero values" in {
+    storage.getBlockHeight(ALL_ZERO_HASH) shouldBe Some(-1)
+  }
+
+  "getBlockHeight" should "return the height of the block" in {
+    storage.putBlockHeader(block1.header)
+    storage.putBlockHeader(block2.header)
+    storage.getBlockHeight(blockHash1) shouldBe Some(0)
+    storage.getBlockHeight(blockHash2) shouldBe Some(1)
+  }
+
+
   "putBlock(block)" should "store a block without hash" in {
     storage.putBlock(block1) shouldBe true
     storage.putBlock(block2) shouldBe true
@@ -234,6 +263,26 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
     for (transaction <- block1.transactions) {
       val txHash = TransactionHash( HashCalculator.transactionHash(transaction))
       storage.getTransaction(txHash) shouldBe Some(transaction)
+    }
+  }
+
+  val blockCount = 64
+  "getBlock" should "read many blocks correctly" in {
+    storage.putBlock(block1)
+    var prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(block1.header))
+    var blocksStored = 0
+    while( blocksStored < blockCount) {
+      val newBlock = block1.copy(
+        header = block1.header.copy(
+          hashPrevBlock = prevBlockHash
+        )
+      )
+      storage.putBlock(newBlock)
+      prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(newBlock.header))
+
+      storage.getBlock(prevBlockHash).map(_._2) shouldBe Some(newBlock)
+
+      blocksStored += 1
     }
   }
 

@@ -10,7 +10,7 @@ object BlockDatabase {
   val TRANSACTION : Byte = 't'
   val BLOCK_FILE_INFO : Byte = 'f'
   val LAST_BLOCK_FILE : Byte = 'l'
-  val BEST_BLOCK_HASH : Byte = 'b'
+  val BEST_BLOCK_HASH : Byte = 'B'
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.

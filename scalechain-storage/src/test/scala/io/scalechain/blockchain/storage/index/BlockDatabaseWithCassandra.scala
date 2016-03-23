@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage.index
 
+
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
@@ -10,14 +11,15 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
+class BlockDatabaseWithCassandra extends BlockDatabaseTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
   Storage.initialize()
 
-  var db : KeyValueDatabase = null
+  var cassandraDatabase : CassandraDatabase = null
+  var db : BlockDatabase = null
 
-  val cassandraPath= "./target/embeddedCassandra-CassandraDatabaseSpec/"
+  val cassandraPath = "./target/embeddedCassandra-BlockDatabaseWithCassandra/"
   val testPath = new File(cassandraPath)
 
   override def beforeAll() {
@@ -26,7 +28,8 @@ class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfte
 
     EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, cassandraPath);
 
-    db = new CassandraDatabase( testPath, "kvstore" )
+    cassandraDatabase = new CassandraDatabase( testPath, "kvstore" )
+    db = new BlockDatabase( cassandraDatabase )
 
     super.beforeAll()
   }
@@ -39,7 +42,7 @@ class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfte
   }
 
   override def beforeEach() {
-    db.asInstanceOf[CassandraDatabase].truncateTable()
+    cassandraDatabase.truncateTable()
 
     super.beforeEach()
   }

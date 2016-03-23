@@ -5,11 +5,34 @@ import java.io.File
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.storage.index.{BlockDatabase, CassandraDatabase}
+import org.slf4j.LoggerFactory
 
-/**
-  * Created by kangmo on 3/23/16.
+
+/** Store block headers, block transactions, the best block hash.
   */
 class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
+  private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
+
+  protected[storage] val blockMetadataTable = new CassandraDatabase(directoryPath, "block_metadata")
+
+  // Block info including block header,
+  protected[storage] val blockMetadata = new BlockDatabase( blockMetadataTable )
+
+  // The serialized blocks are stored on this table.
+  // Key : Block header hash
+  // Value : Serialized block
+  protected[storage] val blocksTable = new CassandraDatabase(directoryPath, "blocks")
+
+  // The serialized transactions are stored on this table.
+  // Key : Transaction Hash
+  // Value : Serialized transaction
+  protected[storage] val transactionsTable = new CassandraDatabase(directoryPath, "transactions")
+
+
+  protected[storage] def blockDatabase() = {
+    blockMetadata
+  }
 
   /** Store a block.
     *
@@ -21,139 +44,75 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     */
   def putBlock(blockHash : Hash, block : Block) : Boolean = {
     this.synchronized {
-      // TODO : Implement
-      assert(false)
-      false
-/*
-      val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
+      val blockInfo: Option[BlockInfo] = blockDatabase.getBlockInfo(blockHash)
       var isNewBlock = false
 
-      val txLocators: List[TransactionLocator] =
-        if (blockInfo.isDefined) {
-          // case 1 : block info was found
-          if (blockInfo.get.blockLocatorOption.isEmpty) {
-            // case 1.1 : block info without a block locator was found
-            val appendResult = blockWriter.appendBlock(block)
-            val newBlockInfo = blockInfo.get.copy(
-              transactionCount = block.transactions.size,
-              blockLocatorOption = Some(appendResult.blockLocator)
-            )
-            blockIndex.putBlockInfo(blockHash, newBlockInfo)
-            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-            updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, newBlockInfo.height)
+      if (blockInfo.isDefined) {
+        // case 1 : block info was found
+        if (blocksTable.get(blockHash.value).isEmpty) {
+          // case 1.1 : The block was not found on the blocks table.
+          putBlockToCassandra(blockHash, block)
 
-            //logger.info("The block locator was updated. block hash : {}", blockHash)
-            appendResult.txLocators
-          } else {
-            // case 1.2 block info with a block locator was found
-            // The block already exists. Do not put it once more.
-            logger.warn("The block already exists. block hash : {}", blockHash)
+          checkBestBlockHash(blockHash, blockInfo.get.height)
 
-            List()
-          }
+          //logger.info("The block data was updated. block hash : {}", blockHash)
         } else {
-          // case 2 : no block info was found.
-          // get the height of the previous block, to calculate the height of the given block.
-          val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(block.header.hashPrevBlock.value))
-
-          if (prevBlockHeightOption.isDefined) {
-            // case 2.1 : no block info was found, previous block header exists.
-            val appendResult = blockWriter.appendBlock(block)
-
-            val blockHeight = prevBlockHeightOption.get + 1
-            val blockInfo = BlockInfo(
-              height = blockHeight,
-              transactionCount = block.transactions.size,
-              // BUGBUG : Need to use enumeration
-              status = 0,
-              blockHeader = block.header,
-              Some(appendResult.blockLocator)
-            )
-            blockIndex.putBlockInfo(blockHash, blockInfo)
-
-            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-            updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, blockHeight)
-
-            isNewBlock = true
-            //logger.info("The new block was put. block hash : {}", blockHash)
-
-            appendResult.txLocators
-          } else {
-            // case 2.2 : no block info was found, previous block header does not exists.
-            logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
-
-            List()
-          }
+          // case 1.2 block info with a block locator was found
+          // The block already exists. Do not put it once more.
+          logger.warn("The block already exists. block hash : {}", blockHash)
         }
+      } else {
+        // case 2 : no block info was found.
+        // get the height of the previous block, to calculate the height of the given block.
+        val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(block.header.hashPrevBlock.value))
 
-      if (!txLocators.isEmpty) {
-        // case 1.1 and case 2.1 has newly stored transactions.
-        blockIndex.putTransactions(txLocators)
+        if (prevBlockHeightOption.isDefined) {
+          // case 2.1 : no block info was found, previous block header exists.
+
+          val blockHeight = prevBlockHeightOption.get + 1
+          val blockInfo = BlockInfo(
+            height = blockHeight,
+            transactionCount = block.transactions.size,
+            // BUGBUG : Need to use enumeration
+            status = 0,
+            blockHeader = block.header,
+            None
+          )
+
+          blockDatabase.putBlockInfo(blockHash, blockInfo)
+
+          putBlockToCassandra(blockHash, block)
+
+          checkBestBlockHash(blockHash, blockHeight)
+
+          isNewBlock = true
+          //logger.info("The new block was put. block hash : {}", blockHash)
+        } else {
+          // case 2.2 : no block info was found, previous block header does not exists.
+          logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
+        }
       }
 
       isNewBlock
-*/
     }
   }
 
-  def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader) : Unit = {
-    this.synchronized {
-      // TODO : Implement
-      assert(false)
-/*
-      // get the height of the previous block, to calculate the height of the given block.
-      val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(blockHeader.hashPrevBlock.value))
-
-      if (prevBlockHeightOption.isDefined) {
-        // case 1 : the previous block header was found.
-        val blockHeight = prevBlockHeightOption.get + 1
-
-        assert(blockHeight >= 0)
-
-        val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
-        if (blockInfo.isEmpty) {
-          // case 1.1 : the header does not exist yet.
-          val blockInfo = BlockInfo(
-            height = blockHeight,
-            transactionCount = 0,
-            // BUGBUG : Need to use enumeration
-            status = 0,
-            blockHeader = blockHeader,
-            None
-          )
-          blockIndex.putBlockInfo(blockHash, blockInfo)
-          // We are not checking if the block is the best block, because we received a header only.
-          // We put a block as a best block only if we have the block data as long as the header.
-        } else {
-          // case 1.2 : the same block header already exists.
-          logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
-
-          // blockIndex hits an assertion if the block header is changed for the same block hash.
-          // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
-          //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
-          //  blockHeader = blockHeader
-          //))
-
-        }
-      } else {
-        // case 2 : the previous block header was not found.
-        logger.warn("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
-      }
-*/
+  protected[storage] def putBlockToCassandra(blockHash : Hash, block : Block) : Unit = {
+    for (transaction <- block.transactions) {
+      // case 1.1 and case 2.1 has newly stored transactions.
+      transactionsTable.put(
+        HashCalculator.transactionHash(transaction),
+        TransactionCodec.serialize(transaction))
     }
+
+    blocksTable.put( blockHash.value, BlockCodec.serialize(block))
   }
+
 
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     this.synchronized {
-      /*
-      val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
-      txLocatorOption.map(blockRecordStorage.readRecord(_)(TransactionCodec))
-      */
-      // TODO : Implement
-      assert(false)
-      None
+      val serializedTransactionOption = transactionsTable.get(transactionHash.value)
+      serializedTransactionOption.map( TransactionCodec.parse(_) )
     }
   }
 
@@ -166,68 +125,26 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     */
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
     this.synchronized {
-      // TODO : Implement
-      assert(false)
-      None
-
-      /*
-      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
+      val blockInfoOption = blockDatabase.getBlockInfo(blockHash)
       if (blockInfoOption.isDefined) {
         // case 1 : The block info was found.
-        if (blockInfoOption.get.blockLocatorOption.isDefined) {
-          //logger.info(s"getBlock - Found a block info with a locator. block hash : ${blockHash}, locator : ${blockInfoOption.get.blockLocatorOption}")
-          // case 1.1 : the block info with a block locator was found.
-          Some( (blockInfoOption.get, blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec)) )
-        } else {
-          // case 1.2 : the block info without a block locator was found.
-          //logger.info("getBlock - Found a block info without a locator. block hash : {}", blockHash)
-          None
+        val serializedBlockOption = blocksTable.get(blockHash.value)
+        serializedBlockOption.map{ serializedBlock =>
+          (blockInfoOption.get, BlockCodec.parse(serializedBlock) )
         }
       } else {
         // case 2 : The block info was not found
         //logger.info("getBlock - No block info found. block hash : {}", blockHash)
         None
       }
-      */
     }
   }
 
-  def getBestBlockHash() : Option[Hash] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      // TODO : Implement
-      assert(false)
-      None
-/*
-      blockIndex.getBestBlockHash()
-*/
-    }
-  }
-
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      // TODO : Implement
-      assert(false)
-      None
-/*
-      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-      if (blockInfoOption.isDefined) {
-        // case 1 : the block info was found.
-        Some(blockInfoOption.get.blockHeader)
-      } else {
-        // case 2 : the block info was not found.
-        None
-      }
-*/
-    }
-  }
 
   def close() : Unit = {
-    // TODO : Implement
-    assert(false)
+    blockMetadata.close
+    blocksTable.close
+    transactionsTable.close
   }
 
 }

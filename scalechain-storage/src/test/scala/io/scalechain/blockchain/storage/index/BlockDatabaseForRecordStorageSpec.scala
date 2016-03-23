@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.{TransactionLocator, Storage}
+import io.scalechain.blockchain.storage.{TestData, TransactionLocator, Storage}
 import io.scalechain.io.HexFileLoader
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
@@ -15,7 +15,7 @@ import scodec.bits.BitVector
 /**
   * Covers all methods in BlockDatabaseForRecordStorage as well as its super class, BlockDatabase
   */
-class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers with CodecTestUtil {
+class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers with CodecTestUtil with BeforeAndAfterEach  {
   this: Suite =>
 
   Storage.initialize()
@@ -36,14 +36,6 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach
   }
 
 
-  val rawBlockBytes = HexFileLoader.load("data/unittest/codec/block-size231721.hex")
-  val rawBlockBits = BitVector.view(rawBlockBytes)
-
-  implicit val codec = BlockCodec.codec
-  val block : Block = decodeFully(rawBlockBits)
-
-  val blockHash = Hash (HashCalculator.blockHeaderHash(block.header))
-
   val BLOCK_LOCATOR = FileRecordLocator(
     fileIndex = 1,
     RecordLocator( 10, 15)
@@ -51,122 +43,9 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach
 
   val DUMMY_HASH = Hash(bytes("0"*64))
 
-
-  "putBlockInfo/getBlockInfo" should "successfully put/get data" in {
-    db.getBlockInfo(blockHash) shouldBe None
-
-    val blockInfo = BlockInfo(
-      height = 1,
-      transactionCount = 0,
-      status = 0,
-      blockHeader = block.header,
-      blockLocatorOption = None
-    )
-
-    db.putBlockInfo(blockHash, blockInfo)
-    db.getBlockInfo(blockHash) shouldBe Some(blockInfo)
-    db.getBlockHeight(blockHash) shouldBe Some(1)
-
-    val newBlockInfo = blockInfo.copy(
-      transactionCount = 10,
-      blockLocatorOption = Some (
-        BLOCK_LOCATOR
-      )
-    )
-
-    db.putBlockInfo(blockHash, newBlockInfo)
-    db.getBlockInfo(blockHash) shouldBe Some(newBlockInfo)
-  }
-
-  "putBlockInfo" should "hit an assertion if the new block info is incorrect." in {
-    db.getBlockInfo(blockHash) shouldBe None
-
-    val blockInfo = BlockInfo(
-      height = 1,
-      transactionCount = 0,
-      status = 0,
-      blockHeader = block.header,
-      blockLocatorOption = Some(BLOCK_LOCATOR)
-    )
-
-    db.putBlockInfo(blockHash, blockInfo)
-
-    // hit an assertion : put a block info with different height
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        height = blockInfo.height + 1
-      ))
-    }
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        height = blockInfo.height - 1
-      ))
-    }
-
-    // hit an assertion : put a block info with a block locator, even though the block info has some locator.
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockLocatorOption = Some(BLOCK_LOCATOR)
-      ))
-    }
-
-    // hit an assertion : change any field on the block header
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-          version = blockInfo.blockHeader.version + 1
-        )
-      ))
-    }
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-          hashPrevBlock = BlockHash(DUMMY_HASH.value)
-        )
-      ))
-    }
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-          hashMerkleRoot = MerkleRootHash(DUMMY_HASH.value)
-        )
-      ))
-    }
-
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-          timestamp = blockInfo.blockHeader.timestamp + 1
-        )
-      ))
-    }
-
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-        target = blockInfo.blockHeader.target + 1
-      )
-      ))
-    }
-
-
-    intercept[AssertionError] {
-      db.putBlockInfo(blockHash, blockInfo.copy(
-        blockHeader = blockInfo.blockHeader.copy(
-          nonce = blockInfo.blockHeader.nonce + 1
-        )
-      ))
-    }
-  }
-
   "putTransactions" should "successfully put transactions onto database" in {
     // At first, we should not have any tranasctions on the database.
-    for( transaction <- block.transactions) {
+    for( transaction <- TestData.block.transactions) {
       val txHash = Hash (HashCalculator.transactionHash(transaction))
       db.getTransactionLocator(txHash) shouldBe None
     }
@@ -175,7 +54,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach
 
     // Create (transaction hash, transaction locator pair )
     val txLocators = for(
-      transaction <- block.transactions;
+      transaction <- TestData.block.transactions;
       txHash = Hash (HashCalculator.transactionHash(transaction));
       txLocator = BLOCK_LOCATOR.copy(recordLocator = BLOCK_LOCATOR.recordLocator.copy(offset = BLOCK_LOCATOR.recordLocator.offset + i * 100))
     ) yield {
@@ -186,7 +65,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach
     db.putTransactions(txLocators)
 
     // Now, we have transactions on the database.
-    for( transaction <- block.transactions) {
+    for( transaction <- TestData.block.transactions) {
       val txHash = Hash (HashCalculator.transactionHash(transaction))
       val txLocator = db.getTransactionLocator(txHash)
 
@@ -386,15 +265,5 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with BeforeAndAfterEach
     intercept[AssertionError] {
       db.putLastBlockFile(FILE_NUMBER_2)
     }
-  }
-
-  "putBestBlockHash/getBestBlockHash" should "successfully put/get data" in {
-    db.getBestBlockHash() shouldBe None
-
-    db.putBestBlockHash(DUMMY_HASH)
-    db.getBestBlockHash() shouldBe Some(DUMMY_HASH)
-
-    db.putBestBlockHash(blockHash)
-    db.getBestBlockHash() shouldBe Some(blockHash)
   }
 }

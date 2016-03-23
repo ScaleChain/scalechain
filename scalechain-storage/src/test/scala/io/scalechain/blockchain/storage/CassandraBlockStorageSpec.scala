@@ -2,10 +2,24 @@ package io.scalechain.blockchain.storage
 
 import java.io.File
 
+import io.scalechain.blockchain.proto.BlockHash
+import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.storage.index.CassandraDatabase
 import org.apache.commons.io.FileUtils
-import org.scalatest.{Suite, BeforeAndAfterEach}
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper
+import org.scalatest.{BeforeAndAfterAll, Suite, BeforeAndAfterEach}
 
-class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach {
+// For Unit tests.
+class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath) {
+  protected[storage] def truncateTables(): Unit = {
+    blockMetadataTable.truncateTable
+    blocksTable.truncateTable
+    transactionsTable.truncateTable
+  }
+}
+
+
+class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
   import TestData._
@@ -14,17 +28,33 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
 
   val TEST_RECORD_FILE_SIZE = 1024 * 1024
 
-  var diskBlockStorage: CassandraBlockStorage = null
+  var cassandraBlockStorage: CassandraBlockStorageForUnitTest = null
   var storage: BlockStorage = null
 
-  override def beforeEach() {
+  val cassandraPath = "./target/embeddedCassandra-CassandraBlockStorageSpec/"
 
-    val testPath = new File("./target/unittests-CassandraBlockStorageSpec/")
+  val testPath = new File(cassandraPath)
+
+  override def beforeAll() {
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    diskBlockStorage = new CassandraBlockStorage(testPath)
-    storage = diskBlockStorage
+    EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, cassandraPath);
+
+    super.beforeAll()
+  }
+
+  override def afterAll() {
+    super.afterAll()
+
+    cassandraBlockStorage.close()
+//    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+  }
+
+  override def beforeEach() {
+    cassandraBlockStorage = new CassandraBlockStorageForUnitTest(testPath)
+    cassandraBlockStorage.truncateTables()
+    storage = cassandraBlockStorage
 
     super.beforeEach()
   }
@@ -32,6 +62,6 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
   override def afterEach() {
     super.afterEach()
 
-    storage.close()
   }
+
 }

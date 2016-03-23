@@ -22,6 +22,7 @@ object TestData extends CodecTestUtil {
 
   val rawBlockData = HexFileLoader.load("data/unittest/codec/block-size231721.hex")
   val block = decodeFully(BitVector.view(rawBlockData))(BlockCodec.codec)
+  val blockHash = Hash (HashCalculator.blockHeaderHash(block.header))
 
   // The genesis block
   val block1 = block.copy (

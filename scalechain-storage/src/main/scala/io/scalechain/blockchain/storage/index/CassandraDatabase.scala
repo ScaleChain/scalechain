@@ -9,9 +9,9 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 object CassandraDatabase {
   val KEYSPACE_NAME = "scalechain"
-  val TABLE_NAME = "kvtable"
 }
-class CassandraDatabase(path : File, tableName : String = CassandraDatabase.TABLE_NAME) extends KeyValueDatabase {
+
+class CassandraDatabase(path : File, tableName : String) extends KeyValueDatabase {
   import CassandraDatabase._
 
   EmbeddedCassandraServerHelper.startEmbeddedCassandra()
@@ -25,7 +25,7 @@ class CassandraDatabase(path : File, tableName : String = CassandraDatabase.TABL
   session.execute(s"CREATE TABLE IF NOT EXISTS ${tableName} (key blob primary key, value blob)")
 
   // FOR UNIT TESTS
-  protected[index] def truncateTable() : Unit = {
+  protected[storage] def truncateTable() : Unit = {
     session.execute(s"TRUNCATE TABLE ${tableName}")
   }
 

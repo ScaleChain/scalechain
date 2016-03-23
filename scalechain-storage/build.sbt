@@ -10,3 +10,7 @@ libraryDependencies ++= Seq(
   // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
   "org.apache.commons" % "commons-io" % "1.3.2"
 )
+
+// We need to start/stop embedded cassandra within our unit tests.
+// If we allow parallel execution, cassandra fails to start with an error saying "Unable to start two cassandra instances in a JVM"
+parallelExecution in Test := false

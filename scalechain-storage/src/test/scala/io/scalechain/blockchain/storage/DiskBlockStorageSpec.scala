@@ -39,22 +39,6 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     storage.close()
   }
 
-  "checkBestBlockHash" should "pass case 1 : the block height of the new block is greater than the highest one." in {
-    diskBlockStorage.getBestBlockHash() shouldBe None
-    diskBlockStorage.checkBestBlockHash(blockHash1, 1)
-    diskBlockStorage.getBestBlockHash() shouldBe Some(blockHash1)
-    diskBlockStorage.checkBestBlockHash(blockHash2, 2)
-    diskBlockStorage.getBestBlockHash() shouldBe Some(blockHash2)
-  }
-
-  "checkBestBlockHash" should "pass case 2 : the block height of the new block is less than the highest one." in {
-    diskBlockStorage.getBestBlockHash() shouldBe None
-    diskBlockStorage.checkBestBlockHash(blockHash2, 2)
-    diskBlockStorage.getBestBlockHash() shouldBe Some(blockHash2)
-    diskBlockStorage.checkBestBlockHash(blockHash1, 1)
-    diskBlockStorage.getBestBlockHash() shouldBe Some(blockHash2)
-  }
-
   "updateFileInfo" should "pass case 1 : a new record file was created." in {
     val FILE_NUMBER = 1
     diskBlockStorage.blockIndex.getLastBlockFile() shouldBe None
@@ -97,17 +81,6 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
       ))
   }
 
-  "getBlockHeight" should "return -1 for the hash with all zero values" in {
-    diskBlockStorage.getBlockHeight(ALL_ZERO_HASH) shouldBe Some(-1)
-  }
-
-  "getBlockHeight" should "return the height of the block" in {
-    diskBlockStorage.putBlockHeader(block1.header)
-    diskBlockStorage.putBlockHeader(block2.header)
-    diskBlockStorage.getBlockHeight(blockHash1) shouldBe Some(0)
-    diskBlockStorage.getBlockHeight(blockHash2) shouldBe Some(1)
-  }
-
   // Test case for the issue Unable to decode a specific block if a new record file was created between writing block header and transactions.
   // https://github.com/ScaleChain/scalechain/issues/36
   "getBlock" should "read a block correctly on the file boundary" in {
@@ -125,6 +98,5 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
       diskBlockStorage.getBlock(prevBlockHash).map(_._2) shouldBe Some(newBlock)
     }
   }
-
 }
 

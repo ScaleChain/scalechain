@@ -86,16 +86,10 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath, maxFileSize)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
-  protected[storage] var bestBlockHeightOption = blockIndex.getBestBlockHash().map(blockIndex.getBlockHeight(_).get)
-
-  protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
-    if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) { // case 1 : the block height of the new block is greater than the highest one.
-      bestBlockHeightOption = Some(height)
-      blockIndex.putBestBlockHash(blockHash)
-    } else { // case 2 : the block height of the new block is less than the highest one.
-      // do nothing
-    }
+  protected[storage] def blockDatabase() : BlockDatabase = {
+    blockIndex
   }
+
   protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Int, blockTimestamp : Long): Unit = {
     val lastFileNumber = FileNumber(headerLocator.fileIndex)
 
@@ -131,15 +125,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
         lastBlockTimestamp = blockTimestamp
       )
     )
-  }
-
-  private[storage] def getBlockHeight(blockHash : Hash) : Option[Int] = {
-    if (blockHash.isAllZero()) { // case 1 : The previous block of Genesis block
-      // Because genesis block's height is 0, we need to return -1.
-      Some(-1)
-    } else { // case 2 : Non-genesis block.
-      blockIndex.getBlockHeight(blockHash)
-    }
   }
 
   /** Store a block.
@@ -227,51 +212,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     }
   }
 
-  def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader) : Unit = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      // get the height of the previous block, to calculate the height of the given block.
-      val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(blockHeader.hashPrevBlock.value))
-
-      if (prevBlockHeightOption.isDefined) {
-        // case 1 : the previous block header was found.
-        val blockHeight = prevBlockHeightOption.get + 1
-
-        assert(blockHeight >= 0)
-
-        val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
-        if (blockInfo.isEmpty) {
-          // case 1.1 : the header does not exist yet.
-          val blockInfo = BlockInfo(
-            height = blockHeight,
-            transactionCount = 0,
-            // BUGBUG : Need to use enumeration
-            status = 0,
-            blockHeader = blockHeader,
-            None
-          )
-          blockIndex.putBlockInfo(blockHash, blockInfo)
-          // We are not checking if the block is the best block, because we received a header only.
-          // We put a block as a best block only if we have the block data as long as the header.
-        } else {
-          // case 1.2 : the same block header already exists.
-          logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
-
-          // blockIndex hits an assertion if the block header is changed for the same block hash.
-          // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
-          //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
-          //  blockHeader = blockHeader
-          //))
-
-        }
-      } else {
-        // case 2 : the previous block header was not found.
-        logger.warn("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
-      }
-    }
-  }
-
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
@@ -307,35 +247,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
       } else {
         // case 2 : The block info was not found
         //logger.info("getBlock - No block info found. block hash : {}", blockHash)
-        None
-      }
-    }
-  }
-
-  /** Get the header hash of the most recent block on the best block chain.
-    *
-    * Used by : getbestblockhash RPC.
-    *
-    * @return The header hash of the most recent block.
-    */
-  def getBestBlockHash() : Option[Hash] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      blockIndex.getBestBlockHash()
-    }
-  }
-
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
-      if (blockInfoOption.isDefined) {
-        // case 1 : the block info was found.
-        Some(blockInfoOption.get.blockHeader)
-      } else {
-        // case 2 : the block info was not found.
         None
       }
     }
