@@ -9,7 +9,8 @@ import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, Bl
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
-
+/*
+// A version Using DiskBlockStorage
 object DiskBlockStorage {
   val MAX_FILE_SIZE = 1024 * 1024 * 100
   //val MAX_FILE_SIZE = 1024 * 1024 * 1
@@ -34,6 +35,38 @@ object DiskBlockStorage {
     * @return The block storage.
     */
   def get() : DiskBlockStorage = {
+    assert(theBlockStorage != null)
+    theBlockStorage
+  }
+
+}
+*/
+
+// A version Using CassandraBlockStorage
+object DiskBlockStorage {
+  val MAX_FILE_SIZE = 1024 * 1024 * 100
+  //val MAX_FILE_SIZE = 1024 * 1024 * 1
+
+
+  var theBlockStorage : CassandraBlockStorage = null
+
+  def create(storagePath : File) : CassandraBlockStorage = {
+    assert(theBlockStorage == null)
+    theBlockStorage = new CassandraBlockStorage(storagePath)
+
+    // See if we have genesis block. If not, put one.
+    if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
+      theBlockStorage.putBlock(GenesisBlock.BLOCK)
+    }
+
+    theBlockStorage
+  }
+
+  /** Get the block storage. This actor is a singleton, used by transaction validator.
+    *
+    * @return The block storage.
+    */
+  def get() : CassandraBlockStorage = {
     assert(theBlockStorage != null)
     theBlockStorage
   }
