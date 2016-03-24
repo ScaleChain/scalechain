@@ -43,71 +43,36 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   val accountAddress1 = account.addresses(0)
   val accountAddress2 = account.addresses(1)
 
-  "putAccountAddress/getAccountAddress" should "successfully put/get data" in {
+  "putAddressInfo" should "successfully put address info" in {
 
-    db.getAccountAddress(accountName+"1") shouldBe None
-
-    db.putAccountAddress(accountName+"1", accountAddress1.address)
-    db.putAccountAddress(accountName+"2", accountAddress2.address)
-
-    db.getAccountAddress(accountName+"1") shouldBe accountAddress1.address
-    db.getAccountAddress(accountName+"2") shouldBe accountAddress2.address
   }
 
-  "putAccountCount/getAccountCount" should "successfully put/get data" in {
+  "putAddressInfo" should "hit an assertion if address already exists" in {
 
-    db.getAccountCount(accountName) shouldBe None
-
-    db.putAccountAddress(accountName+"1", accountAddress1.address)
-    db.putAccountAddress(accountName+"2", accountAddress2.address)
-    db.putAccountCount(accountName, 2)
-
-
-    db.getAccountCount(accountName) shouldBe 2
   }
 
-  "putAccountCount" should "hit an assertion if account count is not number" in {
+  "getAddressInfo" should "successfully get address info" in {
 
-    db.putAccountAddress(accountName+"1", accountAddress1.address)
-    db.putAccountAddress(accountName+"2", accountAddress2.address)
-
-    intercept[AssertionError] {
-      db.putAccountCount(accountName, "abc")
-    }
   }
 
-  "putAccountAddress" should "hit an assertion if address is not valid" in {
+  "getAddressInfo" should "return None if address does not exist" in {
 
-    intercept[AssertionError] {
-      db.putAccountAddress(accountName+"1", "1dfdiekjfdkji30rf8df")
-    }
   }
 
-  "putAddressInfo/getAddressInfo" should "successfully put/get data" in {
+  "getAccount" should "successfully get account" in {
 
-    db.getAddressInfo(accountAddress1.address) shouldBe None
-
-    val addressInfo = AddressInfo(
-      account.account,
-      accountAddress1.purpose,
-      accountAddress1.publicKey
-    )
-
-    db.putAddressInfo(accountAddress1.address, addressInfo)
-
-    db.getAddressInfo(accountAddress1.address) shouldBe addressInfo
   }
 
-  "putAddressInfo" should "hit an assertion if address is not valid" in {
+  "getAccount" should "return None if address does not exist" in {
 
-    val addressInfo = AddressInfo(
-      account.account,
-      accountAddress1.purpose,
-      accountAddress1.publicKey
-    )
-
-    intercept[AssertionError] {
-      db.putAddressInfo("12dhfusdhufhsd9eejlk", addressInfo)
-    }
   }
+
+  "getReceivedAddress" should "successfully get received address" in {
+
+  }
+
+  "getPrivateKeyLocator" should "successfully get private key locator" in {
+
+  }
+
 }
