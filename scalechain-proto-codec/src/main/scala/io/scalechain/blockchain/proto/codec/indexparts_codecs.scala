@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.VarInt
+import io.scalechain.blockchain.proto.codec.primitive.{FixedByteArray, VarStr, VarInt}
 import scodec.Codec
 import scodec.codecs._
 
@@ -72,4 +72,34 @@ object WalletInfoCodec extends MessagePartCodec[WalletInfo]{
       ("status" | int32L) ::
       ("walletHeader" | WalletHeaderCodec.codec)
   }.as[WalletInfo]
+}
+
+/**
+  * by mijeong
+  */
+object AddressKeyCodec extends MessagePartCodec[AddressKey]{
+  val codec : Codec[AddressKey] = {
+      ("address"            | VarStr.codec                 )
+  }.as[AddressKey]
+}
+
+/**
+  * by mijeong
+  */
+object AddressInfoCodec extends MessagePartCodec[AddressInfo]{
+  val codec : Codec[AddressInfo] = {
+      ("account"            | VarStr.codec                                    ) ::
+      ("purpose"            | int32L                                          ) ::
+      ("publicKey"          | FixedByteArray.codec(33)                        ) ::
+      ("privateKeyLocator"  | optional(bool(8),FileRecordLocatorCodec.codec)  )
+  }.as[AddressInfo]
+}
+
+/**
+  * by mijeong
+  */
+object AccountInfoCodec extends MessagePartCodec[AccountInfo]{
+  val codec : Codec[AccountInfo] = {
+    ("account"            | VarStr.codec                 )
+  }.as[AccountInfo]
 }

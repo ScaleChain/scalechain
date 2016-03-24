@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.proto
 
+import io.scalechain.util.ByteArray
+
 /** case classes that are used for keys or values of the block storage index.
   */
 
@@ -53,6 +55,39 @@ case class TransactionCount( count : Int) extends ProtocolMessage
 case class WalletInfo(
   status : Int,
   walletHeader : WalletHeader
+) extends ProtocolMessage
+
+/**
+  * by mijeong
+  *
+  * @param account account name
+  * @param purpose purpose of address (received or unknown)
+  * @param publicKey public key
+  * @param privateKeyLocator private key locator in record
+  */
+case class AddressInfo(
+  account : String,
+  purpose : Int,
+  publicKey : ByteArray,
+  privateKeyLocator : Option[FileRecordLocator]
+) extends ProtocolMessage
+
+/**
+  * by mijeong
+  *
+  * @param address address
+  */
+case class AddressKey(
+  address : String
+) extends ProtocolMessage
+
+/**
+  * by mijeong
+  *
+  * @param account account name
+  */
+case class AccountInfo(
+  account : String
 ) extends ProtocolMessage
 
 
