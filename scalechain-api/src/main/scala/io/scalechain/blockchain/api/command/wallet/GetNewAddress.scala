@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.command.wallet
 
-import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.{WalletSubSystem}
+import io.scalechain.blockchain.api.command.{RpcCommand}
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.wallet.{Wallet, Account, AccountStore}
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -23,6 +23,10 @@ import spray.json.DefaultJsonProtocol._
       "id": "curltest"
     }
 */
+
+case class GetNewAddressResult (
+  address : String
+) extends RpcResult
 
 /** GetNewAddress: returns a new coin address for receiving payments.
   * If an account is specified, payments received with the address will be credited to that account.
@@ -47,18 +51,12 @@ object GetNewAddress extends RpcCommand {
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val accountName: String = request.params.getOption[String]("Account", 0).getOrElse("")
-      val accountStore = new AccountStore
-      val wallet = new Wallet
+      val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
 
-      if(accountStore.isValid(accountName)) {
-        val coinAddress = Account(accountName).newAddress
-        wallet.setAddressBook(coinAddress, Account(accountName))
-        Right(Some(StringResult(coinAddress.address)))
-      } else {
-        // TODO: Check Rpc Error Code
-        Left(RpcError(0, "Invalid Account Name", accountName))
-      }
+      val addressOprion = WalletSubSystem.accountDatabaseService.getNewAddress(account)
+      val result = addressOprion.get
+
+      Right(Some(StringResult(result)))
     }
   }
 

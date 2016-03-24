@@ -141,6 +141,19 @@ class AccountDatabase(db : KeyValueDatabase) {
     }
   }
 
+  /**
+    * check if columnFamilyName(account) exists
+    */
+  def existAccount(columnFamilyName : String) : Boolean = {
+    val index = db.getColumnFamilyIndex(columnFamilyName)
+
+    if(index == -1) {
+      false
+    } else {
+      true
+    }
+  }
+
   def close() = db.close()
 
 }

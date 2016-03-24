@@ -144,7 +144,7 @@ class Wallet {
     */
   def setAddressBook(address: CoinAddress, account: Account) = {
     addressBookByName += (address.address -> account.name)
-    addressBookByPurpose += (address.address -> address.purpose)
+    // addressBookByPurpose += (address.address -> address.purpose)
     // TODO: Implement DB
   }
 

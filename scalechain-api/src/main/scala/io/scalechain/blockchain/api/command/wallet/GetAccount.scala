@@ -39,11 +39,15 @@ object GetAccount extends RpcCommand {
       val address: String = request.params.get[String]("Address", 0)
 
       val accountStore = new AccountStore
+
+      // TODO: Implement
+      /*
       val coinAddress = new CoinAddress(address, "unknown")
       val account = accountStore.getAccount(coinAddress)
 
       val accountName = account.name
-      Right(Some(StringResult(accountName)))
+      */
+      Right(Some(StringResult("")))
     }
   }
 

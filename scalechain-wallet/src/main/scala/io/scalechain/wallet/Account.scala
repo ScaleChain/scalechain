@@ -1,9 +1,13 @@
 package io.scalechain.wallet
 
+import java.nio.ByteBuffer
+
 import io.scalechain.crypto.ECKey
 
 // [ Wallet layer ] An account, which is a group of addresses.
 case class Account(name:String) {
+
+  private val RECEIVED_ADDRESS = ByteBuffer.wrap(Array[Byte](1, 0, 0, 0)).getInt
 
   /** Returns the current address for receiving payments to this account.
     *
@@ -28,6 +32,6 @@ case class Account(name:String) {
     println("key --> \n" + key)
     val address = new Address(0, key.getPubKeyHash)
     println("address --> \n" + address)
-    CoinAddress(address.toString, "received")
+    CoinAddress(address.toString, RECEIVED_ADDRESS, key.getPubKeyHash, key.getPrivKeyBytes)
   }
 }

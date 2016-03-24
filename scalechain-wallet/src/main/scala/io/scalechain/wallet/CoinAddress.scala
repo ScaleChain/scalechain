@@ -1,11 +1,16 @@
 package io.scalechain.wallet
 
-import io.scalechain.util.{HashUtil, Base58Util}
+import io.scalechain.util.{ByteArray, HashUtil, Base58Util}
 
 
 
 // [ Wallet layer ] A coin address for a specific account.
-case class CoinAddress(address:String, purpose:String) {
+case class CoinAddress(
+  address : String,
+  purpose : Int,
+  publicKey : ByteArray,
+  privateKey : ByteArray
+) {
 
   /**
     *
