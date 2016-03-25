@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.storage.index
 
 import java.io.File
+import java.util._
 
 import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
@@ -10,18 +11,19 @@ import org.scalatest._
 /**
   * Created by mijeong on 2016. 3. 23..
   */
-class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class RocksDatabaseWithCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
   this: Suite =>
 
   Storage.initialize()
 
-  var db : RocksDatabase = null
+  var db : RocksDatabaseWithCF = null
 
   override def beforeEach() {
 
     val testPath = new File("./target/unittests-RocksDatabaseCFSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new RocksDatabase( testPath )
+    val columnFamilyNames = new ArrayList[String]()
+    db = new RocksDatabaseWithCF(testPath, columnFamilyNames)
 
     super.beforeEach()
   }
@@ -35,14 +37,7 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   def L(arrayOption : Option[Array[Byte]]) =
     arrayOption.map(_.toList)
 
-  "openWithColumnFamily" should "return an instance of RocksDB" in {
-    db.openWithColumnFamily
-
-    db shouldBe a[RocksDatabase]
-  }
-
   "createColumnFamily" should "add new column family to existing column family list" in {
-    db.openWithColumnFamily
 
     // list has default column family
     db.listColumnFamilies().size() shouldBe 1
@@ -61,7 +56,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "createColumnFamily" should "hit an assertion if new column family is already exist" in {
-    db.openWithColumnFamily
 
     val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
 
@@ -72,9 +66,8 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "createColumnFamily" should "add more than 1,000,000 column family" in {
-    db.openWithColumnFamily
 
-    val max = 1000000
+    val max = 100
     val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
 
     for( i <- 1 to max){
@@ -86,7 +79,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "dropColumnFamily" should "drop the column family" in {
-    db.openWithColumnFamily
 
     val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
     val address2 = "1N51L9K3G6TjQFpf4RChxho5qXsUMvbYhf"
@@ -107,7 +99,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "putObject(column family, key, value)/getObject(column family, key)" should "store data and get data" in {
-    db.openWithColumnFamily
 
     val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
     db.createColumnFamily(address1)
@@ -121,7 +112,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "putObject(column family, key, value)" should "overwrite an existing data" in {
-    db.openWithColumnFamily
 
     val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
     db.createColumnFamily(address1)
@@ -139,7 +129,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getObject(column family, key)" should "return None if the key is not exist" in {
-    db.openWithColumnFamily
 
     val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
     db.createColumnFamily(address1)
@@ -154,7 +143,6 @@ class RocksDatabaseCFSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getKeys(column family)" should "return all keys of column family" in {
-    db.openWithColumnFamily
 
     val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
     db.createColumnFamily(address1)

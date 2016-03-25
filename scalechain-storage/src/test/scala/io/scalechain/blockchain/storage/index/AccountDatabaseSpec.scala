@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.storage.index
 
 import java.io.File
+import java.util._
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{AccountCodec, CodecTestUtil}
@@ -24,7 +25,7 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   override def beforeEach() {
     val testPath = new File("./target/unittests-AccountDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new AccountDatabase( new RocksDatabase( testPath ) )
+    db = new AccountDatabase( new RocksDatabaseWithCF(testPath, new ArrayList[String]()))
 
     super.beforeEach()
   }
@@ -46,7 +47,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   val accountAddress2 = account.addresses(1)
 
   "putAddressInfo/getAddressInfo" should "successfully put/get address info" in {
-    db.openWithColumnFamily()
 
     val addressKey = AddressKey(
       address = accountAddress1.address
@@ -64,7 +64,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "putAddressInfo" should "hit an assertion if there is an attempt to change fixed values" in {
-    db.openWithColumnFamily()
 
     val addressKey = AddressKey(
       address = accountAddress1.address
@@ -110,7 +109,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getAddressInfo" should "return None if address does not exist" in {
-    db.openWithColumnFamily()
 
     val addressKey1 = AddressKey(
       address = accountAddress1.address
@@ -134,7 +132,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getAccount" should "successfully get account" in {
-    db.openWithColumnFamily()
 
     val columnFamilyName = "addressaccount"
 
@@ -151,7 +148,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getAccount" should "return None if address does not exist" in {
-    db.openWithColumnFamily()
 
     val columnFamilyName = "addressaccount"
 
@@ -173,7 +169,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getReceivedAddress" should "successfully get received address" in {
-    db.openWithColumnFamily()
 
     val addressKey1 = AddressKey(
       address = accountAddress1.address
@@ -203,7 +198,6 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
   }
 
   "getPrivateKeyLocator" should "successfully get private key locator" in {
-    db.openWithColumnFamily()
 
     val addressKey = AddressKey(
       address = accountAddress1.address

@@ -1,6 +1,7 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.{RpcException, ErrorCode}
+import io.scalechain.util.HexUtil._
 import org.scalatest._
 
 /**
@@ -12,7 +13,7 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
   "getAccount" should "return Account instance if the parameter exists" in {
 
     val accountStore = new AccountStore()
-    val coinAddress = CoinAddress("1AxwNopFNkQFuDsMgCS5ev2GvzB5fWo1ct", "unknown")
+    val coinAddress = CoinAddress("1AxwNopFNkQFuDsMgCS5ev2GvzB5fWo1ct", "unknown", bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7"), bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d711"))
 
     accountStore.getAccount(coinAddress) shouldBe a [Account]
   }
@@ -20,7 +21,7 @@ class AccountStoreSpec extends FlatSpec with ShouldMatchers {
   "getAccount" should "throw an exception if the addreses is invalid" in {
 
     val accountStore = new AccountStore()
-    val coinAddress = CoinAddress("1AGNa15ZQXAZUgFiqJ2i7Z2DPU2J6hW62ia32d4s", "unknown")
+    val coinAddress = CoinAddress("1AxwNopFNkQFuDsMgCS5ev2GvzB5fWo1c222t", "unknown", bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7"), bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d711"))
 
     val thrown = the [RpcException] thrownBy accountStore.getAccount(coinAddress)
     thrown.code shouldBe ErrorCode.RpcInvalidAddress

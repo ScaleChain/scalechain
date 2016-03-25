@@ -70,12 +70,13 @@ case class AccountHeader(version : Int,
   }
 }
 
-case class Address(address : String,
+case class Address(privateKey: ByteArray,
                    publicKey: ByteArray,
-                   privateKey: ByteArray,
-                   purpose: Int)  extends ProtocolMessage {
+                   purpose: Int,
+                   address : String
+                   )  extends ProtocolMessage {
 
   override def toString() : String = {
-    s"Address(address=${address}, publicKey=${publicKey}, privateKey=${privateKey}, purpose=${purpose})"
+    s"Address(privateKey=${privateKey}, publicKey=${publicKey}, purpose=${purpose}, address=${address})"
   }
 }

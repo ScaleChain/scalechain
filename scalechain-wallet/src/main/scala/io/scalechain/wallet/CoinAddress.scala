@@ -4,10 +4,11 @@ import io.scalechain.util.{ByteArray, HashUtil, Base58Util}
 
 
 
+
 // [ Wallet layer ] A coin address for a specific account.
 case class CoinAddress(
   address : String,
-  purpose : Int,
+  purpose : String,
   publicKey : ByteArray,
   privateKey : ByteArray
 ) {

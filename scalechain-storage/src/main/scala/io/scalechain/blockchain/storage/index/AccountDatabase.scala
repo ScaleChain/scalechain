@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 
 import io.scalechain.blockchain.proto.{FileRecordLocator, AccountInfo, AddressKey, AddressInfo}
 import io.scalechain.blockchain.proto.codec.{AccountInfoCodec, AddressKeyCodec, AddressInfoCodec}
+import io.scalechain.blockchain.storage.CFKeyValueDatabase
 
 /**
   * Created by mijeong on 2016. 3. 22..
@@ -15,14 +16,7 @@ object AccountDatabase {
   val RECEIVED_ADDRESS = ByteBuffer.wrap(Array[Byte](1, 0, 0, 0)).getInt
 }
 
-class AccountDatabase(db : KeyValueDatabase) {
-
-  /**
-    * get db instance for column families
-    */
-  def openWithColumnFamily() = {
-    db.openWithColumnFamily()
-  }
+class AccountDatabase(db : CFKeyValueDatabase) {
 
   /**
     * put new address info or change address info

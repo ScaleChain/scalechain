@@ -1,11 +1,12 @@
 package io.scalechain.blockchain.storage
 
 import java.io.File
+import java.util._
 
-import io.scalechain.blockchain.proto.{AddressInfo, AddressKey}
+import io.scalechain.blockchain.proto.{RecordLocator, FileRecordLocator, AddressInfo, AddressKey}
 import io.scalechain.blockchain.proto.codec.{AccountCodec, AddressCodec}
 import io.scalechain.blockchain.proto.walletparts.{AccountHeader, Account, Address}
-import io.scalechain.blockchain.storage.index.{RocksDatabase, AccountDatabase}
+import io.scalechain.blockchain.storage.index.{RocksDatabaseWithCF, AccountDatabase}
 import io.scalechain.blockchain.storage.record.AccountRecordStorage
 import io.scalechain.util.ByteArray
 import org.slf4j.LoggerFactory
@@ -15,6 +16,8 @@ import org.slf4j.LoggerFactory
   */
 object DiskAccountStorage {
   var theAccountStorage : DiskAccountStorage = null
+
+  var columnFamilyName = new ArrayList[String]
 
   def create(storagePath : File, account : String) : DiskAccountStorage = {
     assert(theAccountStorage == null)
@@ -37,7 +40,10 @@ class DiskAccountStorage(directoryPath : File, account : String) {
 
   directoryPath.mkdir()
 
-  protected[storage] val accountIndex = new AccountDatabase( new RocksDatabase( directoryPath ) )
+  if(DiskAccountStorage.columnFamilyName.contains(account))
+    DiskAccountStorage.columnFamilyName.add(account)
+
+  protected[storage] val accountIndex = new AccountDatabase(new RocksDatabaseWithCF(directoryPath, DiskAccountStorage.columnFamilyName))
   protected[storage] val accountRecordStorage = new AccountRecordStorage(directoryPath, account)
 
   /**
@@ -59,12 +65,13 @@ class DiskAccountStorage(directoryPath : File, account : String) {
 
       // 1.2 append new address info to record
       val locator = accountRecordStorage.appendRecord(newAddress)(AddressCodec)
+      val privateKeyLocator = getPrivateKeyLocator(locator)
 
       val newAddressInfo = AddressInfo(
         account,
         purpose,
         publicKey,
-        Some(locator)
+        Some(privateKeyLocator)
       )
 
       // 1.3 put new address info to index
@@ -93,19 +100,41 @@ class DiskAccountStorage(directoryPath : File, account : String) {
 
       // 2.2 create new record and append new account info
       val locator = accountRecordStorage.appendRecord(newAccount)(AccountCodec)
+      val privateKeyLocator = getPrivateKeyLocator(locator)
 
       val newAddressInfo = AddressInfo(
         account,
         purpose,
         publicKey,
-        Some(locator)
+        Some(privateKeyLocator)
       )
 
       // 2.3 put new address info to index
       accountIndex.putAddressInfo(account, AddressKey(address), newAddressInfo)
+      DiskAccountStorage.columnFamilyName.add(account)
     }
 
     Some(address)
+  }
+
+  /**
+    * get private key record locator
+    *
+    * @param fileRecordLocator record locator of address info
+    * @return private key record locator
+    */
+  def getPrivateKeyLocator(fileRecordLocator : FileRecordLocator) : FileRecordLocator = {
+    val originRecordLocator = fileRecordLocator.recordLocator
+
+    val privateKeyLocator = FileRecordLocator(
+      fileIndex = fileRecordLocator.fileIndex,
+      recordLocator = RecordLocator (
+        offset = originRecordLocator.offset,
+        size = 33
+      )
+    )
+
+    privateKeyLocator
   }
 
   def close() = {
