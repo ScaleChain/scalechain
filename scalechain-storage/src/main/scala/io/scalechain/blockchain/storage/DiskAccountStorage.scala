@@ -9,42 +9,49 @@ import io.scalechain.blockchain.proto.walletparts.{AccountHeader, Account, Addre
 import io.scalechain.blockchain.storage.index.{RocksDatabaseWithCF, AccountDatabase}
 import io.scalechain.blockchain.storage.record.AccountRecordStorage
 import io.scalechain.util.ByteArray
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.filefilter.TrueFileFilter
 import org.slf4j.LoggerFactory
 
 /**
   * Created by mijeong on 2016. 3. 24..
   */
 object DiskAccountStorage {
-  var theAccountStorage : DiskAccountStorage = null
 
   var columnFamilyName = new ArrayList[String]
-
-  def create(storagePath : File, account : String) : DiskAccountStorage = {
-    assert(theAccountStorage == null)
-    theAccountStorage = new DiskAccountStorage(storagePath, account)
-    theAccountStorage
-  }
-
-  /** Get the account storage. This actor is a singleton.
-    *
-    * @return The account storage.
-    */
-  def get() : DiskAccountStorage = {
-    assert(theAccountStorage != null)
-    theAccountStorage
-  }
+  val path = "./target/accountdata/"
+  val prefix = "wallet-"
+  val countFromBack = 9
 }
 
-class DiskAccountStorage(directoryPath : File, account : String) {
+class DiskAccountStorage(directoryPath : File) {
   private val logger = LoggerFactory.getLogger(classOf[DiskAccountStorage])
 
   directoryPath.mkdir()
 
-  if(DiskAccountStorage.columnFamilyName.contains(account))
-    DiskAccountStorage.columnFamilyName.add(account)
+  protected[storage] var accountIndex : AccountDatabase = _
+  protected[storage] var accountRecordStorage : AccountRecordStorage = _
 
-  protected[storage] val accountIndex = new AccountDatabase(new RocksDatabaseWithCF(directoryPath, DiskAccountStorage.columnFamilyName))
-  protected[storage] val accountRecordStorage = new AccountRecordStorage(directoryPath, account)
+  /**
+    * open account index (RocksDB with Column Families)
+    *
+    */
+  def open = {
+    val dir = new File(DiskAccountStorage.path)
+    val files : List[File] = FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).asInstanceOf[List[File]]
+
+    for(i <- 0 until files.size()) {
+      val file = files.get(i)
+      val name = file.getName
+
+      if(name.contains(DiskAccountStorage.prefix)) {
+        val columnFamily = name.substring(DiskAccountStorage.prefix.length, name.length-DiskAccountStorage.countFromBack)
+        DiskAccountStorage.columnFamilyName.add(columnFamily)
+      }
+    }
+
+    accountIndex = new AccountDatabase(new RocksDatabaseWithCF(directoryPath, DiskAccountStorage.columnFamilyName))
+  }
 
   /**
     * put new address and account info to record and index
@@ -52,6 +59,8 @@ class DiskAccountStorage(directoryPath : File, account : String) {
     * used by getnewaddress RPC
     */
   def putNewAddress(account : String, address : String, purpose : Int, publicKey : ByteArray, privateKey : ByteArray) : Option[String] = {
+
+    accountRecordStorage = new AccountRecordStorage(directoryPath, account)
 
     // 1. if account already exists
     if(accountIndex.existAccount(account)) {

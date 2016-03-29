@@ -17,8 +17,9 @@ object AccountProcessor {
 
   def getAddressPurposeInt(purpose : String) : Int = {
     purpose match {
-      case "received" => 1
-      case _ => 2
+      case "unknown" => 1
+      case "received" => 2
+      case _ => 0
     }
   }
 }
@@ -28,11 +29,13 @@ class AccountProcessor() extends Actor {
 
   import AccountProcessor._
 
+  val accountStorage = new DiskAccountStorage(new File("./target/accountdata/"))
+  accountStorage.open
+
   def receive : Receive = {
 
     case GetNewAddress(account) => {
 
-      val accountStorage = new DiskAccountStorage(new File("./target/accountdata/"), account)
       val coinAddress = Account(account).newAddress
 
       sender ! GetNewAddressResult(
@@ -40,7 +43,6 @@ class AccountProcessor() extends Actor {
           account, coinAddress.address, AccountProcessor.getAddressPurposeInt(coinAddress.purpose), coinAddress.publicKey, coinAddress.privateKey
         )
       )
-      accountStorage.close()
       println("processed GetNewAddress")
     }
   }

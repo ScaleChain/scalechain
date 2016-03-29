@@ -21,12 +21,12 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   /**
     * put new address info or change address info
     *
-    * @param columnFamilyName account name
+    * @param account account name
     * @param address key
     * @param addressInfo value
     */
-  def putAddressInfo(columnFamilyName : String, address : AddressKey, addressInfo : AddressInfo) = {
-    val addressInfoOption = getAddressInfo(columnFamilyName, address)
+  def putAddressInfo(account : String, address : AddressKey, addressInfo : AddressInfo) = {
+    val addressInfoOption = getAddressInfo(account, address)
 
     if(addressInfoOption.isDefined) {
       val currentAddressInfo = addressInfoOption.get
@@ -38,7 +38,7 @@ class AccountDatabase(db : CFKeyValueDatabase) {
       assert(currentAddressInfo.publicKey == addressInfo.publicKey)
     }
 
-    db.putObject(columnFamilyName, address, addressInfo)(AddressKeyCodec, AddressInfoCodec)
+    db.putObject(AccountDatabase.ACCOUNT_INFO + account, address, addressInfo)(AddressKeyCodec, AddressInfoCodec)
   }
 
   /**
@@ -62,12 +62,12 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   /**
     * get address info using column family and key
     *
-    * @param columnFamilyName account name
+    * @param account account name
     * @param address key
     * @return address info or nothing (if account or address does not exist
     */
-  def getAddressInfo(columnFamilyName : String, address : AddressKey) : Option[AddressInfo] = {
-    db.getObject(columnFamilyName, address)(AddressKeyCodec, AddressInfoCodec)
+  def getAddressInfo(account : String, address : AddressKey) : Option[AddressInfo] = {
+    db.getObject(AccountDatabase.ACCOUNT_INFO + account, address)(AddressKeyCodec, AddressInfoCodec)
   }
 
   /**
@@ -91,13 +91,13 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   /**
     * get received address of a specific account
     *
-    * @param columnFamilyName account name
+    * @param account account name
     * @return address info including received address
     */
-  def getReceivedAddress(columnFamilyName : String) : Option[AddressInfo] = {
+  def getReceivedAddress(account : String) : Option[AddressInfo] = {
 
     // 1. get all keys associated with column family name(account)
-    val keys = db.getKeys(columnFamilyName)
+    val keys = db.getKeys(AccountDatabase.ACCOUNT_INFO + account)
 
     var findReceived = false
     var result : Option[AddressInfo] = None
@@ -107,7 +107,7 @@ class AccountDatabase(db : CFKeyValueDatabase) {
 
       // TODO: Find reason, why double quotation is attached in front
       val key = keys.get(i)
-      val addressInfo = getAddressInfo(columnFamilyName, AddressKey(key.substring(1, key.size)))
+      val addressInfo = getAddressInfo(AccountDatabase.ACCOUNT_INFO + account, AddressKey(key.substring(1, key.size)))
       // 2.1 check purpose of address info
       if(addressInfo.get.purpose == AccountDatabase.RECEIVED_ADDRESS) {
         findReceived = true
@@ -121,13 +121,13 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   /**
     * get private key locator in record
     *
-    * @param columnFamilyName account name
+    * @param account account name
     * @param address key
     * @return private key locator in record
     */
-  def getPrivateKeyLocator(columnFamilyName : String, address : AddressKey) : Option[FileRecordLocator] = {
+  def getPrivateKeyLocator(account : String, address : AddressKey) : Option[FileRecordLocator] = {
 
-    val addressInfo = getAddressInfo(columnFamilyName, address)
+    val addressInfo = getAddressInfo(AccountDatabase.ACCOUNT_INFO + account, address)
     if(addressInfo.isDefined) {
       addressInfo.get.privateKeyLocator
     } else {
@@ -138,8 +138,8 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   /**
     * check if columnFamilyName(account) exists
     */
-  def existAccount(columnFamilyName : String) : Boolean = {
-    val index = db.getColumnFamilyIndex(columnFamilyName)
+  def existAccount(account : String) : Boolean = {
+    val index = db.getColumnFamilyIndex(AccountDatabase.ACCOUNT_INFO + account)
 
     if(index == -1) {
       false
