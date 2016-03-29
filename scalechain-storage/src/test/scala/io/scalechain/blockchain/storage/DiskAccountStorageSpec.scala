@@ -24,7 +24,7 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    storage = new DiskAccountStorage(testPath, "account")
+    storage = new DiskAccountStorage(testPath)
 
     super.beforeEach()
   }
@@ -89,6 +89,37 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
     val privateKeyLocator = storage.getPrivateKeyLocator(locator)
 
     privateKeyLocator.recordLocator.size shouldBe 33
+  }
+
+  "getAccount" should "return account name associated with address" in {
+
+    val account = "account"
+    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
+    val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
+    val purpose = 1
+
+    storage.accountIndex.existAccount(account) shouldBe false
+    storage.putNewAddress(account, address, purpose, publicKey, privateKey) shouldBe Some(address)
+
+    storage.getAccount(address) shouldBe Some(account)
+  }
+
+  "getAccount" should "return None if there is no account associated with address" in {
+
+    val account1 = "account"
+    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val publicKey1 = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
+    val privateKey1 = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
+    val purpose1 = 1
+
+    val address2 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5bbbb"
+
+    storage.accountIndex.existAccount(account1) shouldBe false
+    storage.putNewAddress(account1, address1, purpose1, publicKey1, privateKey1) shouldBe Some(address1)
+
+    storage.getAccount(address1) shouldBe Some(account1)
+    storage.getAccount(address2) shouldBe None
   }
 
 
