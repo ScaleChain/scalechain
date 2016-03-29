@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.storage
 
 import java.io.File
+import java.util.ArrayList
 
 import io.scalechain.blockchain.proto.codec.AccountCodec
 import io.scalechain.blockchain.proto.walletparts.{Account, AccountHeader, Address}
+import io.scalechain.blockchain.storage.record.AccountRecordStorage
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -17,14 +19,17 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   Storage.initialize()
 
   var storage : DiskAccountStorage = null
+  var testPath : File = null
 
   override def beforeEach() {
 
-    val testPath = new File("./target/unittests-DiskAccountStorageSpec/")
+    testPath = new File("./target/unittests-DiskAccountStorageSpec/")
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
+    DiskAccountStorage.columnFamilyName = new ArrayList[String]
     storage = new DiskAccountStorage(testPath)
+    storage.open
 
     super.beforeEach()
   }
@@ -85,6 +90,7 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
       addresses = newAddress :: Nil
     )
 
+    storage.accountRecordStorage = new AccountRecordStorage(testPath, newAccount.account)
     val locator = storage.accountRecordStorage.appendRecord(newAccount)(AccountCodec)
     val privateKeyLocator = storage.getPrivateKeyLocator(locator)
 

@@ -4,7 +4,7 @@ import java.io.File
 
 import akka.actor.{Actor}
 import io.scalechain.blockchain.storage.{DiskAccountStorage}
-import io.scalechain.wallet.{Account}
+import io.scalechain.wallet.{CoinAddress, Account}
 import org.slf4j.LoggerFactory
 
 /**
@@ -14,6 +14,8 @@ object AccountProcessor {
 
   case class GetNewAddress(account : String)
   case class GetNewAddressResult(addressOption : Option[String])
+  case class GetAccount(address : String)
+  case class GetAccountResult(accountOption : Option[String])
 
   def getAddressPurposeInt(purpose : String) : Int = {
     purpose match {
@@ -44,6 +46,30 @@ class AccountProcessor() extends Actor {
         )
       )
       println("processed GetNewAddress")
+    }
+
+    case GetAccount(address) => {
+
+      val coinAddress = CoinAddress(
+        address = address,
+        purpose = "",
+        publicKey = null,
+        privateKey = null
+      )
+
+      if(coinAddress.isValid) {
+        sender ! GetAccountResult(
+          accountStorage.getAccount(
+            address
+          )
+        )
+      } else {
+        sender ! GetAccountResult(
+          Some("InvalidAddress")
+        )
+      }
+
+      println("processed GetAccount")
     }
   }
 

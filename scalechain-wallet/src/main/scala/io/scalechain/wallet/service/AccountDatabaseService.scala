@@ -5,7 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import io.scalechain.wallet.processor.AccountProcessor
-import io.scalechain.wallet.processor.AccountProcessor.GetNewAddressResult
+import io.scalechain.wallet.processor.AccountProcessor.{GetAccountResult, GetNewAddressResult}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -23,6 +23,11 @@ class AccountDatabaseService() {
   def getNewAddress(account : String) : Option[String] = {
     val resultFuture = (accountProcessor ? AccountProcessor.GetNewAddress(account)).mapTo[GetNewAddressResult]
     Await.result(resultFuture, Duration.Inf).addressOption
+  }
+
+  def getAccount(address : String) : Option[String] = {
+    val resultFutre = (accountProcessor ? AccountProcessor.GetAccount(address)).mapTo[GetAccountResult]
+    Await.result(resultFutre, Duration.Inf).accountOption
   }
 
 }

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import java.io.File
 import java.util._
 
-import io.scalechain.blockchain.proto.{RecordLocator, FileRecordLocator, AddressInfo, AddressKey}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{AccountCodec, AddressCodec}
 import io.scalechain.blockchain.proto.walletparts.{AccountHeader, Account, Address}
 import io.scalechain.blockchain.storage.index.{RocksDatabaseWithCF, AccountDatabase}
@@ -22,6 +22,7 @@ object DiskAccountStorage {
   val path = "./target/accountdata/"
   val prefix = "wallet-"
   val countFromBack = 9
+  val addressAccountCF = "addressAccount"
 }
 
 class DiskAccountStorage(directoryPath : File) {
@@ -37,8 +38,9 @@ class DiskAccountStorage(directoryPath : File) {
     *
     */
   def open = {
-    val dir = new File(DiskAccountStorage.path)
+    val dir = new File(directoryPath.getAbsolutePath)
     val files : List[File] = FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).asInstanceOf[List[File]]
+    var accountExist = false
 
     for(i <- 0 until files.size()) {
       val file = files.get(i)
@@ -46,9 +48,13 @@ class DiskAccountStorage(directoryPath : File) {
 
       if(name.contains(DiskAccountStorage.prefix)) {
         val columnFamily = name.substring(DiskAccountStorage.prefix.length, name.length-DiskAccountStorage.countFromBack)
-        DiskAccountStorage.columnFamilyName.add(columnFamily)
+        DiskAccountStorage.columnFamilyName.add(AccountDatabase.ACCOUNT_INFO + columnFamily)
+        accountExist = true
       }
     }
+
+    if(accountExist)
+      DiskAccountStorage.columnFamilyName.add(DiskAccountStorage.addressAccountCF)
 
     accountIndex = new AccountDatabase(new RocksDatabaseWithCF(directoryPath, DiskAccountStorage.columnFamilyName))
   }
@@ -123,6 +129,8 @@ class DiskAccountStorage(directoryPath : File) {
       DiskAccountStorage.columnFamilyName.add(account)
     }
 
+    accountIndex.putAccount(DiskAccountStorage.addressAccountCF, AddressKey(address), AccountInfo(account))
+    accountRecordStorage.close()
     Some(address)
   }
 
@@ -146,9 +154,19 @@ class DiskAccountStorage(directoryPath : File) {
     privateKeyLocator
   }
 
+  /**
+    * get account name associated with address
+    *
+    * @param address
+    * @return account name
+    */
+  def getAccount(address : String) : Option[String] = {
+    val accountOption = accountIndex.getAccount(DiskAccountStorage.addressAccountCF, AddressKey(address))
+    accountOption
+  }
+
   def close() = {
     this.synchronized {
-      accountRecordStorage.close()
       accountIndex.close()
     }
   }

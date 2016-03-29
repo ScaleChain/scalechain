@@ -51,7 +51,7 @@ object GetNewAddress extends RpcCommand {
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
+      val account : String = request.params.getOption[String]("Account", 0).getOrElse("")
 
       val addressOprion = WalletSubSystem.accountDatabaseService.getNewAddress(account)
       val result = addressOprion.get
