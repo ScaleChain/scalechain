@@ -23,6 +23,9 @@ object DiskAccountStorage {
   val prefix = "wallet-"
   val countFromBack = 9
   val addressAccountCF = "addressAccount"
+
+  val ADDRESS_UNKNOWN_PURPOSE = 1
+  val ADDRESS_RECEIVED_PURPOSE = 2
 }
 
 class DiskAccountStorage(directoryPath : File) {
