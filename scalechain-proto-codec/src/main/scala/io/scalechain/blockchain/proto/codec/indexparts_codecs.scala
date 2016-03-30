@@ -103,3 +103,10 @@ object AccountInfoCodec extends MessagePartCodec[AccountInfo]{
     ("account"            | VarStr.codec                 )
   }.as[AccountInfo]
 }
+
+object WalletTransactionInfoCodec extends MessagePartCodec[WalletTransactionInfo] {
+  val codec : Codec[WalletTransactionInfo] = {
+    ("category"            | int32L                                          ) ::
+    ("txLocator"           | optional(bool(8),FileRecordLocatorCodec.codec)  )
+  }.as[WalletTransactionInfo]
+}

@@ -90,4 +90,9 @@ case class AccountInfo(
   account : String
 ) extends ProtocolMessage
 
+case class WalletTransactionInfo(
+  category : Int,
+  txLocator : Option[FileRecordLocator]
+) extends ProtocolMessage
+
 
