@@ -80,3 +80,39 @@ case class Address(privateKey: ByteArray,
     s"Address(privateKey=${privateKey}, publicKey=${publicKey}, purpose=${purpose}, address=${address})"
   }
 }
+
+case class WalletTransaction(header : WalletTransactionHeader,
+                             transactions : List[WalletTransactionDetail]) extends ProtocolMessage {
+  override def toString() : String = {
+    s"WalletTransaction(header=${header}, transactions=List(${transactions.mkString(",")}))"
+  }
+}
+
+case class WalletTransactionHeader(version : Int,
+                                   height : Int) extends ProtocolMessage {
+  override def toString() : String = {
+    s"WalletTransactionHeader(version=${version}, height=${height})"
+  }
+}
+
+case class WalletTransactionDetail(account : String,
+                             address : String,
+                             toAddress : String,
+                             category : Int,
+                             amount : Long,
+                             vout : Int,
+                             fee : Long,
+                             confirmations : Int,
+                             generated : Int,
+                             blockHash : ByteArray,
+                             blockIndex : Int,
+                             blockTime : Int,
+                             time : Int,
+                             comment : String,
+                             toComment : String) extends ProtocolMessage {
+  override def toString() : String = {
+    s"WalletTransactionDetail(account=${account}, address=${address}, toAddress=${toAddress}, category=${category}, amount=${amount}," +
+      s"vout=${vout}, fee=${fee}, confirmations=${confirmations}, generated=${generated}, blockHash=${blockHash}, blockIndex=${blockIndex}," +
+      s"time=${time}, blockTime=${blockTime}, comment=${comment}, toComment=${toComment})"
+  }
+}

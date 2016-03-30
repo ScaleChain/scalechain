@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{AccountCodec, BlockCodec, CodecTestUtil}
+import io.scalechain.blockchain.proto.codec.{WalletTransactionCodec, AccountCodec, BlockCodec, CodecTestUtil}
 import io.scalechain.blockchain.proto.walletparts.Address
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.io.HexFileLoader
@@ -64,4 +64,18 @@ object TestData extends CodecTestUtil {
 
   val address1 = Address(address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum", publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7") , privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9"), purpose = 1)
   val addressHash1 = Hash(HashCalculator.addressHash(address1))
+
+
+  /**
+    * by mijeong
+    *
+    * test data for TransactionRecordStorage
+    */
+  val rawTransactionData = HexFileLoader.loadWallet("data/unittest/codec/wallet-transaction.hex")
+  val transactions = decodeFully(BitVector.view(rawTransactionData))(WalletTransactionCodec.codec)
+
+  val walletTransaction = transactions
+  val walletTransactionHeader = transactions.header
+  val walletTransactionDetail1 = transactions.transactions(0)
+  val walletTransactionDetail2 = transactions.transactions(1)
 }

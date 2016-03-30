@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto.walletparts.{Address, AccountHeader}
+import io.scalechain.blockchain.proto.walletparts.{WalletTransactionDetail, WalletTransactionHeader, Address, AccountHeader}
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
@@ -367,4 +367,31 @@ object AddressCodec extends MessagePartCodec[Address]{
     ("purpose"                 | int32L                                       ) ::
     ("address"                 | VarStr.codec                                 )
   }.as[Address]
+}
+
+object WalletTransactionHeaderCodec extends MessagePartCodec[WalletTransactionHeader] {
+  val codec : Codec[WalletTransactionHeader] = {
+    ("version"             | int32L                     ) ::
+    ("height"              | int32L                     )
+  }.as[WalletTransactionHeader]
+}
+
+object WalletTransactionDetailCodec extends MessagePartCodec[WalletTransactionDetail] {
+  val codec : Codec[WalletTransactionDetail] = {
+    ("account"                      | VarStr.codec                           ) ::
+    ("address"                      | VarStr.codec                           ) ::
+    ("toAddress"                    | VarStr.codec                           ) ::
+    ("category"                     | int32L                                 ) ::
+    ("amount"                       | int64L                                 ) ::
+    ("vout"                         | int8                                   ) ::
+    ("fee"                          | int64L                                 ) ::
+    ("confirmations"                | int32                                  ) ::
+    ("generated"                    | int8                                   ) ::
+    ("blockHash"                    | FixedByteArray.reverseCodec(32)        ) ::
+    ("blockIndex"                   | int32L                                 ) ::
+    ("blockTime"                    | int32L                                 ) ::
+    ("time"                         | int32L                                 ) ::
+    ("comment"                      | VarStr.codec                           ) ::
+    ("toComment"                    | VarStr.codec                           )
+  }.as[WalletTransactionDetail]
 }

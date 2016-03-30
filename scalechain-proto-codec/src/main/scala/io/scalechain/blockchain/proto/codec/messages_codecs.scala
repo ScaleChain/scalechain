@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto.walletparts.Account
+import io.scalechain.blockchain.proto.walletparts.{WalletTransaction, Account}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
 import scodec.bits.{ByteVector}
@@ -864,4 +864,16 @@ object AccountCodec extends ProtocolMessageCodec[Account] {
     ("addresses"              | VarList.list(AddressCodec.codec)         )
   }.as[Account]
 }
+
+object WalletTransactionCodec extends ProtocolMessageCodec[WalletTransaction] {
+  val command = "walletTransaction"
+  val clazz = classOf[WalletTransaction]
+
+  val codec : Codec[WalletTransaction] = {
+    ("header"                | WalletTransactionHeaderCodec.codec               ) ::
+    ("transactions"          | VarList.list(WalletTransactionDetailCodec.codec)  )
+  }.as[WalletTransaction]
+}
+
+
 
