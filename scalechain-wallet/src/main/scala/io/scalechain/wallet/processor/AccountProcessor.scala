@@ -16,6 +16,8 @@ object AccountProcessor {
   case class GetNewAddressResult(addressOption : Option[String])
   case class GetAccount(address : String)
   case class GetAccountResult(accountOption : Option[String])
+  case class GetAccountAddress(account : String)
+  case class GetAccountAddressResult(address : String)
 
   def getAddressPurposeInt(purpose : String) : Int = {
     purpose match {
@@ -68,8 +70,17 @@ class AccountProcessor() extends Actor {
           Some("InvalidAddress")
         )
       }
-
       println("processed GetAccount")
+    }
+
+    case GetAccountAddress(account) => {
+
+      val coinAddress = Account(account).newAddress
+
+      sender ! GetAccountAddressResult(
+        accountStorage.getReceiveAddress(account, coinAddress.address, AccountProcessor.getAddressPurposeInt(coinAddress.purpose), coinAddress.publicKey, coinAddress.privateKey)
+      )
+      println("processed GetAccountAddress")
     }
   }
 

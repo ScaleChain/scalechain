@@ -5,7 +5,8 @@ import io.scalechain.crypto.ECKey
 // [ Wallet layer ] An account, which is a group of addresses.
 case class Account(name:String) {
 
-  private val RECEIVED_ADDRESS = "received"
+  private val ADDRESS_UNKNOWN_PURPOSE = "unknown"
+  private val ADDRESS_RECEIVED_PURPOSE = "received"
 
   /** Returns the current address for receiving payments to this account.
     *
@@ -30,6 +31,6 @@ case class Account(name:String) {
     println("key --> \n" + key)
     val address = new Address(0, key.getPubKeyHash)
     println("address --> \n" + address)
-    CoinAddress(address.toString, RECEIVED_ADDRESS, key.getPubKeyHash, key.getPrivKeyBytes)
+    CoinAddress(address.toString, ADDRESS_UNKNOWN_PURPOSE, key.getPubKeyHash, key.getPrivKeyBytes)
   }
 }

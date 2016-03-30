@@ -23,9 +23,6 @@ object DiskAccountStorage {
   val prefix = "wallet-"
   val countFromBack = 9
   val addressAccountCF = "addressAccount"
-
-  val ADDRESS_UNKNOWN_PURPOSE = 1
-  val ADDRESS_RECEIVED_PURPOSE = 2
 }
 
 class DiskAccountStorage(directoryPath : File) {
@@ -166,6 +163,38 @@ class DiskAccountStorage(directoryPath : File) {
   def getAccount(address : String) : Option[String] = {
     val accountOption = accountIndex.getAccount(DiskAccountStorage.addressAccountCF, AddressKey(address))
     accountOption
+  }
+
+  /**
+    * get address not yet received
+    *
+    * @param account
+    * @param address
+    * @param purpose
+    * @param publicKey
+    * @param privateKey
+    * @return address not yet received
+    */
+  def getReceiveAddress(account : String, address : String, purpose : Int, publicKey : ByteArray, privateKey : ByteArray) : String = {
+
+    // 1. if there is account in database
+    if(accountIndex.existAccount(account)) {
+
+      val addressOption = accountIndex.getReceiveAddress(account)
+      // 1.1 if there is address not yet received
+      if(addressOption.isDefined) {
+        addressOption.get
+
+      // 1.2 if there is no address not yet received
+      } else {
+        val newAddressOption = putNewAddress(account, address, purpose, publicKey, privateKey)
+        newAddressOption.get
+      }
+    // 2. if there is no account in database
+    } else {
+      val newAddressOption = putNewAddress(account, address, purpose, publicKey, privateKey)
+      newAddressOption.get
+    }
   }
 
   def close() = {

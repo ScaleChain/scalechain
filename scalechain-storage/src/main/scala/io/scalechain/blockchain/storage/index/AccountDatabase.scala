@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 
 import io.scalechain.blockchain.proto.{FileRecordLocator, AccountInfo, AddressKey, AddressInfo}
 import io.scalechain.blockchain.proto.codec.{AccountInfoCodec, AddressKeyCodec, AddressInfoCodec}
-import io.scalechain.blockchain.storage.CFKeyValueDatabase
+import io.scalechain.blockchain.storage.{CFKeyValueDatabase}
 
 /**
   * Created by mijeong on 2016. 3. 22..
@@ -14,6 +14,9 @@ import io.scalechain.blockchain.storage.CFKeyValueDatabase
 object AccountDatabase {
   val ACCOUNT_INFO : Byte = 'a'
   val RECEIVED_ADDRESS = ByteBuffer.wrap(Array[Byte](1, 0, 0, 0)).getInt
+
+  val ADDRESS_UNKNOWN_PURPOSE = 1
+  val ADDRESS_RECEIVED_PURPOSE = 2
 }
 
 class AccountDatabase(db : CFKeyValueDatabase) {
@@ -89,33 +92,37 @@ class AccountDatabase(db : CFKeyValueDatabase) {
   }
 
   /**
-    * get received address of a specific account
+    * get receive address of a specific account
     *
     * @param account account name
     * @return address info including received address
     */
-  def getReceivedAddress(account : String) : Option[AddressInfo] = {
+  def getReceiveAddress(account : String) : Option[String] = {
 
     // 1. get all keys associated with column family name(account)
     val keys = db.getKeys(AccountDatabase.ACCOUNT_INFO + account)
 
     var findReceived = false
-    var result : Option[AddressInfo] = None
+    var address : String = ""
 
     // 2. find address info including received address
     for(i <- 0 until keys.size(); if findReceived != true) {
 
       // TODO: Find reason, why double quotation is attached in front
       val key = keys.get(i)
-      val addressInfo = getAddressInfo(AccountDatabase.ACCOUNT_INFO + account, AddressKey(key.substring(1, key.size)))
+      val addressInfo = getAddressInfo(account, AddressKey(key.substring(1, key.size)))
+
       // 2.1 check purpose of address info
-      if(addressInfo.get.purpose == AccountDatabase.RECEIVED_ADDRESS) {
+      if(addressInfo.get.purpose == AccountDatabase.ADDRESS_UNKNOWN_PURPOSE) {
         findReceived = true
-        result = addressInfo
+        address = key.substring(1, key.size)
       }
     }
 
-    result
+    if(findReceived)
+      Some(address)
+    else
+      None
   }
 
   /**
