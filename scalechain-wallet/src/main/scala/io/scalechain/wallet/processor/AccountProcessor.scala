@@ -3,6 +3,7 @@ package io.scalechain.wallet.processor
 import java.io.File
 
 import akka.actor.{Actor}
+import io.scalechain.blockchain.proto.walletparts.WalletTransactionDetail
 import io.scalechain.blockchain.storage.{DiskAccountStorage}
 import io.scalechain.wallet.{CoinAddress, Account}
 import org.slf4j.LoggerFactory
@@ -18,6 +19,8 @@ object AccountProcessor {
   case class GetAccountResult(accountOption : Option[String])
   case class GetAccountAddress(account : String)
   case class GetAccountAddressResult(address : String)
+  case class ListTransactions(account : String, count : Int, skip : Int, includeWatchOnly : Boolean)
+  case class ListTransactionsResult(transactions : Option[List[WalletTransactionDetail]])
 
   def getAddressPurposeInt(purpose : String) : Int = {
     purpose match {
@@ -33,7 +36,8 @@ class AccountProcessor() extends Actor {
 
   import AccountProcessor._
 
-  val accountStorage = new DiskAccountStorage(new File("./target/accountdata/"))
+  // TODO : change target directory for wallet transaction
+  val accountStorage = new DiskAccountStorage(new File("./target/accountdata/"), new File("./target/unittests-DiskTransactionStorageSpec/"))
   accountStorage.open
 
   def receive : Receive = {
@@ -82,6 +86,17 @@ class AccountProcessor() extends Actor {
       )
       println("processed GetAccountAddress")
     }
+
+    case ListTransactions(account, count, skip, includeWatchOnly) => {
+
+      sender ! ListTransactionsResult(
+        accountStorage.getTransactionList(account, count, skip, includeWatchOnly)
+      )
+      println("processed ListTransactions")
+    }
+
   }
+
+
 
 }

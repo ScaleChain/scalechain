@@ -1,10 +1,11 @@
 package io.scalechain.blockchain.storage.index
 
 import java.nio.ByteBuffer
+import java.util.ArrayList
 
 import io.scalechain.blockchain.proto.{FileRecordLocator, AccountInfo, AddressKey, AddressInfo}
 import io.scalechain.blockchain.proto.codec.{AccountInfoCodec, AddressKeyCodec, AddressInfoCodec}
-import io.scalechain.blockchain.storage.{CFKeyValueDatabase}
+import io.scalechain.blockchain.storage.{DiskAccountStorage, CFKeyValueDatabase}
 
 /**
   * Created by mijeong on 2016. 3. 22..
@@ -134,11 +135,28 @@ class AccountDatabase(db : CFKeyValueDatabase) {
     */
   def getPrivateKeyLocator(account : String, address : AddressKey) : Option[FileRecordLocator] = {
 
-    val addressInfo = getAddressInfo(AccountDatabase.ACCOUNT_INFO + account, address)
+    val addressInfo = getAddressInfo(account, address)
     if(addressInfo.isDefined) {
       addressInfo.get.privateKeyLocator
     } else {
       None
+    }
+  }
+
+  /**
+    * get address list associated with account
+    *
+    * @param account
+    * @return address list
+    */
+  def getAddressList(account : String) : ArrayList[String] = {
+
+    if(account.length > 0) {
+      val addressList = db.getKeys(AccountDatabase.ACCOUNT_INFO + account)
+      addressList
+    } else {
+      val addressList = db.getKeys(DiskAccountStorage.addressAccountCF)
+      addressList
     }
   }
 

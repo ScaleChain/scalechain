@@ -20,16 +20,21 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   Storage.initialize()
 
   var storage : DiskAccountStorage = null
-  var testPath : File = null
+  var accountTestPath : File = null
+  var transactionTestPath : File = null
 
   override def beforeEach() {
 
-    testPath = new File("./target/unittests-DiskAccountStorageSpec/")
-    FileUtils.deleteDirectory(testPath)
-    testPath.mkdir()
+    transactionTestPath = new File("./target/unittests-DiskTransactionStorageSpec/")
+    accountTestPath = new File("./target/unittests-DiskAccountStorageSpec/")
+
+    FileUtils.deleteDirectory(transactionTestPath)
+    FileUtils.deleteDirectory(accountTestPath)
+    transactionTestPath.mkdir()
+    accountTestPath.mkdir()
 
     DiskAccountStorage.columnFamilyName = new ArrayList[String]
-    storage = new DiskAccountStorage(testPath)
+    storage = new DiskAccountStorage(accountTestPath, transactionTestPath)
     storage.open
 
     super.beforeEach()
@@ -91,7 +96,7 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
       addresses = newAddress :: Nil
     )
 
-    storage.accountRecordStorage = new AccountRecordStorage(testPath, newAccount.account)
+    storage.accountRecordStorage = new AccountRecordStorage(accountTestPath, newAccount.account)
     val locator = storage.accountRecordStorage.appendRecord(newAccount)(AccountCodec)
     val privateKeyLocator = storage.getPrivateKeyLocator(locator)
 

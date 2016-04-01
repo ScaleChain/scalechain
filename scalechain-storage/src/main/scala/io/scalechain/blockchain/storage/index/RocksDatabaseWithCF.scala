@@ -64,7 +64,10 @@ class RocksDatabaseWithCF(path : File, columnFamilyNames : ArrayList[String]) ex
   def getColumnFamilyHandle(descriptor: String): ColumnFamilyHandle = {
 
     val index = getColumnFamilyIndex(descriptor)
-    columnFamilyHandles.get(index)
+    if(index > 0)
+      columnFamilyHandles.get(index)
+    else
+      null
   }
 
   def get(key : Array[Byte] ) : Option[Array[Byte]] = {
@@ -88,6 +91,19 @@ class RocksDatabaseWithCF(path : File, columnFamilyNames : ArrayList[String]) ex
 
     while(cfIterator.isValid) {
       keys.add(new String(cfIterator.key()))
+      cfIterator.next()
+    }
+
+    keys
+  }
+
+  def getKeysByteArray(cf: ColumnFamilyHandle): ArrayList[Array[Byte]] = {
+    val keys = new ArrayList[Array[Byte]]
+    val cfIterator = iterator(cf)
+    cfIterator.seekToFirst()
+
+    while(cfIterator.isValid) {
+      keys.add(cfIterator.key())
       cfIterator.next()
     }
 

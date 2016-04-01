@@ -5,6 +5,7 @@ import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.api.command.wallet.{TransactionItem}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
+import io.scalechain.blockchain.proto.walletparts.WalletTransactionDetail
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.{ByteArray, HexUtil}
 
@@ -14,6 +15,7 @@ object BlockFormatter {
   /** Get the GetBlockResult case class instance from a block.
     *
     * Used by : getblock RPC.
+    *
     * @param block The block to format.
     * @return The GetBlockResult instance.
     */
@@ -177,7 +179,8 @@ object TransactionFormatter {
     )
   }
 
-
+  implicit def int2bool(intVal : Int) : Boolean = if(intVal==1) true else false
+  implicit def convertCategory(intVal : Int) : String = if(intVal==1) "received" else "send"
 
   /** Convert a transaction to a TransactionItem, which is an element of array to respond for listtransactions RPC.
     *
@@ -186,9 +189,25 @@ object TransactionFormatter {
     * @param transaction The transaction to convert.
     * @return The converted transaction item.
     */
-  def getTransactionItem( transaction : Transaction ) : TransactionItem =  {
-    // TODO : Implement
-    assert(false)
-    null
+  def getTransactionItem(transaction : WalletTransactionDetail) : TransactionItem =  {
+
+    TransactionItem(
+      account = transaction.account,
+      address = Some(transaction.address),
+      category = transaction.category,
+      amount = transaction.amount,
+      vout = Some(transaction.vout),
+      fee = Some(transaction.fee),
+      confirmations = Some(transaction.confirmations),
+      generated = Some(transaction.generated),
+      blockhash = Some(Hash(transaction.blockHash)),
+      blockindex = Some(transaction.blockIndex),
+      blocktime = Some(transaction.blockTime),
+      time = transaction.time,
+      timereceived = Some(transaction.time),
+      comment = Some(transaction.comment),
+      to = Some(transaction.toComment)
+    )
   }
+
 }

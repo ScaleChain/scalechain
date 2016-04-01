@@ -4,8 +4,9 @@ import akka.actor.{Props, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import io.scalechain.blockchain.proto.walletparts.WalletTransactionDetail
 import io.scalechain.wallet.processor.AccountProcessor
-import io.scalechain.wallet.processor.AccountProcessor.{GetAccountAddressResult, GetAccountResult, GetNewAddressResult}
+import io.scalechain.wallet.processor.AccountProcessor.{ListTransactionsResult, GetAccountAddressResult, GetAccountResult, GetNewAddressResult}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -33,6 +34,11 @@ class AccountDatabaseService() {
   def getAccountAddress(account : String) : String = {
     val resultFutre = (accountProcessor ? AccountProcessor.GetAccountAddress(account)).mapTo[GetAccountAddressResult]
     Await.result(resultFutre, Duration.Inf).address
+  }
+
+  def listTransactions(account : String, count : Int, skip : Int, includeWatchOnly : Boolean) : Option[List[WalletTransactionDetail]] = {
+    val resultFuture = (accountProcessor ? AccountProcessor.ListTransactions(account, count, skip, includeWatchOnly)).mapTo[ListTransactionsResult]
+    Await.result(resultFuture, Duration.Inf).transactions
   }
 
 }

@@ -2,8 +2,8 @@ package io.scalechain.blockchain.storage
 
 import java.util.ArrayList
 
-import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.blockchain.proto.codec.MessagePartCodec
+import io.scalechain.blockchain.proto.{ProtocolMessage}
+import io.scalechain.blockchain.proto.codec.{MessagePartCodec}
 import org.rocksdb.ColumnFamilyHandle
 
 /**
@@ -16,6 +16,7 @@ trait CFKeyValueDatabase {
   def getColumnFamilyHandle(descriptor: String) : ColumnFamilyHandle
   def get(cf : ColumnFamilyHandle, key : Array[Byte]) : Option[Array[Byte]]
   def getKeys(cf : ColumnFamilyHandle) : ArrayList[String]
+  def getKeysByteArray(cf: ColumnFamilyHandle): ArrayList[Array[Byte]]
   def put(cf : ColumnFamilyHandle, key : Array[Byte], value : Array[Byte]) : Unit
   def close() : Unit
 
@@ -48,11 +49,25 @@ trait CFKeyValueDatabase {
     val index = getColumnFamilyIndex(columnFamilyName)
     val keys = new ArrayList[String]
 
-    if(index != 0) {
+    if(index > 0) {
       val columnFamilyHandle = getColumnFamilyHandle(columnFamilyName)
       getKeys(columnFamilyHandle)
     } else {
       keys
+    }
+  }
+
+  def getKeysByteArray(columnFamilyName : String) : Option[ArrayList[Array[Byte]]] = {
+    val columnFamilyHandle = getColumnFamilyHandle(columnFamilyName)
+
+    if(columnFamilyHandle == null)
+      None
+    else {
+      val keys = getKeysByteArray(columnFamilyHandle)
+      if(keys.size() > 0)
+        Some(keys)
+      else
+        None
     }
   }
 

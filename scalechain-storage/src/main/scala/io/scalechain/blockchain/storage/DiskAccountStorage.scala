@@ -1,17 +1,21 @@
 package io.scalechain.blockchain.storage
 
 import java.io.File
-import java.util._
+import java.util.ArrayList
 
+import io.scalechain.util._
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{AccountCodec, AddressCodec}
-import io.scalechain.blockchain.proto.walletparts.{AccountHeader, Account, Address}
-import io.scalechain.blockchain.storage.index.{RocksDatabaseWithCF, AccountDatabase}
-import io.scalechain.blockchain.storage.record.AccountRecordStorage
+import io.scalechain.blockchain.proto.codec.{WalletTransactionDetailCodec, AccountCodec, AddressCodec}
+import io.scalechain.blockchain.proto.walletparts.{WalletTransactionDetail, AccountHeader, Account, Address}
+import io.scalechain.blockchain.storage.index.{TransactionDatabase, RocksDatabaseWithCF, AccountDatabase}
+import io.scalechain.blockchain.storage.record.{TransactionRecordStorage, AccountRecordStorage}
 import io.scalechain.util.ByteArray
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.slf4j.LoggerFactory
+
+import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 /**
   * Created by mijeong on 2016. 3. 24..
@@ -19,27 +23,36 @@ import org.slf4j.LoggerFactory
 object DiskAccountStorage {
 
   var columnFamilyName = new ArrayList[String]
-  val path = "./target/accountdata/"
+  var transactionColumnFamilyName = new ArrayList[String]
+  val addressAccountCF = "addressAccount"
+
   val prefix = "wallet-"
   val countFromBack = 9
-  val addressAccountCF = "addressAccount"
+
+  val transactionCFFileName = "/transaction-cf"
 }
 
-class DiskAccountStorage(directoryPath : File) {
+class DiskAccountStorage(accountDirectoryPath : File, transactionDirectoryPath : File) {
   private val logger = LoggerFactory.getLogger(classOf[DiskAccountStorage])
 
-  directoryPath.mkdir()
+  accountDirectoryPath.mkdir()
 
   protected[storage] var accountIndex : AccountDatabase = _
   protected[storage] var accountRecordStorage : AccountRecordStorage = _
+
+  protected[storage] var transactionIndex : TransactionDatabase = _
+  protected[storage] var transactionStorage : TransactionRecordStorage = _
 
   /**
     * open account index (RocksDB with Column Families)
     *
     */
   def open = {
-    val dir = new File(directoryPath.getAbsolutePath)
-    val files : List[File] = FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).asInstanceOf[List[File]]
+
+    // 1. open account database with column families
+    val dir = new File(accountDirectoryPath.getAbsolutePath)
+    val files : java.util.List[File] =
+      FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).asInstanceOf[java.util.List[File]]
     var accountExist = false
 
     for(i <- 0 until files.size()) {
@@ -56,7 +69,23 @@ class DiskAccountStorage(directoryPath : File) {
     if(accountExist)
       DiskAccountStorage.columnFamilyName.add(DiskAccountStorage.addressAccountCF)
 
-    accountIndex = new AccountDatabase(new RocksDatabaseWithCF(directoryPath, DiskAccountStorage.columnFamilyName))
+    // 2. open wallet transaction database with column families
+    val transactionDir = new File(transactionDirectoryPath.getAbsolutePath)
+    val transactionColumnFamilyFileExist = new File(transactionDir + DiskAccountStorage.transactionCFFileName).exists()
+
+    if(transactionColumnFamilyFileExist) {
+      for (columnFamily <- Source.fromFile(transactionDir + DiskAccountStorage.transactionCFFileName).getLines()) {
+        DiskAccountStorage.transactionColumnFamilyName.add(columnFamily)
+      }
+    } else {
+      new File(transactionDir + DiskAccountStorage.transactionCFFileName).createNewFile()
+    }
+
+    accountIndex = new AccountDatabase(new RocksDatabaseWithCF(accountDirectoryPath, DiskAccountStorage.columnFamilyName))
+
+    transactionIndex = new TransactionDatabase(
+      new RocksDatabaseWithCF(transactionDirectoryPath, DiskAccountStorage.transactionColumnFamilyName))
+    transactionStorage = new TransactionRecordStorage(transactionDirectoryPath)
   }
 
   /**
@@ -66,7 +95,7 @@ class DiskAccountStorage(directoryPath : File) {
     */
   def putNewAddress(account : String, address : String, purpose : Int, publicKey : ByteArray, privateKey : ByteArray) : Option[String] = {
 
-    accountRecordStorage = new AccountRecordStorage(directoryPath, account)
+    accountRecordStorage = new AccountRecordStorage(accountDirectoryPath, account)
 
     // 1. if account already exists
     if(accountIndex.existAccount(account)) {
@@ -197,9 +226,113 @@ class DiskAccountStorage(directoryPath : File) {
     }
   }
 
+  /**
+    * put wallet transaction to index
+    *
+    * @param account
+    * @param txid
+    * @param walletTransactionDetail
+    * @param category
+    */
+  def putTransaction(account : String, txid : Hash, walletTransactionDetail : WalletTransactionDetail, category : Int) = {
+    val locator = transactionStorage.appendRecord(walletTransactionDetail)(WalletTransactionDetailCodec)
+
+    val walletTransactionInfo = WalletTransactionInfo(
+      category,
+      Some(locator)
+    )
+    transactionIndex.putTransaction(account, txid, walletTransactionInfo)
+  }
+
+  /**
+    * get wallet transaction list
+    *
+    * @param account
+    * @param count
+    * @param skip
+    * @param includeWatchOnly
+    * @return wallet transaction list
+    */
+  def getTransactionList(account : String, count : Int, skip : Int, includeWatchOnly : Boolean) : Option[List[WalletTransactionDetail]] = {
+
+    // 1. get all transactions associated with all accounts of wallet
+    if(account.size == 0) {
+      var transactionList = new ListBuffer[WalletTransactionDetail]()
+      var transactionListResult = new ListBuffer[WalletTransactionDetail]()
+
+      val transactionDir = new File(transactionDirectoryPath.getAbsolutePath)
+      val transactionColumnFamilyFileExist = new File(transactionDir + DiskAccountStorage.transactionCFFileName).exists()
+
+      if(transactionColumnFamilyFileExist) {
+        // 1.1 loop for getting transactions of all accounts
+        for (columnFamily <- Source.fromFile(transactionDir + DiskAccountStorage.transactionCFFileName).getLines()) {
+          val accountTransactionList =
+            getAccountTransactionList(columnFamily.substring(3, columnFamily.size), 0, 0, includeWatchOnly, true)
+          if(accountTransactionList.isDefined)
+            transactionList ++= accountTransactionList.get.to[ListBuffer]
+        }
+
+        for(i<- skip until (skip+count) if i < transactionList.size ) {
+          transactionListResult += transactionList(i)
+        }
+      }
+
+      if(transactionListResult.toList.length > 0) {
+        Some(transactionList.toList)
+      } else {
+        None
+      }
+
+    // 2. get transactions associated with the given account
+    } else {
+      getAccountTransactionList(account, count, skip, includeWatchOnly, false)
+    }
+  }
+
+  /**
+    * get transaction list associated with the given account
+    *
+    * @param account
+    * @param count
+    * @param skip
+    * @param includeWatchOnly
+    * @return get transaction list
+    */
+  def getAccountTransactionList(account : String, count : Int, skip : Int, includeWatchOnly : Boolean, allStatus : Boolean) : Option[List[WalletTransactionDetail]] = {
+    val transactionList = new ListBuffer[WalletTransactionDetail]()
+    val txidListOption = transactionIndex.getTxidList(account)
+
+    if(txidListOption.isDefined){
+      val txidList = txidListOption.get
+      var addCount = 0
+
+      if(txidList.size() > skip) {
+        // allStatus == true means getting all transactions regardless of count
+        // used by listtransaction RPC (there is no given account)
+        for(j <- 0 until txidList.size() if (allStatus || addCount < count)) {
+          if(j >= skip) {
+            val txid = Hash(Utils.reverseBytes(txidList.get(j)))
+            val transaction = transactionIndex.getTransactionLocator(account, txid)
+            val transactionRecord = transactionStorage.readRecord(transaction.get)(WalletTransactionDetailCodec)
+            transactionList += transactionRecord
+            addCount+=1
+          }
+        }
+      }
+    }
+
+    if(transactionList.toList.length > 0) {
+      Some(transactionList.toList)
+    } else {
+      None
+    }
+  }
+
   def close() = {
     this.synchronized {
       accountIndex.close()
+      transactionIndex.close()
     }
   }
+
 }

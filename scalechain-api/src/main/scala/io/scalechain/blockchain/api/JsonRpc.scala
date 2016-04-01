@@ -50,7 +50,7 @@ object RpcResultJsonFormat {
 
   implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
 
-  implicit val implicitTransactionItem               = jsonFormat19(TransactionItem.apply)
+  implicit val implicitTransactionItem               = jsonFormat15(TransactionItem.apply)
 
   implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoin.apply)
 

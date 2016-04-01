@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.storage
 
 import java.io.File
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+import java.util
 import java.util.ArrayList
 
 import io.scalechain.blockchain.proto.codec.{WalletTransactionDetailCodec}
-import io.scalechain.blockchain.proto.{WalletTransactionInfo, Hash}
+import io.scalechain.blockchain.proto.{Hash}
 import io.scalechain.blockchain.storage.TestData._
-import io.scalechain.blockchain.storage.index.AccountDatabase
+import io.scalechain.blockchain.storage.index.{TransactionDatabase, AccountDatabase}
 import io.scalechain.blockchain.storage.record.{TransactionRecordStorage, RecordStorage}
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
@@ -20,22 +23,21 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
 
   Storage.initialize()
 
-  var storage : DiskTransactionStorage = null
   var accountStorage : DiskAccountStorage = null
   var rs : RecordStorage = null
 
-  var testPath : File = null
+  var transactionTestPath : File = null
   var accountTestPath : File = null
   var rsTestPath : File = null
 
   override def beforeEach() {
 
-    testPath = new File("./target/unittests-DiskTransactionStorageSpec/")
-    FileUtils.deleteDirectory(testPath)
-    testPath.mkdir()
-
+    transactionTestPath = new File("./target/unittests-DiskTransactionStorageSpec/")
     accountTestPath = new File("./target/unittests-DiskAccountStorageSpec/")
+
+    FileUtils.deleteDirectory(transactionTestPath)
     FileUtils.deleteDirectory(accountTestPath)
+    transactionTestPath.mkdir()
     accountTestPath.mkdir()
 
     rsTestPath = new File("./target/unittests-TransactionRecordStorageSpec/")
@@ -48,12 +50,8 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
       TransactionRecordStorage.MAX_FILE_SIZE
     )
 
-    DiskTransactionStorage.columnFamilyName = new ArrayList[String]
-    storage = new DiskTransactionStorage(testPath)
-    storage.open
-
     DiskAccountStorage.columnFamilyName = new ArrayList[String]
-    accountStorage = new DiskAccountStorage(accountTestPath)
+    accountStorage = new DiskAccountStorage(accountTestPath, transactionTestPath)
     accountStorage.open
 
     super.beforeEach()
@@ -62,7 +60,6 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
   override def afterEach() {
     super.afterEach()
 
-    storage.close()
     accountStorage.close()
     rs.close()
   }
@@ -74,7 +71,7 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
     val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
 
-    accountStorage.putNewAddress(account, address, purpose, publicKey, privateKey) shouldBe Some(address1)
+    accountStorage.putNewAddress(account, address, purpose, publicKey, privateKey) shouldBe Some(address)
 
     val W = WalletTransactionDetailCodec
     val locator = rs.appendRecord(walletTransactionDetail1)(W)
@@ -85,18 +82,15 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
       99 84 5f d8 40 ad 2c c4  d6 f9 3f af b8 b0 72 d1
       88 82 1f 55 d9 29 87 72  41 51 75 c4 56 f3 07 7d
       """))
-    val txLocator = locator
-    val walletTransactionInfo = WalletTransactionInfo (
-      0, Some(txLocator)
-    )
 
-    storage.putTransaction(address, txid, walletTransactionInfo)
+    accountStorage.putTransaction(account, txid, walletTransactionDetail1, TransactionDatabase.TRANSACTION_RECEIVE)
 
-    val transactionList = storage.getTransactionList(account).get
-    transactionList.size() shouldBe 1
+    val transactionList = accountStorage.getTransactionList(account, 10, 0, false).get
+    transactionList.size shouldBe 1
     transactionList(0).account shouldBe account
     transactionList(0).address shouldBe address
   }
+
 
   "getTransactionList" should "return all transaction list associated with wallet" in {
     val account1 = walletTransactionDetail1.account
@@ -125,31 +119,29 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
       99 84 5f d8 40 ad 2c c4  d6 f9 3f af b8 b0 72 d1
       88 82 1f 55 d9 29 87 72  41 51 75 c4 56 f3 07 7d
       """))
-    val txLocator1 = locator1
-    val walletTransactionInfo1 = WalletTransactionInfo (
-      0, Some(txLocator1)
-    )
 
     val txid2 = Hash(bytes(
       """
       99 84 5f d8 40 ad 2c c4  d6 f9 3f af b8 b0 72 d1
       88 82 1f 55 d9 29 87 72  41 51 75 c4 56 f3 07 10
       """))
-    val txLocator2 = locator2
-    val walletTransactionInfo2 = WalletTransactionInfo (
-      0, Some(txLocator2)
-    )
 
-    storage.putTransaction(address1, txid1, walletTransactionInfo1)
-    storage.putTransaction(address2, txid2, walletTransactionInfo2)
+    accountStorage.putTransaction(account1, txid1, walletTransactionDetail1, TransactionDatabase.TRANSACTION_RECEIVE)
+    accountStorage.putTransaction(account2, txid2, walletTransactionDetail2, TransactionDatabase.TRANSACTION_RECEIVE)
 
-    val transactionList = storage.getTransactionList("").get
-    transactionList.size() shouldBe 2
+    val accountArray = util.Arrays.asList(TransactionDatabase.WALLET_TRANSACTION_INFO + account1,
+      TransactionDatabase.WALLET_TRANSACTION_INFO + account2)
+    val path = Paths.get("./target/unittests-DiskTransactionStorageSpec/transaction-cf")
+    Files.write(path, accountArray, Charset.forName("UTF-8"))
+
+    val transactionList = accountStorage.getTransactionList("", 10, 0, false).get
+    transactionList.size shouldBe 2
     transactionList(0).account shouldBe account1
     transactionList(0).address shouldBe address1
     transactionList(1).account shouldBe account2
     transactionList(1).address shouldBe address2
   }
+
 
   "getTransactionList" should "return None if there is no transaction associated with the given account or wallet" in {
 
@@ -159,7 +151,7 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
     val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
 
-    accountStorage.putNewAddress(account, address, purpose, publicKey, privateKey) shouldBe Some(address1)
+    accountStorage.putNewAddress(account, address, purpose, publicKey, privateKey) shouldBe Some(address)
 
     val W = WalletTransactionDetailCodec
     val locator = rs.appendRecord(walletTransactionDetail1)(W)
@@ -170,19 +162,15 @@ class DiskTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach with S
       99 84 5f d8 40 ad 2c c4  d6 f9 3f af b8 b0 72 d1
       88 82 1f 55 d9 29 87 72  41 51 75 c4 56 f3 07 7d
       """))
-    val txLocator = locator
-    val walletTransactionInfo = WalletTransactionInfo (
-      0, Some(txLocator)
-    )
 
-    storage.putTransaction(address, txid, walletTransactionInfo)
+    accountStorage.putTransaction(account, txid, walletTransactionDetail1, TransactionDatabase.TRANSACTION_RECEIVE)
 
-    val transactionList = storage.getTransactionList(account).get
-    transactionList.size() shouldBe 1
+    val transactionList = accountStorage.getTransactionList(account, 10, 0, false).get
+    transactionList.size shouldBe 1
     transactionList(0).account shouldBe account
     transactionList(0).address shouldBe address
 
-    storage.getTransactionList(walletTransactionDetail2.account) shouldBe None
+    accountStorage.getTransactionList(walletTransactionDetail2.account, 10, 0, false) shouldBe None
   }
 
 }

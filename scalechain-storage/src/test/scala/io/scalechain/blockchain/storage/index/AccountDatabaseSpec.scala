@@ -194,7 +194,7 @@ class AccountDatabaseSpec extends FlatSpec with BeforeAndAfterEach with ShouldMa
 
     db.putAddressInfo(accountName, addressKey1, addressInfo1)
     db.putAddressInfo(accountName, addressKey2, addressInfo2)
-    db.getReceiveAddress(accountName) shouldBe Some(addressInfo2)
+    db.getReceiveAddress(accountName) shouldBe Some(addressKey2.address)
   }
 
   "getPrivateKeyLocator" should "successfully get private key locator" in {
