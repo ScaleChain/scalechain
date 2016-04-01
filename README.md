@@ -22,7 +22,7 @@ The following deck contains how financial companies can benefit from using Scale
 Releases
 ========
 * [Milestone 1 ; November 30, 2015](https://github.com/ScaleChain/scalechain/releases/tag/v0.1) - Bitcoin script engine; [Spark integration](data/docs/spark-integration.md) 
-* [Milestone 2 ; March 15, 2016](https://github.com/ScaleChain/scalechain/releases/tag/v0.2) - P2P networking;  Bitcoin main-net integration 
+* [Milestone 2 ; March 23, 2016](https://github.com/ScaleChain/scalechain/releases/tag/v0.3) - P2P networking;  Bitcoin main-net integration 
 
 
 Planned release dates

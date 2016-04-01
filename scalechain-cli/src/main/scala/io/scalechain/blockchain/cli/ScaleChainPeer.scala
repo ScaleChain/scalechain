@@ -10,6 +10,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto.{ProtocolMessage, IPv6Address, NetworkAddress, Version}
+import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.storage.Storage
 import io.scalechain.util.Config
 import io.scalechain.util.HexUtil._
@@ -80,6 +81,9 @@ object ScaleChainPeer extends JsonRpc {
 
     // Initialize the storage sub-system.
     Storage.initialize()
+
+    // Initialize the printer setter, to print script operations on transactions.
+    BlockPrinterSetter.initialize
 
     /** Create the actor system.
       */

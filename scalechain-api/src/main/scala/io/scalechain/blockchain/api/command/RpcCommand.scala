@@ -1,9 +1,13 @@
 package io.scalechain.blockchain.api.command
 
+import io.scalechain.util.StackUtil
 import io.scalechain.blockchain.{ExceptionWithErrorCode, ErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import org.slf4j.LoggerFactory
 
 trait RpcCommand {
+  private val logger = LoggerFactory.getLogger(classOf[RpcCommand])
+
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]]
   def help() : String
 
@@ -12,14 +16,17 @@ trait RpcCommand {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
+        logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
         val rpcError = RpcCommand.ERROR_MAP(e.code)
-        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.message))
+        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }
       // In case any error happens, return as RpcError.
-      case e : Throwable => {
+      case e : Exception => {
+        logger.error(s"Internal Error, while executing a command. exception : $e, message : ${e.getMessage}, occurred at : ${StackUtil.getStackTrace(e)}")
         val rpcError = RpcError.RPC_INTERNAL_ERROR
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }
+      // AssertionError is an Error, not an Exception, so it is not catched here.
     }
   }
 }

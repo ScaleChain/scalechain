@@ -74,7 +74,7 @@ trait ScriptOp {
     val top = env.stack.pop()
 
     if (!Utils.castToBool(top.value)) {
-      throw new ScriptEvalException(ErrorCode.InvalidTransaction)
+      throw new ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
     }
   }
 
@@ -134,7 +134,7 @@ trait ScriptOp {
 
 trait DisabledScriptOp {
   def execute(env : ScriptEnvironment) : Unit = {
-    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation)
+    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation, s"ScriptOp:${this.getClass.getName}")
   }
 }
 
@@ -167,7 +167,7 @@ trait AlwaysInvalidScriptOp {
 
 trait InvalidScriptOpIfExecuted {
   def execute(env : ScriptEnvironment) : Unit = {
-    throw new ScriptEvalException(ErrorCode.InvalidTransaction)
+    throw new ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
   }
 }
 

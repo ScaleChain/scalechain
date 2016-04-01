@@ -4,7 +4,7 @@ import io.scalechain.blockchain.api.SubSystem
 import io.scalechain.blockchain.api.command.{BlockFormatter, RpcCommand}
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import io.scalechain.blockchain.proto.{BlockInfo, Block, HashFormat, Hash}
 import io.scalechain.util.{HexUtil, ByteArray}
 import HexUtil._
 import ByteArray._
@@ -58,7 +58,7 @@ case class GetBlockResult (
   // The size of this block in serialized block format, counted in bytes
   size : Int,                         // 189
   // The height of this block on its block chain
-//  height : Long,                      // 227252
+  height : Long,                      // 227252
   // This block’s version number. See block version numbers
   version : Int,                      // 2
   // The merkle root for this block, encoded as hex in RPC byte order
@@ -111,12 +111,12 @@ object GetBlock extends RpcCommand {
 
       val headerHash = Hash( HexUtil.bytes(headerHashString) )
 
-      val blockOption = SubSystem.blockDatabaseService.getBlock(headerHash)
+      val blockOption : Option[(BlockInfo, Block)] = SubSystem.blockDatabaseService.getBlock(headerHash)
 
       val resultOption = if (format) {
-        blockOption.map( BlockFormatter.getBlockResult(_) )
+        blockOption.map{ case (blockInfo, block) => BlockFormatter.getBlockResult(blockInfo, block) }
       } else {
-        blockOption.map{ block =>
+        blockOption.map{ case (blockInfo, block) =>
           StringResult( BlockFormatter.getSerializedBlock( block ) )
         }
       }

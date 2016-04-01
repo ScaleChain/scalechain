@@ -4,8 +4,9 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import io.scalechain.blockchain.net.processor.BlockProcessor
-import io.scalechain.blockchain.net.processor.BlockProcessor.{PutBlockResult, GetBestBlockHashResult, GetBlockResult}
-import io.scalechain.blockchain.proto.{Transaction, Block, Hash}
+import io.scalechain.blockchain.net.processor.BlockProcessor.{PutBlockResult}
+import io.scalechain.blockchain.proto.{BlockInfo, Transaction, Block, Hash}
+import io.scalechain.blockchain.storage.DiskBlockStorage
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -33,9 +34,8 @@ class BlockDatabaseService(blockProcessor : ActorRef) {
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash: Hash): Option[Block] = {
-    val resultFuture = ( blockProcessor ? BlockProcessor.GetBlock(blockHash) ).mapTo[GetBlockResult]
-    Await.result(resultFuture, Duration.Inf).blockOption
+  def getBlock(blockHash: Hash): Option[(BlockInfo, Block)] = {
+    DiskBlockStorage.get.getBlock(blockHash)
   }
 
   /** Get the header hash of the most recent block on the best block chain.
@@ -45,8 +45,7 @@ class BlockDatabaseService(blockProcessor : ActorRef) {
     * @return The header hash of the most recent block.
     */
   def getBestBlockHash(): Option[Hash] = {
-    val resultFuture = ( blockProcessor ? BlockProcessor.GetBestBlockHash() ).mapTo[GetBestBlockHashResult]
-    Await.result(resultFuture, Duration.Inf).blockHashOption
+    DiskBlockStorage.get.getBestBlockHash()
   }
 
 
@@ -58,7 +57,6 @@ class BlockDatabaseService(blockProcessor : ActorRef) {
     * @return The searched block.
     */
   def getTransaction(txHash : Hash): Option[Transaction] = {
-    val resultFuture = ( blockProcessor ? BlockProcessor.GetTransaction(txHash) ).mapTo[BlockProcessor.GetTransactionResult]
-    Await.result(resultFuture, Duration.Inf).transactionOption
+    DiskBlockStorage.get.getTransaction(txHash)
   }
 }

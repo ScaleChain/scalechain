@@ -16,3 +16,5 @@ echo "getrawtransaction.sh"
 echo ""
 echo "decoderawtransaction.sh"
 ./decoderawtransaction.sh
+echo "getpeerinfo.sh"
+./getpeerinfo.sh

@@ -8,10 +8,8 @@ import io.scalechain.blockchain.{BlockVerificationException, TransactionVerifica
 import io.scalechain.blockchain.net.DomainMessageRouter.InventoriesFrom
 import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.net.PeerBroker.SendToOne
-import io.scalechain.blockchain.net.processor.BlockProcessor.GetBestBlockHash
-import io.scalechain.blockchain.net.processor.TransactionProcessor.{GetTransactionResult, GetTransaction}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{GenesisBlock, DiskBlockStorage}
+import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil._
@@ -26,17 +24,9 @@ object BlockProcessor {
 
   case class StartInitialBlockDownload()
   case class DownloadBlocksFrom(hash : Hash)
-  case class GetBlock(blockHash: Hash)
-  case class GetBlockResult(blockOption : Option[Block])
-
-  case class GetBestBlockHash()
-  case class GetBestBlockHashResult(blockHashOption : Option[Hash])
 
   case class PutBlock(block : Block)
   case class PutBlockResult(isNewBlock : Boolean)
-
-  case class GetTransaction(txHash : Hash)
-  case class GetTransactionResult(transactionOption : Option[Transaction])
 
   def props(peerBroker : ActorRef) = Props[BlockProcessor](new BlockProcessor(peerBroker))
 
@@ -70,24 +60,9 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
   import BlockProcessor._
 
   def receive : Receive = {
-    case BlockProcessor.GetTransaction(txHash) => {
-      sender ! BlockProcessor.GetTransactionResult( blockStorage.getTransaction(txHash) )
-      println("processed GetTransaction.")
-    }
-
     case PutBlock(block) => {
       sender ! PutBlockResult( blockStorage.putBlock(block) )
       println("processed PutBlock.")
-    }
-
-    case GetBlock(blockHash) => {
-      sender ! GetBlockResult( blockStorage.getBlock(blockHash) )
-      println("processed GetBlock.")
-    }
-
-    case GetBestBlockHash() => {
-      sender ! GetBestBlockHashResult( blockStorage.getBestBlockHash() )
-      println("processed GetBestBlockHash.")
     }
 
     case StartInitialBlockDownload() => {
@@ -113,10 +88,10 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
     case headers : Headers => {
       val MAX_BLOCK_HEADERS_PER_MESSAGE = 2000
       if (headers.headers.size >= MAX_BLOCK_HEADERS_PER_MESSAGE) {
-        val lastblockHeaderHash = HashCalculator.blockHeaderHash(headers.headers.last)
+        val lastblockHeaderHash = Hash( HashCalculator.blockHeaderHash(headers.headers.last) )
         println("Got 2000 headers, Continuing to download block. Header hash : "+ lastblockHeaderHash)
 
-        self ! DownloadBlocksFrom( Hash(lastblockHeaderHash) )
+        self ! DownloadBlocksFrom( lastblockHeaderHash )
       } else {
         println(s"Got ${headers.headers.size} headers. Stopping.")
       }
@@ -146,12 +121,47 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
   }
 
   def storeBlock(block : Block) : Unit = {
-    // Step 1 : Validate block
     try {
-      // BUGBUG : We hit this issue : TransactionVerificationException(ErrorCode(script_eval_failure)
-      // new BlockVerifier(block).verify(DiskBlockStorage.get)
 
-      blockStorage.putBlock(block)
+      // Step 1 : Check if the previous block header and data exists.
+      val prevBlockIsComplete =
+        blockStorage.getBlock(block.header.hashPrevBlock) match {
+          case Some((_, _)) => {
+            true
+          }
+          case _ => {
+            false
+          }
+        }
+
+      // Step 2 : Verify the block and put the block only if the previous block exists.
+      if (prevBlockIsComplete) {
+        // TODO : Put the transactions into mempool. Verify the block first before putting into the chain.
+
+        // Put the block.
+        blockStorage.putBlock(block)
+
+        // Verify the block.
+        new BlockVerifier(block).verify(DiskBlockStorage.get)
+
+      } else {
+        logger.warn(s"The previous block data is not found yet. Discarding block. Header : ${block.header}")
+      }
+
+      /*
+      // BUGBUG : this is too slow. remove it after we are confident.
+      try {
+        val Some((blockInfo, foundBlock)) = blockStorage.getBlock(Hash(HashCalculator.blockHeaderHash(block.header)))
+        assert( foundBlock == block )
+      } catch {
+        case e: Throwable => {
+          println("block not decodable : " + block)
+          assert(false)
+        }
+      }
+      */
+
+
 /*
       println("Stored a block with following transactions")
       for (tx <- block.transactions) {
@@ -162,12 +172,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
       // println("BlockProcessor received Block : The block was stored.")
     } catch {
       case e: BlockVerificationException => {
-        println(s"Block verification failed. block header : ${block.header}, error : $e")
         logger.warn(s"Block verification failed. block header : ${block.header}, error : $e" )
-      }
-      case e: TransactionVerificationException => {
-        println(s"Transaction verification failed. block header : ${block.header}, error : $e")
-        logger.warn(s"Transaction verification failed. block header : ${block.header}, error : $e" )
       }
     }
   }

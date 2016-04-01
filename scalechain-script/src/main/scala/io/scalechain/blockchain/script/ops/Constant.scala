@@ -83,7 +83,7 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
    */
   protected def getByteCount(rawScript : Array[Byte], offset : Int, length : Int) : Int = {
     if (offset + length > rawScript.length) {
-      throw new ScriptEvalException(ErrorCode.NotEnoughScriptData)
+      throw new ScriptEvalException(ErrorCode.NotEnoughScriptData, "ScriptOp:OpPushData")
     }
 
     var result = 0L

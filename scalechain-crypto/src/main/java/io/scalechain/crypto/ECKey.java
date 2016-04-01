@@ -245,19 +245,22 @@ public class ECKey {
         }
 
         public static boolean isEncodingCanonical(byte[] signature) {
-            // See reference client's IsCanonicalSignature, https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
+            // See reference client's IsValidSignatureEncoding, https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
             // A canonical signature exists of: <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
             // Where R and S are not negative (their first byte has its highest bit not set), and not
             // excessively padded (do not start with a 0 byte, unless an otherwise negative number follows,
             // in which case a single 0 byte is necessary and even required).
             if (signature.length < 9 || signature.length > 73)
                 return false;
-
+/*
             // BUGBUG : ANYONECANPAY was byte type, but changed it to int. Make sure it is OK.
             int hashType = signature[signature.length-1] & ~TransactionSigHash$.MODULE$.HASH_TYPE_MASK();
+            if (hashType == 0)
+                hashType = 1;
+
             if (hashType < (TransactionSigHash$.MODULE$.ALL()) || hashType > (TransactionSigHash$.MODULE$.SINGLE()))
                 return false;
-
+*/
             //                   "wrong type"                  "wrong length marker"
             if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length-3)
                 return false;
@@ -269,15 +272,31 @@ public class ECKey {
             if (lenR + lenS + 7 != signature.length || lenS == 0)
                 return false;
 
-            //    R value type mismatch          R value negative
-            if (signature[4-2] != 0x02 || (signature[4] & 0x80) == 0x80)
+            // R value type mismatch
+            if (signature[4-2] != 0x02)
                 return false;
+/*
+            Fix for : https://github.com/ScaleChain/scalechain/issues/33
+            BUGBUG : Need to make sure if we can safely get rid of this check.
+
+            // R value negative
+            if ((signature[4] & 0x80) == 0x80)
+                return false;
+*/
             if (lenR > 1 && signature[4] == 0x00 && (signature[4+1] & 0x80) != 0x80)
                 return false; // R value excessively padded
 
-            //       S value type mismatch                    S value negative
-            if (signature[6 + lenR - 2] != 0x02 || (signature[6 + lenR] & 0x80) == 0x80)
+            // S value type mismatch
+            if (signature[6 + lenR - 2] != 0x02)
                 return false;
+/*
+            Fix for : https://github.com/ScaleChain/scalechain/issues/33
+            BUGBUG : Need to make sure if we can safely get rid of this check.
+
+            // S value negative
+            if ((signature[6 + lenR] & 0x80) == 0x80)
+                return false;
+*/
             if (lenS > 1 && signature[6 + lenR] == 0x00 && (signature[6 + lenR + 1] & 0x80) != 0x80)
                 return false; // S value excessively padded
             return true;

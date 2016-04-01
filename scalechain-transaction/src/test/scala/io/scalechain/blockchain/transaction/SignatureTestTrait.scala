@@ -19,7 +19,7 @@ trait SignatureTestTrait extends ShouldMatchers {
     val txInput = spendingTransaction.inputs(inputIndex)
     txInput match {
       case normalTxInput : NormalTransactionInput => {
-        new NormalTransactionVerifier(normalTxInput).verify(env, lockingScript)
+        new NormalTransactionVerifier(normalTxInput, spendingTransaction, inputIndex).verify(env, lockingScript)
       }
       case generationTxInput : GenerationTransactionInput  => {
         new GenerationTransactionVerifier(generationTxInput).verify(null, null)

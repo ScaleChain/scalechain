@@ -5,7 +5,6 @@ import akka.pattern.ask
 import akka.util.Timeout
 import io.scalechain.blockchain.net.processor.TransactionProcessor.GetTransactionResult
 import io.scalechain.blockchain.net.processor.{TransactionProcessor, BlockProcessor}
-import io.scalechain.blockchain.net.processor.BlockProcessor.GetBlockResult
 import io.scalechain.blockchain.proto.{Transaction, Block, Hash}
 
 import scala.concurrent._

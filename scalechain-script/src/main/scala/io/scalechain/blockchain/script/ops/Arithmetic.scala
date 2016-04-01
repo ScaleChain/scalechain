@@ -215,7 +215,7 @@ case class OpNumEqualVerify() extends Arithmetic {
   def execute(env : ScriptEnvironment): Unit = {
     binaryIntOperation( env, ((l,r) => if (l == r) 1L else 0L) )
 
-    unaryIntOperation( env, ((value) => if (value !=0L) value else throw new ScriptEvalException(ErrorCode.InvalidTransaction)) )
+    unaryIntOperation( env, ((value) => if (value !=0L) value else throw new ScriptEvalException(ErrorCode.InvalidTransaction, "ScriptOp:OpNumEqualVerify")) )
   }
 }
 
