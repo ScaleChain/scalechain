@@ -30,12 +30,12 @@ object DiskAccountStorage {
   val countFromBack = 9
 
   val transactionCFFileName = "/transaction-cf"
-}
 
-class DiskAccountStorage(accountDirectoryPath : File, transactionDirectoryPath : File) {
-  private val logger = LoggerFactory.getLogger(classOf[DiskAccountStorage])
+  val accountDirectoryPath = new File("./target/accountdata/")
+  val transactionDirectoryPath = new File("./target/unittests-DiskTransactionStorageSpec/")
 
   accountDirectoryPath.mkdir()
+  transactionDirectoryPath.mkdir()
 
   protected[storage] var accountIndex : AccountDatabase = _
   protected[storage] var accountRecordStorage : AccountRecordStorage = _
@@ -87,6 +87,30 @@ class DiskAccountStorage(accountDirectoryPath : File, transactionDirectoryPath :
       new RocksDatabaseWithCF(transactionDirectoryPath, DiskAccountStorage.transactionColumnFamilyName))
     transactionStorage = new TransactionRecordStorage(transactionDirectoryPath)
   }
+
+  def create : (AccountDatabase, AccountRecordStorage, TransactionDatabase, TransactionRecordStorage) = {
+
+    if(accountIndex==null)
+      open
+
+    (accountIndex, accountRecordStorage, transactionIndex, transactionStorage)
+  }
+}
+
+class DiskAccountStorage(accountDirectoryPath : File, transactionDirectoryPath : File) {
+  private val logger = LoggerFactory.getLogger(classOf[DiskAccountStorage])
+
+  protected[storage] var accountIndex : AccountDatabase = _
+  protected[storage] var accountRecordStorage : AccountRecordStorage = _
+
+  protected[storage] var transactionIndex : TransactionDatabase = _
+  protected[storage] var transactionStorage : TransactionRecordStorage = _
+
+  val (singleAccountIndex, singleAccountRecordStorage, singleTransactionIndex, singleRransactionStorage) = DiskAccountStorage.create
+  accountIndex = singleAccountIndex
+  accountRecordStorage = singleAccountRecordStorage
+  transactionIndex = singleTransactionIndex
+  transactionStorage = singleRransactionStorage
 
   /**
     * put new address and account info to record and index
