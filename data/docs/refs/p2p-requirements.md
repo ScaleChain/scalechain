@@ -4,25 +4,43 @@ Also, for each requirement, we will summarize the result of Bitcoin core source 
 Some of texts in this document are copied from the bitcoin developer's guide.
 
 # Summary of requirements
+## (P0) check unsupported block version or transaction version 
+
+## (P0) signature validation based on the block version 
+
+## (P0) implement different hash types
+https://bitcoin.org/en/developer-guide#signature-hash-types
+
+## (P0) Start IBD with another sync node if one goes offline 
+IBD node should start IBD with another sync node.
+
+## (P0) headers-first : Start block download after getting all headers 
+Download the headers for the best header chain, partially validate them as best as possible, 
+and then download the corresponding blocks in parallel.
+
+Currently we are downloading blocks for each headers response with 2000 headers. 
+We need to download blocks after receiving all headers, and 
+making sure that headers are actually from the best blockchain by asking multiple peers.
+
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P0) Add transactions in stale blocks back to mempool
+Transactions which are mined into blocks that 
+later become stale blocks may be added back into the memory pool.  
+https://bitcoin.org/en/developer-guide#memory-pool
+
 ## (P1) Detect hard fork  
 detects a hard fork by looking at block chain proof of work. 
 If a non-upgraded node receives block chain headers 
 demonstrating at least six blocks more proof of work than the best chain it considers valid, 
 the node reports an error in the getinfo RPC results and runs the -alertnotify command if set. 
 
-## (P1) signature validation based on the block version 
-
 ## (P1) prefix coinbase data with block height
 
 ## (P2) Implement -alertnotify
 
-## (P1) check unsupported block version or transaction version 
-
 ## (P1) check if a transaction is a standard one 
 https://bitcoin.org/en/developer-guide#non-standard-transactions
-
-## (P1) implement different hash types
-https://bitcoin.org/en/developer-guide#signature-hash-types
 
 ## (P1) Check transaction fee 
 https://bitcoin.org/en/developer-guide#transaction-fees-and-change
@@ -51,9 +69,6 @@ but the getheaders service should respond with the blocks on the best blockchain
 
 why? for fork detection.
 
-## (P1) Start IBD with another sync node if one goes offline 
-IBD node should start IBD with another sync node.
-
 ## (P2) Add block chain checkpoints
 To know if the blocks received by IBD are on best blockchain as early as possible. 
 https://bitcoin.org/en/developer-guide#blocks-first
@@ -61,16 +76,6 @@ https://bitcoin.org/en/developer-guide#blocks-first
 ## (CUT) blocks-first : Keep orphan blocks in memory. 
 Orphan blocks are stored in memory while they await validation, 
 which may lead to high memory use.  https://bitcoin.org/en/developer-guide#blocks-first
-
-## (P1) headers-first : Start block download after getting all headers 
-Download the headers for the best header chain, partially validate them as best as possible, 
-and then download the corresponding blocks in parallel.
-
-Currently we are downloading blocks for each headers response with 2000 headers. 
-We need to download blocks after receiving all headers, and 
-making sure that headers are actually from the best blockchain by asking multiple peers.
-
-https://bitcoin.org/en/developer-guide#headers-first
 
 ## (P2) Get headers from multiple peers to get the best blockchain 
 It sends a getheaders message to each of its outboundpeers 
@@ -104,11 +109,6 @@ so when the downloading node receives the block message,
 the block shouldn’t be an orphan block. 
 If, despite this, the block received in the block message is an orphan block, 
 a headers-first node will discard it immediately.
-
-## (P1) Add transactions in stale blocks back to mempool
-Transactions which are mined into blocks that 
-later become stale blocks may be added back into the memory pool.  
-https://bitcoin.org/en/developer-guide#memory-pool
 
 ## (P2) Ban a peer based on a banscore.
 If a peer gets a banscore above the -banscore=<n> threshold, 
