@@ -96,6 +96,63 @@ Need investigation : Don't we need to check the locktime for transactions in a b
 
 ## (P0) check unsupported block version or transaction version 
 
+### src/policy/policy.cpp
+The IsStandardTx function checks the range of version in a transaction.
+```
+bool IsStandardTx(const CTransaction& tx, std::string& reason)
+{
+    if (tx.nVersion > CTransaction::CURRENT_VERSION || tx.nVersion < 1) {
+
+```
+
+### src/main.cpp
+Looks like there is no max limit for the block version, but 
+checks the version of the last 100 blocks to see if we need to upgrade.
+In case we need to upgrade, we notify an alert message.
+```
+
+/** Update chainActive and related internal data structures. */
+void static UpdateTip(CBlockIndex *pindexNew) {
+    const CChainParams& chainParams = Params();
+    chainActive.SetTip(pindexNew);
+
+    // New best block
+    nTimeBestReceived = GetTime();
+    mempool.AddTransactionsUpdated(1);
+
+    LogPrintf("%s: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f  cache=%.1fMiB(%utx)\n", __func__,
+      chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
+      DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
+      Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), chainActive.Tip()), pcoinsTip->DynamicMemoryUsage() * (1.0 / (1<<20)), pcoinsTip->GetCacheSize());
+
+    cvBlockChange.notify_all();
+
+    // Check the version of the last 100 blocks to see if we need to upgrade:
+    static bool fWarned = false;
+    if (!IsInitialBlockDownload() && !fWarned)
+    {
+        int nUpgraded = 0;
+        const CBlockIndex* pindex = chainActive.Tip();
+        for (int i = 0; i < 100 && pindex != NULL; i++)
+        {
+            if (pindex->nVersion > CBlock::CURRENT_VERSION)
+                ++nUpgraded;
+            pindex = pindex->pprev;
+        }
+        if (nUpgraded > 0)
+            LogPrintf("%s: %d of last 100 blocks above version %d\n", __func__, nUpgraded, (int)CBlock::CURRENT_VERSION);
+        if (nUpgraded > 100/2)
+        {
+            // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
+            strMiscWarning = _("Warning: This version is obsolete; upgrade required!");
+            CAlert::Notify(strMiscWarning, true);
+            fWarned = true;
+        }
+    }
+}
+
+```
+
 ## (P0) Disconnect stalling nodes during IBD
 Wait a minimum of two more seconds for the stalling node to send the block. 
 If the block still hasn’t arrived, Bitcoin Core will disconnect from the stalling node and 
