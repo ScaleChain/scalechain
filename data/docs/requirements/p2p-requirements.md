@@ -96,11 +96,13 @@ Need investigation : Don't we need to check the locktime for transactions in a b
 
 ## (P0) check unsupported block version or transaction version 
 
-## (P0) implement different hash types
-https://bitcoin.org/en/developer-guide#signature-hash-types
+## (P0) Disconnect stalling nodes during IBD
+Wait a minimum of two more seconds for the stalling node to send the block. 
+If the block still hasn’t arrived, Bitcoin Core will disconnect from the stalling node and 
+attempt to connect to another node.
 
-## (P0) Start IBD with another sync node if one goes offline
-IBD node should start IBD with another sync node.
+Currently, we are doing nothing if the sync node which provides blocks or block headers is disconnected.
+We need to detect this case and continue downloading blocks and headers from another sync node.
 
 ### src/main.cpp
 Need to disconnect a peer that is stalling.
@@ -143,7 +145,12 @@ bool SendMessages(CNode* pto) {
         
 ```
 
-And SendMessage does PushMessage(NetMsgType::GETHEADERS, ...) for a 'nice' peer.
+
+## (P0) Start IBD with another sync node if one goes offline
+IBD node should start IBD with another sync node.
+
+### src/main.cpp
+SendMessage does PushMessage(NetMsgType::GETHEADERS, ...) for a 'nice' peer.
 Assumption : Looks like after disconnecting to a stalling peer, we are choosing a new 'nice' peer to download the headers from it.
 ```
 bool SendMessages(CNode* pto)
@@ -802,14 +809,6 @@ This was not explicitly mentioned in the Bitcoin developer's guide,
 but the getheaders service should respond with the blocks on the best blockchain. 
 
 why? for fork detection.
-
-## (P1) Disconnect stalling nodes during IBD
-Wait a minimum of two more seconds for the stalling node to send the block. 
-If the block still hasn’t arrived, Bitcoin Core will disconnect from the stalling node and 
-attempt to connect to another node.
-
-Currently, we are doing nothing if the sync node which provides blocks or block headers is disconnected.
-We need to detect this case and continue downloading blocks and headers from another sync node.
 
 ## (P1) Add Getblocktemplate RPC 
 Their mining software periodically polls bitcoind for new transactions 
