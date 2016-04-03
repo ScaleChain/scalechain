@@ -105,13 +105,14 @@ object ScaleChainPeer extends JsonRpc {
       */
     val server = StreamServerLogic(system, materializer, peerBroker, domainMessageRouter, new InetSocketAddress("127.0.0.1", params.inboundPort))
 
+/*  // Currently the we use RocksDB, so commented out the code to sleep 30 seconds to wait for the cassandra to start up.
     // Wait for the cassandra starts up.
     try {
       Thread.sleep(30000)
     } catch {
       case e : InterruptedException => println("ScaleChainPEer Sleep interrupted.")
     }
-
+*/
     /** The mediator that creates outbound connections to other peers listed in the scalechain.p2p.peers configuration.
       */
     peers.map { peer =>

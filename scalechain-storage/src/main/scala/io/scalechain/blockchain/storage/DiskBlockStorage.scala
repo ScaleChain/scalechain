@@ -9,7 +9,7 @@ import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, Bl
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
-/*
+
 // A version Using DiskBlockStorage
 object DiskBlockStorage {
   val MAX_FILE_SIZE = 1024 * 1024 * 100
@@ -40,8 +40,8 @@ object DiskBlockStorage {
   }
 
 }
-*/
 
+/*
 // A version Using CassandraBlockStorage
 object DiskBlockStorage {
   val MAX_FILE_SIZE = 1024 * 1024 * 100
@@ -72,7 +72,7 @@ object DiskBlockStorage {
   }
 
 }
-
+*/
 
 /** Stores block header, block, and transactions in the block.
   *
