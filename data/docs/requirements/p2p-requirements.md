@@ -1,0 +1,493 @@
+# Introduction
+This document summarizes requirements for peer to peer communication. 
+Also, for each requirement, we will summarize the result of Bitcoin core source code analysis.
+Some of texts in this document are copied from the bitcoin developer's guide.
+
+# Summary of requirements
+## (P0) Need to check the locktime and the sequence number in a transaction.
+No need to verify the locktime if the sequeunce number is 0xffffffff.
+Need to verify the locktime otherwise.
+
+## (P0) check unsupported block version or transaction version 
+
+## (P0) implement different hash types
+https://bitcoin.org/en/developer-guide#signature-hash-types
+
+## (P0) Start IBD with another sync node if one goes offline 
+IBD node should start IBD with another sync node.
+
+## (P0) headers-first : Start block download after getting all headers 
+Download the headers for the best header chain, partially validate them as best as possible, 
+and then download the corresponding blocks in parallel.
+
+Currently we are downloading blocks for each headers response with 2000 headers. 
+We need to download blocks after receiving all headers, and 
+making sure that headers are actually from the best blockchain by asking multiple peers.
+
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P0) Add transactions in stale blocks back to mempool
+Transactions which are mined into blocks that 
+later become stale blocks may be added back into the memory pool.  
+https://bitcoin.org/en/developer-guide#memory-pool
+
+
+### src/main.cpp
+
+Maybe this code is about removing a stale block from the best blockchain? (Not sure, need more investigation)
+Looks like this code is about reconstructing the UTXO? (Not sure, need more investigation)
+```
+/**
+ * Apply the undo operation of a CTxInUndo to the given chain state.
+ * @param undo The undo object.
+ * @param view The coins view to which to apply the changes.
+ * @param out The out point that corresponds to the tx input.
+ * @return True on success.
+ */
+static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const COutPoint& out)
+{
+    bool fClean = true;
+
+    CCoinsModifier coins = view.ModifyCoins(out.hash);
+    if (undo.nHeight != 0) {
+        // undo data contains height: this is the last output of the prevout tx being spent
+        if (!coins->IsPruned())
+            fClean = fClean && error("%s: undo data overwriting existing transaction", __func__);
+        coins->Clear();
+        coins->fCoinBase = undo.fCoinBase;
+        coins->nHeight = undo.nHeight;
+        coins->nVersion = undo.nVersion;
+    } else {
+        if (coins->IsPruned())
+            fClean = fClean && error("%s: undo data adding output to missing transaction", __func__);
+    }
+    if (coins->IsAvailable(out.n))
+        fClean = fClean && error("%s: undo data overwriting existing output", __func__);
+    if (coins->vout.size() < out.n+1)
+        coins->vout.resize(out.n+1);
+    coins->vout[out.n] = undo.txout;
+
+    return fClean;
+}
+
+bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
+{
+    assert(pindex->GetBlockHash() == view.GetBestBlock());
+
+    if (pfClean)
+        *pfClean = false;
+
+    bool fClean = true;
+
+    CBlockUndo blockUndo;
+    CDiskBlockPos pos = pindex->GetUndoPos();
+    if (pos.IsNull())
+        return error("DisconnectBlock(): no undo data available");
+    if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
+        return error("DisconnectBlock(): failure reading undo data");
+
+    if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
+        return error("DisconnectBlock(): block and undo data inconsistent");
+
+    // undo transactions in reverse order
+    for (int i = block.vtx.size() - 1; i >= 0; i--) {
+        const CTransaction &tx = block.vtx[i];
+        uint256 hash = tx.GetHash();
+
+        // Check that all outputs are available and match the outputs in the block itself
+        // exactly.
+        {
+        CCoinsModifier outs = view.ModifyCoins(hash);
+        outs->ClearUnspendable();
+
+        CCoins outsBlock(tx, pindex->nHeight);
+        // The CCoins serialization does not serialize negative numbers.
+        // No network rules currently depend on the version here, so an inconsistency is harmless
+        // but it must be corrected before txout nversion ever influences a network rule.
+        if (outsBlock.nVersion < 0)
+            outs->nVersion = outsBlock.nVersion;
+        if (*outs != outsBlock)
+            fClean = fClean && error("DisconnectBlock(): added transaction mismatch? database corrupted");
+
+        // remove outputs
+        outs->Clear();
+        }
+
+        // restore inputs
+        if (i > 0) { // not coinbases
+            const CTxUndo &txundo = blockUndo.vtxundo[i-1];
+            if (txundo.vprevout.size() != tx.vin.size())
+                return error("DisconnectBlock(): transaction and undo data inconsistent");
+            for (unsigned int j = tx.vin.size(); j-- > 0;) {
+                const COutPoint &out = tx.vin[j].prevout;
+                const CTxInUndo &undo = txundo.vprevout[j];
+                if (!ApplyTxInUndo(undo, view, out))
+                    fClean = false;
+            }
+        }
+    }
+
+    // move best block pointer to prevout block
+    view.SetBestBlock(pindex->pprev->GetBlockHash());
+
+    if (pfClean) {
+        *pfClean = fClean;
+        return true;
+    }
+
+    return fClean;
+}
+```
+
+## (P1) Need to verify consistency of block and coin database.
+### src/main.h
+```
+/** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */
+class CVerifyDB {
+public:
+    CVerifyDB();
+    ~CVerifyDB();
+    bool VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
+};
+```
+
+### src/main.cpp
+```
+bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth)
+{
+    LOCK(cs_main);
+    if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
+        return true;
+
+    // Verify blocks in the best chain
+    if (nCheckDepth <= 0)
+        nCheckDepth = 1000000000; // suffices until the year 19000
+    if (nCheckDepth > chainActive.Height())
+        nCheckDepth = chainActive.Height();
+    nCheckLevel = std::max(0, std::min(4, nCheckLevel));
+    LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
+    CCoinsViewCache coins(coinsview);
+    CBlockIndex* pindexState = chainActive.Tip();
+    CBlockIndex* pindexFailure = NULL;
+    int nGoodTransactions = 0;
+    CValidationState state;
+    for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
+    {
+        boost::this_thread::interruption_point();
+        uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * (nCheckLevel >= 4 ? 50 : 100)))));
+        if (pindex->nHeight < chainActive.Height()-nCheckDepth)
+            break;
+        CBlock block;
+        // check level 0: read from disk
+        if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+            return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+        // check level 1: verify block validity
+        if (nCheckLevel >= 1 && !CheckBlock(block, state))
+            return error("VerifyDB(): *** found bad block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+        // check level 2: verify undo validity
+        if (nCheckLevel >= 2 && pindex) {
+            CBlockUndo undo;
+            CDiskBlockPos pos = pindex->GetUndoPos();
+            if (!pos.IsNull()) {
+                if (!UndoReadFromDisk(undo, pos, pindex->pprev->GetBlockHash()))
+                    return error("VerifyDB(): *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+            }
+        }
+        // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
+        if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage) {
+            bool fClean = true;
+            if (!DisconnectBlock(block, state, pindex, coins, &fClean))
+                return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+            pindexState = pindex->pprev;
+            if (!fClean) {
+                nGoodTransactions = 0;
+                pindexFailure = pindex;
+            } else
+                nGoodTransactions += block.vtx.size();
+        }
+        if (ShutdownRequested())
+            return true;
+    }
+    if (pindexFailure)
+        return error("VerifyDB(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
+
+    // check level 4: try reconnecting blocks
+    if (nCheckLevel >= 4) {
+        CBlockIndex *pindex = pindexState;
+        while (pindex != chainActive.Tip()) {
+            boost::this_thread::interruption_point();
+            uiInterface.ShowProgress(_("Verifying blocks..."), std::max(1, std::min(99, 100 - (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * 50))));
+            pindex = chainActive.Next(pindex);
+            CBlock block;
+            if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+                return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+            if (!ConnectBlock(block, state, pindex, coins))
+                return error("VerifyDB(): *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+        }
+    }
+
+    LogPrintf("No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions);
+
+    return true;
+}
+```
+
+## (P1) Need to manage set of UTXO
+To be able to check if a coin pointed by an input is unspent, 
+we need to maintain the set of UTXO(Unspent transaction output)s.
+
+### src/main.cpp
+```
+/** Apply the effects of this transaction on the UTXO set represented by view */
+void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, int nHeight);
+{
+}
+```
+
+## (P1) Detect hard fork  
+detects a hard fork by looking at block chain proof of work. 
+If a non-upgraded node receives block chain headers 
+demonstrating at least six blocks more proof of work than the best chain it considers valid, 
+the node reports an error in the getinfo RPC results and runs the -alertnotify command if set. 
+
+### src/chain.cpp
+Code that finds a fork. Looks like it is not finding a hard fork though.
+```
+const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
+    if (pindex == NULL) {
+        return NULL;
+    }
+    if (pindex->nHeight > Height())
+        pindex = pindex->GetAncestor(Height());
+    while (pindex && !Contains(pindex))
+        pindex = pindex->pprev;
+    return pindex;
+}
+```
+
+## (P1) prefix coinbase data with block height
+
+## (P2) Implement -alertnotify
+
+## (P1) check if a transaction is a standard one 
+https://bitcoin.org/en/developer-guide#non-standard-transactions
+
+### src/policy/policy.h
+```
+/**
+ * Standard script verification flags that standard transactions will comply
+ * with. However scripts violating these flags may still be present in valid
+ * blocks and we must accept those blocks.
+ */
+static const unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                                         SCRIPT_VERIFY_DERSIG |
+                                                         SCRIPT_VERIFY_STRICTENC |
+                                                         SCRIPT_VERIFY_MINIMALDATA |
+                                                         SCRIPT_VERIFY_NULLDUMMY |
+                                                         SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
+                                                         SCRIPT_VERIFY_CLEANSTACK |
+                                                         SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
+                                                         SCRIPT_VERIFY_LOW_S;
+
+/** For convenience, standard but not mandatory verify flags. */
+static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS;
+
+/** Used as the flags parameter to CheckFinalTx() in non-consensus code */
+static const unsigned int STANDARD_LOCKTIME_VERIFY_FLAGS = LOCKTIME_MEDIAN_TIME_PAST;
+
+bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType);
+    /**
+     * Check for standard transaction types
+     * @return True if all outputs (scriptPubKeys) use only standard transaction forms
+     */
+bool IsStandardTx(const CTransaction& tx, std::string& reason);
+    /**
+     * Check for standard transaction types
+     * @param[in] mapInputs    Map of previous transactions that have outputs we're spending
+     * @return True if all inputs (scriptSigs) use only standard transaction forms
+     */
+bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
+```
+
+## (P1) Check transaction fee 
+https://bitcoin.org/en/developer-guide#transaction-fees-and-change
+
+## (CUT) store peer IPs and ports on disk 
+Why cut? We will have peer IPs and ports on our configuration file, 
+managed by the admin of the private blockchain.
+
+https://bitcoin.org/en/developer-guide#peer-discovery
+
+## (P1) Do IBD if blocks are 1 day or 144 blocks behind
+https://bitcoin.org/en/developer-guide#initial-block-download
+
+## (CUT) get blocks : if no hash matches, send 500 blocks from block1 in Inv.
+Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
+https://bitcoin.org/en/developer-guide#blocks-first 
+
+## (CUT) get blocks : send blocks from the first matching block header hash in get blocks message
+Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
+We need to match with blocks in the best blockchain. 
+why? fork detection https://bitcoin.org/en/developer-guide#blocks-first
+
+## (P1) getheaders : send block headers from the first matching block header hash in getheaders message
+This was not explicitly mentioned in the Bitcoin developer's guide, 
+but the getheaders service should respond with the blocks on the best blockchain. 
+
+why? for fork detection.
+
+## (P2) Add block chain checkpoints
+To know if the blocks received by IBD are on best blockchain as early as possible. 
+https://bitcoin.org/en/developer-guide#blocks-first
+
+## (CUT) blocks-first : Keep orphan blocks in memory. 
+Orphan blocks are stored in memory while they await validation, 
+which may lead to high memory use.  https://bitcoin.org/en/developer-guide#blocks-first
+
+## (P2) Get headers from multiple peers to get the best blockchain 
+It sends a getheaders message to each of its outboundpeers 
+to get their view of best header chain, after receiving all block headers from a sync node. 
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P2) headers-first : parallel block download.
+Request up to 16 blocks at a time from a single peer. 
+Combined with its maximum of 8 outbound connections.
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P2) Parallel download using download window 
+Uses a 1,024-block moving download window to maximize download speed
+
+## (P1) Disconnect stalling nodes during IBD
+Wait a minimum of two more seconds for the stalling node to send the block. 
+If the block still hasn’t arrived, Bitcoin Core will disconnect from the stalling node and 
+attempt to connect to another node.
+
+Currently, we are doing nothing if the sync node which provides blocks or block headers is disconnected.
+We need to detect this case and continue downloading blocks and headers from another sync node.
+
+## (CUT) blocks-first : connect orphan blocks when a parent was received.
+Once the parent of the former orphan block has been validated, 
+it will validate the former orphan block. 
+https://bitcoin.org/en/developer-guide#orphan-blocks
+
+## (Done) Discard orphan blocks while headers-first IBD was running.
+headers-first : each of those headers will point to its parent, 
+so when the downloading node receives the block message, 
+the block shouldn’t be an orphan block. 
+If, despite this, the block received in the block message is an orphan block, 
+a headers-first node will discard it immediately.
+
+## (P2) Ban a peer based on a banscore.
+If a peer gets a banscore above the -banscore=<n> threshold, 
+he will be banned for the number of seconds defined by -bantime=<n>, 
+which is 86,400 by default (24 hours). 
+
+https://bitcoin.org/en/developer-guide#misbehaving-nodes
+
+## (P1) Add Getblocktemplate RPC 
+Their mining software periodically polls bitcoind for new transactions 
+using the getblocktemplate RPC, which provides the list of new transactions plus 
+the public key to which the coinbase transaction should be sent.
+
+## (P1) Add Getblockhash RPC
+Need to get a blockhash by a block height. 
+Need to return the block on the best blockchain in case there is a stale block on a fork. 
+One way to implement this RPC is to have a key/value map with key=block height, value=blockhash,
+but we need to update the mapping whenever the block on the map turned out to be a stale block.
+
+### Summary of Analysis
+The chain of block headers is kept in memory. Each block header is abstracted by CBlockIndex, 
+and the blockchain is a vector containing CBlockIndex from the genesis block(=height 0).
+
+A CBlockIndex contains information necessary to get the raw block data from the blkNNNNN.dat file,
+by having the file number(=NNNNN part of the blkNNNNN.dat file) and offset in the file, 
+where the block is written.
+
+### Need investigation 
+CBlockIndex.nUndoPos ; block's undo data?
+
+### src/main.cpp
+```
+CChain chainActive;
+```
+
+### src/chain.h
+CChain:
+```
+/** An in-memory indexed chain of blocks. */
+class CChain {
+private:
+    std::vector<CBlockIndex*> vChain;
+    ...
+```
+
+CBlockIndex:
+```
+/** The block chain is a tree shaped structure starting with the
+ * genesis block at the root, with each block potentially having multiple
+ * candidates to be the next block. A blockindex may have multiple pprev pointing
+ * to it, but at most one of them can be part of the currently active branch.
+ */
+class CBlockIndex
+{
+public:
+    //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
+    const uint256* phashBlock;
+
+    //! pointer to the index of the predecessor of this block
+    CBlockIndex* pprev;
+
+    //! pointer to the index of some further predecessor of this block
+    CBlockIndex* pskip;
+
+    //! height of the entry in the chain. The genesis block has height 0
+    int nHeight;
+
+    //! Which # file this block is stored in (blk?????.dat)
+    int nFile;
+
+    //! Byte offset within blk?????.dat where this block's data is stored
+    unsigned int nDataPos;
+
+    //! Byte offset within rev?????.dat where this block's undo data is stored
+    unsigned int nUndoPos;
+
+    //! (memory only) Total amount of work (expected number of hashes) in the chain 
+    // up to and including this block
+    arith_uint256 nChainWork;
+
+    //! Number of transactions in this block.
+    //! Note: in a potential headers-first mode, this number cannot be relied upon
+    unsigned int nTx;
+
+    //! (memory only) Number of transactions in the chain up to and including this block.
+    //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
+    //! Change to 64-bit type when necessary; won't happen before 2030
+    unsigned int nChainTx;
+
+    //! Verification status of this block. See enum BlockStatus
+    unsigned int nStatus;
+
+    //! block header
+    int nVersion;
+    uint256 hashMerkleRoot;
+    unsigned int nTime;
+    unsigned int nBits;
+    unsigned int nNonce;
+
+    //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
+    uint32_t nSequenceId;
+    ...
+}
+```
+### src/rpc/blockchain.cpp
+
+```
+UniValue getblockhash(const UniValue& params, bool fHelp)
+{
+    ... 
+    
+    CBlockIndex* pblockindex = chainActive[nHeight];
+    return pblockindex->GetBlockHash().GetHex();
+}
+```
