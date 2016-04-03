@@ -1037,7 +1037,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 ```
 
-## (P2) Advertise address upon receival of Version If not in IBD process.
+## (P2) Advertise address upon the receival of Version If not in IBD process.
 
 ### src/main.cpp
 ```
@@ -1063,10 +1063,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 ```
 
 ## (P2) Implement -alertnotify
-
-## (P2) Add block chain checkpoints
-To know if the blocks received by IBD are on best blockchain as early as possible. 
-https://bitcoin.org/en/developer-guide#blocks-first
 
 ## (P2) Get headers from multiple peers to get the best blockchain 
 It sends a getheaders message to each of its outboundpeers 
