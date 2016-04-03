@@ -437,8 +437,81 @@ const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
 ```
 
 ## (P1) prefix coinbase data with block height
+### src/miner.cpp
+We need to prefix the coinbase data with the block height.
+Need investigation : What is extra nonce in the coinbase data?
+```
+void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
+{
+    // Update nExtraNonce
+    static uint256 hashPrevBlock;
+    if (hashPrevBlock != pblock->hashPrevBlock)
+    {
+        nExtraNonce = 0;
+        hashPrevBlock = pblock->hashPrevBlock;
+    }
+    ++nExtraNonce;
+    unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
+    CMutableTransaction txCoinbase(pblock->vtx[0]);
+    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
+    assert(txCoinbase.vin[0].scriptSig.size() <= 100);
 
-## (P2) Implement -alertnotify
+    pblock->vtx[0] = txCoinbase;
+    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+}
+```
+
+The IncrementExtraNonce is called from BitcoinMiner.
+```
+void static BitcoinMiner(const CChainParams& chainparams)
+{
+    ...
+
+            //
+            // Create new block
+            //
+            unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+            CBlockIndex* pindexPrev = chainActive.Tip();
+
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript));
+            if (!pblocktemplate.get())
+            {
+                LogPrintf("Error in BitcoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+                return;
+            }
+            CBlock *pblock = &pblocktemplate->block;
+            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+    ...
+}
+```
+
+## (P1) check coinbase maturity
+Need to check if the coinbase output used by an input of a transaction is confirmed by more than 100 blocks.
+
+### src/main.cpp
+```
+namespace Consensus {
+bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight)
+{
+        ...
+
+        CAmount nValueIn = 0;
+        CAmount nFees = 0;
+        for (unsigned int i = 0; i < tx.vin.size(); i++)
+        {
+            const COutPoint &prevout = tx.vin[i].prevout;
+            const CCoins *coins = inputs.AccessCoins(prevout.hash);
+            assert(coins);
+
+            // If prev is coinbase, check that it's matured
+            if (coins->IsCoinBase()) {
+                if (nSpendHeight - coins->nHeight < COINBASE_MATURITY)
+                    return state.Invalid(false,
+                        REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
+                        strprintf("tried to spend coinbase at depth %d", nSpendHeight - coins->nHeight));
+            }
+        ...
+```
 
 ## (P1) check if a transaction is a standard one 
 https://bitcoin.org/en/developer-guide#non-standard-transactions
@@ -534,50 +607,15 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
 }// namespace Consensus
 ```
 
-## (CUT) store peer IPs and ports on disk 
-Why cut? We will have peer IPs and ports on our configuration file, 
-managed by the admin of the private blockchain.
-
-https://bitcoin.org/en/developer-guide#peer-discovery
-
 ## (P1) Do IBD if blocks are 1 day or 144 blocks behind
 https://bitcoin.org/en/developer-guide#initial-block-download
 
-## (CUT) get blocks : if no hash matches, send 500 blocks from block1 in Inv.
-Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
-https://bitcoin.org/en/developer-guide#blocks-first 
-
-## (CUT) get blocks : send blocks from the first matching block header hash in get blocks message
-Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
-We need to match with blocks in the best blockchain. 
-why? fork detection https://bitcoin.org/en/developer-guide#blocks-first
 
 ## (P1) getheaders : send block headers from the first matching block header hash in getheaders message
 This was not explicitly mentioned in the Bitcoin developer's guide, 
 but the getheaders service should respond with the blocks on the best blockchain. 
 
 why? for fork detection.
-
-## (P2) Add block chain checkpoints
-To know if the blocks received by IBD are on best blockchain as early as possible. 
-https://bitcoin.org/en/developer-guide#blocks-first
-
-## (CUT) blocks-first : Keep orphan blocks in memory. 
-Orphan blocks are stored in memory while they await validation, 
-which may lead to high memory use.  https://bitcoin.org/en/developer-guide#blocks-first
-
-## (P2) Get headers from multiple peers to get the best blockchain 
-It sends a getheaders message to each of its outboundpeers 
-to get their view of best header chain, after receiving all block headers from a sync node. 
-https://bitcoin.org/en/developer-guide#headers-first
-
-## (P2) headers-first : parallel block download.
-Request up to 16 blocks at a time from a single peer. 
-Combined with its maximum of 8 outbound connections.
-https://bitcoin.org/en/developer-guide#headers-first
-
-## (P2) Parallel download using download window 
-Uses a 1,024-block moving download window to maximize download speed
 
 ## (P1) Disconnect stalling nodes during IBD
 Wait a minimum of two more seconds for the stalling node to send the block. 
@@ -586,25 +624,6 @@ attempt to connect to another node.
 
 Currently, we are doing nothing if the sync node which provides blocks or block headers is disconnected.
 We need to detect this case and continue downloading blocks and headers from another sync node.
-
-## (CUT) blocks-first : connect orphan blocks when a parent was received.
-Once the parent of the former orphan block has been validated, 
-it will validate the former orphan block. 
-https://bitcoin.org/en/developer-guide#orphan-blocks
-
-## (Done) Discard orphan blocks while headers-first IBD was running.
-headers-first : each of those headers will point to its parent, 
-so when the downloading node receives the block message, 
-the block shouldn’t be an orphan block. 
-If, despite this, the block received in the block message is an orphan block, 
-a headers-first node will discard it immediately.
-
-## (P2) Ban a peer based on a banscore.
-If a peer gets a banscore above the -banscore=<n> threshold, 
-he will be banned for the number of seconds defined by -bantime=<n>, 
-which is 86,400 by default (24 hours). 
-
-https://bitcoin.org/en/developer-guide#misbehaving-nodes
 
 ## (P1) Add Getblocktemplate RPC 
 Their mining software periodically polls bitcoind for new transactions 
@@ -713,3 +732,59 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
     return pblockindex->GetBlockHash().GetHex();
 }
 ```
+## (P2) Implement -alertnotify
+
+## (P2) Add block chain checkpoints
+To know if the blocks received by IBD are on best blockchain as early as possible. 
+https://bitcoin.org/en/developer-guide#blocks-first
+
+## (P2) Get headers from multiple peers to get the best blockchain 
+It sends a getheaders message to each of its outboundpeers 
+to get their view of best header chain, after receiving all block headers from a sync node. 
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P2) headers-first : parallel block download.
+Request up to 16 blocks at a time from a single peer. 
+Combined with its maximum of 8 outbound connections.
+https://bitcoin.org/en/developer-guide#headers-first
+
+## (P2) Parallel download using download window 
+Uses a 1,024-block moving download window to maximize download speed
+
+## (P2) Ban a peer based on a banscore.
+If a peer gets a banscore above the -banscore=<n> threshold, 
+he will be banned for the number of seconds defined by -bantime=<n>, 
+which is 86,400 by default (24 hours). 
+
+https://bitcoin.org/en/developer-guide#misbehaving-nodes
+
+## (CUT) store peer IPs and ports on disk 
+Why cut? We will have peer IPs and ports on our configuration file, 
+managed by the admin of the private blockchain.
+
+https://bitcoin.org/en/developer-guide#peer-discovery
+
+## (CUT) get blocks : if no hash matches, send 500 blocks from block1 in Inv.
+Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
+https://bitcoin.org/en/developer-guide#blocks-first 
+
+## (CUT) get blocks : send blocks from the first matching block header hash in get blocks message
+Why cut? We are using headers-first IBD. This is all about blocks-first IBD.
+We need to match with blocks in the best blockchain. 
+why? fork detection https://bitcoin.org/en/developer-guide#blocks-first
+
+## (CUT) blocks-first : connect orphan blocks when a parent was received.
+Once the parent of the former orphan block has been validated, 
+it will validate the former orphan block. 
+https://bitcoin.org/en/developer-guide#orphan-blocks
+
+## (CUT) blocks-first : Keep orphan blocks in memory. 
+Orphan blocks are stored in memory while they await validation, 
+which may lead to high memory use.  https://bitcoin.org/en/developer-guide#blocks-first
+
+## (Done) Discard orphan blocks while headers-first IBD was running.
+headers-first : each of those headers will point to its parent, 
+so when the downloading node receives the block message, 
+the block shouldn’t be an orphan block. 
+If, despite this, the block received in the block message is an orphan block, 
+a headers-first node will discard it immediately.
