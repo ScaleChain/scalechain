@@ -29,16 +29,6 @@ https://bitcoin.org/en/developer-guide#signature-hash-types
 ## (P0) Start IBD with another sync node if one goes offline 
 IBD node should start IBD with another sync node.
 
-## (P0) headers-first : Start block download after getting all headers 
-Download the headers for the best header chain, partially validate them as best as possible, 
-and then download the corresponding blocks in parallel.
-
-Currently we are downloading blocks for each headers response with 2000 headers. 
-We need to download blocks after receiving all headers, and 
-making sure that headers are actually from the best blockchain by asking multiple peers.
-
-https://bitcoin.org/en/developer-guide#headers-first
-
 ## (P0) Add transactions in stale blocks back to mempool
 Transactions which are mined into blocks that 
 later become stale blocks may be added back into the memory pool.  
@@ -610,6 +600,32 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
 ## (P1) Do IBD if blocks are 1 day or 144 blocks behind
 https://bitcoin.org/en/developer-guide#initial-block-download
 
+### src/main.cpp
+```
+/* If the tip is older than this (in seconds), the node is considered to be in initial block download.
+ */
+int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
+
+...
+
+bool IsInitialBlockDownload()
+{
+    const CChainParams& chainParams = Params();
+    LOCK(cs_main);
+    if (fImporting || fReindex)
+        return true;
+    if (fCheckpointsEnabled && chainActive.Height() < Checkpoints::GetTotalBlocksEstimate(chainParams.Checkpoints()))
+        return true;
+    static bool lockIBDState = false;
+    if (lockIBDState)
+        return false;
+    bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
+            pindexBestHeader->GetBlockTime() < GetTime() - nMaxTipAge);
+    if (!state)
+        lockIBDState = true;
+    return state;
+}
+```
 
 ## (P1) getheaders : send block headers from the first matching block header hash in getheaders message
 This was not explicitly mentioned in the Bitcoin developer's guide, 
@@ -721,8 +737,8 @@ public:
     ...
 }
 ```
-### src/rpc/blockchain.cpp
 
+### src/rpc/blockchain.cpp
 ```
 UniValue getblockhash(const UniValue& params, bool fHelp)
 {
@@ -732,6 +748,44 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
     return pblockindex->GetBlockHash().GetHex();
 }
 ```
+
+## (P2) Ignore getheaders if IBD is in progress.
+### src/main.cpp
+```
+bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived) {
+    else if (strCommand == NetMsgType::GETHEADERS) {
+        if (IsInitialBlockDownload() && !pfrom->fWhitelisted) {
+            LogPrint("net", "Ignoring getheaders from peer=%d because node is in initial block download\n", pfrom->id);
+            return true;
+        }
+
+```
+
+## (P2) Advertise address upon receival of Version If not in IBD process.
+
+### src/main.cpp
+```
+bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived) {
+
+    if (strCommand == NetMsgType::VERSION) {
+    
+        // Advertise our address
+        if (fListen && !IsInitialBlockDownload())
+        {
+            CAddress addr = GetLocalAddress(&pfrom->addr);
+            if (addr.IsRoutable())
+            {
+                LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
+                pfrom->PushAddress(addr);
+            } else if (IsPeerAddrLocalGood(pfrom)) {
+                addr.SetIP(pfrom->addrLocal);
+                LogPrintf("ProcessMessages: advertizing address %s\n", addr.ToString());
+                pfrom->PushAddress(addr);
+            }
+        }
+
+```
+
 ## (P2) Implement -alertnotify
 
 ## (P2) Add block chain checkpoints
