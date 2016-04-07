@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage.index
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
-import org.rocksdb.{ReadOptions, Options, RocksDB}
+import org.rocksdb._
 ;
 
 /**
@@ -36,7 +36,6 @@ class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends K
     db.remove(key)
   }
 
-  def close() : Unit = {
   def iterator(cf: ColumnFamilyHandle): RocksIterator = {
     db.newIterator(cf)
   }

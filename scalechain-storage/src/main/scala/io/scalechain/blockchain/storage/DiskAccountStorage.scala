@@ -31,11 +31,8 @@ object DiskAccountStorage {
 
   val transactionCFFileName = "/transaction-cf"
 
-  val accountDirectoryPath = new File("./target/accountdata/")
-  val transactionDirectoryPath = new File("./target/unittests-DiskTransactionStorageSpec/")
-
-  accountDirectoryPath.mkdir()
-  transactionDirectoryPath.mkdir()
+  var accountDirectoryPath : File = null
+  var transactionDirectoryPath : File = null
 
   protected[storage] var accountIndex : AccountDatabase = _
   protected[storage] var accountRecordStorage : AccountRecordStorage = _
@@ -47,7 +44,12 @@ object DiskAccountStorage {
     * open account index (RocksDB with Column Families)
     *
     */
-  def open = {
+  def open(accountDirectory : String, transactionDirectory : String) = {
+
+    accountDirectoryPath = new File(accountDirectory)
+    transactionDirectoryPath = new File(transactionDirectory)
+    accountDirectoryPath.mkdir()
+    transactionDirectoryPath.mkdir()
 
     // 1. open account database with column families
     val dir = new File(accountDirectoryPath.getAbsolutePath)
@@ -55,6 +57,7 @@ object DiskAccountStorage {
       FileUtils.listFiles(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).asInstanceOf[java.util.List[File]]
     var accountExist = false
 
+    // 1.1 getting column families for account
     for(i <- 0 until files.size()) {
       val file = files.get(i)
       val name = file.getName
@@ -73,6 +76,7 @@ object DiskAccountStorage {
     val transactionDir = new File(transactionDirectoryPath.getAbsolutePath)
     val transactionColumnFamilyFileExist = new File(transactionDir + DiskAccountStorage.transactionCFFileName).exists()
 
+    // 2.1 getting column families for transaction
     if(transactionColumnFamilyFileExist) {
       for (columnFamily <- Source.fromFile(transactionDir + DiskAccountStorage.transactionCFFileName).getLines()) {
         DiskAccountStorage.transactionColumnFamilyName.add(columnFamily)
@@ -88,10 +92,10 @@ object DiskAccountStorage {
     transactionStorage = new TransactionRecordStorage(transactionDirectoryPath)
   }
 
-  def create : (AccountDatabase, AccountRecordStorage, TransactionDatabase, TransactionRecordStorage) = {
+  def create(accountDirectory : String, transactionDirectory : String) : (AccountDatabase, AccountRecordStorage, TransactionDatabase, TransactionRecordStorage) = {
 
     if(accountIndex==null)
-      open
+      open(accountDirectory, transactionDirectory)
 
     (accountIndex, accountRecordStorage, transactionIndex, transactionStorage)
   }
@@ -106,7 +110,8 @@ class DiskAccountStorage(accountDirectoryPath : File, transactionDirectoryPath :
   protected[storage] var transactionIndex : TransactionDatabase = _
   protected[storage] var transactionStorage : TransactionRecordStorage = _
 
-  val (singleAccountIndex, singleAccountRecordStorage, singleTransactionIndex, singleRransactionStorage) = DiskAccountStorage.create
+  val (singleAccountIndex, singleAccountRecordStorage, singleTransactionIndex, singleRransactionStorage)
+  = DiskAccountStorage.create(accountDirectoryPath.getAbsolutePath, transactionDirectoryPath.getAbsolutePath)
   accountIndex = singleAccountIndex
   accountRecordStorage = singleAccountRecordStorage
   transactionIndex = singleTransactionIndex

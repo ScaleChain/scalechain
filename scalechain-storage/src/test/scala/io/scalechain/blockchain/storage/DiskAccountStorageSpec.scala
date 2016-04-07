@@ -23,28 +23,16 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   var accountTestPath : File = null
   var transactionTestPath : File = null
 
-  override def beforeEach() {
+  transactionTestPath = new File("./target/unittests-DiskTransactionStorageSpec/")
+  accountTestPath = new File("./target/unittests-DiskAccountStorageSpec/")
 
-    transactionTestPath = new File("./target/unittests-DiskTransactionStorageSpec/")
-    accountTestPath = new File("./target/unittests-DiskAccountStorageSpec/")
+  FileUtils.deleteDirectory(transactionTestPath)
+  FileUtils.deleteDirectory(accountTestPath)
+  transactionTestPath.mkdir()
+  accountTestPath.mkdir()
 
-    FileUtils.deleteDirectory(transactionTestPath)
-    FileUtils.deleteDirectory(accountTestPath)
-    transactionTestPath.mkdir()
-    accountTestPath.mkdir()
-
-    DiskAccountStorage.columnFamilyName = new ArrayList[String]
-    storage = new DiskAccountStorage(accountTestPath, transactionTestPath)
-    storage.open
-
-    super.beforeEach()
-  }
-
-  override def afterEach() {
-    super.afterEach()
-
-    storage.close()
-  }
+  DiskAccountStorage.columnFamilyName = new ArrayList[String]
+  storage = new DiskAccountStorage(accountTestPath, transactionTestPath)
 
   "putNewAddress" should "pass case 1 : append new address info to record & put new address info to index" in {
     val account = "account"
@@ -66,8 +54,8 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   }
 
   "putNewAddress" should "pass case 2 : create new record and append new account info & put new address info to index" in {
-    val account = "account"
-    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val account = "account2"
+    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcuc"
     val publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
     val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
@@ -105,8 +93,8 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
 
   "getAccount" should "return account name associated with address" in {
 
-    val account = "account"
-    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val account = "account1"
+    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcud"
     val publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
     val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
@@ -119,13 +107,13 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
 
   "getAccount" should "return None if there is no account associated with address" in {
 
-    val account1 = "account"
-    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val account1 = "account3"
+    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcuf"
     val publicKey1 = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
     val privateKey1 = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose1 = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
 
-    val address2 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5bbbb"
+    val address2 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5bbb2"
 
     storage.accountIndex.existAccount(account1) shouldBe false
     storage.putNewAddress(account1, address1, purpose1, publicKey1, privateKey1) shouldBe Some(address1)
@@ -136,13 +124,13 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
 
   "getReceiveAddress" should "return address for receiving payments" in {
 
-    val account = "account"
-    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val account = "account5"
+    val address1 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcub"
     val publicKey1 = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
     val privateKey1 = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose1 = AccountDatabase.ADDRESS_RECEIVED_PURPOSE
 
-    val address2 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5bbbb"
+    val address2 = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5bbbs"
     val publicKey2 = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863d1234")
     val privateKey2 = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa2331234")
     val purpose2 = AccountDatabase.ADDRESS_UNKNOWN_PURPOSE
@@ -158,8 +146,8 @@ class DiskAccountStorageSpec extends FlatSpec with BeforeAndAfterEach with Shoul
 
   "getReceiveAddress" should "return new address if there is no address not yet received" in {
 
-    val account = "account"
-    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcum"
+    val account = "account6"
+    val address = "12n9PRqdYQp9DPGV9yghbJHsoMZcd5xcu8"
     val publicKey = bytes("0210a8167c757b3f6277506ed016ebdbcc1003eb62f72b378e05776287863db2d7")
     val privateKey = bytes("d8b7ee1319be14a5e2b0b89d5c3ba9d3dfc820e5944ae730e9f1875fa23355f9")
     val purpose = AccountDatabase.ADDRESS_RECEIVED_PURPOSE

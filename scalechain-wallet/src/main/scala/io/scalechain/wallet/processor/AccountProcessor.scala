@@ -38,7 +38,6 @@ class AccountProcessor() extends Actor {
 
   // TODO : change target directory for wallet transaction
   val accountStorage = new DiskAccountStorage(new File("./target/accountdata/"), new File("./target/unittests-DiskTransactionStorageSpec/"))
-  accountStorage.open
 
   def receive : Receive = {
 
