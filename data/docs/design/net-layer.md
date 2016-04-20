@@ -14,13 +14,13 @@ On the next stage, we can filter out all None values.
 ## Source with mutable sequence
 We need to be able to send messages to an existing connection(stream). 
 
-### Option 1 : Source.fromIterator(ConcurrentLinkedQueue)
+### Option 1 : Source.fromIterator(LinkedBlockingQueue)
 
 Simply, this does not work. Source.fromIterator creates an immutable iterator based on the mutable iterator.
 It views the elements by the time the mutable iterator was passed to the fromIterator method.
 ```
-We will use ConcurrentLinkedQueue to create a source w/ Source.fromIterator.
-https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ConcurrentLinkedQueue.html
+We will use LinkedBlockingQueue to create a source w/ Source.fromIterator.
+https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/LinkedBlockingQueue.html
 
 We need a concurrent queue, as the queue should be accessible by multiple threads.
 ```
@@ -30,7 +30,7 @@ We need a concurrent queue, as the queue should be accessible by multiple thread
 Source.queue materializes SourceQueue, but not sure if it is thread-safe.
 Because it is not sure, we won't choose this option.
 
-### Option 3 : Implement SourceGraph that materializes ConcurrentLinkedQueue
+### Option 3 : Implement SourceGraph that materializes LinkedBlockingQueue
 
 We will create a ConcurrentQueueSource, which create a Source[T, ConcurrentQueueSource[T]].
 Multiple threads can pass items to the materialized queue.

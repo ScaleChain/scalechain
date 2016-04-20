@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 import akka.actor.{ActorSystem}
 import akka.stream.Materializer
@@ -34,7 +34,7 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerS
   println(s"Connecting to server : $peerAddress")
 
   val peerLogicFlow = PeerLogic.flow(remoteAddress)
-  val (outgoingConnection : Future[Tcp.OutgoingConnection], sendQueue:ConcurrentLinkedQueue[ProtocolMessage]) = connection.joinMat(peerLogicFlow)(Keep.both).run()
+  val (outgoingConnection : Future[Tcp.OutgoingConnection], sendQueue:LinkedBlockingQueue[ProtocolMessage]) = connection.joinMat(peerLogicFlow)(Keep.both).run()
 
   import scala.concurrent.ExecutionContext.Implicits.global
   outgoingConnection.onComplete {

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.CollectionUtil
@@ -46,7 +46,7 @@ class PeerSet {
     }
   }
 */
-  def add(remoteAddress : InetSocketAddress, sendQueue : ConcurrentLinkedQueue[ProtocolMessage]) = {
+  def add(remoteAddress : InetSocketAddress, sendQueue : LinkedBlockingQueue[ProtocolMessage]) = {
     synchronized {
       // BUGBUG : Make sure if it is ok to overwrite the original (existing) peer with the new peer.
       peerByAddress.put(remoteAddress, Peer(sendQueue) )

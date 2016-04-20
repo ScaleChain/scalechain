@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -37,7 +37,7 @@ class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerS
 
     val peerLogicFlow = PeerLogic.flow( connection.remoteAddress )
 
-    val sendQueue:ConcurrentLinkedQueue[ProtocolMessage] = connection.handleWith( peerLogicFlow )
+    val sendQueue:LinkedBlockingQueue[ProtocolMessage] = connection.handleWith( peerLogicFlow )
 
     // Register the connected peer to the peer set.
     peerSet.add(connection.remoteAddress, sendQueue)

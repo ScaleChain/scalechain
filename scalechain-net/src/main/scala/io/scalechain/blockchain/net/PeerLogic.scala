@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 import akka.stream.FlowShape
 import akka.stream.scaladsl.{Merge, GraphDSL, Flow, Source}
@@ -16,9 +16,9 @@ object PeerLogic {
   * Created by kangmo on 2/14/16.
   */
 class PeerLogic {
-  def getFlow(remoteAddress: InetSocketAddress) : Flow[ByteString, ByteString, ConcurrentLinkedQueue[ProtocolMessage]] = {
+  def getFlow(remoteAddress: InetSocketAddress) : Flow[ByteString, ByteString, LinkedBlockingQueue[ProtocolMessage]] = {
 
-    val requester : Source[ProtocolMessage, ConcurrentLinkedQueue[ProtocolMessage]]
+    val requester : Source[ProtocolMessage, LinkedBlockingQueue[ProtocolMessage]]
       = ConcurrentQueueSource.create[ProtocolMessage]
 
     val protocolDecoder = new ProtocolDecoder()

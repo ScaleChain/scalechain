@@ -1,16 +1,18 @@
 package io.scalechain.blockchain.net.graphs
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 
 import akka.stream.{Graph, Attributes, Outlet, SourceShape}
 import akka.stream.scaladsl._
-import akka.stream.stage.{GraphStageWithMaterializedValue, OutHandler, GraphStageLogic}
+import akka.stream.stage.{AsyncCallback, GraphStageWithMaterializedValue, OutHandler, GraphStageLogic}
+
+import scala.concurrent.Future
 
 
 object ConcurrentQueueSource {
-  def create[T] : Source[T, ConcurrentLinkedQueue[T]] = {
+  def create[T] : Source[T, LinkedBlockingQueue[T]] = {
 
-    val sourceGraph : Graph[SourceShape[T], ConcurrentLinkedQueue[T]] = new ConcurrentQueueSource[T]()
+    val sourceGraph : Graph[SourceShape[T], LinkedBlockingQueue[T]] = new ConcurrentQueueSource[T]()
 
     Source.fromGraph(sourceGraph)
   }
@@ -20,18 +22,37 @@ object ConcurrentQueueSource {
   * All elements put into the queue is emit by the source.
   */
 class ConcurrentQueueSource[T](outletName : String = "ConcurrentQueueSource")
-  extends GraphStageWithMaterializedValue[SourceShape[T], ConcurrentLinkedQueue[T]] {
+  extends GraphStageWithMaterializedValue[SourceShape[T], LinkedBlockingQueue[T]] {
 
   val out : Outlet[T] = Outlet(outletName)
 
   override val shape : SourceShape[T] = SourceShape(out)
 
-  override def createLogicAndMaterializedValue(inheritedAttributes : Attributes) : (GraphStageLogic, ConcurrentLinkedQueue[T]) = {
+  override def createLogicAndMaterializedValue(inheritedAttributes : Attributes) : (GraphStageLogic, LinkedBlockingQueue[T]) = {
     val logic = new GraphStageLogic(shape) {
-      val queue = new ConcurrentLinkedQueue[T]()
+      var onQueueItem : AsyncCallback[T] = null
+
+      override def preStart(): Unit = {
+        onQueueItem = getAsyncCallback[T]({ value : T =>
+          push(out, value)
+        })
+      }
+
+      // BUGBUG : The queue is unbound. Should we limit the size of the queue to avoid NotEnoughMemoryException?
+      val queue = new LinkedBlockingQueue[T]()
+
       setHandler( out, new OutHandler {
         override def onPull() : Unit = {
-          if (!queue.isEmpty) {
+          if (queue.isEmpty) { // The queue is empty.
+            import scala.concurrent.ExecutionContext.Implicits.global
+            Future {
+              // Wait for an item forever.
+              queue.poll(Integer.MAX_VALUE, TimeUnit.DAYS )
+            } onSuccess {
+              // When an item was arrived, invoke the onQueueItem callback, which pushes the queue item.
+              case value => onQueueItem.invoke(value)
+            }
+          } else {
             val value = queue.poll()
             push(out, value)
           }
