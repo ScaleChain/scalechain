@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 
 object ServerRequester {
-  val PING_INTERVAL_SECONDS = 1
+  val PING_INTERVAL_SECONDS = 10
 
   case object SendPing
   case object RequestDenied
@@ -32,7 +32,7 @@ class ServerRequester extends ActorPublisher[List[ProtocolMessage]] {
   // BUGBUG : The ping schedule should be created
   val pingSchedule = context.system.scheduler.schedule( initialDelay = 30 second, interval = PING_INTERVAL_SECONDS second, self, ServerRequester.SendPing)
 
-  // We need to canel the ping schedule right before this actor stops.
+  // We need to cancel the ping schedule right before this actor stops.
   // http://doc.akka.io/docs/akka/current/scala/howto.html#Scheduling_Periodic_Messages
   override def postStop() = pingSchedule.cancel
 
