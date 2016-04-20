@@ -1,22 +1,16 @@
 package io.scalechain.blockchain.api
 
-import io.scalechain.blockchain.net.processor.{TransactionProcessor, BlockProcessor}
+import io.scalechain.blockchain.net.PeerSet
 import io.scalechain.blockchain.net.service.{MempoolService, PeerService, BlockDatabaseService}
-import io.scalechain.blockchain.net.PeerBroker
 import io.scalechain.blockchain.proto.{Transaction, Hash}
-import io.scalechain.blockchain.storage.DiskBlockStorage
-import io.scalechain.blockchain.transaction.TransactionVerifier
 
 /**
   * Created by kangmo on 3/15/16.
   */
 object SubSystem {
-  val peerService = new PeerService( PeerBroker.get )
-  val blockDatabaseService = new BlockDatabaseService( BlockProcessor.get )
-  val mempoolService = new MempoolService( TransactionProcessor.get )
-
-  // BUGBUG : Make sure if we are ok with the thread-safety.
-  val readOnlyBlockDatabase = BlockProcessor.get
+  val blockDatabaseService = new BlockDatabaseService()
+  val mempoolService = new MempoolService()
+  val peerService = new PeerService(PeerSet.get)
 
   def getTransaction(txHash : Hash ) : Option[Transaction] = {
     // Step 1 : Search mempool.

@@ -91,19 +91,13 @@ object ScaleChainPeer extends JsonRpc {
 
     implicit val materializer = ActorMaterializer()
 
-    /** The peer broker that keeps multiple PeerNode(s) and routes messages based on the origin address of the message.
+    /** The peer set that keeps multiple PeerNode(s).
       */
-    val peerBroker = PeerBroker.create(system)
-
-    /** The domain message router receives messages from all peers.
-      * The ProtocolMessageTransformer in the TCP connection flow sends
-      * all received domain messages such as Tx, Block, Inv, BlockHeader to the domain message router.
-      */
-    val domainMessageRouter = system.actorOf(DomainMessageRouter.props(peerBroker), "domainMessageRouter")
+    val peerSet = PeerSet.create
 
     /** The consumer that opens an inbound port, and waits for connections from other peers.
       */
-    val server = StreamServerLogic(system, materializer, peerBroker, domainMessageRouter, new InetSocketAddress("127.0.0.1", params.inboundPort))
+    val server = StreamServerLogic(system, materializer, peerSet, new InetSocketAddress("127.0.0.1", params.inboundPort))
 
 /*  // Currently the we use RocksDB, so commented out the code to sleep 30 seconds to wait for the cassandra to start up.
     // Wait for the cassandra starts up.
@@ -118,7 +112,7 @@ object ScaleChainPeer extends JsonRpc {
     peers.map { peer =>
       if (!isMyself(peer)) {
         val peerAddress = new InetSocketAddress(peer.address, peer.port)
-        val client = StreamClientLogic(system, materializer, peerBroker, domainMessageRouter, peerAddress)
+        val client = StreamClientLogic(system, materializer, peerSet, peerAddress)
 
         // Send StartPeer message to the peer, so that it can initiate the node start-up process.
         //peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )

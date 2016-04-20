@@ -1,11 +1,10 @@
 package io.scalechain.blockchain.net.service
 
-import akka.actor.ActorRef
-import akka.pattern.ask
+import java.net.InetSocketAddress
+
 import akka.util.Timeout
-import io.scalechain.blockchain.net.PeerBroker
-import io.scalechain.blockchain.net.PeerBroker.GetPeerInfoResult
-import io.scalechain.blockchain.proto.{Block, Transaction, TransactionHash}
+import io.scalechain.blockchain.net.{PeerSet, Peer}
+import io.scalechain.blockchain.proto.{Block, Transaction}
 import spray.json.JsObject
 
 import scala.concurrent._
@@ -65,8 +64,19 @@ case class PeerInfo(
 )
 
 
+object PeerInfo {
+  def create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo = {
+    PeerInfo(
+      id=peerIndex,
+      addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
+      version=peer.versionOption.map(_.version),
+      subver=peer.versionOption.map(_.userAgent)
+    )
+  }
+}
+
 // [Net Layer] Send requests to peers, get information about peers.
-class PeerService(broker : ActorRef) {
+class PeerService(peerSet : PeerSet) {
   implicit val timeout = Timeout(60 seconds)
 
   /** List of responses for submitblock RPC.
@@ -102,7 +112,9 @@ class PeerService(broker : ActorRef) {
     */
   def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
     // BUGBUG : allowHighFees is not used.
-    broker ! PeerBroker.SendToAll(transaction)
+    peerSet.all() foreach { peer =>
+      peer.send(transaction)
+    }
   }
 
   /** Get the list of information on each peer.
@@ -112,7 +124,16 @@ class PeerService(broker : ActorRef) {
     * @return The list of peer information.
     */
   def getPeerInfos() : List[PeerInfo] = {
-    val resultFuture = ( broker ? PeerBroker.GetPeerInfo() ).mapTo[GetPeerInfoResult]
-    Await.result(resultFuture, Duration.Inf).peerInfos
+
+    var peerIndex = 0;
+
+    val peerInfosIter = for (
+      (address, peer) <- peerSet.peers()
+    ) yield {
+      peerIndex += 1
+      PeerInfo.create(peerIndex, address, peer)
+    }
+
+    peerInfosIter.toList
   }
 }

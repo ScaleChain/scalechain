@@ -1,20 +1,15 @@
 package io.scalechain.blockchain.net.service
 
-import akka.actor.ActorRef
-import akka.pattern.ask
 import akka.util.Timeout
-import io.scalechain.blockchain.net.processor.BlockProcessor
-import io.scalechain.blockchain.net.processor.BlockProcessor.{PutBlockResult}
 import io.scalechain.blockchain.proto.{BlockInfo, Transaction, Block, Hash}
 import io.scalechain.blockchain.storage.DiskBlockStorage
 
-import scala.concurrent._
 import scala.concurrent.duration._
 
 /**
   * Created by kangmo on 3/15/16.
   */
-class BlockDatabaseService(blockProcessor : ActorRef) {
+class BlockDatabaseService() {
   implicit val timeout = Timeout(60 seconds)
 
   /** Put a block on the block database.
@@ -23,8 +18,7 @@ class BlockDatabaseService(blockProcessor : ActorRef) {
     * @return true if the block was a new one without any previous block header or block. false otherwise.
     */
   def putBlock(block : Block) : Boolean = {
-    val resultFuture = ( blockProcessor ? BlockProcessor.PutBlock(block) ).mapTo[PutBlockResult]
-    Await.result(resultFuture, Duration.Inf).isNewBlock
+    DiskBlockStorage.get.putBlock(block)
   }
 
   /** Get a block searching by the header hash.

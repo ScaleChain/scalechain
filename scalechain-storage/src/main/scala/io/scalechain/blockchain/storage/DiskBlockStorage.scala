@@ -10,7 +10,7 @@ import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory
 
 
-// A version Using DiskBlockStorage
+// A version Using RocksDB
 object DiskBlockStorage {
   val MAX_FILE_SIZE = 1024 * 1024 * 100
   //val MAX_FILE_SIZE = 1024 * 1024 * 1

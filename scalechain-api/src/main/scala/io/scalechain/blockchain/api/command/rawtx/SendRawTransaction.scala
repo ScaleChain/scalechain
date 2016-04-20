@@ -86,6 +86,7 @@ object SendRawTransaction extends RpcCommand {
       }
     }
   }
+
   def help() : String =
     """sendrawtransaction "hexstring" ( allowhighfees )
       |
