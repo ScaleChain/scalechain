@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.domain
 
 import io.scalechain.blockchain.{ErrorCode, RpcException}
-import spray.json._
 import spray.json.DefaultJsonProtocol._
+import spray.json._
 
 trait ParameterValidator[T] {
   def validate(paramName : String, paramIndex : Int, paramValue : T) : Unit

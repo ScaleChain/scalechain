@@ -1,7 +1,5 @@
 package io.scalechain.blockchain.api.domain
 
-import io.scalechain.blockchain.{RpcException, ErrorCode}
-
 // TODO : Make sure the format matches the one used by Bitcoin.
 case class RpcError(code : Int, message : String, data : String)
 

@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.domain
 
 import org.scalatest._
-import spray.json._
 import spray.json.DefaultJsonProtocol.StringJsonFormat
+import spray.json._
 
 /**
   * Test cases for validating our assumptions on spray.io

@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.domain
 
 import org.scalatest._
-import spray.json._
 import spray.json.DefaultJsonProtocol._
+import spray.json._
 
 class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
   this: Suite =>

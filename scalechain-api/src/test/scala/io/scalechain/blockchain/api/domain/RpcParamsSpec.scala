@@ -3,7 +3,7 @@ package io.scalechain.blockchain.api.domain
 import io.scalechain.blockchain.{ErrorCode, RpcException}
 import org.scalatest._
 import spray.json.DefaultJsonProtocol._
-import spray.json.{JsNumber, JsString, JsArray}
+import spray.json.{JsArray, JsNumber, JsString}
 
 /**
   * Created by kangmo on 2/25/16.
@@ -23,8 +23,6 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers
     // tear-down code
     //
   }
-
-  import RpcParamsJsonFormat._
 
   "getListOption" should "return some list if the parameter exists" in {
     val arguments = List( // array of parameters

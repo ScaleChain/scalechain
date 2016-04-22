@@ -43,7 +43,7 @@ class BlockDatabaseService() {
   }
 
 
-  /** Get a transaction searching by the header hash.
+  /** Get a transaction searching by the transaction hash.
     *
     * Used by : gettransaction RPC.
     *
