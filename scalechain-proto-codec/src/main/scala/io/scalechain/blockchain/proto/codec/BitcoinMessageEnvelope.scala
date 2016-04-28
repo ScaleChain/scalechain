@@ -76,7 +76,8 @@ case class BitcoinMessageEnvelope(
 case class BitcoinConfiguration( magic : Magic )
 
 object BitcoinConfiguration {
-  val config = BitcoinConfiguration(Magic.MAIN)
+//  val config = BitcoinConfiguration(Magic.MAIN)
+  val config = BitcoinConfiguration(Magic.TESTNET3)
 }
 
 object BitcoinMessageEnvelope {

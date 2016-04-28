@@ -142,7 +142,7 @@ class BlockProcessor(peerBroker : ActorRef) extends Actor {
         blockStorage.putBlock(block)
 
         // Verify the block.
-        new BlockVerifier(block).verify(DiskBlockStorage.get)
+//        new BlockVerifier(block).verify(DiskBlockStorage.get)
 
       } else {
         logger.warn(s"The previous block data is not found yet. Discarding block. Header : ${block.header}")
