@@ -9,6 +9,7 @@ case class Account(name:String) {
     * @return The coin address for receiving payments.
     */
   def getReceivingAddress : CoinAddress = {
+
     // TODO : Implement
     assert(false)
     null
@@ -21,6 +22,7 @@ case class Account(name:String) {
     * @return the new address for receiving payments.
     */
   def newAddress : CoinAddress = {
+
     // TODO : Implement
     assert(false)
     null
