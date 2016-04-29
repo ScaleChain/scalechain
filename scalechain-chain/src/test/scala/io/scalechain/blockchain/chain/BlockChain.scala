@@ -3,6 +3,9 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto.Block
 
 /** Maintain the best blockchain, whose chain work is the biggest one.
+  *
+  * [ Overview ]
+  *
   * The chain work for a block is the total number of hash calculations from block 0 to the current best block.
   *
   * For example, if we calculated hashes 10, 20, 15 times for three blocks B0, B1, and B2, the chain work is 45(10+20+15).
@@ -44,8 +47,55 @@ import io.scalechain.blockchain.proto.Block
   *
   */
 class BlockChain {
+
+  /** The descriptor of the best block.
+    * This value is updated whenever a new best block is found.
+    * We also have to check if we need to do block reorganization whenever this field is updated.
+    */
+  var theBestBlock : BlockDescriptor = null
+
   def putBlock(block:Block) : Unit = {
     // TODO : Implement
     assert(false)
+
+    /*
+    // Step 1 : Check if the previous block of the new block is the current best block.
+    // Step 2 : We need block reorganization
+    */
+  }
+}
+
+
+/** Wraps a block, maintains additional information such as chain work.
+  *
+  * We need to maintain the chain work(the total number of hash calculations from the genesis block up to a block) for each block.
+  * Based on the chain work, we will decide the best blockchain.
+  *
+  * We will keep a tree of blocks by keeping the previous block in the current block.
+  *
+  * @param previousBlock The block descriptor of the previous block of the this block.
+  * @param block The block we are going to wrap.
+  */
+case class BlockDescriptor(previousBlock : BlockDescriptor, block : Block) {
+  /** The total number of hash calculations from the genesis block.
+    */
+  val chainWork : Long = previousBlock.chainWork + getHashCalculations(block)
+
+  /** The height of the current block. The genesis block has height 0.
+    */
+  val height : Long = previousBlock.height + 1
+
+  /** Calculate the estimated number of hash calculations for a block.
+    *
+    * @param block The block to calculate the estimated number of hashes.
+    * @return The estimated number of hash calculations for the given block.
+    */
+  protected def getHashCalculations(block : Block) : Long = {
+    // TODO : Implement
+    assert(false)
+    // Step 1 : Calculate the block hash
+
+    // Step 2 : Calculate the (estimated) number of hash calculations based on the hash value.
+    0
   }
 }
