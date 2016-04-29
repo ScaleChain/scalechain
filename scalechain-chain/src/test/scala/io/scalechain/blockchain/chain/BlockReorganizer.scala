@@ -2,8 +2,8 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.Transaction
 
-/**
-  * Reorganizes blocks based on the chain work(the total number of hash calculations from the genesis block).
+/** Reorganizes blocks based on the chain work(the total number of hash calculations from the genesis block).
+  * 
   */
 class BlockReorganizer {
 

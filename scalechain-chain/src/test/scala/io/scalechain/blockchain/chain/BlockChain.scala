@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.Block
 
-/** Maintain the best blockchain, whose chain work is the biggest one.
+/** Maintains the best blockchain, whose chain work is the biggest one.
   *
   * [ Overview ]
   *
