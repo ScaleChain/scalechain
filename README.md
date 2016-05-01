@@ -27,7 +27,7 @@ Releases
 
 Planned release dates
 =====================
-* Milestone 3 ; April 30, 2016 - Plugin Configuration; Support customizable plugins 
+* Milestone 3 ;   May 30, 2016 - Plugin Configuration; Support customizable plugins 
 * Milestone 4 ;  July 31, 2016 - Turing Complete ; Support loop operations. Private blockchain only.  
 * Milestone 5 ;   Oct 30, 2016 - Data sharding ; Data partitioning across P2P nodes. Private blockchain only.
 
