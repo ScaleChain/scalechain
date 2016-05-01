@@ -54,6 +54,35 @@ case class TransactionHash(value : ByteArray) extends AbstractHash(value) {
   override def toString() = s"TransactionHash($value)"
 }
 
+object BlockHeader {
+  /** Get the encoded difficulty bits to put into the block header from the minimum block hash.
+    *
+    * For encoding/decoding the difficulty bits in the block header, see the following link.
+    *
+    * https://en.bitcoin.it/wiki/Difficulty
+    * @param minBlockHash The minimum block hash.
+    * @return The encoded difficulty. ( 4 byte integer )
+    */
+  def encodeDifficulty(minBlockHash : BlockHash) : Long = {
+    // TODO : Implement
+    assert(false)
+    -1L
+  }
+
+  /** Get the minimum block hash from the encoded difficulty bits.
+    *
+    * For encoding/decoding the difficulty bits in the block header, see the following link.
+    *
+    * @param target
+    * @return
+    */
+  def decodeDifficulty(target : Long) : BlockHash = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+}
+
 case class BlockHeader(version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, timestamp : Long, target : Long, nonce : Long)  extends ProtocolMessage {
   override def toString() : String = {
     s"BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, timestamp=${timestamp}L, target=${target}L, nonce=${nonce}L)"
@@ -153,6 +182,12 @@ case class Transaction(val version : Int,
     else
       s"Transaction(version=$version, inputs=List(${inputs.mkString(",")}), outputs=List(${outputs.mkString(",")}), lockTime=${lockTime}L)"
   }
+}
+
+object Block {
+  // Need to move these to configurations.
+  val VERSION = 1
+  val MAX_SIZE = 1024 * 1024
 }
 
 /** The block message is sent in response to a getdata message

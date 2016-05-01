@@ -51,4 +51,15 @@ class TransientTransactionStorage {
   def exists(txHash : Hash): Boolean = {
     transactionsByHash.get(txHash).isDefined
   }
+
+  /** Get transactions whose input transactions all exist and signatures are valid.
+    * This method is used to get the list of transactions to put into a newly created block.
+    *
+    * @return A sequence of transactions.
+    */
+  def getValidTransactions() : Seq[Transaction] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
 }
