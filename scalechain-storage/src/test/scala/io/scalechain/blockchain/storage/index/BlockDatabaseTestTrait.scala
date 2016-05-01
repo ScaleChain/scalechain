@@ -2,7 +2,7 @@ package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{CodecTestUtil}
-import io.scalechain.blockchain.storage.TestData
+import io.scalechain.blockchain.storage.test.TestData
 import io.scalechain.util.HexUtil._
 import org.scalatest._
 

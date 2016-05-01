@@ -1,6 +1,6 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.chain.mempool
 
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.storage.test.TestData
 import org.scalatest._
 
 /**
@@ -10,8 +10,6 @@ class TransientTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach w
   this: Suite =>
 
   import TestData._
-
-  Storage.initialize()
 
   var storage : TransientTransactionStorage = null
   override def beforeEach() {

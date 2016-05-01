@@ -1,6 +1,6 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.chain.mempool
 
-import io.scalechain.blockchain.proto.{Hash, TransactionHash, Transaction}
+import io.scalechain.blockchain.proto.{Transaction, Hash}
 import io.scalechain.blockchain.script.HashCalculator
 
 import scala.collection.mutable
@@ -49,7 +49,7 @@ class TransientTransactionStorage {
     * @return true if the transaction exists. false otherwise.
     */
   def exists(txHash : Hash): Boolean = {
-    transactionsByHash.get(txHash).isDefined
+    transactionsByHash.contains(txHash)
   }
 
   /** Get transactions whose input transactions all exist and signatures are valid.

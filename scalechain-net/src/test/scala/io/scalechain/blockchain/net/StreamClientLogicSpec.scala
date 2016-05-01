@@ -16,17 +16,16 @@ with WordSpecLike with ShouldMatchers with BeforeAndAfterEach with BeforeAndAfte
 
   val REMOTE_ADDRESS = new InetSocketAddress( InetAddress.getByName("localhost"), 8333)
 
+
   var clientLogic : StreamClientLogic = null
-  var peerBrokerProbe : TestProbe = null
-  var domainMessageRouterProbe : TestProbe = null
+  var peerSet : PeerSet = null
 
   override def beforeEach() {
     // set-up code
     //
-    peerBrokerProbe = TestProbe()
-    domainMessageRouterProbe = TestProbe()
+    peerSet = new PeerSet()
 
-    clientLogic = StreamClientLogic(system, ActorMaterializer(), peerBrokerProbe.ref, domainMessageRouterProbe.ref, REMOTE_ADDRESS)
+    clientLogic = StreamClientLogic(system, ActorMaterializer(), peerSet, REMOTE_ADDRESS)
     super.beforeEach()
   }
 

@@ -5,6 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.proto.BlockHash
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.index.CassandraDatabase
+import io.scalechain.blockchain.storage.test.TestData
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.scalatest.{BeforeAndAfterAll, Suite, BeforeAndAfterEach}

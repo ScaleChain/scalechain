@@ -8,8 +8,9 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.{FileRecordLocator, RecordLocator}
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
-import io.scalechain.blockchain.storage.{TestData, Storage}
+import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.storage.index.{RocksDatabase, BlockDatabase}
+import io.scalechain.blockchain.storage.test.TestData
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 

@@ -5,7 +5,8 @@ import java.io.File
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.{TestData, TransactionLocator, Storage}
+import io.scalechain.blockchain.storage.test.TestData
+import io.scalechain.blockchain.storage.{TransactionLocator, Storage}
 import io.scalechain.io.HexFileLoader
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils

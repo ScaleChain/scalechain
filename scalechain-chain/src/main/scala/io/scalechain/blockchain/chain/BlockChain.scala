@@ -1,8 +1,11 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.{GenesisBlock, TransientTransactionStorage}
+import io.scalechain.blockchain.storage.GenesisBlock
+
+import io.scalechain.blockchain.chain.mempool.TransientTransactionStorage
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -55,7 +58,7 @@ import scala.collection.mutable.ListBuffer
   * the block chain later when a new block is created.
   *
   */
-class BlockChain {
+class Blockchain {
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -73,7 +76,7 @@ class BlockChain {
 
   /** The in-memory index where we search blocks and transactions.
     */
-  val chainIndex = new Index()
+  val chainIndex = new BlockchainIndex()
 
   /** Put a block onto the blockchain.
     *

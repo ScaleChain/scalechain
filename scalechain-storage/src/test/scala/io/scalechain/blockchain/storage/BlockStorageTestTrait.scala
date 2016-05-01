@@ -2,7 +2,8 @@ package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto.{BlockHash, Hash, TransactionHash}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.TestData._
+import io.scalechain.blockchain.storage.test.TestData
+import TestData._
 import org.scalatest._
 
 /**

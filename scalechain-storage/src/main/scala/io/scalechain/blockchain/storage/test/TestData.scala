@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.storage.test
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
