@@ -63,100 +63,6 @@ class BlockChain {
     */
   var theBestBlock : BlockDescriptor = null
 
-  /** Keeps a list of blocks.
-    */
-  class Blocks {
-    /** The list of blocks to keep.
-      */
-    private val blocks = ListBuffer[Block]()
-
-    /** Put a block on the list of blocks.
-      *
-      * @param block The block to put.
-      */
-    def putBlock( block : Block) : Unit = {
-      blocks += block
-    }
-
-    /** Get the list of blocks we are keeping.
-      *
-      * @return The list of blocks.
-      */
-    def getBlockList() = blocks.toList
-  }
-
-  /** Keep a list of orphan blocks for each (missing) parent block.
-    * Whenever we receive a block, it is kept in OrphanBlocks if its parent is not received yet.
-    */
-  class OrphanBlocks {
-    /** Keep a list of blocks that has the same parent block.
-      */
-    private val blocksByParentHash = mutable.HashMap[BlockHash, Blocks]()
-
-    /** Put a block as an orphan of a specific parent.
-      *
-      * @param parentBlockHash The hash of the parent block.
-      * @param orphanBlock The orphan block.
-      */
-    def putBlock(parentBlockHash : BlockHash, orphanBlock : Block) : Unit = {
-      // Step 1 : See if we have any orphan block for the same parent block hash.
-      val blocks = blocksByParentHash.get(parentBlockHash)
-
-      if (blocks.isDefined) {
-        // Step 2.A : put the orphan block into the list of blocks for the parent block hash.
-        blocks.get.putBlock(orphanBlock)
-      } else {
-        // Step 2.A : Create a new Blocks object, add the orphan block.
-        val blocks = new Blocks()
-        blocks.putBlock(orphanBlock)
-        blocksByParentHash.put(parentBlockHash, blocks)
-      }
-    }
-
-    /** Find orphan blocks by the hash of the parent block.
-      *
-      * @param parentBlockHash The hash of the parent for looking up orphans.
-      * @return Some orphan blocks if any orphan was found. None otherwise.
-      */
-    def findBlocks(parentBlockHash : BlockHash) : Option[Blocks] = {
-      blocksByParentHash.get(parentBlockHash)
-    }
-
-    /** Remove all orphan blocks whose parent matches the parent block hash.
-      *
-      * @param parentBlockHash The hash of the parent.
-      */
-    def removeBlocks(parentBlockHash : BlockHash) : Unit = {
-      blocksByParentHash.remove(parentBlockHash)
-    }
-  }
-
-  /** An index for looking up transactions and blocks in the BlockChain object.
-    */
-  class Index {
-    /** A map from the block hash to a block descriptor.
-      */
-    private val blockByHash = mutable.HashMap[BlockHash, BlockDescriptor]()
-
-    /** Find a block descriptor by a block hash.
-      *
-      * @param blockHash The hash of the block to find.
-      * @return The found block descriptor.
-      */
-    def findBlock(blockHash : BlockHash) : Option[BlockDescriptor] = {
-      blockByHash.get(blockHash)
-    }
-
-    /** Put a block descriptor.
-      *
-      * @param blockHash The hash of the block.
-      * @param blockDescriptor The block descriptor.
-      */
-    def putBlock(blockHash : BlockHash, blockDescriptor : BlockDescriptor) : Unit = {
-      blockByHash.put(blockHash, blockDescriptor)
-    }
-  }
-
   /** The blocks whose parents were not received yet.
     */
   val orphanBlocks = new OrphanBlocks()
@@ -244,71 +150,7 @@ class BlockChain {
     mempool.put(transaction)
   }
 
-  /** The template of a block for creating a block.
-    * It has list of transactions to put into a block.
-    *
-    * The transactions are sorted, and they are chosen from the mempool based on (1) priority and (2) fee.
-    * We need to sort the transactions, and calculate a block header for finding out the nonce that produces a block header
-    * which is less than or equal to the minimum block header hash calculated from the difficulty bits in the block header.
-    *
-    * @param sortedTransactions the sorted transactions to add to the block.
-    */
-  class BlockTemplate(sortedTransactions : List[Transaction]) {
-    /** Calculate the merkle root hash from the sorted transactions.
-      *
-      * @return the merkle root hash.
-      */
-    def calculateMerkleRoot() : MerkleRootHash = {
-      // TODO : Implement
-      assert(false)
 
-      // Step 1 : Sort
-
-      null
-    }
-
-    /** Get the block header from this template.
-      *
-      * @param prevBlockDesc the descriptor of the previous block
-      * @return The block header created from this template.
-      */
-    def getBlockHeader(prevBlockDesc : BlockDescriptor) : BlockHeader = {
-      // TODO : Implement
-      assert(false)
-
-      // Step 1 : Calculate the merkle root hash.
-      val merkleRootHash = calculateMerkleRoot()
-
-      // Step 2 : Get the difficulty bits.
-      val difficultyBits = calculateDifficulty(prevBlockDesc)
-
-      // Step 3 : Create the block header
-      BlockHeader(Block.VERSION, prevBlockDesc.blockHash, merkleRootHash, System.currentTimeMillis(), difficultyBits, 0L)
-    }
-
-    /** Find the nonce value by trying N times.
-      *
-      * @param blockHeader The header of the block.
-      * @param tryCount The number of times to try to find a nonce.
-      * @return Some nonce if the nonce was found. None otherwise.
-      */
-    def findNonce(blockHeader : BlockHeader, tryCount : Int) : Option[Long] = {
-      // TODO : Implement
-      assert(false)
-      None
-    }
-
-    /** Create a block based on the block header and nonce.
-      *
-      * @param blockHeader The block header we got by calling getBlockHeader method.
-      * @param nonce The nonce we found by calling findNonce method.
-      * @return The created block that has all transactions in this template with a valid block header.
-      */
-    def createBlock(blockHeader : BlockHeader, nonce : Long) = {
-      Block( blockHeader.copy(nonce = nonce),
-             sortedTransactions )
-    }
-  }
 
 
   /** Calculate the (encoded) difficulty bits that should be in the block header.
@@ -337,10 +179,12 @@ class BlockChain {
     * @return The block template which has a sorted list of transactions to include into a block.
     */
   def getBlockTemplate() : BlockTemplate = {
+    val difficultyBits = calculateDifficulty(prevBlockDesc = theBestBlock)
+
     val validTransactions = mempool.getValidTransactions()
     // Select transactions by priority and fee. Also, sort them.
     val sortedTransactions = selectTransactions(validTransactions, Block.MAX_SIZE)
-    new BlockTemplate(sortedTransactions)
+    new BlockTemplate(difficultyBits, sortedTransactions)
   }
 
 
