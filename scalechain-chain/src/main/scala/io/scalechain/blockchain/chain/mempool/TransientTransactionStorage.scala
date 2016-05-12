@@ -12,11 +12,6 @@ class TransientTransactionStorage {
     */
   val transactionsByHash = mutable.HashMap[Hash, Transaction]()
 
-  def put(transaction : Transaction): Unit = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
-    transactionsByHash.put(txHash, transaction)
-  }
-
   /** Store a transaction on the storage.
     *
     * @param txHash The transaction hash.
@@ -52,14 +47,4 @@ class TransientTransactionStorage {
     transactionsByHash.contains(txHash)
   }
 
-  /** Get transactions whose input transactions all exist and signatures are valid.
-    * This method is used to get the list of transactions to put into a newly created block.
-    *
-    * @return A sequence of transactions.
-    */
-  def getValidTransactions() : Seq[Transaction] = {
-    // TODO : Implement
-    assert(false)
-    null
-  }
 }

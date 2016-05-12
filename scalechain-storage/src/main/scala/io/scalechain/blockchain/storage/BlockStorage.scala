@@ -16,6 +16,14 @@ trait BlockStorage extends BlockIndex {
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
+  /** Remove a transaction from the block storage.
+    *
+    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
+    *
+    * @param transactionHash The hash of the transaction to remove from the blockchain.
+    */
+  def removeTransaction(transactionHash : Hash) : Unit
+
   protected[storage] def blockDatabase() : BlockDatabase
 
   def putBlock(block : Block) : Boolean = {
@@ -31,7 +39,13 @@ trait BlockStorage extends BlockIndex {
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
+    // TODO : Optimize : We don't need to deserialize a block to see if it exists on our database.
     getBlock(blockHash).isDefined
+  }
+
+  def hasTransaction(transactionHash : Hash) : Boolean = {
+    // TODO : Optimize : We don't need to deserialize a transaction to see if it exists on our database.
+    getTransaction(transactionHash).isDefined
   }
 
   def hasBlockHeader(blockHash : Hash) : Boolean = {

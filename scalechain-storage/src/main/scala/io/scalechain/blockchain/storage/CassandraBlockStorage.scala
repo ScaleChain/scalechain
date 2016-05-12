@@ -116,6 +116,19 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     }
   }
 
+  /** Remove a transaction from the block storage.
+    *
+    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
+    *
+    * @param transactionHash The hash of the transaction to remove from the blockchain.
+    */
+  def removeTransaction(transactionHash : Hash) : Unit = {
+    this.synchronized {
+      transactionsTable.del(transactionHash.value)
+    }
+  }
+
+
   /** Get a block searching by the header hash.
     *
     * Used by : getblock RPC.

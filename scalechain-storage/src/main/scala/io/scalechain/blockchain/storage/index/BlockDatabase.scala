@@ -87,6 +87,14 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
     db.getObject(TRANSACTION, txHash)(HashCodec, FileRecordLocatorCodec)
   }
 
+  /** Remove a transaction from the transaction index.
+    *
+    * @param txHash The hash of the transaction to remove.
+    */
+  def delTransaction(txHash : Hash ) : Unit = {
+    db.delObject(TRANSACTION, txHash)(HashCodec)
+  }
+
   def putBlockFileInfo(fileNumber : FileNumber, blockFileInfo : BlockFileInfo) : Unit = {
     // Input validation for the block file info.
     val currentInfoOption = getBlockFileInfo(fileNumber)

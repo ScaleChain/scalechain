@@ -3,9 +3,9 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.GenesisBlock
+import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock}
 
-import io.scalechain.blockchain.chain.mempool.TransientTransactionStorage
+import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -72,7 +72,7 @@ class Blockchain {
 
   /** The memory pool for transient transactions that are valid but not stored in any block.
     */
-  val mempool = new TransientTransactionStorage()
+  val mempool = new TransactionMempool(DiskBlockStorage.get())
 
   /** The in-memory index where we search blocks and transactions.
     */
@@ -192,6 +192,15 @@ class Blockchain {
 
 
   /** Select transactions to include into a block.
+    *
+    *  Order transactions by fee in descending order.
+    *  List N transactions based on the priority and fee so that the serialzied size of block
+    *  does not exceed the max size. (ex> 1MB)
+    *
+    *  <Called by>
+    *  When a miner tries to create a block, we have to create a block template first.
+    *  The block template has the transactions to keep in the block.
+    *  In the block template, it has all fields set except the nonce and the timestamp.
     *
     * @param transactions The candidate transactions
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.

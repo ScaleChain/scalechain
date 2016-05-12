@@ -18,7 +18,7 @@ object DiskBlockStorage {
 
   var theBlockStorage : DiskBlockStorage = null
 
-  def create(storagePath : File) : DiskBlockStorage = {
+  def create(storagePath : File) : BlockStorage = {
     assert(theBlockStorage == null)
     theBlockStorage = new DiskBlockStorage(storagePath, MAX_FILE_SIZE)
 
@@ -34,7 +34,7 @@ object DiskBlockStorage {
     *
     * @return The block storage.
     */
-  def get() : DiskBlockStorage = {
+  def get() : BlockStorage = {
     assert(theBlockStorage != null)
     theBlockStorage
   }
@@ -50,7 +50,7 @@ object DiskBlockStorage {
 
   var theBlockStorage : CassandraBlockStorage = null
 
-  def create(storagePath : File) : CassandraBlockStorage = {
+  def create(storagePath : File) : BlockStorage = {
     assert(theBlockStorage == null)
     theBlockStorage = new CassandraBlockStorage(storagePath)
 
@@ -66,7 +66,7 @@ object DiskBlockStorage {
     *
     * @return The block storage.
     */
-  def get() : CassandraBlockStorage = {
+  def get() : BlockStorage = {
     assert(theBlockStorage != null)
     theBlockStorage
   }
@@ -251,6 +251,19 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     this.synchronized {
       val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
       txLocatorOption.map(blockRecordStorage.readRecord(_)(TransactionCodec))
+    }
+  }
+
+  /** Remove a transaction from the block storage.
+    *
+    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
+    *
+    * @param transactionHash The hash of the transaction to remove from the blockchain.
+    */
+  def removeTransaction(transactionHash : Hash) : Unit = {
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      blockIndex.delTransaction(transactionHash)
     }
   }
 

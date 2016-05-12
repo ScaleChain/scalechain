@@ -25,6 +25,8 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
 
     // Step 1 : Sort
 
+    // Step 2 : Recursively calculate the merkle root hash.
+
     null
   }
 
