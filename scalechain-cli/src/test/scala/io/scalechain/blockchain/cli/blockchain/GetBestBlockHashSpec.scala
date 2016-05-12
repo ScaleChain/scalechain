@@ -8,6 +8,8 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
+// The test does not pass yet. Will make it pass soon.
+@Ignore
 class GetBestBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
@@ -25,12 +27,8 @@ class GetBestBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITest
     //
   }
 
-  // The test does not pass yet. Will make it pass soon.
-
-  /*
   "GetBestBlockHash" should "return the best block hash" in {
     val result = invoke(GetBestBlockHash)
     result.right.get.get.asInstanceOf[StringResult].value.length shouldBe 64
   }
-  */
 }

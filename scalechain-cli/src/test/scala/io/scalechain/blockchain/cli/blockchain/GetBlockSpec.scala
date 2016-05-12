@@ -9,6 +9,8 @@ import spray.json.{JsBoolean, JsString}
 /**
   * Created by kangmo on 11/2/15.
   */
+// The test does not pass yet. Will make it pass soon.
+@Ignore
 class GetBlockSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
@@ -27,7 +29,6 @@ class GetBlockSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
   }
 
   // The test does not pass yet. Will make it pass soon.
-  /*
   "GetBlock" should "return a GetBlockResult for a genesis block ( format = true )" in {
     val response = invoke(GetBlock, List(JsString(GENESIS_BLOCK_HASH), JsBoolean(true)))
     val result = response.right.get.get.asInstanceOf[GetBlockResult]
@@ -60,6 +61,4 @@ class GetBlockSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
     val result = response.left.get
     result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
   }
-  */
-
 }

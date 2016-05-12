@@ -8,10 +8,8 @@ import io.scalechain.blockchain.storage.index.CassandraDatabase
 import io.scalechain.blockchain.storage.test.TestData
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.scalatest.{BeforeAndAfterAll, Suite, BeforeAndAfterEach}
+import org.scalatest.{Ignore, BeforeAndAfterAll, Suite, BeforeAndAfterEach}
 
-// Cassandra Test is taking too long. Temporarily disable the suite.
-/*
 // For Unit tests.
 class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath) {
   protected[storage] def truncateTables(): Unit = {
@@ -21,7 +19,8 @@ class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBl
   }
 }
 
-
+// Cassandra Test is taking too long. Temporarily disable the suite.
+@Ignore
 class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
@@ -69,4 +68,3 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
   }
 
 }
-*/

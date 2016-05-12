@@ -16,9 +16,10 @@ class TransactionMempoolSpec extends FlatSpec with BeforeAndAfterEach with Shoul
   import TestData._
 
   var storage : TransactionMempool = null
+  val testPath = new File("./target/unittests-TransactionMempoolSpec")
 
   override def beforeEach() {
-    storage = new TransactionMempool(DiskBlockStorage.create(new File(".")))
+    storage = new TransactionMempool(DiskBlockStorage.create(testPath))
 
     super.beforeEach()
   }

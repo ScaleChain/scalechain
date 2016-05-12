@@ -28,6 +28,8 @@ class TransientTransactionStorageSpec extends FlatSpec with BeforeAndAfterEach w
     storage.get(txHash1) shouldBe None
     storage.get(txHash2) shouldBe None
   }
+
+  // This test has compilation error. Will fix it later.
 /*
   "get(txHash) after put(tx)" should "get some transaction if the transaction is found " in {
     storage.put(transaction1)

@@ -12,7 +12,7 @@ import org.scalatest._
   * Created by kangmo on 11/2/15.
   */
 // Cassandara test is taking too long. Disable this test temporarily.
-/*
+@Ignore
 class BlockDatabaseWithCassandra extends BlockDatabaseTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
 this: Suite =>
   Storage.initialize()
@@ -54,4 +54,3 @@ this: Suite =>
     // Clean-up for each test cases.
   }
 }
-*/

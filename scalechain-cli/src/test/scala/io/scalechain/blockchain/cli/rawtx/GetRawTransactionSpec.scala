@@ -9,6 +9,8 @@ import spray.json.{JsNumber, JsString}
 /**
   * Created by kangmo on 11/2/15.
   */
+// The test does not pass yet. Will make it pass soon.
+@Ignore
 class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
@@ -27,7 +29,6 @@ class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITes
   }
 
   // The test does not pass yet. Will make it pass soon.
-  /*
   val TRANSACTION_ID = JsString("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b")
 
   "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 0" in {
@@ -47,5 +48,4 @@ class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITes
     val result = response.left.get
     result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
   }
-  */
 }
