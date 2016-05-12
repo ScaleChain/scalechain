@@ -57,6 +57,12 @@ object ErrorCode {
   val RpcMissingRequiredParameter = ErrorCode("rpc_missing_required_parameter")
   val RpcArgumentLessThanMinValue = ErrorCode("rpc_argument_less_than_min_value")
   val RpcArgumentGreaterThanMaxValue = ErrorCode("rpc_argument_greater_than_max_value")
+  val RpcInvalidAddress = ErrorCode("invalid_address")
+  val RpcInvalidKey = ErrorCode("invalid_key")
+
+  // Base58 encoding errors
+  val InvalidChecksum = ErrorCode("invalid_checksum")
+
 }
 
 
@@ -72,6 +78,8 @@ class UnsupportedFeature(val code : ErrorCode) extends ExceptionWithErrorCode
 /**
  * Created by kangmo on 11/2/15.
  */
+class GeneralException(val code:ErrorCode) extends ExceptionWithErrorCode
+
 class FatalException(val code:ErrorCode) extends ExceptionWithErrorCode
 
 class ScriptEvalException(val code:ErrorCode, override val message : String = "") extends ExceptionWithErrorCode

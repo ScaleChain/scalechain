@@ -3,7 +3,7 @@ package io.scalechain.wallet
 import io.scalechain.blockchain.proto.{TransactionHash, Transaction}
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
-class Wallet {
+object Wallet {
   object SigHash extends Enumeration {
     val ALL                    = new Val(nextId, "ALL")
     val NONE                   = new Val(nextId, "NONE")
@@ -120,6 +120,22 @@ class Wallet {
     // TODO : Implement
     assert(false)
     null
+  }
+
+
+  /** Import a watch-only address into the wallet.
+    *
+    * @param outputOwnership The ownership object that describes an ownership of a coin.
+    * @param account The account name
+    * @param rescanBlockchain Whether to rescan whole blockchain to re-index unspent transaction outputs(coins)
+    */
+  def importOutputOwnership(
+    outputOwnership : OutputOwnership,
+    account : String,
+    rescanBlockchain : Boolean
+  ): Unit = {
+    // TODO : Implement
+    assert(false)
   }
 
 }

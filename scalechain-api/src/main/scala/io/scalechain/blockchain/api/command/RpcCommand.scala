@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command
 
 import io.scalechain.util.StackUtil
-import io.scalechain.blockchain.{ExceptionWithErrorCode, ErrorCode}
+import io.scalechain.blockchain.{ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
@@ -39,6 +39,8 @@ object RpcCommand {
     ErrorCode.RpcParameterTypeConversionFailure -> RpcError.RPC_INVALID_PARAMETER,
     ErrorCode.RpcMissingRequiredParameter -> RpcError.RPC_INVALID_REQUEST,
     ErrorCode.RpcArgumentLessThanMinValue -> RpcError.RPC_INVALID_PARAMETER,
-    ErrorCode.RpcArgumentGreaterThanMaxValue -> RpcError.RPC_INVALID_PARAMETER
+    ErrorCode.RpcArgumentGreaterThanMaxValue -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.RpcInvalidAddress -> RpcError.RPC_INVALID_ADDRESS_OR_KEY,
+    ErrorCode.RpcInvalidKey     -> RpcError.RPC_INVALID_ADDRESS_OR_KEY
   )
 }

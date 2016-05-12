@@ -1,8 +1,13 @@
 package io.scalechain.blockchain.api.command.wallet
 
-import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
+import io.scalechain.blockchain.proto.LockingScript
+import io.scalechain.blockchain.script.ScriptParser
+import io.scalechain.blockchain.{ScriptParseException, GeneralException, ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.util.{HexUtil, ByteArray}
+import io.scalechain.wallet.{Wallet, ParsedPubKeyScript, CoinAddress}
+import io.scalechain.wallet.util.Base58Check
 import spray.json.DefaultJsonProtocol._
 
 
@@ -36,16 +41,40 @@ import spray.json.DefaultJsonProtocol._
 object ImportAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val scriptOrAddress: String = request.params.get[String]("Script", 0)
-      val label          : String = request.params.getOption[String]("Label" , 1).getOrElse("")
-      val rescan         : Boolean = request.params.getOption[Boolean]("Rescan Blockchain", 2).getOrElse(true)
+      val scriptOrAddress  : String = request.params.get[String]("Script", 0)
+      val account          : String = request.params.getOption[String]("Account" , 1).getOrElse("")
+      val rescanBlockchain : Boolean = request.params.getOption[Boolean]("Rescan Blockchain", 2).getOrElse(true)
 ///      val p2sh  : Boolean = request.params.getOption[Boolean]("Allow P2SH Scripts"  , 3).getOrElse(false)
+
+      val coinOwnership =
+        // Step 1 : Check if it is an address.
+        try {
+          val (versionPrefix, publicKeyHash) = Base58Check.decode(scriptOrAddress)
+          CoinAddress(versionPrefix, publicKeyHash)
+        } catch {
+          case e : Exception => {
+            // Step 2 : Check if it is a public key hash script.
+            val scriptBytes = ByteArray.arrayToByteArray(HexUtil.bytes(scriptOrAddress))
+            try {
+              ParsedPubKeyScript( ScriptParser.parse(LockingScript(scriptBytes)) )
+            } catch {
+              case e : ScriptParseException => {
+                // Step 3 : If it is neither an address nor an script, throw an exception.
+                // The RpcInvalidAddress is converted to an RPC error, RPC_INVALID_ADDRESS_OR_KEY by handlingException.
+                throw new GeneralException(ErrorCode.RpcInvalidAddress)
+              }
+            }
+          }
+        }
+
+      Wallet.importOutputOwnership(
+        coinOwnership,
+        account,
+        rescanBlockchain
+      )
 
       // None is converted to JsNull, so we will have { result : null .. } within the response json.
       Right(None)
-
-      // TODO : Implement
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
 
@@ -76,7 +105,6 @@ object ImportAddress extends RpcCommand {
       |As a JSON-RPC call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "importaddress", "params": ["myscript", "testing", false] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
     """.stripMargin
-
 }
 
 
