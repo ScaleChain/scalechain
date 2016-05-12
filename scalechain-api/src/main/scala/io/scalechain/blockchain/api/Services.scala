@@ -25,7 +25,8 @@ object Services {
     GetPeerInfo,
     DecodeRawTransaction,
     GetRawTransaction,
-    SendRawTransaction
+    SendRawTransaction,
+    ImportAddress
     /*
         SignRawTransaction,
         GetAccount,

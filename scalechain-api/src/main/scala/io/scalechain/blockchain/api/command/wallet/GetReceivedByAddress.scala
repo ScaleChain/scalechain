@@ -2,9 +2,7 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
-import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import spray.json.DefaultJsonProtocol._
 
 /*

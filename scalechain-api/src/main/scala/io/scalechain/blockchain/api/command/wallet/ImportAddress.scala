@@ -1,7 +1,10 @@
-package io.scalechain.blockchain.api.command.wallet.p1
+package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import spray.json.DefaultJsonProtocol._
+
 
 /*
   CLI command :
@@ -12,7 +15,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     (no output)
 
   Json-RPC request :
-    {"jsonrpc": "1.0", "id":"curltest", "method": "importaddress", "params": [] }
+    {"jsonrpc": "1.0", "id":"curltest", "method": "importaddress", "params": ["muhtvdmsnbQEPFuEmxcChX58fGvXaaUoVt", "watch-only test", true] }
 
   Json-RPC response :
     {
@@ -32,10 +35,23 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   */
 object ImportAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    // TODO : Implement
-    assert(false)
-    Right(None)
+    handlingException {
+      val scriptOrAddress: String = request.params.get[String]("Script", 0)
+      val label          : String = request.params.getOption[String]("Label" , 1).getOrElse("")
+      val rescan         : Boolean = request.params.getOption[Boolean]("Rescan Blockchain", 2).getOrElse(true)
+///      val p2sh  : Boolean = request.params.getOption[Boolean]("Allow P2SH Scripts"  , 3).getOrElse(false)
+
+      // None is converted to JsNull, so we will have { result : null .. } within the response json.
+      Right(None)
+
+      // TODO : Implement
+      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+    }
   }
+
+  // BUGBUG : Add fourth parameter.
+  // 4. p2sh                 (boolean, optional, default=false) Add the P2SH version of the script as well
+
   def help() : String =
     """importaddress "address" ( "label" rescan p2sh )
       |
@@ -45,7 +61,6 @@ object ImportAddress extends RpcCommand {
       |1. "script"           (string, required) The hex-encoded script (or address)
       |2. "label"            (string, optional, default="") An optional label
       |3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions
-      |4. p2sh                 (boolean, optional, default=false) Add the P2SH version of the script as well
       |
       |Note: This call can take minutes to complete if rescan is true.
       |If you have the full public key, you should call importpublickey instead of this.
