@@ -4,13 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
 import org.spongycastle.asn1.x9.X9ECParameters;
+import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.ec.CustomNamedCurves;
 import org.spongycastle.crypto.params.*;
 import org.spongycastle.crypto.signers.ECDSASigner;
+import org.spongycastle.crypto.signers.HMacDSAKCalculator;
+import org.spongycastle.math.ec.ECPoint;
+import org.spongycastle.math.ec.FixedPointCombMultiplier;
 import org.spongycastle.math.ec.FixedPointUtil;
 
 import java.math.BigInteger;
 import java.io.*;
+import java.security.SecureRandom;
 import java.util.Objects;
 
 /**
@@ -18,6 +23,20 @@ import java.util.Objects;
  */
 public class ECKey {
     private static final Logger log = LoggerFactory.getLogger(ECKey.class);
+
+    /**
+     * Signs the given hash and returns the R and S components as BigIntegers.
+     *
+     * @param inputBytes The input bytes to sign.
+     * @param privateKeyForSigning The private key we use for signing.
+     */
+    public static ECDSASignature doSign(byte[] inputBytes, BigInteger privateKeyForSigning) {
+        ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
+        ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(privateKeyForSigning, CURVE);
+        signer.init(true, privKey);
+        BigInteger[] components = signer.generateSignature(inputBytes);
+        return new ECDSASignature(components[0], components[1]).toCanonicalised();
+    }
 
     /**
      * <p>Verifies the given ECDSA signature against the message bytes using the public key bytes.</p>
@@ -55,6 +74,31 @@ public class ECKey {
      */
     public static final BigInteger HALF_CURVE_ORDER;
 
+
+    /**
+     * Returns public key bytes from the given private key. To convert a byte array into a BigInteger, use <tt>
+     * new BigInteger(1, bytes);</tt>
+     */
+    public static byte[] publicKeyFromPrivate(BigInteger privKey, boolean compressed) {
+        ECPoint point = publicPointFromPrivate(privKey);
+        return point.getEncoded(compressed);
+    }
+
+    /**
+     * Returns public key point from the given private key. To convert a byte array into a BigInteger, use <tt>
+     * new BigInteger(1, bytes);</tt>
+     */
+    public static ECPoint publicPointFromPrivate(BigInteger privKey) {
+        /*
+         * TODO: FixedPointCombMultiplier currently doesn't support scalars longer than the group order,
+         * but that could change in future versions.
+         */
+        if (privKey.bitLength() > CURVE.getN().bitLength()) {
+            privKey = privKey.mod(CURVE.getN());
+        }
+        return new FixedPointCombMultiplier().multiply(CURVE.getG(), privKey);
+    }
+
     static {
         // Tell Bouncy Castle to precompute data that's needed during secp256k1 calculations. Increasing the width
         // number makes calculations faster, but at a cost of extra memory usage and with decreasing returns. 12 was
@@ -64,7 +108,6 @@ public class ECKey {
                 CURVE_PARAMS.getH());
         HALF_CURVE_ORDER = CURVE_PARAMS.getN().shiftRight(1);
     }
-
 
 
     /**

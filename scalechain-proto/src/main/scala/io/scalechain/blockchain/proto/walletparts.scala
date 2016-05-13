@@ -2,7 +2,6 @@ package io.scalechain.blockchain.proto
 
 import io.scalechain.blockchain.proto.WalletTransactionAttribute.WalletTransactionAttribute
 
-
 /** case classes that are used for keys or values of the wallet database.
   */
 
