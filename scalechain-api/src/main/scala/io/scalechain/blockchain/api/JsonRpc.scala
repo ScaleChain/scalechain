@@ -23,6 +23,7 @@ import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.net.service.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
 import io.scalechain.wallet.UnspentCoin
+import io.scalechain.wallet.Wallet.TransactionDescriptor
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 import io.scalechain.util.{ByteArray, HexUtil, Config}
@@ -50,7 +51,7 @@ object RpcResultJsonFormat {
 
   implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
 
-  implicit val implicitTransactionItem               = jsonFormat19(TransactionItem.apply)
+  implicit val implicitTransactionDescriptor         = jsonFormat19(TransactionDescriptor.apply)
 
   implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoin.apply)
 

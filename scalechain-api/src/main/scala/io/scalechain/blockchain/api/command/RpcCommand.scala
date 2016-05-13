@@ -41,6 +41,9 @@ object RpcCommand {
     ErrorCode.RpcArgumentLessThanMinValue -> RpcError.RPC_INVALID_PARAMETER,
     ErrorCode.RpcArgumentGreaterThanMaxValue -> RpcError.RPC_INVALID_PARAMETER,
     ErrorCode.RpcInvalidAddress -> RpcError.RPC_INVALID_ADDRESS_OR_KEY,
-    ErrorCode.RpcInvalidKey     -> RpcError.RPC_INVALID_ADDRESS_OR_KEY
+    ErrorCode.RpcInvalidKey     -> RpcError.RPC_INVALID_ADDRESS_OR_KEY,
+    // used by signrawtranasction : while decoding the raw tranasction parameter.
+    ErrorCode.RemainingNotEmptyAfterDecoding -> RpcError.RPC_DESERIALIZATION_ERROR,
+    ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR
   )
 }

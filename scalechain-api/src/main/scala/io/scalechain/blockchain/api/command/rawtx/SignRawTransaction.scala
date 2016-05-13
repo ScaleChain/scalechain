@@ -1,11 +1,12 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
-import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.{TransactionEncoder, TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.HashFormat
-import io.scalechain.wallet.UnspentTranasctionOutput
+import io.scalechain.blockchain.proto.{Transaction, Hash, HashFormat}
+import io.scalechain.util.HexUtil
+import io.scalechain.wallet.Wallet.SignedTransaction
+import io.scalechain.wallet.{Wallet, UnspentTranasctionOutput}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 /*
@@ -82,23 +83,28 @@ object SignRawTransaction extends RpcCommand {
       implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTranasctionOutput.apply)
 
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val transaction   : String                                 = request.params.get[String]("Transaction", 0)
-      val dependencies  : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
-      val privateKeys   : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
-      val sigHash       : Option[String]                         = request.params.getOption[String]("SigHash", 3)
-/*
-      // TODO : Implement
+      val rawTransaction : String                                 = request.params.get[String]("Transaction", 0)
+      val dependencies   : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
+      val privateKeys    : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
+      val sigHash        : Option[String]                         = request.params.getOption[String]("SigHash", 3)
+
+      // Converted Exceptions :
+      // 1. ErrorCode.RemainingNotEmptyAfterDecoding -> RpcError.RPC_DESERIALIZATION_ERROR,
+      // 2. ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR
+      val transaction : Transaction = TransactionDecoder.decodeTransaction(rawTransaction)
+
+      val signedTransaction : SignedTransaction = Wallet.signTransaction(transaction, dependencies, privateKeys, sigHash)
+
+      val signedRawTranasction = TransactionEncoder.encodeTransaction(signedTransaction.transaction)
+
       Right(
         Some(
           SignRawTransactionResult(
-            "01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e000000006a47304402200ebea9f630f3ee35fa467ffc234592c79538ecd6eb1c9199eb23c4a16a0485a20220172ecaf6975902584987d295b8dddf8f46ec32ca19122510e22405ba52d1f13201210256d16d76a49e6c8e2edc1c265d600ec1a64a45153d45c29a2fd0228c24c3a524ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
-            true
+            HexUtil.hex(signedRawTranasction),
+            signedTransaction.complete
           )
         )
       )
-*/
-
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
 /*
       {

@@ -5,6 +5,7 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.wallet.{CoinAddress, Wallet}
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -44,13 +45,10 @@ object GetAccountAddress extends RpcCommand {
     handlingException {
       val account: String = request.params.get[String]("Account", 0)
 
-/*
-      // TODO : Implement
-      val address = "msQyFNYHkFUo4PG3puJBbpesvRCyRQax7r"
-      Right(Some(StringResult(address)))
-*/
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+      val receivingCoinAddress : CoinAddress = Wallet.getReceivingAddress(account)
 
+      val address = receivingCoinAddress.base58
+      Right(Some(StringResult(address)))
     }
   }
   def help() : String =

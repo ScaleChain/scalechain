@@ -36,7 +36,6 @@ object Services {
         GetTransaction,
         ListTransactions,
         ListUnspent,
-        SendFrom
     */
   )
 

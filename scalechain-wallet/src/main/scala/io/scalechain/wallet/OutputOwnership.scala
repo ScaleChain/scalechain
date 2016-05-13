@@ -1,7 +1,9 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.ChainEnvironmentFactory
 import io.scalechain.blockchain.script.ScriptOpList
+import io.scalechain.wallet.util.Base58Check
 
 /** An entity that describes the ownership of a coin.
   * For example, a coin address can be a description of ownership of a coin.
@@ -9,6 +11,27 @@ import io.scalechain.blockchain.script.ScriptOpList
   */
 trait OutputOwnership {
   def isValid(): Boolean
+}
+
+
+/** The CoinAddress singleton that decodes an address to create a CoinAddress.
+  *
+  */
+object CoinAddress {
+  /** Decode an address and create a CoinAddress.
+    *
+    * @param address The address to decode.
+    * @return The decoded CoinAddress.
+    */
+  def from(address : String) : CoinAddress = {
+    val (versionPrefix, publicKeyHash) = Base58Check.decode(address)
+    val coinAddress = CoinAddress(versionPrefix, publicKeyHash)
+    if (coinAddress.isValid()) {
+      coinAddress
+    } else {
+      throw new GeneralException(ErrorCode.RpcInvalidAddress)
+    }
+  }
 }
 
 /** A coin address with a version and public key hash.
@@ -33,6 +56,14 @@ case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOw
     } else {
       true
     }
+  }
+
+  /** Return the address in base58 encoding format.
+    *
+    * @return The base 58 check encoded address.
+    */
+  def base58() : String = {
+    Base58Check.encode(version, publicKeyHash)
   }
 }
 

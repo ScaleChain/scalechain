@@ -49,10 +49,9 @@ object ImportAddress extends RpcCommand {
       val coinOwnership =
         // Step 1 : Check if it is an address.
         try {
-          val (versionPrefix, publicKeyHash) = Base58Check.decode(scriptOrAddress)
-          CoinAddress(versionPrefix, publicKeyHash)
+          CoinAddress.from(scriptOrAddress)
         } catch {
-          case e : Exception => {
+          case e : GeneralException => {
             // Step 2 : Check if it is a public key hash script.
             val scriptBytes = ByteArray.arrayToByteArray(HexUtil.bytes(scriptOrAddress))
             try {
@@ -89,7 +88,7 @@ object ImportAddress extends RpcCommand {
       |Arguments:
       |1. "script"           (string, required) The hex-encoded script (or address)
       |2. "label"            (string, optional, default="") An optional label
-      |3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions
+      |3. rescan             (boolean, optional, default=true) Rescan the wallet for transactions
       |
       |Note: This call can take minutes to complete if rescan is true.
       |If you have the full public key, you should call importpublickey instead of this.

@@ -2,7 +2,6 @@ package io.scalechain.blockchain.api.command
 
 import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
 import io.scalechain.blockchain.api.command.rawtx._
-import io.scalechain.blockchain.api.command.wallet.{TransactionItem}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
 import io.scalechain.blockchain.script.HashCalculator
@@ -67,6 +66,21 @@ object TransactionDecoder {
     TransactionCodec.parse(rawTransaction)
   }
 }
+
+// [API Layer] encode a transaction
+object TransactionEncoder {
+  /** Encodes a transaction into a serialized transaction hex string.
+    *
+    * Used by : signrawtransaction RPC.
+    *
+    * @param transaction The transaction to encode.
+    * @return The serialized transaction.
+    */
+  def encodeTransaction(transaction : Transaction) : Array[Byte] = {
+    TransactionCodec.serialize(transaction)
+  }
+}
+
 
 // [API Layer] decode a transaction.
 object BlockDecoder {
@@ -174,20 +188,5 @@ object TransactionFormatter {
       vin      = convertTransactionInputs(transaction.inputs),
       vout     = convertTransactionOutputs(transaction.outputs)
     )
-  }
-
-
-
-  /** Convert a transaction to a TransactionItem, which is an element of array to respond for listtransactions RPC.
-    *
-    * Used by : listtransactions RPC.
-    *
-    * @param transaction The transaction to convert.
-    * @return The converted transaction item.
-    */
-  def getTransactionItem( transaction : Transaction ) : TransactionItem =  {
-    // TODO : Implement
-    assert(false)
-    null
   }
 }

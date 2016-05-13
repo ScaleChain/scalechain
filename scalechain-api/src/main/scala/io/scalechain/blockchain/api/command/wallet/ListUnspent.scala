@@ -5,7 +5,7 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
-import io.scalechain.wallet.UnspentCoin
+import io.scalechain.wallet.{Wallet, UnspentCoin}
 
 import spray.json.DefaultJsonProtocol._
 
@@ -75,11 +75,12 @@ object ListUnspent extends RpcCommand {
       val minimumConfirmations: Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
       val maximumConfirmations: Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(9999999L)
       val addressesOption     : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
-/*
-      // TODO : Implement
 
-      // A list of objects each describing an unspent output. May be empty
+      val unspentCoins : List[UnspentCoin] = Wallet.listUnspent(minimumConfirmations, maximumConfirmations, addressesOption)
+
+      // unspentCoins is a list of objects each describing an unspent output. May be empty
       // item of the list : An object describing a particular unspent output belonging to this wallet
+      /*
       val unspentCoins =
         List(
           UnspentCoin(
@@ -94,13 +95,11 @@ object ListUnspent extends RpcCommand {
             spendable = true
           )
         )
-
+      */
       Right(Some(ListUnspentResult(unspentCoins)))
-*/
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
-
     }
   }
+
   def help() : String =
     """listunspent ( minconf maxconf  ["address",...] )
       |
