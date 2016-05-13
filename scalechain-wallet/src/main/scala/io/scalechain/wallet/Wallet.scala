@@ -1,10 +1,10 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.chain.ChainEventListener
-import io.scalechain.blockchain.proto.{UnspentTranasctionOutput, Hash, TransactionHash, Transaction}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
-import io.scalechain.crypto.PrivateKey
+import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutput}
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 object Wallet extends ChainEventListener {
@@ -19,10 +19,10 @@ object Wallet extends ChainEventListener {
     * @param sigHash The type of signature hash to use for all of the signatures performed.
     * @return
     */
-  def signTransaction( transaction   : Transaction,
-                       dependencies  : List[UnspentTranasctionOutput],
-                       privateKeys   : Option[List[PrivateKey]],
-                       sigHash       : SigHash
+  def signTransaction(transaction   : Transaction,
+                      dependencies  : List[UnspentTransactionOutput],
+                      privateKeys   : Option[List[PrivateKey]],
+                      sigHash       : SigHash
                      ) : SignedTransaction = {
     // TODO : Implement
     if (privateKeys.isEmpty) {

@@ -7,7 +7,6 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.util.{HexUtil, ByteArray}
 import io.scalechain.wallet.{Wallet, ParsedPubKeyScript, CoinAddress}
-import io.scalechain.wallet.util.Base58Check
 import spray.json.DefaultJsonProtocol._
 
 

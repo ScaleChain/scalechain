@@ -1,4 +1,4 @@
-package io.scalechain.wallet.util
+package io.scalechain.crypto
 
 /* Source copied from https://github.com/ACINQ/bitcoin-lib/blob/master/src/main/scala/fr/acinq/bitcoin/Base58.scala
  * The license was apache v2.
@@ -7,9 +7,7 @@ package io.scalechain.wallet.util
 import java.math.BigInteger
 import java.util
 
-import akka.parboiled2.CharPredicate.General
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.crypto.HashFunctions
 
 import scala.annotation.tailrec
 

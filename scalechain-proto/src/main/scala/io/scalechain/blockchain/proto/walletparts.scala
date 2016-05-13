@@ -1,6 +1,10 @@
 package io.scalechain.blockchain.proto
 
+import java.math.BigInteger
+
+import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.proto.WalletTransactionAttribute.WalletTransactionAttribute
+import io.scalechain.util.HexUtil
 
 /** case classes that are used for keys or values of the wallet database.
   */
@@ -25,14 +29,6 @@ object WalletTransactionAttribute extends Enumeration {
   */
 case class WalletTransaction(outputOwnership : String, attributes: List[WalletTransactionAttribute], transactionHash : Hash) extends ProtocolMessage
 
+case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessage
 
-case class UnspentTranasctionOutput(
- // The TXID of the transaction the output appeared in. The TXID must be encoded in hex in RPC byte order
- txid      : Hash,
- // The index number of the output (vout) as it appeared in its transaction, with the first output being 0
- vout      : Int,
- // The output’s pubkey script encoded as hex
- scriptPubKey : String,
- // If the pubkey script was a script hash, this must be the corresponding redeem script
- redeemScript : Option[String]
-)
+case class OutputDescriptor(spent : Boolean, confirmations : Long ) extends ProtocolMessage

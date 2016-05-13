@@ -1,6 +1,8 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto.{Hash, WalletTransactionAttribute, WalletTransaction, OutPoint}
+import java.math.BigInteger
+
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray}
 import scodec.Codec
 import scodec.codecs._
@@ -32,3 +34,20 @@ object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
     ("transactionHash" | HashCodec.codec)
   }.as[WalletTransaction]
 }
+
+
+
+object OwnershipDescriptorCodec extends MessagePartCodec[OwnershipDescriptor] {
+  val codec : Codec[OwnershipDescriptor] = {
+    ("privateKeys" | VarList.varList(utf8) )
+  }.as[OwnershipDescriptor]
+}
+
+
+object OutputDescriptorCodec extends MessagePartCodec[OutputDescriptor] {
+  val codec : Codec[OutputDescriptor] = {
+    ("spent" | bool ) ::
+    ("confirmations" | int64 )
+  }.as[OutputDescriptor]
+}
+

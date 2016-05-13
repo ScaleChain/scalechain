@@ -1,9 +1,9 @@
-package io.scalechain.wallet.util
+package io.scalechain.crypto
 
 import java.math.BigInteger
+import java.util
 
 import org.scalatest._
-import java.util
 
 /**
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala

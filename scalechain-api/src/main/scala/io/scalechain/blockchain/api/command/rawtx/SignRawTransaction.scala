@@ -1,12 +1,11 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.transaction.SigHash
+import io.scalechain.blockchain.transaction.{UnspentTransactionOutput, PrivateKey, SigHash}
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.command.{TransactionEncoder, TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{UnspentTranasctionOutput, Transaction, Hash, HashFormat}
-import io.scalechain.crypto.PrivateKey
+import io.scalechain.blockchain.proto._
 import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
 import spray.json._
@@ -82,11 +81,11 @@ object SignRawTransaction extends RpcCommand {
 
     handlingException {
       import HashFormat._
-      implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTranasctionOutput.apply)
+      implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTransactionOutput.apply)
 
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
       val rawTransaction    : String                                 = request.params.get[String]("Transaction", 0)
-      val dependencies      : Option[List[UnspentTranasctionOutput]] = request.params.getListOption[UnspentTranasctionOutput]("Dependencies", 1)
+      val dependencies      : Option[List[UnspentTransactionOutput]] = request.params.getListOption[UnspentTransactionOutput]("Dependencies", 1)
       val privateKeyStrings : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
       val sigHashString     : String                                 = request.params.getOption[String]("SigHash", 3).getOrElse("ALL")
 

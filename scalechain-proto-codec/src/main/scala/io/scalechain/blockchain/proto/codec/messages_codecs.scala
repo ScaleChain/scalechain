@@ -53,11 +53,11 @@ object VersionCodec extends ProtocolMessageCodec[Version] {
   // TODO : Implement
   val codec : Codec[Version] = {
     ("version"       | int32L                    ) ::
-    ("services"      | BigIntCodec.codec   ) ::
+    ("services"      | BigIntForLongCodec.codec   ) ::
     ("timestamp"     | int64L                    ) ::
     ("destAddress"   | NetworkAddressCodec.codec ) ::
     ("sourceAddress" | NetworkAddressCodec.codec ) :: // version ≥ 106
-    ("nonce"         | BigIntCodec.codec   ) :: // version ≥ 106
+    ("nonce"         | BigIntForLongCodec.codec   ) :: // version ≥ 106
     ("userAgent"     | VarStr.codec              ) :: // version ≥ 106
     ("startHeight"   | int32L                    ) :: // version ≥ 106
     ("relay"         | Bool.codec                )    // version ≥ 70001
@@ -542,7 +542,7 @@ object PingCodec extends ProtocolMessageCodec[Ping] {
   val clazz = classOf[Ping]
 
   val codec : Codec[Ping] = {
-    ( "nonce" | BigIntCodec.codec )
+    ( "nonce" | BigIntForLongCodec.codec )
   }.as[Ping]
 }
 
@@ -570,7 +570,7 @@ object PongCodec extends ProtocolMessageCodec[Pong] {
   val clazz = classOf[Pong]
 
   val codec : Codec[Pong] = {
-    ( "nonce" | BigIntCodec.codec )
+    ( "nonce" | BigIntForLongCodec.codec )
   }.as[Pong]
 }
 

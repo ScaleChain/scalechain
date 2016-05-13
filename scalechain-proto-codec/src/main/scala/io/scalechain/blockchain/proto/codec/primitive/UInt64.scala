@@ -4,10 +4,6 @@ package io.scalechain.blockchain.proto.codec.primitive
   * Thanks to : https://github.com/yzernik
   */
 
-
-/** Source code copied from : https://github.com/yzernik/bitcoin-scodec
-  * Thanks to : https://github.com/yzernik
-  */
 case class UInt64(value: Long) {
   //override def toString = s"UInt64(${UInt64.longToBigInt(value).toString})"
   override def toString = s"UInt64(${value}L)"
@@ -31,7 +27,7 @@ import scala.math.BigInt.long2bigInt
 import scodec.Codec
 import scodec.codecs.int64L
 
-object BigIntCodec {
+object BigIntForLongCodec {
   // BUGBUG : Make sure using int64L for UInt64L is safe.
   val int64codec: Codec[UInt64] = int64L.xmap(UInt64.apply, _.value)
 

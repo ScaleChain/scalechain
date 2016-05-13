@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
-import io.scalechain.blockchain.proto.{UnspentTranasctionOutput, Transaction}
+import io.scalechain.blockchain.proto.{Transaction}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
-import io.scalechain.crypto.PrivateKey
 
 
 object SigHash extends Enumeration {
@@ -35,7 +34,7 @@ object TransactionSigner {
     * @return true if all inputs are signed, false otherwise.
     */
   def sign(transaction : Transaction,
-           dependencies  : List[UnspentTranasctionOutput],
+           dependencies  : List[UnspentTransactionOutput],
            privateKeys   : List[PrivateKey],
            sigHash       : SigHash
           ) : SignedTransaction = {

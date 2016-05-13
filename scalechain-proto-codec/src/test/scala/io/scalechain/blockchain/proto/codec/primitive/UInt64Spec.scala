@@ -6,7 +6,7 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 class UInt64Spec extends CodecSuite {
 
-  implicit val int64codec = BigIntCodec.int64codec
+  implicit val int64codec = BigIntForLongCodec.int64codec
 
   "UInt64 codec" should {
     "roundtrip" in {

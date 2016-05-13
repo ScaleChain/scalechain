@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.ChainEnvironmentFactory
 import io.scalechain.blockchain.script.ScriptOpList
-import io.scalechain.wallet.util.Base58Check
+import io.scalechain.crypto.Base58Check
 
 /** An entity that describes the ownership of a coin.
   * For example, a coin address can be a description of ownership of a coin.

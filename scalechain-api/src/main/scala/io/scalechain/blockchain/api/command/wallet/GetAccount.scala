@@ -5,8 +5,8 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.crypto.Base58Check
 import io.scalechain.wallet.{CoinAddress, Wallet}
-import io.scalechain.wallet.util.Base58Check
 import spray.json.DefaultJsonProtocol._
 
 /*
