@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.ChainEnvironmentFactory
 import io.scalechain.blockchain.script.ScriptOpList
@@ -10,7 +11,20 @@ import io.scalechain.wallet.util.Base58Check
   * Used by wallet's importAddress.
   */
 trait OutputOwnership {
+  /** Check if the ownership is valid.
+    * Ex> The format of a coin address is valid.
+    * Ex> The script operations of the public key script is one of allowed patterns.
+    *
+    * @return true if the ownership is valid. false otherwise.
+    */
   def isValid(): Boolean
+
+  /** Check if an ownership owns a transaction output.
+    *
+    * @param output The transaction output to check.
+    * @return true if the ownership has owns the output. false otherwise.
+    */
+  def owns(output : TransactionOutput) : Boolean
 }
 
 
@@ -58,6 +72,17 @@ case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOw
     }
   }
 
+  /** Check if an ownership owns a transaction output.
+    *
+    * @param output The transaction output to check.
+    * @return true if the ownership has owns the output. false otherwise.
+    */
+  def owns(output : TransactionOutput) : Boolean = {
+    // TODO : implement
+    assert(false)
+    false
+  }
+
   /** Return the address in base58 encoding format.
     *
     * @return The base 58 check encoded address.
@@ -76,5 +101,16 @@ case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership 
   def isValid(): Boolean = {
     // TOOD : Check if the scriptOps is one of the pubKeyScript patters for standard transactions.
     true
+  }
+
+  /** Check if an ownership owns a transaction output.
+    *
+    * @param output The transaction output to check.
+    * @return true if the ownership has owns the output. false otherwise.
+    */
+  def owns(output : TransactionOutput) : Boolean = {
+    // TODO : implement
+    assert(false)
+    false
   }
 }

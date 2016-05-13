@@ -67,8 +67,8 @@ object ImportAddress extends RpcCommand {
         }
 
       Wallet.importOutputOwnership(
-        coinOwnership,
         account,
+        coinOwnership,
         rescanBlockchain
       )
 

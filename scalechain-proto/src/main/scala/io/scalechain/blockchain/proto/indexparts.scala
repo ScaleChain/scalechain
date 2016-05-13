@@ -43,4 +43,3 @@ case class OneByte( value : Byte ) extends ProtocolMessage
   */
 case class TransactionCount( count : Int) extends ProtocolMessage
 
-
