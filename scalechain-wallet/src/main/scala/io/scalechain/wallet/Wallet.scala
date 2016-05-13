@@ -1,26 +1,13 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.chain.ChainEventListener
-import io.scalechain.blockchain.proto.{Hash, TransactionHash, Transaction}
+import io.scalechain.blockchain.proto.{UnspentTranasctionOutput, Hash, TransactionHash, Transaction}
+import io.scalechain.blockchain.transaction.SigHash.SigHash
+import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
+import io.scalechain.crypto.PrivateKey
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 object Wallet extends ChainEventListener {
-  object SigHash extends Enumeration {
-    val ALL                    = new Val(nextId, "ALL")
-    val NONE                   = new Val(nextId, "NONE")
-    val SINGLE                 = new Val(nextId, "SINGLE")
-    // BUGBUG : Should we use bitwise OR??
-    val ALL_OR_ANYONECANPAY    = new Val(nextId, "ALL|ANYONECANPAY")
-    val NONE_OR_ANYONECANPAY   = new Val(nextId, "NONE|ANYONECANPAY")
-    val SINGLE_OR_ANYONECANPAY = new Val(nextId, "SINGLE|ANYONECANPAY")
-  }
-
-  case class SignedTransaction (
-    // The transaction with a signature.
-    transaction : Transaction,
-    // The value true if transaction is fully signed; the value false if more signatures are required
-    complete : Boolean
-  )
 
   /** signs a transaction.
     *
@@ -33,12 +20,11 @@ object Wallet extends ChainEventListener {
     * @return
     */
   def signTransaction( transaction   : Transaction,
-                       dependencies  : Option[List[UnspentTranasctionOutput]],
-                       privateKeys   : Option[List[String]],
-                       sigHash       : Option[String]
+                       dependencies  : List[UnspentTranasctionOutput],
+                       privateKeys   : Option[List[PrivateKey]],
+                       sigHash       : SigHash
                      ) : SignedTransaction = {
     // TODO : Implement
-
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
     } else {
