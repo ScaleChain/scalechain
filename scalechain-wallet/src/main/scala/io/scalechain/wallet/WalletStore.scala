@@ -64,35 +64,83 @@ class WalletStore {
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Account -> Output Ownership
+  // Account -> Output Ownerships
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Create an account if it does not exist.
-  // Get an account by an output ownership.
-  // Put an output ownership into an account.
-  // Add an output ownership to an account.
-  // Iterate for each output ownerships.
+  // Keys and Values (K, V) :
+  // A. (Account + '\0' + OutputOwnership, Option[PrivateKey]) => for Search 2, 3
+  // B. (OutputOwnership, Account) => for Search case 1
+  //
+  // Modifications :
+  // 1. Add an output ownership to an account. Create an account if it does not exist.
+  // 2. Put the private key into an the address.
+  //
+  // Searches :
+  // 1. Get an account by an output ownership.
+  // 2. Iterate for each output ownerships for all accounts.
+  // 3. Iterate private keys for all accounts.
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Output Ownership -> Private Keys
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Put the private key into an the address.
-  // Iterate private keys for all accounts
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // Output Ownership -> Transactions
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Put a transaction into the output ownership.
-  // Remove a transaction from the output ownership by transaction hash
-  // Iterate transactions by providing an account and the skip count. Include watch-only ownerships.
-  // Iterate transactions by providing an account and the skip count. Exclude watch-only ownerships.
+  // Keys and Values (K, V) :
+  // A. Including watch-only : ( OutputOwnership + '\0' + TransactionHash ) => For Search 1
+  // B. Excluding watch-only : ( OutputOwnership + '\0' + TransactionHash ) => For Search 2
+  //
+  // Modifications :
+  // 1. Put a transaction into the output ownership.
+  // 2. Remove a transaction from the output ownership by transaction hash.
+  //
+  // Searches :
+  // 1. Iterate transactions by providing an account and the skip count. Include watch-only ownerships.
+  // 2. Iterate transactions by providing an account and the skip count. Exclude watch-only ownerships.
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // Output Ownership -> UTXOs
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Put a UTXO into the output ownership.
-  // Mark a UTXO spent searching by OutPoint.
-  // Remove a UTXO from the output ownership.
-  // Iterate UTXOs for an output ownership.
-  // Iterate UTXOs for all output ownerships. Filter UTXOs based on confirmations.
-  // Iterate UTXOs for a given addresses. Filter UTXOs based on confirmations.
+  // Keys and Values (K, V) :
+  // A. ( OutputOwnership + '\0' + OutPoint, Confirmation ) => For Search 1, 2, 3
+  // B. ( OutPoint, OutputDescriptor ) => For Modification 2, and For Search 2
+  //
+  // OutputDescriptor has following fields :
+  // 1. Spent : Boolean
+  //
+  // Modifications :
+  // 1. Put a UTXO into the output ownership.
+  // 2. Mark a UTXO spent searching by OutPoint.
+  // 3. Remove a UTXO from the output ownership.
+  //
+  // Searches :
+  // 1. Iterate UTXOs for an output ownership.
+  // 2. Iterate UTXOs for all output ownerships. Filter UTXOs based on confirmations.
+  // 3. Iterate UTXOs for a given addresses. Filter UTXOs based on confirmations.
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // TransactionHash -> Transaction
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // Keys and Values (K, V) :
+  // A. (TransactionHash, Transaction)
+  //
+  // Modifications :
+  // 1. Add a transaction.
+  // 2. Remove a transaction.
+  //
+  // Searches :
+  // 1. Search a transaction by the hash.
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // OutPoint -> TransactionOutput
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // Keys and Values (K, V) :
+  // A. (OutPoint, TransactionOutput)
+  //
+  // Modifications :
+  // 1. Add a transaction output.
+  // 2. Remove a transaction output.
+  //
+  // Searches :
+  // 1. Search a transaction output by the outpoint.
+
 }

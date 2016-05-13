@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.proto.{UnspentTranasctionOutput, Transaction}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.crypto.PrivateKey
@@ -38,6 +39,10 @@ object TransactionSigner {
            privateKeys   : List[PrivateKey],
            sigHash       : SigHash
           ) : SignedTransaction = {
+    // Only ALL SigHash type is supported for now.
+    if (sigHash != SigHash.ALL) {
+      throw new UnsupportedFeature(ErrorCode.UnsupportedHashType)
+    }
     // TODO : implement
     assert(false)
     null
