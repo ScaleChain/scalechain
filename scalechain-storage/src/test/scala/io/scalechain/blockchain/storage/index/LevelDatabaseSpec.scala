@@ -9,7 +9,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class LevelDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with BeforeAndAfterEach {
+class LevelDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

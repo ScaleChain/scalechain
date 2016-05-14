@@ -1,7 +1,11 @@
 package io.scalechain.blockchain.storage.index
 
+import java.util
+
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.MessagePartCodec
+import io.scalechain.blockchain.proto.codec.primitive.{CStringPrefixed, CStringPrefixedCodec, CString}
+import scodec.codecs._
 
 trait ClosableIterator[T] extends Iterator[T] with AutoCloseable {
   def close : Unit
@@ -25,6 +29,7 @@ trait KeyValueDatabase {
   def close() : Unit
 
   private def prefixedKey(prefix: Byte, key:Array[Byte]) = Array(prefix) ++ key
+  private def prefixedKey(prefix: Array[Byte], key:Array[Byte]) = prefix ++ key
 
   def seekObject[V <: ProtocolMessage](rawKeyOption : Option[Array[Byte]] = None)(valueCodec : MessagePartCodec[V]) : ClosableIterator[(Array[Byte], V)] = {
     class ValueMappedIterator(iterator:ClosableIterator[(Array[Byte],Array[Byte])]) extends ClosableIterator[(Array[Byte], V)] {
@@ -40,6 +45,19 @@ trait KeyValueDatabase {
   }
 
   def seekObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(K,V)] = {
+    seekObjectInternal( Array(prefix), Some(key))(keyCodec, valueCodec)
+  }
+
+  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, keyPrefix:String)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
+    seekObjectInternal( prefixedKey(prefix, CString.serialize(keyPrefix)), None)(new CStringPrefixedCodec(keyCodec), valueCodec)
+  }
+
+  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
+    seekObjectInternal( Array(prefix), None)(new CStringPrefixedCodec(keyCodec), valueCodec)
+  }
+
+
+  protected def seekObjectInternal[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Array[Byte], keyOption : Option[K])(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(K,V)] = {
     /** We should stop the iteration if the prefix of the key changes.
       * So, hasNext first gets the next key and checks if the prefix remains unchanged.
       * next will return the element we got from hasNext.
@@ -48,7 +66,7 @@ trait KeyValueDatabase {
       *
       * @param iterator
       */
-    class ValueMappedIterator(iterator:ClosableIterator[(Array[Byte],Array[Byte])]) extends ClosableIterator[(K, V)] {
+    class PrefetchingIterator(iterator:ClosableIterator[(Array[Byte],Array[Byte])]) extends ClosableIterator[(K, V)] {
       var elementToReturn : Option[(Array[Byte],Array[Byte])] = None
 
       def next : (K, V) = {
@@ -58,9 +76,9 @@ trait KeyValueDatabase {
         val rawValue = elementToReturn.get._2
         elementToReturn = None
 
-        val readPrefix = rawKey(0)
+        val readPrefix = rawKey.take(prefix.length)
         // hasNext should return false if the prefix of the next key does not match the prefix.
-        assert(readPrefix == prefix)
+        assert( util.Arrays.equals(readPrefix,prefix) )
         // We need to drop the prefix byte for the rawKey.
         (keyCodec.parse(rawKey.drop(1)), valueCodec.parse(rawValue))
       }
@@ -73,8 +91,8 @@ trait KeyValueDatabase {
         // We already have a prefetched key.
         if (elementToReturn.isDefined) {
           val rawKey = elementToReturn.get._1
-          val readPrefix = rawKey(0)
-          if(readPrefix == prefix) {
+          val readPrefix = rawKey.take(prefix.length)
+          if(util.Arrays.equals(readPrefix, prefix)) {
             true
           } else {
             false
@@ -84,11 +102,11 @@ trait KeyValueDatabase {
           if ( iterator.hasNext ) {
             val (rawKey, rawValue) = iterator.next
             assert(rawKey.length > 0)
-            val readPrefix = rawKey(0)
-            // Continue the iteration only if the prefix remains unchanged.
+            val readPrefix = rawKey.take(prefix.length)
             elementToReturn = Some((rawKey, rawValue))
 
-            if(readPrefix == prefix) {
+            // Continue the iteration only if the prefix remains unchanged.
+            if(util.Arrays.equals(readPrefix, prefix)) {
               true
             } else {
               false
@@ -100,10 +118,15 @@ trait KeyValueDatabase {
       }
       def close : Unit = iterator.close
     }
-    val seekKey = prefixedKey(prefix, keyCodec.serialize(key))
-    val rawIterator = seek(Some(seekKey))
-    new ValueMappedIterator(rawIterator)
+    val seekKey =
+      if (keyOption.isDefined)
+        Some(prefixedKey(prefix, keyCodec.serialize(keyOption.get)))
+      else
+        Some(prefix)
+    val rawIterator = seek(seekKey)
+    new PrefetchingIterator(rawIterator)
   }
+
 
 
   def getObject[V <: ProtocolMessage](rawKey : Array[Byte])(valueCodec : MessagePartCodec[V]) : Option[V] = {
@@ -114,6 +137,13 @@ trait KeyValueDatabase {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     getObject(rawKey)(valueCodec)
   }
+
+  def getPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Option[V] = {
+    val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
+    getObject(rawKey)(valueCodec)
+  }
+
+
 
   def putObject[V <: ProtocolMessage](rawKey : Array[Byte], value : V)(valueCodec : MessagePartCodec[V]) : Unit = {
     val rawValue = valueCodec.serialize(value)
@@ -127,10 +157,23 @@ trait KeyValueDatabase {
     putObject(rawKey, value)(valueCodec)
   }
 
+  def putPrefixedObject[K <: ProtocolMessage, V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K, value : V)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Unit = {
+    val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
+
+    putObject(rawKey, value)(valueCodec)
+  }
+
+
   def delObject[K <: ProtocolMessage](prefix : Byte, key : K)(keyCodec : MessagePartCodec[K]) = {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     del(rawKey)
   }
+
+  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(keyCodec : MessagePartCodec[K]) = {
+    val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
+    del(rawKey)
+  }
+
 
 }
 

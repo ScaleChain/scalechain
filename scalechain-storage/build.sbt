@@ -1,5 +1,6 @@
 libraryDependencies ++= Seq(
   "org.rocksdb" % "rocksdbjni" % "4.5.1",
+  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
   "org.fusesource.leveldbjni" % "leveldbjni-osx" % "1.8",
 //  "org.fusesource.leveldbjni" % "leveldbjni-linux64" % "1.8",
   "org.apache.cassandra" % "cassandra-all" % "3.4",

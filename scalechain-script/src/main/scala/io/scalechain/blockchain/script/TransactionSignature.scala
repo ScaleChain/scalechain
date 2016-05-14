@@ -69,42 +69,6 @@ object TransactionSignature {
     transaction.copy(
       inputs = newInputs
     )
-
-    /*
-        howToHash match {
-          case TransactionSigHash.ALL => {
-            var currentInputIndex = -1
-            val newInputs = transaction.inputs.map { input =>
-              currentInputIndex += 1
-              input match {
-                case normalTx : NormalTransactionInput => {
-                  val newUnlockingScript =
-                    if (currentInputIndex == transactionInputIndex) {
-                      UnlockingScript(scriptData)
-                    } else {
-                      UnlockingScript(Array[Byte]())
-                    }
-                  normalTx.copy(
-                    unlockingScript = newUnlockingScript
-                  )
-                }
-                // No need to change the generation transaction
-                case generationTx : GenerationTransactionInput => generationTx
-              }
-            }
-
-            transaction.copy(
-              inputs = newInputs
-            )
-          }
-          case TransactionSigHash.NONE => {
-            throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : NONE")
-          }
-          case TransactionSigHash.SINGLE => {
-            throw new TransactionVerificationException(ErrorCode.UnsupportedHashType, "Unsupported Hash Type : SINGLE")
-          }
-    }
-    */
   }
 
   /** Calculate hash value of this transaction for signing/validating a signature.

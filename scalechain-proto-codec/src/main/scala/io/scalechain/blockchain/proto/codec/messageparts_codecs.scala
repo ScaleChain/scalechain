@@ -9,7 +9,9 @@ import scodec.{DecodeResult, Attempt, Codec}
 import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
 
-trait MessagePartCodec[T <: ProtocolMessage] {
+
+
+trait SerializeParseUtil[T] {
   val codec : Codec[T]
 
   def serialize(obj : T) : Array[Byte] = {
@@ -40,6 +42,9 @@ trait MessagePartCodec[T <: ProtocolMessage] {
       }
     }
   }
+}
+
+trait MessagePartCodec[T <: ProtocolMessage] extends SerializeParseUtil[T] {
 }
 
 object HashCodec extends MessagePartCodec[Hash] {
