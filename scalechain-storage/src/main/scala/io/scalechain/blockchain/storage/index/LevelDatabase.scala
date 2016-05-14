@@ -1,25 +1,30 @@
 package io.scalechain.blockchain.storage.index
 
-import java.io.File
 
+import java.io.File
+import org.iq80.leveldb._
+import org.fusesource.leveldbjni.JniDBFactory._
+import java.io._
+
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
+import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.storage.Storage
-import org.rocksdb.{RocksIterator, Options, RocksDB}
+
 
 /**
-  * A KeyValueDatabase implementation using RocksDB.
+  * A KeyValueDatabase implementation using LevelDB.
   */
-class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends KeyValueDatabase {
+class LevelDatabase(path : File) extends KeyValueDatabase {
   assert( Storage.initialized )
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  private val defaultOptions = new Options().setCreateIfMissing(true);
-  private val options = prefixSizeOption match {
-    case Some(prefixSize) => defaultOptions.useFixedLengthPrefixExtractor(prefixSize)
-    case _ => defaultOptions
-  }
-  private val db = RocksDB.open(options, path.getAbsolutePath)
+  private val options = new Options()
+  options.createIfMissing(true)
+
+  private val db = factory.open(path, options )
 
 
   /** Seek a key greater than or equal to the given key.
@@ -29,22 +34,24 @@ class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends K
     * @return An Iterator to iterate (key, value) pairs.
     */
   def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
-    class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(Array[Byte],Array[Byte])] {
+    class KeyValueIterator(iterator : DBIterator) extends ClosableIterator[(Array[Byte],Array[Byte])] {
       def next : (Array[Byte],Array[Byte]) = {
-        if (!rocksIterator.isValid) {
-            throw new GeneralException(ErrorCode.NoMoreKeys)
+        if (!iterator.hasNext) {
+          throw new GeneralException(ErrorCode.NoMoreKeys)
         }
 
-        rocksIterator.next
-        (rocksIterator.key, rocksIterator.value)
+        val nextKeyValue = iterator.peekNext()
+        iterator.next
+        (nextKeyValue.getKey, nextKeyValue.getValue)
       }
-      def hasNext : Boolean = rocksIterator.isValid
+      def hasNext : Boolean = iterator.hasNext
 
       def close : Unit = {
-        rocksIterator.dispose()
+        iterator.close()
       }
     }
-    val rocksIterator =  db.newIterator()
+
+    val rocksIterator =  db.iterator()
 
     if (keyOption.isDefined) {
       rocksIterator.seek(keyOption.get)
@@ -68,7 +75,7 @@ class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends K
   }
 
   def del(key : Array[Byte]) : Unit = {
-    db.remove(key)
+    db.delete(key)
   }
 
   def close() : Unit = {

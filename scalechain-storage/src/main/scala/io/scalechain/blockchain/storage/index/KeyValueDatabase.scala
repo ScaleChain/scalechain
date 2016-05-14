@@ -39,14 +39,65 @@ trait KeyValueDatabase {
     new ValueMappedIterator(rawIterator)
   }
 
-  def seekObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Iterator[(K,V)] = {
-
+  def seekObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(K,V)] = {
+    /** We should stop the iteration if the prefix of the key changes.
+      * So, hasNext first gets the next key and checks if the prefix remains unchanged.
+      * next will return the element we got from hasNext.
+      *
+      * If the prefix is changed, we stop the iteration.
+      *
+      * @param iterator
+      */
     class ValueMappedIterator(iterator:ClosableIterator[(Array[Byte],Array[Byte])]) extends ClosableIterator[(K, V)] {
+      var elementToReturn : Option[(Array[Byte],Array[Byte])] = None
+
       def next : (K, V) = {
-        val (rawKey, rawValue) = iterator.next
-        (keyCodec.parse(rawKey), valueCodec.parse(rawValue))
+        assert(elementToReturn.isDefined)
+
+        val rawKey = elementToReturn.get._1
+        val rawValue = elementToReturn.get._2
+        elementToReturn = None
+
+        val readPrefix = rawKey(0)
+        // hasNext should return false if the prefix of the next key does not match the prefix.
+        assert(readPrefix == prefix)
+        // We need to drop the prefix byte for the rawKey.
+        (keyCodec.parse(rawKey.drop(1)), valueCodec.parse(rawValue))
       }
-      def hasNext : Boolean = iterator.hasNext
+
+      /** Prefetch next key, and check if the prefix matches with the one privided by the first parameter of the seekObject method.
+        *
+        * @return true if the next key matches the prefix.
+        */
+      def hasNext : Boolean = {
+        // We already have a prefetched key.
+        if (elementToReturn.isDefined) {
+          val rawKey = elementToReturn.get._1
+          val readPrefix = rawKey(0)
+          if(readPrefix == prefix) {
+            true
+          } else {
+            false
+          }
+        } else {
+          // We don't have a prefetched key. Prefetch one.
+          if ( iterator.hasNext ) {
+            val (rawKey, rawValue) = iterator.next
+            assert(rawKey.length > 0)
+            val readPrefix = rawKey(0)
+            // Continue the iteration only if the prefix remains unchanged.
+            elementToReturn = Some((rawKey, rawValue))
+
+            if(readPrefix == prefix) {
+              true
+            } else {
+              false
+            }
+          } else {
+            false
+          }
+        }
+      }
       def close : Unit = iterator.close
     }
     val seekKey = prefixedKey(prefix, keyCodec.serialize(key))

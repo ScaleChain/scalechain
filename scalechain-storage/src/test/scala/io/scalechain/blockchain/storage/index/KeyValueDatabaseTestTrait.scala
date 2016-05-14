@@ -131,19 +131,6 @@ trait KeyValueDatabaseTestTrait extends FlatSpec with KeyValueCommonTrait with S
     db.delObject(PREFIX1, FileNumber(1))(F)
   }
 
-
-  /** Convert an option of a byte array to an option of a byte list.
-    * Because Scala uses referential equality check on arrays,
-    * we need to convert arrays to lists.
-    *
-    * For lists, Scala checks each items in the list for the equality check.
-    *
-    * @param arrayOption The option of an array to convert.
-    */
-  def L(arrayOption : Option[Array[Byte]]) =
-    arrayOption.map(_.toList)
-
-
   "get" should "return a value which was put" in {
     db.get(B("k1")) shouldBe None
     db.put(B("k1"), B("v1"))
