@@ -9,15 +9,8 @@ import io.scalechain.crypto.HashFunctions
 /**
   * Created by kangmo on 3/23/16.
   */
-trait KeyValueDatabaseTestTrait extends FlatSpec with ShouldMatchers{
+trait KeyValueDatabaseTestTrait extends FlatSpec with KeyValueCommonTrait with ShouldMatchers{
   var db : KeyValueDatabase
-
-  /** Convert a string to a byte array.
-    *
-    * @param value The string to convert to a byte array.
-    * @return The converted byte array.
-    */
-  def B(value : String) = value.getBytes
 
   "getObject(rawKey)" should "return a value which was put" in {
     val C = FileNumberCodec
@@ -53,9 +46,6 @@ trait KeyValueDatabaseTestTrait extends FlatSpec with ShouldMatchers{
     db.getObject(B("k2"))(C) shouldBe Some(FileNumber(2))
     db.getObject(B("k3"))(C) shouldBe Some(FileNumber(3))
   }
-
-  val PREFIX1 : Byte = '1'
-  val PREFIX2 : Byte = '2'
 
   "getObject(objectKey)" should "return a value which was put" in {
     val F = FileNumberCodec

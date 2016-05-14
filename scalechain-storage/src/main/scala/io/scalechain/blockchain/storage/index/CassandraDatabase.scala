@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.ByteBuffer
 
 import com.datastax.driver.core.{Row, TableMetadata, KeyspaceMetadata, Cluster}
+import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 
 
@@ -33,6 +34,17 @@ class CassandraDatabase(path : File, tableName : String) extends KeyValueDatabas
   val preparedStmtPut = session.prepare(s"INSERT INTO ${tableName} (key, value) VALUES( :key, :value)")
   val preparedStmtDel = session.prepare(s"DELETE FROM ${tableName} WHERE key = :key")
 
+
+  /** Seek a key greater than or equal to the given key.
+    * Return an iterator which iterates each (key, value) pair from the seek position.
+    *
+    * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
+    * @return An Iterator to iterate (key, value) pairs.
+    */
+  def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
+    // the seek operation for the Cassandra database is not implemented yet.
+    throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+  }
   def get(key : Array[Byte] ) : Option[Array[Byte]] = {
     val row = session.execute( preparedStmtGet.bind(ByteBuffer.wrap(key))).all()
     if ( row.isEmpty ) {

@@ -1,5 +1,7 @@
 package io.scalechain.wallet
 
+import java.io.File
+
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutput}
 
@@ -30,8 +32,7 @@ import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutpu
 // Output Ownership -> Transactions
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. Including watch-only : ( OutputOwnership + '\0' + TransactionHash ) => For Search 1
-// B. Excluding watch-only : ( OutputOwnership + '\0' + TransactionHash ) => For Search 2
+// A. ( OutputOwnership + '\0' + TransactionHash ) => For Search 1,2
 //
 // Modifications :
 // 1. Put a transaction into the output ownership.
@@ -68,7 +69,7 @@ import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutpu
 // TransactionHash -> Transaction
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. (TransactionHash, Transaction)
+// A. (TransactionHash, WalletTransaction)
 //
 // Modifications :
 // 1. Add a transaction.
@@ -112,7 +113,7 @@ import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutpu
   *     (1) keeping all blocks in each peer.  Ex> keep all blocks for N peers.
   *     (2) keeping some blocks in each peer. Ex> keep 1/N blocks for N peers.
   */
-class WalletStore {
+class WalletStore(walletFolder : File) {
   /*******************************************************************************************************
    * Category : [Account -> Output Ownerships]
    *******************************************************************************************************/
@@ -264,7 +265,7 @@ class WalletStore {
     * @param outputOwnershipOption Some(ownership) to iterate UTXOs for a specific output ownership.
     *                              None to iterate UTXOs for all output ownership.
     */
-  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[UnspentTransactionOutput] = {
+  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[UnspentCoin] = {
     // TODO : Implement
     assert(false)
     null
@@ -280,7 +281,7 @@ class WalletStore {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     */
-  def putTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
+  def putTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -289,7 +290,7 @@ class WalletStore {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     */
-  def delTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
+  def delTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -298,7 +299,7 @@ class WalletStore {
     *
     * Category : [TransactionHash -> Transaction] - Search
     */
-  def getTransaction(transactionHash : Hash) : Transaction = {
+  def getTransaction(transactionHash : Hash) : WalletTransaction = {
     // TODO : Implement
     assert(false)
     null

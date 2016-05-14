@@ -1,5 +1,5 @@
 libraryDependencies ++= Seq(
-  "org.rocksdb" % "rocksdbjni" % "4.1.0",
+  "org.rocksdb" % "rocksdbjni" % "4.5.1",
   "org.apache.cassandra" % "cassandra-all" % "3.4",
   "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.0",
   "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0",

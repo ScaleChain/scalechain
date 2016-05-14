@@ -63,6 +63,10 @@ object ErrorCode {
   // Base58 encoding errors
   val InvalidChecksum = ErrorCode("invalid_checksum")
 
+
+  // RocksDadatabase errors
+  val NoMoreKeys = ErrorCode("no_more_keys")
+
 }
 
 

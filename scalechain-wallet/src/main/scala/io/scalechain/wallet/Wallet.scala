@@ -1,13 +1,19 @@
 package io.scalechain.wallet
 
+import java.io.File
+
 import io.scalechain.blockchain.chain.ChainEventListener
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
-import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutput}
+import io.scalechain.blockchain.transaction.{TransactionSigner, PrivateKey, UnspentTransactionOutput}
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 object Wallet extends ChainEventListener {
+  // BUGBUG : Change the folder name without the "target" path.
+  val walletFolder = new File("./target/wallet")
+
+  val store = new WalletStore(walletFolder)
 
   /** signs a transaction.
     *
@@ -24,15 +30,14 @@ object Wallet extends ChainEventListener {
                       privateKeys   : Option[List[PrivateKey]],
                       sigHash       : SigHash
                      ) : SignedTransaction = {
-    // TODO : Implement
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
+      val privateKeysFromWallet = store.getPrivateKeys.toList
+
+      TransactionSigner.sign(transaction, dependencies, privateKeysFromWallet, sigHash )
     } else {
-
+      TransactionSigner.sign(transaction, dependencies, privateKeys.get, sigHash )
     }
-
-    assert(false)
-    null
   }
 
   case class CoinAmount(value : scala.math.BigDecimal)
@@ -45,14 +50,13 @@ object Wallet extends ChainEventListener {
     * @param confirmations
     */
   def getReceivedByAddress(address : CoinAddress, confirmations : Long) : CoinAmount = {
-    // TODO : Implement
-
     // Step 1 : Wallet Store : Iterate UTXOs for an output ownership.
-
-    // Step 2 : Sum up the amount of UTXOs.
-
-    assert(false)
-    null
+    val total = store.getTransactionOutputs(Some(address)).foldLeft(scala.math.BigDecimal(0L)) {
+      // Step 2 : Sum up the amount of UTXOs.
+      (sum : scala.math.BigDecimal, utxo : UnspentCoin) =>
+        sum + utxo.amount
+    }
+    CoinAmount(total)
   }
 
 
@@ -146,17 +150,14 @@ object Wallet extends ChainEventListener {
                         includeWatchOnly: Boolean
                       ) : List[TransactionDescriptor] = {
     // TODO : Implement
-
-    if (includeWatchOnly) {
-      // Wallet Store : Including watch-only ownerships : Iterate transactions by providing an account and the skip count.
-      //   Stop the iteration after getting 'count' transactions.
-    } else {
-      // Wallet Store : Except watch-only ownerships : Iterate transactions by providing an account and the skip count.
-      //   Stop the iteration after getting 'count' transactions.
-    }
-
     assert(false)
     null
+    // Wallet Store : Iterate transactions by providing an account and the skip count.
+    /*
+    store.getTransactions(account, skip, includeWatchOnly).map { transaction : Transaction =>
+
+    }*/
+    //   Stop the iteration after getting 'count' transactions.
   }
 
 

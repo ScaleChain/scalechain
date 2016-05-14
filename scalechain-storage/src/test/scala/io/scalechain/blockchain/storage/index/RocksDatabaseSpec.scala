@@ -9,7 +9,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class RocksDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfterEach {
+class RocksDatabaseSpec extends /*KeyValueDatabaseTestTrait with*/ KeyValueSeekTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
