@@ -5,18 +5,18 @@ Each module exists at a layer and a module can use another module at a layer bel
 # Layers
 The followings are list of sub-modules from the top layer to the bottom layer.
 ```
-+-------------------------+----------------------+
-|          Cli            |          Main        |
-+-------------------------+----------------------+
++------------------------------------------------+
+|                   Cli                          |
++------------------------------------------------+
 |                   API                          |
 +------------------------------------------------+
 |                   Wallet                       |
 +------------------------------------------------+
 |                   Net                          |
 +------------------------------------------------+
-|                   Transaction                  |
-+------------------------------------------------+
 |                   Chain                        |
++------------------------------------------------+
+|                   Transaction                  |
 +------------------------------------------------+
 |                   Storage                      |
 +------------------------------------------------+
@@ -44,13 +44,12 @@ creating accounts, creating addresses an account etc.
 The P2P networking layer. 100% Compatible with Bitcoin. 
 To make the protocol compatible, we use Akka Streams and implement codecs on Codec|Proto layer to convert on-the-wire format to case classes and vice versa.
 
-## Transaction
-The ScaleChain transaction layer. Implements signing a raw transaction, verifying a signed transaction.
-Also implements transaction memory pool.
-
 ## Chain
 The chain layer is responsible for maintaining the best block chain. 
 It knows how to update the best block, move transactions from/to blocks and the mempool upon block reorganization.
+
+## Transaction
+The ScaleChain transaction layer. Implements signing a raw transaction, verifying a signed transaction.
 
 ## Storage
 The storage layer. Knows how to store blocks and transactions. It knows how to search blocks by hash or transactions by hash.
