@@ -9,16 +9,12 @@ import org.rocksdb.{RocksIterator, Options, RocksDB}
 /**
   * A KeyValueDatabase implementation using RocksDB.
   */
-class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends KeyValueDatabase {
+class RocksDatabase(path : File) extends KeyValueDatabase {
   assert( Storage.initialized )
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  private val defaultOptions = new Options().setCreateIfMissing(true);
-  private val options = prefixSizeOption match {
-    case Some(prefixSize) => defaultOptions.useFixedLengthPrefixExtractor(prefixSize)
-    case _ => defaultOptions
-  }
+  private val options = new Options().setCreateIfMissing(true).setCreateMissingColumnFamilies(true);
   private val db = RocksDB.open(options, path.getAbsolutePath)
 
 
@@ -30,18 +26,32 @@ class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends K
     */
   def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
     class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(Array[Byte],Array[Byte])] {
+      var isClosed = false
       def next : (Array[Byte],Array[Byte]) = {
+        assert( !isClosed )
+
         if (!rocksIterator.isValid) {
             throw new GeneralException(ErrorCode.NoMoreKeys)
         }
 
+        val rawKey = rocksIterator.key
+        val rawValue = rocksIterator.value
+
         rocksIterator.next
-        (rocksIterator.key, rocksIterator.value)
+
+        (rawKey, rawValue)
       }
-      def hasNext : Boolean = rocksIterator.isValid
+      def hasNext : Boolean = {
+        if (isClosed) {
+          false
+        } else {
+          rocksIterator.isValid
+        }
+      }
 
       def close : Unit = {
         rocksIterator.dispose()
+        isClosed = true
       }
     }
     val rocksIterator =  db.newIterator()
@@ -73,5 +83,6 @@ class RocksDatabase(path : File, prefixSizeOption: Option[Int] = None) extends K
 
   def close() : Unit = {
     db.close
+    options.dispose()
   }
 }

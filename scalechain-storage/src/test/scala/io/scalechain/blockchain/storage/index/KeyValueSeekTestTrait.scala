@@ -24,6 +24,7 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
     db.put(B("k3"), B("v3"))
 
     using( db.seek(None) ) in {
+
       _.toList.map { case(k,v)=> (k.toList, v.toList) } shouldBe
        List((B("k1"), B("v1")), (B("k2"), B("v2")), (B("k3"), B("v3"))).map { case(k,v)=> (k.toList, v.toList) }
     }
@@ -187,8 +188,35 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
     }
   }
 
-  // This test results in JVM crash. The crash was caused by the leveldbjni native library.
-  "seekObject(prefix, key)" should "support nested invocation with toList materialization " ignore {
+  "seekObject(prefix, key)" should "support nested invocation(simplified version)" in {
+    val F = FileNumberCodec
+    val R = RecordLocatorCodec
+
+    db.putObject(PREFIX1, FileNumber(1), RecordLocator(1, 2))(F, R)
+    db.putObject(PREFIX1, FileNumber(3), RecordLocator(3, 4))(F, R)
+    db.putObject(PREFIX1, FileNumber(5), RecordLocator(5, 6))(F, R)
+
+    db.putObject(PREFIX2, FileNumber(1), RecordLocator(1, 2))(F, R)
+    db.putObject(PREFIX2, FileNumber(3), RecordLocator(3, 4))(F, R)
+    db.putObject(PREFIX2, FileNumber(5), RecordLocator(5, 6))(F, R)
+
+    using( db.seekObject(PREFIX1, FileNumber(1))(F, R) ) in { iter1 =>
+
+      iter1.foreach{ case (fileNumber1,recordLocator1) =>
+//        println(s"$fileNumber1, $recordLocator1")
+
+        using( db.seekObject(PREFIX2, FileNumber(3))(F, R) ) in { iter2 =>
+          iter2.foreach { case (fileNumber2,recordLocator2) =>
+//            println(s"$fileNumber1, $recordLocator1, $fileNumber2, $recordLocator2")
+          }
+        }
+      }
+    }
+  }
+
+
+  // This case calls RocksIterator.close and then calls RocksIterator.hasNext.
+  "seekObject(prefix, key)" should "support nested invocation with toList materialization " in {
     val F = FileNumberCodec
     val R = RecordLocatorCodec
 
@@ -210,30 +238,11 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
         }
       }
     }
-    /*
-    // Use toList to iterate all matching (key,value) pairs before starting the nested iteration.
-    val nestedIterationResult = outerLoopResult.flatMap{ case (fileNumber1,recordLocator1) =>
-      using( db.seekObject(PREFIX1, FileNumber(3))(F, R) ) in { iter2 =>
-        iter2.map { case (fileNumber2, recordLocator2) =>
-          (fileNumber1, recordLocator1, fileNumber2, recordLocator2)
-        }
-      }
-    }
-
-    nestedIterationResult shouldBe List(
-      (FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
-      (FileNumber(1), RecordLocator(1, 2), FileNumber(5), RecordLocator(5, 6)),
-      (FileNumber(3), RecordLocator(3, 4), FileNumber(3), RecordLocator(3, 4)),
-      (FileNumber(3), RecordLocator(3, 4), FileNumber(5), RecordLocator(5, 6)),
-      (FileNumber(5), RecordLocator(5, 6), FileNumber(3), RecordLocator(3, 4)),
-      (FileNumber(5), RecordLocator(5, 6), FileNumber(5), RecordLocator(5, 6))
-    )
-    */
   }
 
 
-  // This test results in JVM crash. The crash was caused by the leveldbjni native library.
-  "seekObject(prefix, key)" should "support nested invocation for different prefixes" ignore {
+  // This test results in JVM crash. The crash was caused by the leveldbjni, rocksdbjni native library.
+  "seekObject(prefix, key)" should "support nested invocation for different prefixes" in {
     val F = FileNumberCodec
     val R = RecordLocatorCodec
 
@@ -252,9 +261,9 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
         using( db.seekObject(PREFIX2, FileNumber(3))(F, R) ) in { iter2 =>
           iter2.map { case (fileNumber2, recordLocator2) =>
             (fileNumber1, recordLocator1, fileNumber2, recordLocator2)
-          }
+          }.toList
         }
-      }
+      }.toList
 
       nestedIterationResult shouldBe List(
         (FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
@@ -267,9 +276,8 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
     }
   }
 
-
-  // This test results in JVM crash. The crash was caused by the leveldbjni native library.
-  "seekObject(prefix, key)" should "support nested invocation for the same prefix" ignore {
+  // This test results in JVM crash. The crash was caused by the leveldbjni, rocksdbjni native library.
+  "seekObject(prefix, key)" should "support nested invocation for the same prefix" in {
     val F = FileNumberCodec
     val R = RecordLocatorCodec
 
@@ -283,10 +291,11 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
 
         using( db.seekObject(PREFIX1, FileNumber(3))(F, R) ) in { iter2 =>
           iter2.map { case (fileNumber2, recordLocator2) =>
+            println(s"lst : $fileNumber1, $recordLocator1, $fileNumber2, $recordLocator2")
             (fileNumber1, recordLocator1, fileNumber2, recordLocator2)
-          }
+          }.toList
         }
-      }
+      }.toList
 
       nestedIterationResult shouldBe List(
         (FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),

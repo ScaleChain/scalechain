@@ -267,7 +267,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
     }
   }
 
-  val blockCount = 64
+  val blockCount = 8
   "getBlock" should "read many blocks correctly" in {
     storage.putBlock(block1)
     var prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(block1.header))
