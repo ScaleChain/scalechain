@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec.primitive
 
 import io.scalechain.blockchain.proto.WalletTransactionAttribute._
-import io.scalechain.blockchain.proto.{ProtocolMessage, OutputDescriptor, WalletTransactionAttribute, WalletTransaction}
+import io.scalechain.blockchain.proto.{ProtocolMessage, WalletOutput, WalletTransactionAttribute, WalletTransaction}
 import io.scalechain.blockchain.proto.codec.{SerializeParseUtil, MessagePartCodec, HashCodec}
 import scodec.Attempt.{Successful, Failure}
 import scodec._

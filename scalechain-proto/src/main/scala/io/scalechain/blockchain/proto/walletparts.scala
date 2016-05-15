@@ -116,5 +116,28 @@ case class WalletTransaction(
 
 case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessage
 
-case class OutputDescriptor(spent : Boolean, confirmations : Long ) extends ProtocolMessage
-
+case class WalletOutput(
+    // Whether this coin was spent or not.
+    spent : Boolean,
+    // The TXID and output index number that points to the output.
+    // This field is conveted to UnspentOutputDescriptor.txid and UnspentOutputDescriptor.vout.
+    outPoint : OutPoint,
+    // The P2PKH or P2SH address the output paid. Only returned for P2PKH or P2SH output scripts
+    address       : Option[String],        // "mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe",
+    // If the address returned belongs to an account, this is the account. Otherwise not returned
+    account       : Option[String],        // "test label",
+    // The output script paid, encoded as hex
+    // This field is converted to UnspentOutputDescriptor.scriptPubKey
+    lockingScript  : LockingScript,                // "76a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac",
+    // If the output is a P2SH whose script belongs to this wallet, this is the redeem script
+    redeemScript  : Option[String],
+    // The amount paid to the output in bitcoins
+    amount        : scala.math.BigDecimal, // 0.00010000,
+    // The number of confirmations received for the transaction containing this output
+    confirmations : Long,                  // 6210,
+    // ( Since : 0.10.0 )
+    // Set to true if the private key or keys needed to spend this output are part of the wallet.
+    // Set to false if not (such as for watch-only addresses)
+    // This field is converted to UnspentOutputDescriptor.spendable.
+    involvesWatchonly : Boolean           // true,
+) extends ProtocolMessage

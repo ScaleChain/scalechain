@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.Hash
 
-case class UnspentCoin(
+case class UnspentCoinDescriptor(
   // The TXID of the transaction containing the output, encoded as hex in RPC byte order
   txid          : Hash,                  // "d54994ece1d11b19785c7248868696250ab195605b469632b7bd68130e880c9a",
   // The output index number (vout) of the output within its containing transaction

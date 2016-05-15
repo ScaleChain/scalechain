@@ -6,7 +6,7 @@ import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{Transaction, HashFormat, Hash}
 import io.scalechain.wallet.Wallet
-import io.scalechain.wallet.Wallet.TransactionDescriptor
+import io.scalechain.wallet.TransactionDescriptor
 import spray.json.DefaultJsonProtocol._
 
 /*

@@ -61,10 +61,19 @@ object OwnershipDescriptorCodec extends MessagePartCodec[OwnershipDescriptor] {
 }
 
 
-object OutputDescriptorCodec extends MessagePartCodec[OutputDescriptor] {
-  val codec : Codec[OutputDescriptor] = {
-    ("spent" | bool ) ::
-    ("confirmations" | int64 )
-  }.as[OutputDescriptor]
+object WalletOutputCodec extends MessagePartCodec[WalletOutput] {
+  val codec : Codec[WalletOutput] = {
+    ("spent"             | bool ) ::
+    ("outPoint"          | OutPointCodec.codec ) ::
+    ("address"           | optional(bool(8), utf8_32)) ::
+    ("account"           | optional(bool(8), utf8_32)) ::
+    ("lockingScript"     | LockingScriptCodec.codec ) ::
+    ("redeemScript"      | optional(bool(8), utf8_32)) ::
+    ("amount"            | primitive.BigDecimal.codec ) ::
+    ("confirmations"     | int64 ) ::
+    ("involvesWatchonly" | bool )
+  }.as[WalletOutput]
 }
+
+
 

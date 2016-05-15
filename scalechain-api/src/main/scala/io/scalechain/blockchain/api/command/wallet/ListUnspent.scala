@@ -5,7 +5,7 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
-import io.scalechain.wallet.{Wallet, UnspentCoin}
+import io.scalechain.wallet.{UnspentCoinDescriptor, Wallet}
 
 import spray.json.DefaultJsonProtocol._
 
@@ -43,7 +43,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class ListUnspentResult( unspentCoins : List[UnspentCoin] )  extends RpcResult
+case class ListUnspentResult( unspentCoins : List[UnspentCoinDescriptor] )  extends RpcResult
 
 /** ListUnspent: returns an array of unspent transaction outputs belonging to this wallet.
   *
@@ -76,7 +76,7 @@ object ListUnspent extends RpcCommand {
       val maximumConfirmations: Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(9999999L)
       val addressesOption     : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
 
-      val unspentCoins : List[UnspentCoin] = Wallet.listUnspent(minimumConfirmations, maximumConfirmations, addressesOption)
+      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.listUnspent(minimumConfirmations, maximumConfirmations, addressesOption)
 
       // unspentCoins is a list of objects each describing an unspent output. May be empty
       // item of the list : An object describing a particular unspent output belonging to this wallet

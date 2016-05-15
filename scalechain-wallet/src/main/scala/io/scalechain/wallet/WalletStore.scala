@@ -265,7 +265,7 @@ class WalletStore(walletFolder : File) {
     * @param outputOwnershipOption Some(ownership) to iterate UTXOs for a specific output ownership.
     *                              None to iterate UTXOs for all output ownership.
     */
-  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[UnspentCoin] = {
+  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[UnspentCoinDescriptor] = {
     // TODO : Implement
     assert(false)
     null

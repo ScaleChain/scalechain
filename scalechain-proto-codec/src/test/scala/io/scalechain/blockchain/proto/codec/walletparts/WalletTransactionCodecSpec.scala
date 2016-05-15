@@ -29,8 +29,6 @@ class WalletTransactionCodecSpec extends CodecSuite with ProtoTestData {
 
   "WalletTransactionCodec" should {
 
-    implicit val countCodec = CString.codec
-
     "roundtrip" in {
       roundtrip(walletTx1)
     }
