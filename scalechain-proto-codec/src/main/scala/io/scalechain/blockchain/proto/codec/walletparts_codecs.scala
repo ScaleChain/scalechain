@@ -23,19 +23,36 @@ object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
   import WalletTransactionAttribute._
 
   val attributeCodec: Codec[WalletTransactionAttribute] = {
-    mappedEnum(uint32L,
-      WalletTransactionAttribute.RECEIVING -> 1L,
-      WalletTransactionAttribute.SPENDING -> 2L)
+    mappedEnum(int32,
+      WalletTransactionAttribute.SEND -> 1,
+      WalletTransactionAttribute.RECEIVE -> 2,
+      WalletTransactionAttribute.GENERATE -> 3,
+      WalletTransactionAttribute.IMMATURE -> 4,
+      WalletTransactionAttribute.ORPHAN -> 5,
+      WalletTransactionAttribute.MOVE -> 6
+    )
   }.as[WalletTransactionAttribute]
 
+//  address          = Some("n3GNqMveyvaPvUbH469vDRadqpJMPc84JA"),
+
   val codec: Codec[WalletTransaction] = {
-    ("outputOwnership" | utf8) ::
-    ("attributes"      | VarList.varList(attributeCodec)) ::
-    ("transactionHash" | HashCodec.codec)
+    ("involvesWatchonly" | bool ) ::
+    ("account"           | utf8_32 ) ::
+    ("outputOwnership"   | optional(bool(8), utf8_32)) ::
+    ("attributes"        | attributeCodec ) ::
+    ("amount"            | primitive.BigDecimal.codec) ::
+    ("fee"               | optional(bool(8), primitive.BigDecimal.codec) ) ::
+    ("confirmations"     | optional(bool(8), int64) ) ::
+    ("generated"         | optional(bool(8), bool) ) ::
+    ("blockhash"         | optional(bool(8), HashCodec.codec) ) ::
+    ("blockindex"        | optional(bool(8), int64) ) ::
+    ("blocktime"         | optional(bool(8), int64) ) ::
+    ("txid"              | optional(bool(8), HashCodec.codec) ) ::
+    ("time"              | int64 ) ::
+    ("timereceived"      | optional(bool(8), int64) ) ::
+    ("transaction"       | TransactionCodec.codec )
   }.as[WalletTransaction]
 }
-
-
 
 object OwnershipDescriptorCodec extends MessagePartCodec[OwnershipDescriptor] {
   val codec : Codec[OwnershipDescriptor] = {

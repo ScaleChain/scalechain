@@ -6,11 +6,9 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 class CStringSpec extends CodecSuite {
 
-  import VarInt._
-
   "CString codec" should {
 
-    implicit val countCodec = CString.codec
+    implicit val cstringCodec = CString.codec
 
     "roundtrip" in {
       roundtrip("")
