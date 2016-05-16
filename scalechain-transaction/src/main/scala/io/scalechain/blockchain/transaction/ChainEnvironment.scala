@@ -1,10 +1,8 @@
-package io.scalechain.blockchain.chain
+package io.scalechain.blockchain.transaction
 
-import io.scalechain.blockchain.proto.{Hash, Block}
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.util.HexUtil
-
-import HexUtil._
+import io.scalechain.blockchain.proto.{Block, Hash}
+import io.scalechain.util.HexUtil._
 
 /**
   * ChainEnvironment, which hash a list of configuration values for an environment.
@@ -169,3 +167,4 @@ object ChainEnvironmentFactory {
     activeEnvironmentOption
   }
 }
+

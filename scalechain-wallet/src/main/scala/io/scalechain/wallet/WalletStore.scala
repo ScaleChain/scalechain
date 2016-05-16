@@ -3,7 +3,7 @@ package io.scalechain.wallet
 import java.io.File
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{PrivateKey, UnspentTransactionOutput}
+import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, PrivateKey, UnspentTransactionOutput}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Account -> Output Ownerships
@@ -191,6 +191,20 @@ class WalletStore(walletFolder : File) {
     // TODO : Implement
     assert(false)
     null
+  }
+
+
+  /** Put a private key for a coin address.
+    * After putting the private key, we can sign transaction inputs
+    * which are pointing to an output whose locking script has the only public key hash,
+    * which matches the one of the coin address.
+    *
+    * @param address The coin address generated from the private key.
+    * @param privateKey The private key to put under the coin address.
+    */
+  def putPrivateKey(address : CoinAddress, privateKey : PrivateKey) : Unit = {
+    // TODO : Implement
+    assert(false)
   }
 
 

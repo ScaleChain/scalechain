@@ -4,9 +4,11 @@ import java.io.File
 
 import io.scalechain.blockchain.chain.ChainEventListener
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
-import io.scalechain.blockchain.transaction.{TransactionSigner, PrivateKey, UnspentTransactionOutput}
+import io.scalechain.blockchain.transaction._
+import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 object Wallet extends ChainEventListener {
@@ -127,14 +129,13 @@ object Wallet extends ChainEventListener {
     rescanBlockchain : Boolean
   ): Unit = {
 
-    // Step 1 : Wallet Store : Create an account if it does not exist.
+    // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
+    store.putOutputOwnership(account, outputOwnership)
 
-    // Step 2 : Wallet Store : Add an output ownership to an account.
-    
-    // Step 3 : Rescan blockchain
+    // Step 2 : Rescan blockchain
     if (rescanBlockchain) {
-      // Step 4 : Wallet Store : Put transactions into the output ownership.
-      // Step 5 : Wallet Store : Put UTXOs into the output ownership.
+      // Step 3 : Wallet Store : Put transactions into the output ownership.
+      // Step 4 : Wallet Store : Put UTXOs into the output ownership.
     }
 
     // TODO : Implement
@@ -143,43 +144,48 @@ object Wallet extends ChainEventListener {
 
   /** Find an account by coin address.
     *
+    * TODO : Test Automation
+    *
     * Used by : getaccount RPC.
     *
     * @param address The coin address, which is attached to the account.
     * @return The found account.
     */
   def getAccount(address : CoinAddress) : String = {
-    // TODO : Implement
 
-    // Wallet Store : Get an account by a coin address.
-
-    assert(false)
-    null
+    store.getAccount(address)
   }
 
   /** Returns a new coin address for receiving payments.
     *
+    * TODO : Test Automation
     * Used by : newaddress RPC.
     *
     * @return the new address for receiving payments.
     */
   def newAddress(account: String) : CoinAddress = {
-    // TODO : Implement
-
-    // Step 1 : Generate a random number for a private key.
+    // Step 1 : Generate a random number and a private key.
+    val privateKey : PrivateKey = PrivateKey.generate
 
     // Step 2 : Create a public key.
+    val publicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, true /* compressed */)
 
     // Step 3 : Hash the public key.
+    val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
 
     // Step 4 : Create an address.
+    val address = CoinAddress.from(publicKeyHash.value)
 
     // Step 5 : Wallet Store : Put an address into an account.
+    store.putOutputOwnership(account, address)
 
     // Step 6 : Wallet Store : Put the private key into an the address.
+    store.putPrivateKey(address, privateKey)
 
-    assert(false)
-    null
+    // Step 7 : Put the address as the receiving address of the account.
+    store.putReceivingAddress(account, address)
+
+    address
   }
 
 
@@ -190,16 +196,13 @@ object Wallet extends ChainEventListener {
     * @return The coin address for receiving payments.
     */
   def getReceivingAddress(account:String) : CoinAddress = {
-    // TODO : Implement
-
-    // Wallet Store : Get the receiving address of an account.
-
-    assert(false)
-    null
+    store.getReceivingAddress()
   }
 
 
   /** Called whenever a new transaction comes into a block or the mempool.
+    *
+    * TODO : Test Automation
     *
     * @param transaction The newly found transaction.
     * @see ChainEventListener

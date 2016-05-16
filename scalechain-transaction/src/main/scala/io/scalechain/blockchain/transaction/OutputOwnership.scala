@@ -1,9 +1,8 @@
-package io.scalechain.wallet
+package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.TransactionOutput
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.blockchain.chain.ChainEnvironmentFactory
 import io.scalechain.blockchain.script.ScriptOpList
+import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.crypto.Base58Check
 
 /** An entity that describes the ownership of a coin.
@@ -45,6 +44,21 @@ object CoinAddress {
     } else {
       throw new GeneralException(ErrorCode.RpcInvalidAddress)
     }
+  }
+
+  /** Create a CoinAddress from a public key hash.
+    *
+    * TODO : Test Automation.
+    * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
+    * @return
+    */
+  def from(publicKeyHash : Array[Byte]) : CoinAddress = {
+    // Step 1 : Get the chain environment to get the address version.
+    val chainEnv = ChainEnvironmentFactory.getActive
+    assert(chainEnv.isDefined)
+
+    // Step 2 : Create the CoinAddress
+    CoinAddress(chainEnv.get.PubkeyAddressVersion, publicKeyHash)
   }
 }
 
@@ -93,6 +107,7 @@ case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOw
 }
 
 /** A parsed public key script.
+  *
   * @param scriptOps The list of script operations from the public key script.
   */
 case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership {

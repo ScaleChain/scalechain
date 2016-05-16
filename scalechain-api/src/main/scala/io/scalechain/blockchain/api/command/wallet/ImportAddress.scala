@@ -2,11 +2,12 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.script.ScriptParser
+import io.scalechain.blockchain.transaction.{ParsedPubKeyScript, CoinAddress}
 import io.scalechain.blockchain.{ScriptParseException, GeneralException, ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.util.{HexUtil, ByteArray}
-import io.scalechain.wallet.{Wallet, ParsedPubKeyScript, CoinAddress}
+import io.scalechain.wallet.Wallet
 import spray.json.DefaultJsonProtocol._
 
 
