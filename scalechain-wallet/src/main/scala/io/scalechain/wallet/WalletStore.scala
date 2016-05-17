@@ -163,7 +163,7 @@ class WalletStore(walletFolder : File) {
     null
   }
 
-  /** Iterate for each output ownerships for all accounts.
+  /** Get an iterator for each output ownerships for all accounts.
     *
     * Category : [Account -> Output Ownerships] - Search
     */
@@ -173,7 +173,7 @@ class WalletStore(walletFolder : File) {
     null
   }
 
-  /** Iterate private keys for all accounts.
+  /** Get an iterator private keys for all accounts.
     *
     * Category : [Account -> Output Ownerships] - Search
     */
@@ -230,7 +230,7 @@ class WalletStore(walletFolder : File) {
     assert(false)
   }
 
-  /** Iterate transactions by providing an account and the skip count.
+  /** Get an iterator transactions by providing an account and the skip count.
     *
     * Category : [Output Ownership -> Transactions] - Search
     *
@@ -249,7 +249,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Output Ownership -> UTXOs] - Modification
     */
-  def putTransactionOutput(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
+  def putTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -257,9 +257,10 @@ class WalletStore(walletFolder : File) {
   /** Mark a UTXO spent searching by OutPoint.
     *
     * Category : [Output Ownership -> UTXOs] - Modification
+ *
     * @return true if the output was found in the wallet; false otherwise.
     */
-  def markOutputSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
+  def markOutPointSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
     // TODO : Implement
     assert(false)
     true
@@ -269,25 +270,23 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Output Ownership -> UTXOs] - Modification
     */
-  def delTransactionOutput(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
+  def delTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
     // TODO : Implement
     assert(false)
   }
 
-  /** Iterate UTXOs.
-    *
-    * Category : [Output Ownership -> UTXOs] - Search
+
+  /** Get an iterator for transaction outpoints
     *
     * @param outputOwnershipOption Some(ownership) to iterate UTXOs for a specific output ownership.
     *                              None to iterate UTXOs for all output ownership.
+    * @return The iterator for outpoints.
     */
-  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[UnspentCoinDescriptor] = {
+  def getTransactionOutPoints(outputOwnershipOption : Option[OutputOwnership]) : Iterator[OutPoint] = {
     // TODO : Implement
     assert(false)
     null
   }
-
-
 
   /*******************************************************************************************************
    * Category : [TransactionHash -> Transaction]
@@ -330,7 +329,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
-  def putTransactionOutput(outPoint : OutPoint, transactionOutput : WalletOutput) : Unit = {
+  def putWalletOutput(outPoint : OutPoint, transactionOutput : WalletOutput) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -339,7 +338,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
-  def delTransactionOutput(outPoint : OutPoint) : Unit = {
+  def delWalletOutput(outPoint : OutPoint) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -348,7 +347,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Search
     */
-  def getTransactionOutput(outPoint : OutPoint) : Option[WalletOutput] = {
+  def getWalletOutput(outPoint : OutPoint) : Option[WalletOutput] = {
     // TODO : Implement
     assert(false)
     null

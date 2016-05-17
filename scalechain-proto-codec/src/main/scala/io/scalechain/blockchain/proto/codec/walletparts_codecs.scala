@@ -38,6 +38,8 @@ object OwnershipDescriptorCodec extends MessagePartCodec[OwnershipDescriptor] {
 
 object WalletOutputCodec extends MessagePartCodec[WalletOutput] {
   val codec : Codec[WalletOutput] = {
+    ("blockindex"        | optional(bool(8), int64)) ::
+    ("coinbase"          | bool ) ::
     ("spent"             | bool ) ::
     ("transactionOutput" | TransactionOutputCodec.codec )
   }.as[WalletOutput]

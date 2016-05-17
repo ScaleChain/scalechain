@@ -1,9 +1,10 @@
 package io.scalechain.blockchain.transaction
 
-import io.scalechain.blockchain.proto.TransactionOutput
-import io.scalechain.blockchain.script.ScriptOpList
+import io.scalechain.blockchain.proto.{LockingScript, TransactionOutput}
+import io.scalechain.blockchain.script.ops._
+import io.scalechain.blockchain.script.{ScriptValue, ScriptParser, ScriptOpList}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.crypto.Base58Check
+import io.scalechain.crypto.{HashFunctions, Base58Check}
 
 /** An entity that describes the ownership of a coin.
   * For example, a coin address can be a description of ownership of a coin.
@@ -33,6 +34,8 @@ trait OutputOwnership {
 object CoinAddress {
   /** Decode an address and create a CoinAddress.
     *
+    * TODO : Test Automation.
+    *
     * @param address The address to decode.
     * @return The decoded CoinAddress.
     */
@@ -49,6 +52,7 @@ object CoinAddress {
   /** Create a CoinAddress from a public key hash.
     *
     * TODO : Test Automation.
+    *
     * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
     * @return
     */
@@ -59,6 +63,33 @@ object CoinAddress {
 
     // Step 2 : Create the CoinAddress
     CoinAddress(chainEnv.get.PubkeyAddressVersion, publicKeyHash)
+  }
+
+  /** Parse the locking script to get the coin address from it.
+    *
+    * TODO : Test Automation.
+    *
+    * @param lockingScript The locking script where we extract the coin address.
+    * @return Some(address) if succesfully extracted a coin adress from the locking script; None otherwise
+    */
+  def from(lockingScript: LockingScript) : Option[CoinAddress] = {
+    val scriptOps : ScriptOpList = ScriptParser.parse(lockingScript)
+    scriptOps.operations match {
+      // Pay to public key
+      case List( OpPush(_, encodedPublicKey : ScriptValue)) => {
+        val publicKey : PublicKey = PublicKey.from(encodedPublicKey.value)
+        val uncompressedPublicKey = publicKey.encode(false)
+        val publicKeyHash = HashFunctions.hash160(uncompressedPublicKey)
+        Some( CoinAddress.from(publicKeyHash.value) )
+      }
+      // Pay to public key hash
+      case List( OpDup(), OpHash160(), OpPush(20, publicKeyHash), OpEqualVerify(), OpCheckSig(_) ) => {
+        Some( CoinAddress.from(publicKeyHash.value) )
+      }
+      case _ => {
+        None
+      }
+    }
   }
 }
 

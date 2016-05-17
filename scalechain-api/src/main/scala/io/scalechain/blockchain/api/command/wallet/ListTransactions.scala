@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
@@ -88,7 +89,7 @@ object ListTransactions extends RpcCommand {
       val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
 
       val transactionDescs : List[TransactionDescriptor] = Wallet.listTransactions(
-        account, count, skip, includeWatchOnly
+        Blockchain.get, account, count, skip, includeWatchOnly
       )
 
       // transactionDescs is an array containing objects, with each object describing a payment or internal accounting entry (not a transaction).

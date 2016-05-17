@@ -68,10 +68,10 @@ object ImportAddress extends RpcCommand {
         }
 
       Wallet.importOutputOwnership(
+        Blockchain.get,
         account,
         coinOwnership,
-        rescanBlockchain,
-        Blockchain.get
+        rescanBlockchain
       )
 
       // None is converted to JsNull, so we will have { result : null .. } within the response json.

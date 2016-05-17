@@ -1,8 +1,12 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.wallet.Wallet
+import io.scalechain.wallet.Wallet.CoinAmount
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -50,14 +54,14 @@ object GetReceivedByAddress extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val address      : String                = request.params.get[String]("Address", 0)
+      val addressString      : String                = request.params.get[String]("Address", 0)
       val confirmation : Long = request.params.getOption[Long]("Confirmations", 1).getOrElse(1L)
-/*
-      // TODO : Implement
-      val totalReceived = scala.math.BigDecimal(0.1)
-      Right(Some(NumberResult(totalReceived)))
-*/
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
+      val address = CoinAddress.from(addressString)
+
+      val amount : CoinAmount = Wallet.getReceivedByAddress(Blockchain.get, address, confirmation)
+
+      Right(Some(NumberResult(amount.value)))
 
     }
   }

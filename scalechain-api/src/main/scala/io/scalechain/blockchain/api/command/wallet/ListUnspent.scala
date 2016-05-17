@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
@@ -72,11 +74,17 @@ object ListUnspent extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
 
     handlingException {
-      val minimumConfirmations: Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
-      val maximumConfirmations: Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(9999999L)
-      val addressesOption     : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
+      val minimumConfirmations  : Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
+      val maximumConfirmations  : Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(Long.MaxValue)
+      val addressStringsOption : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
 
-      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.listUnspent(minimumConfirmations, maximumConfirmations, addressesOption)
+      val coinAddressesOption = addressStringsOption.map{ addressStrings =>
+        addressStrings.map( CoinAddress.from( _ ) )
+      }
+
+      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.listUnspent(
+        Blockchain.get, minimumConfirmations, maximumConfirmations, coinAddressesOption
+      )
 
       // unspentCoins is a list of objects each describing an unspent output. May be empty
       // item of the list : An object describing a particular unspent output belonging to this wallet

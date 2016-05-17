@@ -13,6 +13,8 @@ class OutputDescriptorCodecSpec extends CodecSuite with ProtoTestData {
 
   val outputDescriptor1 =
     WalletOutput(
+      blockindex    = Some(100L),
+      coinbase      = true,
       spent         = false,
       transactionOutput = transaction1.outputs(0)
     )

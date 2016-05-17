@@ -13,13 +13,19 @@ case class ChainBlock (
                         block : Block
                       )
 
-/** Provides an iterator that iterates each ChainBlock from a specific height. height 0 means the genesis block.
+/** The read-only view of the best blockchain.
   */
-trait BlockchainIteratorProvider {
+trait BlockchainView {
   /** Return an iterator that iterates each ChainBlock.
     *
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
   def getIterator(height : Long) : Iterator[ChainBlock]
+
+  /** Return the block height of the best block.
+    *
+    * @return The best block height.
+    */
+  def getBestBlockHeight() : Long
 }

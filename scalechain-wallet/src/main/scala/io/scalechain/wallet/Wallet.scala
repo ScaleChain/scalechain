@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.{ChainBlock, BlockchainIteratorProvider, ChainEventListener}
+import io.scalechain.blockchain.chain.{ChainBlock, BlockchainView, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.transaction.SigHash.SigHash
@@ -53,16 +53,17 @@ object Wallet extends ChainEventListener {
     * TODO : Test Automation
     *
     * @param address The coin address to calculate the amount of received coins.
-    * @param confirmations The number of confirmations to filter the UTXO.
+    * @param minConfirmations The number of confirmations to filter the UTXO.
     */
-  def getReceivedByAddress(address : CoinAddress, confirmations : Long) : CoinAmount = {
+  def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long) : CoinAmount = {
     // Step 1 : Wallet Store : Iterate UTXOs for an output ownership.
-    val total = store.getTransactionOutputs(Some(address)).foldLeft(scala.math.BigDecimal(0L)) {
+    val total = getTransactionOutputs(Some(address)).foldLeft(scala.math.BigDecimal(0L)) {
             // TODO : c
       // Step 2 : Sum up the amount of UTXOs.
-      (sum : scala.math.BigDecimal, utxo : UnspentCoinDescriptor) => {
-        if (utxo.confirmations >= confirmations) {
-          sum + utxo.amount
+      (sum : scala.math.BigDecimal, walletOutput : WalletOutputWithInfo) => {
+        val confirmations = walletOutput.walletOutput.blockindex.map( getConfirmations(blockchainView, _) ).getOrElse(0L)
+        if (confirmations >= minConfirmations) {
+          sum + walletOutput.walletOutput.transactionOutput.value
         } else {
           sum
         }
@@ -79,6 +80,7 @@ object Wallet extends ChainEventListener {
     *
     * TODO : Test Automation
     *
+    * @param blockchainView  The view of the best blockchain.
     * @param account The name of an account to get transactions from
     * @param count The number of the most recent transactions to list
     * @param skip The number of the most recent transactions which should not be returned.
@@ -86,6 +88,7 @@ object Wallet extends ChainEventListener {
     * @return List of transactions affecting the wallet.
     */
   def listTransactions(
+                        blockchainView : BlockchainView,
                         account         : String,
                         count           : Int,
                         skip            : Long,
@@ -102,6 +105,82 @@ object Wallet extends ChainEventListener {
     //   Stop the iteration after getting 'count' transactions.
   }
 
+  /** The WalletOutput with additional information such as OutPoint.
+    *
+    * @param outPoint The OutPoint which has the transaction hash and output index of this output.
+    * @param walletOutput The wallet output stored on the wallet database.
+    */
+  case class WalletOutputWithInfo(
+    outPoint : OutPoint,
+    walletOutput : WalletOutput
+  )
+
+  /** Get an iterator for UTXOs.
+    *
+    * Category : [Output Ownership -> UTXOs] - Search
+    *
+    * @param outputOwnershipOption Some(ownership) to iterate UTXOs for a specific output ownership.
+    *                              None to iterate UTXOs for all output ownership.
+    * @return The iterator for UTXOs.
+    */
+  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[WalletOutputWithInfo] = {
+    store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
+      store.getWalletOutput(outPoint).map{ walletOutput => // convert WalletOutput to WalletOutputWithInfo
+        WalletOutputWithInfo(
+          outPoint,
+          walletOutput
+        )
+      }
+    }.filter(_.isEmpty) // getWalletOutput returns Option[OutPoint]. Get rid of None values.
+      .map(_.get) // Now get rid of the Option wrapper.
+  }
+
+  /** Convert a WalletOutputWithInfo to a UnspentCoinDescriptor.
+    * We got WalletOutputWithInfo from the wallet database.
+    * We need UnspentCoinDescriptor to convert it to json to return as a RPC response.
+    *
+    *
+    * @param blockchainView Provides a read-only view of the blockchain.
+    * @param walletOutput Some(output) if it is not spent yet. None if it is already spent.
+    * @return The converted UnspentCoinDescriptor.
+    */
+  protected [wallet] def getUnspentCoinDescription( blockchainView : BlockchainView,
+                                                    walletOutput : WalletOutputWithInfo
+                                                  ) : Option[UnspentCoinDescriptor] = {
+    if ( walletOutput.walletOutput.spent ) {
+      None
+    } else {
+      // TODO : BUGBUG : Extract redeem script.
+      val redeemScriptOption   : Option[String] = None
+      val addressOption  : Option[CoinAddress] = CoinAddress.from(walletOutput.walletOutput.transactionOutput.lockingScript)
+      val confirmations = walletOutput.walletOutput.blockindex.map( getConfirmations(blockchainView, _) ).getOrElse(0L)
+      // TODO : Move to a configuration object.
+      val COINBASE_MATURITY_CONFIRMATIONS = 100
+      Some(
+        UnspentCoinDescriptor(
+          txid          = walletOutput.outPoint.transactionHash,
+          vout          = walletOutput.outPoint.outputIndex,
+          address       = addressOption.map( _.base58 ),
+          account       = addressOption.map( store.getAccount(_ ) ),
+          scriptPubKey  = walletOutput.walletOutput.transactionOutput.lockingScript.data,
+          redeemScript  = redeemScriptOption,
+          amount        = scala.math.BigDecimal( walletOutput.walletOutput.transactionOutput.value ),
+          confirmations = confirmations,
+          spendable     = !walletOutput.walletOutput.coinbase || (confirmations > COINBASE_MATURITY_CONFIRMATIONS)
+        )
+      )
+    }
+  }
+
+  /** Get the number of confirmations for a transaction in a block.
+    *
+    * @param blockchainView The read-only view of the blockchain.
+    * @param blockHeight The height of a block, where the transaction exists.
+    * @return
+    */
+  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long) = {
+    blockchainView.getBestBlockHeight() - blockHeight + 1
+  }
 
   /** Returns an array of unspent transaction outputs belonging to this wallet.
     *
@@ -109,42 +188,58 @@ object Wallet extends ChainEventListener {
     *
     * TODO : Test Automation
     *
+    * @param blockchainView  The view of the best blockchain.
     * @param minimumConfirmations The minimum number of confirmations the transaction containing an output must have in order to be returned.
     * @param maximumConfirmations The maximum number of confirmations the transaction containing an output may have in order to be returned.
     * @param addressesOption If present, only outputs which pay an address in this array will be returned.
     * @return a list of objects each describing an unspent output
     */
   def listUnspent(
+                   blockchainView : BlockchainView,
                    minimumConfirmations: Long,
                    maximumConfirmations: Long,
-                   addressesOption     : Option[List[String]]
+                   addressesOption     : Option[List[CoinAddress]]
                  ) : List[UnspentCoinDescriptor] = {
-    // TODO : Implement
 
-    if (addressesOption.isEmpty) {
-      // Step A.1 : Wallet Store : Iterate UTXOs for all output ownerships. Filter UTXOs based on confirmations.
-    } else {
-      // Step B.1 : Wallet Store : Iterate UTXOs for a given addresses. Filter UTXOs based on confirmations.
-    }
-
-    assert(false)
-    null
+    (
+      if (addressesOption.isDefined) {
+        addressesOption.get.flatMap { coinAddress =>
+          // Wallet Store : Iterate UTXOs for a specific coin address
+          getTransactionOutputs(Some(coinAddress)).map { walletOutput =>
+            getUnspentCoinDescription(
+              blockchainView, walletOutput
+            )
+          }
+        }
+      } else {
+        // Wallet Store : Iterate UTXOs for all output ownerships.
+        getTransactionOutputs(None).map { walletOutput =>
+          getUnspentCoinDescription(
+            blockchainView, walletOutput
+          )
+        }
+      }
+    ).filter( _.isEmpty ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
+     .map( _.get )     // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
+     .filter( _.confirmations >= minimumConfirmations )
+     .filter( _.confirmations <= maximumConfirmations )
+     .toList
   }
 
   /** Import a watch-only address into the wallet.
     *
     * TODO : Test Automation
     *
+    * @param blockchainView Provides a chain iterator, which iterates blocks in the best blockchain.
     * @param outputOwnership The ownership object that describes an ownership of a coin.
     * @param account The account name
     * @param rescanBlockchain Whether to rescan whole blockchain to re-index unspent transaction outputs(coins)
-    * @param chainIteratorProvider Provides a chain iterator, which iterates blocks in the best blockchain.
     */
   def importOutputOwnership(
-    account : String,
-    outputOwnership : OutputOwnership,
-    rescanBlockchain : Boolean,
-    chainIteratorProvider : BlockchainIteratorProvider
+     blockchainView : BlockchainView,
+     account : String,
+     outputOwnership : OutputOwnership,
+     rescanBlockchain : Boolean
   ): Unit = {
 
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
@@ -152,7 +247,7 @@ object Wallet extends ChainEventListener {
 
     // Step 2 : Rescan blockchain
     if (rescanBlockchain) {
-      chainIteratorProvider.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
+      blockchainView.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
         chainBlock.block.transactions foreach { transaction =>
           registerTransaction(List(outputOwnership), transaction, Some(chainBlock))
         }
@@ -186,7 +281,7 @@ object Wallet extends ChainEventListener {
     val privateKey : PrivateKey = PrivateKey.generate
 
     // Step 2 : Create a public key.
-    val publicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, true /* compressed */)
+    val publicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
 
     // Step 3 : Hash the public key.
     val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
@@ -302,12 +397,16 @@ object Wallet extends ChainEventListener {
         if (ownership.owns(transactionOutput)) {
           val outPoint = OutPoint(transactionHash, outputIndex)
           // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
-          store.putTransactionOutput(ownership, outPoint)
+          store.putTransactionOutPoint(ownership, outPoint)
           val walletOutput = WalletOutput(
+            blockindex  = chainBlock.map( _.height ),
+            // Whether this output is in the generation transaction.
+            // TODO : BUGBUG : Need to check the outputIndex as well to see if an
+            coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
             spent = false,
             transactionOutput = transactionOutput
           )
-          store.putTransactionOutput(outPoint, walletOutput)
+          store.putWalletOutput(outPoint, walletOutput)
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         }
@@ -324,12 +423,12 @@ object Wallet extends ChainEventListener {
           transactionInput.outputIndex.toInt)
 
         // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-        if (store.markOutputSpent(spentOutput, true)) {
+        if (store.markOutPointSpent(spentOutput, true)) {
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         } else {
           // We should not have the output in our wallet database.
-          assert( store.getTransactionOutput(spentOutput).isEmpty )
+          assert( store.getWalletOutput(spentOutput).isEmpty )
         }
       }
 
@@ -382,8 +481,8 @@ object Wallet extends ChainEventListener {
         if (ownership.owns(transactionOutput)) {
           val outPoint = OutPoint(transactionHash, outputIndex)
           // Step 2.1 : Wallet Store : Remove a transaction from the output ownership by transaction hash.
-          store.delTransactionOutput(ownership, outPoint)
-          store.delTransactionOutput(outPoint)
+          store.delTransactionOutPoint(ownership, outPoint)
+          store.delWalletOutput(outPoint)
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         }
@@ -400,12 +499,12 @@ object Wallet extends ChainEventListener {
           transactionInput.outputIndex.toInt)
 
         // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-        if (store.markOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
+        if (store.markOutPointSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         } else {
           // We should not have the output in our wallet database.
-          assert( store.getTransactionOutput(spentOutput).isEmpty )
+          assert( store.getWalletOutput(spentOutput).isEmpty )
         }
       }
 

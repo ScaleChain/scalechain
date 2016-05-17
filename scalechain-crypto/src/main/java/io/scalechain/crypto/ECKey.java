@@ -38,6 +38,15 @@ public class ECKey {
         return new ECDSASignature(components[0], components[1]).toCanonicalised();
     }
 
+    /** Decode the encoded public key to get the ECPoint.
+     *
+     * @param pub The encoded public key.
+     * @return The public key, which is a point on the elliptic curve.
+     */
+    public static ECPoint decodePublicKey(byte[] pub ) {
+        return CURVE.getCurve().decodePoint(pub);
+    }
+
     /**
      * <p>Verifies the given ECDSA signature against the message bytes using the public key bytes.</p>
      *
@@ -50,7 +59,7 @@ public class ECKey {
      */
     public static boolean verify(byte[] data, ECDSASignature signature, byte[] pub) {
         ECDSASigner signer = new ECDSASigner();
-        ECPublicKeyParameters params = new ECPublicKeyParameters(CURVE.getCurve().decodePoint(pub), CURVE);
+        ECPublicKeyParameters params = new ECPublicKeyParameters(decodePublicKey(pub), CURVE);
         signer.init(false, params);
         try {
             return signer.verifySignature(data, signature.r, signature.s);

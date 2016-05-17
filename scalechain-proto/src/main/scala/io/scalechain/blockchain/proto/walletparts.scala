@@ -83,7 +83,12 @@ case class WalletTransaction(
 case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessage
 
 case class WalletOutput(
+    // Some(block height) of the block on the local best block chain which includes this transaction. None otherwise.
+    blockindex        : Option[Long],          // 11,
+    // Whether this output is in the generation transaction.
+    coinbase : Boolean,
     // Whether this coin was spent or not.
     spent : Boolean,
+    // The transaction output
     transactionOutput : TransactionOutput
 ) extends ProtocolMessage

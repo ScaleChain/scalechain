@@ -64,7 +64,7 @@ object Blockchain {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain extends BlockchainIteratorProvider{
+class Blockchain extends BlockchainView{
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -273,6 +273,16 @@ class Blockchain extends BlockchainIteratorProvider{
     // TODO : Implement
     assert(false)
     null
+  }
+
+  /** Return the block height of the best block.
+    *
+    * @return The best block height.
+    */
+  def getBestBlockHeight() : Long = {
+    // TODO : Implement
+    assert(false)
+    0L
   }
 }
 
