@@ -19,4 +19,16 @@ trait ChainEventListener {
     * @param transaction The transaction removed from the mempool.
     */
   def onRemoveTransaction(transaction : Transaction)
+
+  /** Invoked whenever a new block is added to the best blockchain.
+    *
+    * @param chainBlock The block added to the best blockchain.
+    */
+  def onNewBlock(chainBlock:ChainBlock) : Unit
+
+  /** Invoked whenever a block is removed from the best blockchain during the block reorganization.
+    *
+    * @param chainBlock The block to remove from the best blockchain.
+    */
+  def onRemoveBlock(chainBlock:ChainBlock) : Unit
 }

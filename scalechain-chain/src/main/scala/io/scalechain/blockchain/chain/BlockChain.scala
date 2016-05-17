@@ -10,6 +10,12 @@ import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTran
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+
+object Blockchain {
+  var theBlockchain = new Blockchain()
+  def get() = theBlockchain
+}
+
 /** Maintains the best blockchain, whose chain work is the biggest one.
   *
   * The blocks are kept in a tree data structure in memory.
@@ -58,7 +64,7 @@ import scala.collection.mutable.ListBuffer
   * the block chain later when a new block is created.
   *
   */
-class Blockchain {
+class Blockchain extends BlockchainIteratorProvider{
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -257,7 +263,19 @@ class Blockchain {
     assert(false)
     null
   }
+
+  /** Return an iterator that iterates each ChainBlock.
+    *
+    * @param height Specifies where we start the iteration. The height 0 means the genesis block.
+    * @return The iterator that iterates each ChainBlock.
+    */
+  def getIterator(height : Long) : Iterator[ChainBlock] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
 }
+
 
 /** A block descriptor which has an fields to keep block chain metadata. The descriptor is kept in memory.
   */

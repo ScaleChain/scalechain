@@ -147,7 +147,7 @@ object ChainEnvironmentFactory {
 
   /** The current environment.
     */
-  protected[chain] var activeEnvironmentOption : Option[ChainEnvironment] = None
+  protected[transaction] var activeEnvironmentOption : Option[ChainEnvironment] = None
 
   /** Create an environment object based on the given environment name.
     *

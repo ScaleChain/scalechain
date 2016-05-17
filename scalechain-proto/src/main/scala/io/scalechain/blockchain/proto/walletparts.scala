@@ -49,40 +49,6 @@ object WalletTransactionAttribute extends Enumeration {
 /** A transaction stored for an output ownership.
   */
 case class WalletTransaction(
-    involvesWatchonly : Boolean,       // true,
-    // The account which the payment was credited to or debited from.
-    // May be an empty string (“”) for the default account
-    account           : String,                // "someone else's address2",
-    // The address paid in this payment, which may be someone else’s address not belonging to this wallet.
-    // May be empty if the address is unknown, such as when paying to a non-standard pubkey script or if this is in the move category
-    outputOwnership   : Option[String],        // "n3GNqMveyvaPvUbH469vDRadqpJMPc84JA",
-    // Set to one of the following values:
-    // • send if sending payment
-    // • receive if this wallet received payment in a regular transaction
-    // • generate if a matured and spendable coinbase
-    // • immature if a coinbase that is not spendable yet
-    // • orphan if a coinbase from a block that’s not in the local best block chain
-    // • move if an off-block-chain move made with the move RPC
-    attributes        : WalletTransactionAttribute,
-    // A negative bitcoin amount if sending payment;
-    // a positive bitcoin amount if receiving payment (including coinbases)
-    amount            : scala.math.BigDecimal, // 0.00050000,
-    // ( Since : 0.10.0 )
-    // For an output, the output index (vout) for this output in this transaction.
-    // For an input, the output index for the output being spent in its transaction.
-    // Because inputs list the output indexes from previous transactions,
-    // more than one entry in the details array may have the same output index.
-    // Not returned for move category payments
-    // P1
-    //    vout              : Option[Int],           // 0,
-    // If sending payment, the fee paid as a negative bitcoins value.
-    // May be 0. Not returned if receiving payment or for move category payments
-    fee               : Option[scala.math.BigDecimal],
-    // The number of confirmations the transaction has received.
-    // Will be 0 for unconfirmed and -1 for conflicted. Not returned for move category payments
-    confirmations     : Option[Long],          // 34714,
-    // Set to true if the transaction is a coinbase. Not returned for regular transactions or move category payments
-    generated         : Option[Boolean],
     // Only returned for confirmed transactions.
     // The hash of the block on the local best block chain which includes this transaction, encoded as hex in RPC byte order
     // P1
@@ -107,8 +73,8 @@ case class WalletTransaction(
     // A Unix epoch time when the transaction was detected by the local node,
     // or the time of the block on the local best block chain that included the transaction.
     // Not returned for move category payments
-    // P2
-    timereceived      : Option[Long],          // 1418925580
+// P2
+//    timereceived      : Option[Long],          // 1418925580
 
     // The transaction related with this wallet transaction.
     transaction : Transaction
@@ -119,25 +85,5 @@ case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessa
 case class WalletOutput(
     // Whether this coin was spent or not.
     spent : Boolean,
-    // The TXID and output index number that points to the output.
-    // This field is conveted to UnspentOutputDescriptor.txid and UnspentOutputDescriptor.vout.
-    outPoint : OutPoint,
-    // The P2PKH or P2SH address the output paid. Only returned for P2PKH or P2SH output scripts
-    address       : Option[String],        // "mgnucj8nYqdrPFh2JfZSB1NmUThUGnmsqe",
-    // If the address returned belongs to an account, this is the account. Otherwise not returned
-    account       : Option[String],        // "test label",
-    // The output script paid, encoded as hex
-    // This field is converted to UnspentOutputDescriptor.scriptPubKey
-    lockingScript  : LockingScript,                // "76a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac",
-    // If the output is a P2SH whose script belongs to this wallet, this is the redeem script
-    redeemScript  : Option[String],
-    // The amount paid to the output in bitcoins
-    amount        : scala.math.BigDecimal, // 0.00010000,
-    // The number of confirmations received for the transaction containing this output
-    confirmations : Long,                  // 6210,
-    // ( Since : 0.10.0 )
-    // Set to true if the private key or keys needed to spend this output are part of the wallet.
-    // Set to false if not (such as for watch-only addresses)
-    // This field is converted to UnspentOutputDescriptor.spendable.
-    involvesWatchonly : Boolean           // true,
+    transactionOutput : TransactionOutput
 ) extends ProtocolMessage

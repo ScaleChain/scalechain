@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.transaction.{ParsedPubKeyScript, CoinAddress}
@@ -69,7 +70,8 @@ object ImportAddress extends RpcCommand {
       Wallet.importOutputOwnership(
         account,
         coinOwnership,
-        rescanBlockchain
+        rescanBlockchain,
+        Blockchain.get
       )
 
       // None is converted to JsNull, so we will have { result : null .. } within the response json.

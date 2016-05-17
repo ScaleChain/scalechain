@@ -101,7 +101,6 @@ trait TransactionInput extends ProtocolMessage {
 }
 
 case class NormalTransactionInput(override val outputTransactionHash : TransactionHash,
-                                  // BUGBUG : Change to Int
                                   override val outputIndex : Long,
                                   val unlockingScript : UnlockingScript,
                                   val sequenceNumber : Long) extends TransactionInput {

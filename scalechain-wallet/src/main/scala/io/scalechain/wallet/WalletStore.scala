@@ -48,11 +48,11 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
 // A. ( OutputOwnership + '\0' + OutPoint, None ) => For Search 1, 2, 3
-// B. ( OutPoint, OutputDescriptor ) => For Modification 2
+// B. ( OutPoint, WalletOutput ) => For Modification 2
 //
-// OutputDescriptor has the following fields :
-// 1. Spent : Boolean
-// 2. Confirmations : Long
+// WalletOutput has the following fields :
+// 1. spent : Boolean
+// 1. transactionOutput : TransactionOutput
 //
 // Modifications :
 // 1. Put a UTXO into the output ownership.
@@ -257,10 +257,12 @@ class WalletStore(walletFolder : File) {
   /** Mark a UTXO spent searching by OutPoint.
     *
     * Category : [Output Ownership -> UTXOs] - Modification
+    * @return true if the output was found in the wallet; false otherwise.
     */
-  def markOutputSpent(outPoint : OutPoint) : Unit = {
+  def markOutputSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
     // TODO : Implement
     assert(false)
+    true
   }
 
   /** Remove a UTXO from the output ownership.
@@ -304,7 +306,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     */
-  def delTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
+  def delTransaction(transactionHash : Hash) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -313,7 +315,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [TransactionHash -> Transaction] - Search
     */
-  def getTransaction(transactionHash : Hash) : WalletTransaction = {
+  def getTransaction(transactionHash : Hash) : Option[WalletTransaction] = {
     // TODO : Implement
     assert(false)
     null
@@ -328,7 +330,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
-  def putTransactionOutput(outPoint : OutPoint, transactionOutput : TransactionOutput) : Unit = {
+  def putTransactionOutput(outPoint : OutPoint, transactionOutput : WalletOutput) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -337,7 +339,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
-  def delTransactionOutput(outPoint : OutPoint, transactionOutput : TransactionOutput) : Unit = {
+  def delTransactionOutput(outPoint : OutPoint) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -346,7 +348,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [OutPoint -> TransactionOutput] - Search
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+  def getTransactionOutput(outPoint : OutPoint) : Option[WalletOutput] = {
     // TODO : Implement
     assert(false)
     null

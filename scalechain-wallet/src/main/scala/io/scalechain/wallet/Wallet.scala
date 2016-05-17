@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.ChainEventListener
+import io.scalechain.blockchain.chain.{ChainBlock, BlockchainIteratorProvider, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.transaction.SigHash.SigHash
@@ -20,6 +20,8 @@ object Wallet extends ChainEventListener {
   /** signs a transaction.
     *
     * Used by : signrawtransaction RPC.
+    *
+    * TODO : Test Automation
     *
     * @param transaction The transaction to sign.
     * @param dependencies  Unspent transaction output details. The previous outputs being spent by this transaction.
@@ -48,15 +50,23 @@ object Wallet extends ChainEventListener {
     *
     * Used by : getreceivedbyaddress RPC.
     *
-    * @param address
-    * @param confirmations
+    * TODO : Test Automation
+    *
+    * @param address The coin address to calculate the amount of received coins.
+    * @param confirmations The number of confirmations to filter the UTXO.
     */
   def getReceivedByAddress(address : CoinAddress, confirmations : Long) : CoinAmount = {
     // Step 1 : Wallet Store : Iterate UTXOs for an output ownership.
     val total = store.getTransactionOutputs(Some(address)).foldLeft(scala.math.BigDecimal(0L)) {
+            // TODO : c
       // Step 2 : Sum up the amount of UTXOs.
-      (sum : scala.math.BigDecimal, utxo : UnspentCoinDescriptor) =>
-        sum + utxo.amount
+      (sum : scala.math.BigDecimal, utxo : UnspentCoinDescriptor) => {
+        if (utxo.confirmations >= confirmations) {
+          sum + utxo.amount
+        } else {
+          sum
+        }
+      }
     }
     CoinAmount(total)
   }
@@ -67,7 +77,9 @@ object Wallet extends ChainEventListener {
     *
     * Used by : listtransactions RPC.
     *
-    * @param account The name of an account to get transactinos from
+    * TODO : Test Automation
+    *
+    * @param account The name of an account to get transactions from
     * @param count The number of the most recent transactions to list
     * @param skip The number of the most recent transactions which should not be returned.
     * @param includeWatchOnly If set to true, include watch-only addresses in details and calculations as if they were regular addresses belonging to the wallet.
@@ -95,6 +107,8 @@ object Wallet extends ChainEventListener {
     *
     * Used by : listunspent RPC.
     *
+    * TODO : Test Automation
+    *
     * @param minimumConfirmations The minimum number of confirmations the transaction containing an output must have in order to be returned.
     * @param maximumConfirmations The maximum number of confirmations the transaction containing an output may have in order to be returned.
     * @param addressesOption If present, only outputs which pay an address in this array will be returned.
@@ -119,14 +133,18 @@ object Wallet extends ChainEventListener {
 
   /** Import a watch-only address into the wallet.
     *
+    * TODO : Test Automation
+    *
     * @param outputOwnership The ownership object that describes an ownership of a coin.
     * @param account The account name
     * @param rescanBlockchain Whether to rescan whole blockchain to re-index unspent transaction outputs(coins)
+    * @param chainIteratorProvider Provides a chain iterator, which iterates blocks in the best blockchain.
     */
   def importOutputOwnership(
     account : String,
     outputOwnership : OutputOwnership,
-    rescanBlockchain : Boolean
+    rescanBlockchain : Boolean,
+    chainIteratorProvider : BlockchainIteratorProvider
   ): Unit = {
 
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
@@ -134,12 +152,12 @@ object Wallet extends ChainEventListener {
 
     // Step 2 : Rescan blockchain
     if (rescanBlockchain) {
-      // Step 3 : Wallet Store : Put transactions into the output ownership.
-      // Step 4 : Wallet Store : Put UTXOs into the output ownership.
+      chainIteratorProvider.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
+        chainBlock.block.transactions foreach { transaction =>
+          registerTransaction(List(outputOwnership), transaction, Some(chainBlock))
+        }
+      }
     }
-
-    // TODO : Implement
-    assert(false)
   }
 
   /** Find an account by coin address.
@@ -193,6 +211,8 @@ object Wallet extends ChainEventListener {
     *
     * Used by : getaccountaddress RPC.
     *
+    * TODO : Test Automation
+    *
     * @return The coin address for receiving payments.
     */
   def getReceivingAddress(account:String) : CoinAddress = {
@@ -200,7 +220,8 @@ object Wallet extends ChainEventListener {
   }
 
 
-  /** Called whenever a new transaction comes into a block or the mempool.
+  /** Invoked whenever a new transaction comes into a mempool.
+    * This method is not invoked for transactions that are included in a block.
     *
     * TODO : Test Automation
     *
@@ -208,77 +229,197 @@ object Wallet extends ChainEventListener {
     * @see ChainEventListener
     */
   def onNewTransaction(transaction : Transaction): Unit = {
-    // TODO : Implement
-
-    // Wallet Store : Iterate for each output ownerships
-    { // loop
-      // if the output ownership receives or spends UTXOs related to the transaction.
-      /*if (...)*/ {
-        // call registerNewTransaction
-      }
-    }
-
-    assert(false)
+    registerTransaction(store.getOutputOwnerships().toList, transaction, None)
   }
 
-  protected[wallet] def registerNewTransaction(ownership: OutputOwnership, transaction : Transaction): Unit = {
-    // TODO : Implement
-
-    // Step 1 : Wallet Store : Put a transaction into the output ownership.
-
-
-    transaction.outputs.map { transactionOutput =>
-      if (ownership.owns(transactionOutput)) {
-        // Step 2 : Wallet Store : Put a UTXO into the output ownership.
-      }
-    }
-
-    transaction.inputs.map { transactionInput =>
-      // Step 3 : Block Store : Get the transaction output the input is spending.
-      // val spentOutput : TransactionOutput = ...
-
-      // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-      // spentOutput
-    }
-
-    assert(false)
-  }
-
-
-  protected[wallet] def unregisterNewTransaction(ownership: OutputOwnership, transaction : Transaction): Unit = {
-    // TODO : Implement
-
-    // Step 1 : Wallet Store : Remove the transaction from the output ownership by transaction hash
-
-    transaction.outputs.map { transactionOutput =>
-      if (ownership.owns(transactionOutput)) {
-        // Step 2 : Wallet Store : Remove a UTXO from the output ownership.
-      }
-    }
-
-    assert(false)
-  }
-
-
-  /** Called whenever a new transaction is removed from the mempool.
+  /** Invoked whenever a new transaction is removed from the mempool.
+    * This method is not invoked for transactions that are included in a block.
+    *
     * This also means the transaction does not exist in any block, as the mempool has transactions
     * that are not in any block in the best block chain.
+    *
+    * TODO : Test Automation
     *
     * @param transaction The transaction removed from the mempool.
     * @see ChainEventListener
     */
   def onRemoveTransaction(transaction : Transaction): Unit = {
-    // TODO : Implement
+    unregisterTransaction(store.getOutputOwnerships().toList, transaction, None)
+  }
 
-    // Wallet Store : iterate for each output ownerships
-    {
-      // loop
-      // if the output ownership receives or spends UTXOs related to the transaction.
+  /** Invoked whenever a new block is added to the best blockchain.
+    *
+    * @param chainBlock The block added to the best blockchain.
+    */
+  def onNewBlock(chainBlock:ChainBlock) : Unit = {
+    chainBlock.block.transactions foreach { transaction =>
+      registerTransaction(
+        store.getOutputOwnerships().toList,
+        transaction,
+        Some(chainBlock)
+      )
+    }
+  }
 
-      /*if (...)*/ {
-        // Wallet Store : Remove the transaction from the output ownership by transaction hash
+  /** Invoked whenever a block is removed from the best blockchain during the block reorganization.
+    *
+    * @param chainBlock The block to remove from the best blockchain.
+    */
+  def onRemoveBlock(chainBlock:ChainBlock) : Unit = {
+    chainBlock.block.transactions foreach { transaction =>
+      unregisterTransaction(
+        store.getOutputOwnerships().toList,
+        transaction,
+        Some(chainBlock)
+      )
+    }
+  }
+
+  /** Register a transaction into the wallet database.
+    * 1. Put each UTXO if any output ownership owns it.
+    * 2. Mark a UTXO in the wallet database spent if this transaction spends it.
+    * 3. Put the transaction as a wallet transaction if it is related to any output ownership.
+    *
+    * @param ownerships The list of output ownerships to check.
+    * @param transaction The transaction to register.
+    * @param chainBlock Some(block) if the transaction is included in a block; None otherwise.
+    */
+  protected[wallet] def registerTransaction(ownerships: List[OutputOwnership], transaction : Transaction, chainBlock : Option[ChainBlock]): Unit = {
+
+    val currentTime = System.currentTimeMillis()
+
+    // Step 1 : Calulate the transaction hash.
+    val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+
+    // If the transaction is related to the output
+    var isTransactionRelated = false
+    var outputIndex = 0
+
+    ownerships foreach { ownership =>
+      var isTransactionRelatedToTheOwnership = false
+      // Step 2 : Put each UTXO if the output ownership owns it.
+      transaction.outputs foreach { transactionOutput =>
+        if (ownership.owns(transactionOutput)) {
+          val outPoint = OutPoint(transactionHash, outputIndex)
+          // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
+          store.putTransactionOutput(ownership, outPoint)
+          val walletOutput = WalletOutput(
+            spent = false,
+            transactionOutput = transactionOutput
+          )
+          store.putTransactionOutput(outPoint, walletOutput)
+          isTransactionRelated = true
+          isTransactionRelatedToTheOwnership = true
+        }
+        outputIndex += 1
+      }
+
+      // Step 3 : Mark a UTXO spent if this transaction spends it.
+      transaction.inputs foreach { transactionInput =>
+        // TODO : Check if the transaction input is generation transaction input?
+
+        // Step 3 : Block Store : Get the transaction output the input is spending.
+        val spentOutput = OutPoint(
+          Hash( transactionInput.outputTransactionHash.value ),
+          transactionInput.outputIndex.toInt)
+
+        // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
+        if (store.markOutputSpent(spentOutput, true)) {
+          isTransactionRelated = true
+          isTransactionRelatedToTheOwnership = true
+        } else {
+          // We should not have the output in our wallet database.
+          assert( store.getTransactionOutput(spentOutput).isEmpty )
+        }
+      }
+
+      // Step 4 : Wallet Store : Put a transaction into the output ownership.
+      if (isTransactionRelatedToTheOwnership) {
+        store.putTransaction(ownership, transactionHash)
       }
     }
-    assert(false)
+
+    // Step 5 : Add a transaction.
+    if (isTransactionRelated) {
+      val walletTransaction = WalletTransaction(
+        blockhash         = chainBlock.map{ b => Hash(HashCalculator.blockHeaderHash(b.block.header) ) },
+        blockindex        = chainBlock.map( _.height ),
+        blocktime         = chainBlock.map( _.block.header.timestamp ) ,
+        txid              = Some(transactionHash),
+        time              = currentTime,
+        transaction       : Transaction
+      )
+      store.putTransaction(transactionHash, walletTransaction)
+    } else {
+      assert(store.getTransaction(transactionHash).isEmpty)
+    }
+  }
+
+  /** Register a transaction from the wallet database.
+    * 1. Remove each UTXO if any output ownership owns it.
+    * 2. Mark a UTXO in the wallet database unspent if this transaction spends it.
+    * 3. Remove the transaction from the wallet database if it is related to any output ownership.
+    *
+    * @param ownerships The list of output ownerships to check.
+    * @param transaction The transaction to register.
+    * @param chainBlock Some(block) if the transaction is included in a block; None otherwise.
+    */
+  protected[wallet] def unregisterTransaction(ownerships: List[OutputOwnership], transaction : Transaction, chainBlock : Option[ChainBlock]): Unit = {
+
+    val currentTime = System.currentTimeMillis()
+
+    // Step 1 : Calulate the transaction hash.
+    val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+
+    // If the transaction is related to the output
+    var isTransactionRelated = false
+    var outputIndex = 0
+
+    ownerships foreach { ownership =>
+      var isTransactionRelatedToTheOwnership = false
+      // Step 2 : Remove each UTXO if the output ownership owns it.
+      transaction.outputs foreach { transactionOutput =>
+        if (ownership.owns(transactionOutput)) {
+          val outPoint = OutPoint(transactionHash, outputIndex)
+          // Step 2.1 : Wallet Store : Remove a transaction from the output ownership by transaction hash.
+          store.delTransactionOutput(ownership, outPoint)
+          store.delTransactionOutput(outPoint)
+          isTransactionRelated = true
+          isTransactionRelatedToTheOwnership = true
+        }
+        outputIndex += 1
+      }
+
+      // Step 3 : Mark a UTXO unspent if this transaction spends it.
+      transaction.inputs foreach { transactionInput =>
+        // TODO : Check if the transaction input is generation transaction input?
+
+        // Step 3 : Block Store : Get the transaction output the input is spending.
+        val spentOutput = OutPoint(
+          Hash( transactionInput.outputTransactionHash.value ),
+          transactionInput.outputIndex.toInt)
+
+        // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
+        if (store.markOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
+          isTransactionRelated = true
+          isTransactionRelatedToTheOwnership = true
+        } else {
+          // We should not have the output in our wallet database.
+          assert( store.getTransactionOutput(spentOutput).isEmpty )
+        }
+      }
+
+      // Step 4 : Wallet Store : Remove a transaction from the output ownership.
+      if (isTransactionRelatedToTheOwnership) {
+        store.delTransaction(ownership, transactionHash)
+      }
+    }
+
+    // Step 5 : Wallet Store : Remove a transaction.
+    if (isTransactionRelated) {
+      store.delTransaction(transactionHash)
+    } else {
+      assert(store.getTransaction(transactionHash).isEmpty)
+    }
   }
 }
