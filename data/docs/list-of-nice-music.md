@@ -11,3 +11,6 @@ http://radiooooo.com/
 
 Krystian Zimerman - Beethoven - Piano Concerto No 3 in C minor, Op 37.
 https://www.youtube.com/watch?v=k46fdX_3xDM
+
+Rubinstein-Chopin-Piano Concerto No.2 (HD)
+https://www.youtube.com/watch?v=T_GecdMywPw

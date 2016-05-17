@@ -56,6 +56,8 @@ object Wallet extends ChainEventListener {
     * @param minConfirmations The number of confirmations to filter the UTXO.
     */
   def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long) : CoinAmount = {
+    // TODO : BUGBUG : We are counting outputs that an address is just one of multiple addresses in multisig outputs.
+
     // Step 1 : Wallet Store : Iterate UTXOs for an output ownership.
     val total = getTransactionOutputs(Some(address)).foldLeft(scala.math.BigDecimal(0L)) {
             // TODO : c
@@ -145,14 +147,15 @@ object Wallet extends ChainEventListener {
     * @return The converted UnspentCoinDescriptor.
     */
   protected [wallet] def getUnspentCoinDescription( blockchainView : BlockchainView,
-                                                    walletOutput : WalletOutputWithInfo
+                                                    addressOption  : Option[CoinAddress],
+                                                    walletOutput   : WalletOutputWithInfo
                                                   ) : Option[UnspentCoinDescriptor] = {
     if ( walletOutput.walletOutput.spent ) {
       None
     } else {
       // TODO : BUGBUG : Extract redeem script.
       val redeemScriptOption   : Option[String] = None
-      val addressOption  : Option[CoinAddress] = CoinAddress.from(walletOutput.walletOutput.transactionOutput.lockingScript)
+
       val confirmations = walletOutput.walletOutput.blockindex.map( getConfirmations(blockchainView, _) ).getOrElse(0L)
       // TODO : Move to a configuration object.
       val COINBASE_MATURITY_CONFIRMATIONS = 100
@@ -201,25 +204,26 @@ object Wallet extends ChainEventListener {
                    addressesOption     : Option[List[CoinAddress]]
                  ) : List[UnspentCoinDescriptor] = {
 
-    (
+    // TODO : BUGBUG : Need to consider ParsedPubKeyScript
+    val allAddresses = store.getOutputOwnerships().map{case address:CoinAddress => address}.toList
+
+    val addressesFilter =
       if (addressesOption.isDefined) {
-        addressesOption.get.flatMap { coinAddress =>
-          // Wallet Store : Iterate UTXOs for a specific coin address
-          getTransactionOutputs(Some(coinAddress)).map { walletOutput =>
-            getUnspentCoinDescription(
-              blockchainView, walletOutput
-            )
-          }
-        }
+        addressesOption.get
       } else {
-        // Wallet Store : Iterate UTXOs for all output ownerships.
-        getTransactionOutputs(None).map { walletOutput =>
-          getUnspentCoinDescription(
-            blockchainView, walletOutput
-          )
-        }
+        allAddresses
       }
-    ).filter( _.isEmpty ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
+
+    addressesFilter.flatMap { coinAddress =>
+      // Wallet Store : Iterate UTXOs for a specific coin address
+      getTransactionOutputs(Some(coinAddress)).map { walletOutput =>
+        getUnspentCoinDescription(
+          blockchainView, Some(coinAddress), walletOutput
+        )
+      }
+    }
+
+      .filter( _.isEmpty ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
      .map( _.get )     // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
      .filter( _.confirmations >= minimumConfirmations )
      .filter( _.confirmations <= maximumConfirmations )

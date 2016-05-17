@@ -64,33 +64,6 @@ object CoinAddress {
     // Step 2 : Create the CoinAddress
     CoinAddress(chainEnv.get.PubkeyAddressVersion, publicKeyHash)
   }
-
-  /** Parse the locking script to get the coin address from it.
-    *
-    * TODO : Test Automation.
-    *
-    * @param lockingScript The locking script where we extract the coin address.
-    * @return Some(address) if succesfully extracted a coin adress from the locking script; None otherwise
-    */
-  def from(lockingScript: LockingScript) : Option[CoinAddress] = {
-    val scriptOps : ScriptOpList = ScriptParser.parse(lockingScript)
-    scriptOps.operations match {
-      // Pay to public key
-      case List( OpPush(_, encodedPublicKey : ScriptValue)) => {
-        val publicKey : PublicKey = PublicKey.from(encodedPublicKey.value)
-        val uncompressedPublicKey = publicKey.encode(false)
-        val publicKeyHash = HashFunctions.hash160(uncompressedPublicKey)
-        Some( CoinAddress.from(publicKeyHash.value) )
-      }
-      // Pay to public key hash
-      case List( OpDup(), OpHash160(), OpPush(20, publicKeyHash), OpEqualVerify(), OpCheckSig(_) ) => {
-        Some( CoinAddress.from(publicKeyHash.value) )
-      }
-      case _ => {
-        None
-      }
-    }
-  }
 }
 
 /** A coin address with a version and public key hash.
@@ -123,9 +96,8 @@ case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOw
     * @return true if the ownership has owns the output. false otherwise.
     */
   def owns(output : TransactionOutput) : Boolean = {
-    // TODO : implement
-    assert(false)
-    false
+    val outputOwners : List[CoinAddress] = LockingScriptAnalyzer.extractAddresses(output.lockingScript)
+    outputOwners.contains(this)
   }
 
   /** Return the address in base58 encoding format.
@@ -155,8 +127,7 @@ case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership 
     * @return true if the ownership has owns the output. false otherwise.
     */
   def owns(output : TransactionOutput) : Boolean = {
-    // TODO : implement
-    assert(false)
-    false
+    val parsedScriptOpsList : ScriptOpList = ScriptParser.parse(output.lockingScript)
+    scriptOps == parsedScriptOpsList
   }
 }
