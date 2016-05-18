@@ -5,6 +5,7 @@ import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.script.{ScriptSerializer, ScriptValue, ScriptParser, ScriptOpList}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.crypto.{Hash160, ECKey, HashFunctions, Base58Check}
+import io.scalechain.util.ByteArray
 
 import scala.collection.generic.SeqFactory
 
@@ -89,7 +90,7 @@ object CoinAddress {
   * @param version The version of the address.
   * @param publicKeyHash The hash value of the public key.
   */
-case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOwnership
+case class CoinAddress(version:Byte, publicKeyHash : ByteArray) extends OutputOwnership
 {
   /** See if an address has valid version prefix and length.
     *

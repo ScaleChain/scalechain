@@ -25,6 +25,9 @@ class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach wi
 
   this: Suite =>
 
+  if (ChainEnvironmentFactory.getActive().isEmpty)
+    ChainEnvironmentFactory.create("testnet")
+
   override def beforeEach() {
     // set-up code
     //

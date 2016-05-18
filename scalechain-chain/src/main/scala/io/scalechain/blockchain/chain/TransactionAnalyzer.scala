@@ -7,7 +7,7 @@ import io.scalechain.blockchain.proto._
   */
 object TransactionAnalyzer {
 
-  private [chain] def sumAmount(outputs : List[TransactionOutput]) : scala.math.BigDecimal = {
+  protected [chain] def sumAmount(outputs : List[TransactionOutput]) : scala.math.BigDecimal = {
     outputs.foldLeft( scala.math.BigDecimal(0) ) { (sum, output) =>
       sum + output.value
     }

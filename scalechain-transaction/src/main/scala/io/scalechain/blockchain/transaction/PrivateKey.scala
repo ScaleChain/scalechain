@@ -28,7 +28,7 @@ object PrivateKey {
     *
     * @return The generated private key.
     */
-  def generate : PrivateKey = {
+  def generate() : PrivateKey = {
     // Step 1 : Generate Random number. The random number is 32 bytes, and the range is [0 ~ 2^256)
     val random = new SecureRandom()
     random.setSeed( random.generateSeed(32) )
