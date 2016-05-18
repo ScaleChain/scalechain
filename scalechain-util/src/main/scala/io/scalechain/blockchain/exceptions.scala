@@ -67,6 +67,10 @@ object ErrorCode {
   // RocksDadatabase errors
   val NoMoreKeys = ErrorCode("no_more_keys")
 
+
+  // Wallet Exceptions
+  val AddressNotFound = ErrorCode("address_not_found")
+  val WalletOutputNotFound = ErrorCode("wallet_output_not_found")
 }
 
 
@@ -97,6 +101,8 @@ class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String 
 class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
+
+class WalletException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array(), var debuggingInfo : Option[AnyRef] = None) extends ExceptionWithErrorCode
 {

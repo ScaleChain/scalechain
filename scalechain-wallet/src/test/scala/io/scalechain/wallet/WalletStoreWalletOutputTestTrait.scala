@@ -1,0 +1,72 @@
+package io.scalechain.wallet
+
+import io.scalechain.blockchain.{ErrorCode, WalletException}
+import org.scalatest._
+
+/**
+  * Created by kangmo on 5/18/16.
+  */
+trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestDataTrait with ShouldMatchers{
+  var store : WalletStore
+
+
+  "putWalletOutput" should "put a wallet output." in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.getWalletOutput(OUTPOINT1) shouldBe Some(WALLET_OUTPUT1)
+  }
+
+  "putWalletOutput" should "overwrite the previous wallet output." in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT2)
+    store.getWalletOutput(OUTPOINT1) shouldBe Some(WALLET_OUTPUT2)
+  }
+
+  "delWalletOutput" should "do nothing if the wallet output was not found." in {
+    store.delWalletOutput(OUTPOINT1)
+  }
+
+  "delWalletOutput" should "del a wallet output." in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.delWalletOutput(OUTPOINT1)
+    store.getWalletOutput(OUTPOINT1) shouldBe None
+  }
+
+  "getWalletOutput" should "get nothing if no wallet output was found for the given outpoint." in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.getWalletOutput(OUTPOINT2) shouldBe None
+  }
+
+  "getWalletOutput" should "get a wallet output if it exists." ignore {
+    // No need to test, as it was tested in the following test case.
+    // "putWalletOutput" should "put a wallet output." in
+  }
+
+  "markWalletOutputSpent" should "mark an output spent" in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.markWalletOutputSpent(OUTPOINT1, true)
+    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(true)
+  }
+
+  "markWalletOutputSpent" should "mark an output spent from unspent" in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.markWalletOutputSpent(OUTPOINT1, false)
+    store.markWalletOutputSpent(OUTPOINT1, true)
+    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(true)
+  }
+
+
+  "markWalletOutputSpent" should "mark an output unspent" in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.markWalletOutputSpent(OUTPOINT1, true)
+    store.markWalletOutputSpent(OUTPOINT1, false)
+    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(false)
+  }
+
+  "markWalletOutputSpent" should "throw an exception if no wallet output was found for an out point." in {
+    val thrown = the[WalletException] thrownBy {
+      store.markWalletOutputSpent(OUTPOINT1, true)
+    }
+    thrown.code shouldBe ErrorCode.WalletOutputNotFound
+  }
+
+}

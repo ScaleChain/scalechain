@@ -2,9 +2,11 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.{LockingScript, TransactionOutput}
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.blockchain.script.{ScriptValue, ScriptParser, ScriptOpList}
+import io.scalechain.blockchain.script.{ScriptSerializer, ScriptValue, ScriptParser, ScriptOpList}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.crypto.{HashFunctions, Base58Check}
+import io.scalechain.crypto.{Hash160, ECKey, HashFunctions, Base58Check}
+
+import scala.collection.generic.SeqFactory
 
 /** An entity that describes the ownership of a coin.
   * For example, a coin address can be a description of ownership of a coin.
@@ -54,7 +56,7 @@ object CoinAddress {
     * TODO : Test Automation.
     *
     * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
-    * @return
+    * @return The created CoinAddress.
     */
   def from(publicKeyHash : Array[Byte]) : CoinAddress = {
     // Step 1 : Get the chain environment to get the address version.
@@ -63,6 +65,22 @@ object CoinAddress {
 
     // Step 2 : Create the CoinAddress
     CoinAddress(chainEnv.get.PubkeyAddressVersion, publicKeyHash)
+  }
+
+
+  /** Create a CoinAddress from a private key.
+    *
+    * @param privateKey The private key to use to generate public key and public key hash for the new coin address.
+    * @return The created CoinAddress.
+    */
+  def from(privateKey : PrivateKey) : CoinAddress = {
+    // Step 1 : Create a public key.
+    val publicKey : PublicKey = PublicKey.from(privateKey)
+
+    // Step 2 : Hash the public key.
+
+    // Step 3 : Create an address.
+    CoinAddress.from(publicKey.getHash.value)
   }
 }
 
@@ -105,7 +123,40 @@ case class CoinAddress(version:Byte, publicKeyHash:Array[Byte]) extends OutputOw
     * @return The base 58 check encoded address.
     */
   def base58() : String = {
+    assert(isValid)
     Base58Check.encode(version, publicKeyHash)
+  }
+}
+
+
+/** ParsedPubKeyScript singleton that parses a locking script to get a ParsedPubKeyScript.
+  *
+  */
+object ParsedPubKeyScript {
+  /** Parse a locking script to get the ParsedPubKeyScript.
+    *
+    * @param lockingScript The locking script to parse.
+    * @return The ParsedPubKeyScript that has the parsed locking script.
+    */
+  def from(lockingScript:LockingScript) : ParsedPubKeyScript= {
+    ParsedPubKeyScript( ScriptParser.parse(lockingScript) )
+  }
+
+  /** Create a CoinAddress from a private key.
+    *
+    * @param privateKey The private key to use to generate public key and public key hash for the new coin address.
+    * @return The created CoinAddress.
+    */
+  def from(privateKey : PrivateKey) : ParsedPubKeyScript = {
+    // Step 1 : Create a public key.
+    val publicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
+
+    // Step 2 : Hash the public key.
+    val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
+
+    val scriptOps = List( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash.value)), OpEqualVerify(), OpCheckSig() )
+
+    ParsedPubKeyScript(ScriptOpList(scriptOps))
   }
 }
 
@@ -129,5 +180,14 @@ case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership 
   def owns(output : TransactionOutput) : Boolean = {
     val parsedScriptOpsList : ScriptOpList = ScriptParser.parse(output.lockingScript)
     scriptOps == parsedScriptOpsList
+  }
+
+  /** Encode the parsed public key script into a byte array to get a locking script.
+    *
+    * @return The locking script we got.
+    */
+  def lockingScript() : LockingScript = {
+    val serializedScript = ScriptSerializer.serialize(scriptOps.operations)
+    LockingScript(serializedScript)
   }
 }

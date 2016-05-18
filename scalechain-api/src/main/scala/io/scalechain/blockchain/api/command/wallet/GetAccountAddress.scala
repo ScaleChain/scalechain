@@ -37,6 +37,7 @@ import spray.json.DefaultJsonProtocol._
   *   If the account doesn’t exist, it will be created.
   *
   * Result: (String;base58)
+  *   TODO : BUGBUG : Make sure that the address returned did not receive any payments.
   *   An address, belonging to the account specified, which has not yet received any payments.
   *
   * https://bitcoin.org/en/developer-reference#getaccountaddress

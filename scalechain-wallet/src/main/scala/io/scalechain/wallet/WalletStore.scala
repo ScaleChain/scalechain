@@ -2,6 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import io.scalechain.blockchain.{WalletException, ErrorCode}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, PrivateKey, UnspentTransactionOutput}
 
@@ -18,7 +19,7 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
 //
 // Modifications :
 // 1. Add an output ownership to an account. Create an account if it does not exist.
-// 2. Put the private key into an the address.
+// 2. Put the private key into an address.
 // 3. Mark an address of an account as the receiving address.
 //
 // Searches :
@@ -80,10 +81,10 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// OutPoint -> TransactionOutput
+// OutPoint -> WalletOutput
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. (OutPoint, TransactionOutput)
+// A. (OutPoint, WalletOutput)
 //
 // Modifications :
 // 1. Add a transaction output.
@@ -113,7 +114,7 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
   *     (1) keeping all blocks in each peer.  Ex> keep all blocks for N peers.
   *     (2) keeping some blocks in each peer. Ex> keep 1/N blocks for N peers.
   */
-class WalletStore(walletFolder : File) {
+class WalletStore(walletFolder : File) extends AutoCloseable {
   /*******************************************************************************************************
    * Category : [Account -> Output Ownerships]
    *******************************************************************************************************/
@@ -134,7 +135,7 @@ class WalletStore(walletFolder : File) {
     assert(false)
   }
 
-  /** Put the private key into an the address.
+  /** Put the receiving address into an account.
     *
     * Category : [Account -> Output Ownerships] - Modification
     */
@@ -142,6 +143,8 @@ class WalletStore(walletFolder : File) {
   /** Mark an address of an account as the receiving address.
     *
     * Category : [Account -> Output Ownerships] - Modification
+    *
+    * @throws WalletException(ErrorCode.AddressNotFound) if the address was not found.
     */
   def putReceivingAddress(accountName : String, outputOwnership : CoinAddress ) : Unit = {
     // TODO : Implement
@@ -166,6 +169,7 @@ class WalletStore(walletFolder : File) {
   /** Get an iterator for each output ownerships for all accounts.
     *
     * Category : [Account -> Output Ownerships] - Search
+    *
     * @param accountOption Some(account) to get ownerships for an account. None to get all ownerships for all accounts.
     */
   def getOutputOwnerships(accountOption : Option[String]) : Iterator[OutputOwnership]= {
@@ -178,7 +182,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Account -> Output Ownerships] - Search
     */
-  def getPrivateKeys : Iterator[PrivateKey] = {
+  def getPrivateKeys() : Iterator[PrivateKey] = {
     // TODO : Implement
     assert(false)
     null
@@ -188,7 +192,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Account -> Output Ownerships] - Search
     */
-  def getReceivingAddress() : CoinAddress = {
+  def getReceivingAddress(account:String) : Option[CoinAddress] = {
     // TODO : Implement
     assert(false)
     null
@@ -202,6 +206,7 @@ class WalletStore(walletFolder : File) {
     *
     * @param address The coin address generated from the private key.
     * @param privateKey The private key to put under the coin address.
+    * @throws WalletException(ErrorCode.AddressNotFound) if the address was not found.
     */
   def putPrivateKey(address : CoinAddress, privateKey : PrivateKey) : Unit = {
     // TODO : Implement
@@ -222,12 +227,14 @@ class WalletStore(walletFolder : File) {
 
 
   /*******************************************************************************************************
-   * Category : [Output Ownership -> Transactions]
+   * Category : [Output Ownership -> TransactionHashes]
    *******************************************************************************************************/
 
   /** Put a transaction into the output ownership.
     *
     * Category : [Output Ownership -> Transactions] - Modification
+    *
+    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
     */
   def putTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
     // TODO : Implement
@@ -256,27 +263,17 @@ class WalletStore(walletFolder : File) {
   }
 
   /*******************************************************************************************************
-   * Category : Category : [Output Ownership -> UTXOs]
+   * Category : Category : [Output Ownership -> OutPoint(UTXOs)]
    *******************************************************************************************************/
   /** Put a UTXO into the output ownership.
     *
     * Category : [Output Ownership -> UTXOs] - Modification
+    *
+    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
     */
   def putTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
     // TODO : Implement
     assert(false)
-  }
-
-  /** Mark a UTXO spent searching by OutPoint.
-    *
-    * Category : [Output Ownership -> UTXOs] - Modification
- *
-    * @return true if the output was found in the wallet; false otherwise.
-    */
-  def markOutPointSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    true
   }
 
   /** Remove a UTXO from the output ownership.
@@ -308,6 +305,9 @@ class WalletStore(walletFolder : File) {
   /** Add a transaction.
     *
     * Category : [TransactionHash -> Transaction] - Modification
+    *
+    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
+    *
     */
   def putWalletTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
     // TODO : Implement
@@ -341,8 +341,10 @@ class WalletStore(walletFolder : File) {
   /** Add a transaction output.
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
+    *
+    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
     */
-  def putWalletOutput(outPoint : OutPoint, transactionOutput : WalletOutput) : Unit = {
+  def putWalletOutput(outPoint : OutPoint, walletOutput : WalletOutput) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -364,5 +366,24 @@ class WalletStore(walletFolder : File) {
     // TODO : Implement
     assert(false)
     null
+  }
+
+  /** Mark a UTXO spent searching by OutPoint.
+    *
+    * Category : [Output Ownership -> UTXOs] - Modification
+    *
+    * @return true if the output was found in the wallet; false otherwise.
+    * @throws WalletException(ErrorCode.WalletOutputNotFound) if the WalletOutput for the given OutPoint was not found.
+    */
+  def markWalletOutputSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
+    // TODO : Implement
+    assert(false)
+    true
+  }
+
+
+  def close() : Unit = {
+    // TODO : Implement
+    assert(false)
   }
 }

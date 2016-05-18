@@ -49,7 +49,7 @@ object Wallet extends ChainEventListener {
                      ) : SignedTransaction = {
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
-      val privateKeysFromWallet = store.getPrivateKeys.toList
+      val privateKeysFromWallet = store.getPrivateKeys().toList
 
       TransactionSigner.sign(transaction, dependencies, privateKeysFromWallet, sigHash )
     } else {
@@ -212,7 +212,7 @@ object Wallet extends ChainEventListener {
     }
 
     // TODO : BUGBUG : Need to check outputTranasctionIndex as well.
-    val isCoinbase = walletTransaction.transaction.inputs(0).outputTransactionHash.isAllZero()
+    val isCoinbase = walletTransaction.transaction.inputs(0).isCoinBaseInput()
     val confirmationsOption = walletTransaction.blockIndex.map ( getConfirmations(blockchainView, _) )
 
     val accountOption : Option[String] = store.getAccount(ownership)
@@ -523,22 +523,16 @@ object Wallet extends ChainEventListener {
     // Step 1 : Generate a random number and a private key.
     val privateKey : PrivateKey = PrivateKey.generate
 
-    // Step 2 : Create a public key.
-    val publicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
+    // Step 2 : Create an address.
+    val address = CoinAddress.from(privateKey)
 
-    // Step 3 : Hash the public key.
-    val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
-
-    // Step 4 : Create an address.
-    val address = CoinAddress.from(publicKeyHash.value)
-
-    // Step 5 : Wallet Store : Put an address into an account.
+    // Step 3 : Wallet Store : Put an address into an account.
     store.putOutputOwnership(account, address)
 
-    // Step 6 : Wallet Store : Put the private key into an the address.
+    // Step 4 : Wallet Store : Put the private key into an the address.
     store.putPrivateKey(address, privateKey)
 
-    // Step 7 : Put the address as the receiving address of the account.
+    // Step 5 : Put the address as the receiving address of the account.
     store.putReceivingAddress(account, address)
 
     address
@@ -546,6 +540,7 @@ object Wallet extends ChainEventListener {
 
 
   /** Returns the current address for receiving payments to this account.
+    * Create one if not existent.
     *
     * Used by : getaccountaddress RPC.
     *
@@ -554,7 +549,13 @@ object Wallet extends ChainEventListener {
     * @return The coin address for receiving payments.
     */
   def getReceivingAddress(account:String) : CoinAddress = {
-    store.getReceivingAddress()
+    val addressOption = store.getReceivingAddress(account)
+    if ( addressOption.isEmpty ) { // The account does not have any receiving address.
+      // Create a new address and set it as the receiving address of the account.
+      newAddress(account)
+    } else {
+      addressOption.get
+    }
   }
 
 
@@ -669,7 +670,7 @@ object Wallet extends ChainEventListener {
           transactionInput.outputIndex.toInt)
 
         // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-        if (store.markOutPointSpent(spentOutput, true)) {
+        if (store.markWalletOutputSpent(spentOutput, true)) {
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         } else {
@@ -745,7 +746,7 @@ object Wallet extends ChainEventListener {
           transactionInput.outputIndex.toInt)
 
         // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-        if (store.markOutPointSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
+        if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
           isTransactionRelated = true
           isTransactionRelatedToTheOwnership = true
         } else {

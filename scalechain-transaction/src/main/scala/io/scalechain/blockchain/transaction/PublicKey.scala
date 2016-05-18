@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.transaction
 
-import io.scalechain.crypto.ECKey
+import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 import org.spongycastle.math.ec.ECPoint
 
 /** The public key object that knows how to decode, encode public keys.
@@ -16,6 +16,17 @@ object PublicKey {
   def from(encoded : Array[Byte]) : PublicKey = {
     val point : ECPoint = ECKey.decodePublicKey(encoded)
     PublicKey(point)
+  }
+
+
+  /** Get a public key from a private key.
+    *
+    * @param privateKey The private key to derive the public key.
+    * @return The derived public key.
+    */
+  def from(privateKey : PrivateKey, compressed : Boolean = false ) : PublicKey = {
+    val encodedPublicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, compressed)
+    from(encodedPublicKey)
   }
 }
 
@@ -34,5 +45,13 @@ case class PublicKey(point : ECPoint) {
     */
   def encode(compressed:Boolean) : Array[Byte] = {
     point.getEncoded(compressed)
+  }
+
+  /** Get the hash of the public key
+    *
+    * @return the public key hash.
+    */
+  def getHash() : Hash160 = {
+    HashFunctions.hash160(encode(false/*uncompressed*/))
   }
 }
