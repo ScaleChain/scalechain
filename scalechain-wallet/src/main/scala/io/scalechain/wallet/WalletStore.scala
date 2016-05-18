@@ -2,6 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.{WalletException, ErrorCode}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, PrivateKey, UnspentTransactionOutput}
@@ -93,6 +94,56 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
 // Searches :
 // 1. Search a transaction output by the outpoint.
 
+object WalletStore {
+  object PREFIXES {
+    // Naming convention rules
+    // 1. Name the prefix with the name of data we store.
+    //    Ex> OWNERSHIPS stores onerships for an account.
+    // 2. Use plural if we keep multiple entities under an entity.
+    //    Ex> OWNERSHIPS, TXHASHES, OUTPOINTS
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Account -> Output Ownerships
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // A. (Account + '\0' + OutputOwnership, OwnershipDescriptor)
+    val OWNERSHIPS = 'O'
+
+    // B. (OutputOwnership, Account)
+    val ACCOUNT = 'A'
+
+    // C. (Account, OutputOwnership)
+    val RECEIVING = 'R'
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Output Ownership -> Transactions
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // A. ( OutputOwnership + '\0' + TransactionHash )
+    val TXHASHES = 'H'
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Output Ownership -> UTXOs
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // A. ( OutputOwnership + '\0' + OutPoint, None )
+    val OUTPOINTS = 'P'
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // TransactionHash -> Transaction
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Keys and Values (K, V) :
+    // A. (TransactionHash, WalletTransaction)
+    val WALLETTX = 'T'
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // OutPoint -> WalletOutput
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // Keys and Values (K, V) :
+    // A. (OutPoint, WalletOutput)
+    val WALLETOUTPUT = 'U'
+  }
+}
+
 /** A storage for the wallet.
   *
   *   The wallet store stores transactions and unspent outputs for a given output ownership.
@@ -115,6 +166,9 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
   *     (2) keeping some blocks in each peer. Ex> keep 1/N blocks for N peers.
   */
 class WalletStore(walletFolder : File) extends AutoCloseable {
+  import WalletStore.PREFIXES._
+
+  val db : KeyValueDatabase = new RocksDatabase(walletFolder)
   /*******************************************************************************************************
    * Category : [Account -> Output Ownerships]
    *******************************************************************************************************/
@@ -131,8 +185,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @param outputOwnership The address or public key script to add to the account.
     */
   def putOutputOwnership(accountName : String, outputOwnership : OutputOwnership ) : Unit = {
-    // TODO : Implement
-    assert(false)
+    //db.putPrefixedObject(OWNERSHIPS, accountName, outputOwnership, None)(OutputOwnershipCodec, )
   }
 
   /** Put the receiving address into an account.
@@ -383,7 +436,6 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
 
 
   def close() : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.close()
   }
 }

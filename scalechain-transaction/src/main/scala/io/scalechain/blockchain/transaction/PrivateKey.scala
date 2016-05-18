@@ -32,7 +32,7 @@ object PrivateKey {
     // Step 1 : Generate Random number. The random number is 32 bytes, and the range is [0 ~ 2^256)
     val random = new SecureRandom()
     random.setSeed( random.generateSeed(32) )
-    val keyValue : Array[Byte] = Array[Byte](32)
+    val keyValue : Array[Byte] = new Array[Byte](32)
     assert(keyValue.length == 32)
     random.nextBytes(keyValue)
 
