@@ -98,6 +98,15 @@ case class CoinbaseData(data: ByteArray) extends ProtocolMessage {
 trait TransactionInput extends ProtocolMessage {
   val outputTransactionHash : TransactionHash
   val outputIndex : Long
+
+  def getOutPoint() = OutPoint(
+    Hash( outputTransactionHash.value ),
+    outputIndex.toInt
+  )
+
+  def isCoinBaseInput() = {
+    outputTransactionHash.isAllZero()
+  }
 }
 
 case class NormalTransactionInput(override val outputTransactionHash : TransactionHash,

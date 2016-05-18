@@ -88,8 +88,10 @@ object ListTransactions extends RpcCommand {
       val skip            : Long    = request.params.getOption[Long]   ("Skip", 2).getOrElse(0)
       val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
 
+      // None means to list transactions from all accounts in the wallet.
+      val accountOption = if (account == "*") None else Some(account)
       val transactionDescs : List[TransactionDescriptor] = Wallet.listTransactions(
-        Blockchain.get, account, count, skip, includeWatchOnly
+        Blockchain.get, accountOption, count, skip, includeWatchOnly
       )
 
       // transactionDescs is an array containing objects, with each object describing a payment or internal accounting entry (not a transaction).

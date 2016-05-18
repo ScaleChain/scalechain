@@ -5,8 +5,7 @@ import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.wallet.Wallet
-import io.scalechain.wallet.Wallet.CoinAmount
+import io.scalechain.wallet.{CoinAmount, Wallet}
 import spray.json.DefaultJsonProtocol._
 
 /*

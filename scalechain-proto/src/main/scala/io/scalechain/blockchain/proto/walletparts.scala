@@ -3,7 +3,6 @@ package io.scalechain.blockchain.proto
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.blockchain.proto.WalletTransactionAttribute.WalletTransactionAttribute
 import io.scalechain.util.HexUtil
 
 /** case classes that are used for keys or values of the wallet database.
@@ -25,6 +24,7 @@ case class OutPoint(transactionHash : Hash, outputIndex : Int) extends ProtocolM
  *  • orphan if a coinbase from a block that’s not in the local best block chain
  *  • move if an off-block-chain move made with the move RPC
  */
+/*
 object WalletTransactionAttribute extends Enumeration {
   type WalletTransactionAttribute = Value
 
@@ -45,39 +45,44 @@ object WalletTransactionAttribute extends Enumeration {
   val MOVE     = Value
 
 }
-
+*/
 /** A transaction stored for an output ownership.
   */
 case class WalletTransaction(
-    // Only returned for confirmed transactions.
-    // The hash of the block on the local best block chain which includes this transaction, encoded as hex in RPC byte order
-    // P1
-    blockhash         : Option[Hash],          // "00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929",
-    // Only returned for confirmed transactions.
-    // The block height of the block on the local best block chain which includes this transaction
-    // P1
-    blockindex        : Option[Long],          // 11,
-    // Only returned for confirmed transactions.
-    // The block header time (Unix epoch time) of the block on the local best block chain which includes this transaction
-    // P1
-    blocktime         : Option[Long],          // 1411051649,
-    // The TXID of the transaction, encoded as hex in RPC byte order. Not returned for move category payments
-    txid              : Option[Hash],          // "99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d",
-    // An array containing the TXIDs of other transactions that spend the same inputs (UTXOs) as this transaction.
-    // Array may be empty. Not returned for move category payments
-    // walletconflicts item : The TXID of a conflicting transaction, encoded as hex in RPC byte order
-    // P2
-    //    walletconflicts   : List[Hash],            // : [],
-    // A Unix epoch time when the transaction was added to the wallet
-    time              : Long,                   // 1418695703,
-    // A Unix epoch time when the transaction was detected by the local node,
-    // or the time of the block on the local best block chain that included the transaction.
-    // Not returned for move category payments
-// P2
-//    timereceived      : Option[Long],          // 1418925580
+                              // Only returned for confirmed transactions.
+                              // The hash of the block on the local best block chain which includes this transaction, encoded as hex in RPC byte order
+                              // P1
+                              blockHash         : Option[Hash], // "00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929",
+                              // Only returned for confirmed transactions.
+                              // The block height of the block on the local best block chain which includes this transaction
+                              // P1
+                              blockIndex        : Option[Long], // 11,
+                              // Only returned for confirmed transactions.
+                              // The block header time (Unix epoch time) of the block on the local best block chain which includes this transaction
+                              // P1
+                              blockTime         : Option[Long], // 1411051649,
+                              // The TXID of the transaction, encoded as hex in RPC byte order. Not returned for move category payments
+                              transactionId : Option[Hash], // "99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d",
+                              // An array containing the TXIDs of other transactions that spend the same inputs (UTXOs) as this transaction.
+                              // Array may be empty. Not returned for move category payments
+                              // walletconflicts item : The TXID of a conflicting transaction, encoded as hex in RPC byte order
+                              // P2
+                              //    walletconflicts   : List[Hash],            // : [],
+                              // A Unix epoch time when the transaction was added to the wallet
+                              addedTime              : Long, // 1418695703,
+                              // A Unix epoch time when the transaction was detected by the local node,
+                              // or the time of the block on the local best block chain that included the transaction.
+                              // Not returned for move category payments
+                              // P2
+                              //    timereceived      : Option[Long],          // 1418925580
 
-    // The transaction related with this wallet transaction.
-    transaction : Transaction
+                              // An additional field for sorting transactions by recency.
+                              // Some(transactionIndex) if the transaction is in a block on the best blockchain.
+                              // None if the block is in the mempool.
+                              transactionIndex : Option[Int],
+
+                              // The transaction related with this wallet transaction.
+                              transaction : Transaction
 ) extends ProtocolMessage
 
 case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessage

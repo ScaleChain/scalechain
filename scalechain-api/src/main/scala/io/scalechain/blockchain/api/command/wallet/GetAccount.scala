@@ -35,6 +35,9 @@ import spray.json.DefaultJsonProtocol._
   *
   * Result: (String)
   *   The name of an account, or an empty string (“”, the default account).
+  *   Also return "" if the address was not found in the wallet database.
+  *
+  *   See the getaccount function of the rpcwallet.cpp of the core implementation for the details.
   *
   * https://bitcoin.org/en/developer-reference#getaccount
   */
@@ -45,8 +48,8 @@ object GetAccount extends RpcCommand {
 
       val coinAddress = CoinAddress.from(address)
 
-      val accountName = Wallet.getAccount(coinAddress)
-      Right(Some(StringResult(accountName)))
+      val accountNameOption : Option[String] = Wallet.getAccount(coinAddress)
+      Right(Some(StringResult(accountNameOption.getOrElse(""))))
     }
   }
   def help() : String =

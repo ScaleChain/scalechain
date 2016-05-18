@@ -154,10 +154,10 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Account -> Output Ownerships] - Search
     *
-    * @param address The coin address, which is attached to the account.
+    * @param ownership The output ownership, which is attached to the account.
     * @return The found account.
     */
-  def getAccount(address : CoinAddress) : String = {
+  def getAccount(ownership : OutputOwnership) : Option[String] = {
     // TODO : Implement
     assert(false)
     null
@@ -166,8 +166,9 @@ class WalletStore(walletFolder : File) {
   /** Get an iterator for each output ownerships for all accounts.
     *
     * Category : [Account -> Output Ownerships] - Search
+    * @param accountOption Some(account) to get ownerships for an account. None to get all ownerships for all accounts.
     */
-  def getOutputOwnerships() : Iterator[OutputOwnership]= {
+  def getOutputOwnerships(accountOption : Option[String]) : Iterator[OutputOwnership]= {
     // TODO : Implement
     assert(false)
     null
@@ -208,6 +209,18 @@ class WalletStore(walletFolder : File) {
   }
 
 
+  /** Get the private key for a coin address.
+    *
+    * @param address The coin address to get the private key.
+    * @return Some(key) if the private key exists for the coin address. None if the private key does not exist.
+    */
+  def getPrivateKey(address : CoinAddress) : Option[PrivateKey] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+
   /*******************************************************************************************************
    * Category : [Output Ownership -> Transactions]
    *******************************************************************************************************/
@@ -216,7 +229,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Output Ownership -> Transactions] - Modification
     */
-  def putTransaction(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
+  def putTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -225,18 +238,18 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [Output Ownership -> Transactions] - Modification
     */
-  def delTransaction(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
+  def delTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
     // TODO : Implement
     assert(false)
   }
 
-  /** Get an iterator transactions by providing an account and the skip count.
+  /** Get an iterator of transaction hashes searched by an optional account.
     *
     * Category : [Output Ownership -> Transactions] - Search
     *
-    * @param includeWatchOnly true to include watch-only ownerships; false otherwise.
+    * @param outputOwnership The output ownership to get transactions related to an account
     */
-  def getTransactions(account : String, skipCount : Long, includeWatchOnly : Boolean) : Iterator[Transaction] = {
+  def getTransactionHashes(outputOwnership : OutputOwnership) : Iterator[Hash] = {
     // TODO : Implement
     assert(false)
     null
@@ -296,7 +309,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     */
-  def putTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
+  def putWalletTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -305,7 +318,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     */
-  def delTransaction(transactionHash : Hash) : Unit = {
+  def delWalletTransaction(transactionHash : Hash) : Unit = {
     // TODO : Implement
     assert(false)
   }
@@ -314,7 +327,7 @@ class WalletStore(walletFolder : File) {
     *
     * Category : [TransactionHash -> Transaction] - Search
     */
-  def getTransaction(transactionHash : Hash) : Option[WalletTransaction] = {
+  def getWalletTransaction(transactionHash : Hash) : Option[WalletTransaction] = {
     // TODO : Implement
     assert(false)
     null

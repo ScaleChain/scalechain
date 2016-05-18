@@ -20,11 +20,12 @@ object OutPointCodec extends MessagePartCodec[OutPoint] {
 
 object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
   val codec: Codec[WalletTransaction] = {
-    ("blockhash"         | optional(bool(8), HashCodec.codec) ) ::
-    ("blockindex"        | optional(bool(8), int64) ) ::
-    ("blocktime"         | optional(bool(8), int64) ) ::
-    ("txid"              | optional(bool(8), HashCodec.codec) ) ::
-    ("time"              | int64 ) ::
+    ("blockHash"         | optional(bool(8), HashCodec.codec) ) ::
+    ("blockIndex"        | optional(bool(8), int64) ) ::
+    ("blockYime"         | optional(bool(8), int64) ) ::
+    ("transactionId"     | optional(bool(8), HashCodec.codec) ) ::
+    ("addedTime"         | int64 ) ::
+    ("transactionIndex"  | optional(bool(8), int32) ) ::
     ("transaction"       | TransactionCodec.codec )
   }.as[WalletTransaction]
 }

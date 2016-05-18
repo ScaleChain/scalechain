@@ -30,7 +30,7 @@ case class TransactionDescriptor(
   // more than one entry in the details array may have the same output index.
   // Not returned for move category payments
   // P1
-  //    vout              : Option[Int],           // 0,
+  vout              : Option[Int],           // 0,
   // If sending payment, the fee paid as a negative bitcoins value.
   // May be 0. Not returned if receiving payment or for move category payments
   fee               : Option[scala.math.BigDecimal],
@@ -59,12 +59,12 @@ case class TransactionDescriptor(
   // P2
   //    walletconflicts   : List[Hash],            // : [],
   // A Unix epoch time when the transaction was added to the wallet
-  time              : Long,                   // 1418695703,
+  time              : Long                   // 1418695703,
   // A Unix epoch time when the transaction was detected by the local node,
   // or the time of the block on the local best block chain that included the transaction.
   // Not returned for move category payments
   // P2
-  timereceived      : Option[Long]          // 1418925580
+  //timereceived      : Option[Long]             // 1418925580
   // For transaction originating with this wallet, a locally-stored comment added to the transaction.
   // Only returned in regular payments if a comment was added.
   // Always returned in move category payments. May be an empty string

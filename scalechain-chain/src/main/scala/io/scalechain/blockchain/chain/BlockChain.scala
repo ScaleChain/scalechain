@@ -284,6 +284,31 @@ class Blockchain extends BlockchainView{
     assert(false)
     0L
   }
+
+  /** Return a transaction that matches the given transaction hash.
+    *
+    * Used by listtransaction RPC to get the
+    *
+    * @param transactionHash The transaction hash to search.
+    * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
+    */
+  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+  /** Return a transaction output specified by a give out point.
+    *
+    * @param outPoint The outpoint that points to the transaction output.
+    * @return The transaction output we found.
+    */
+  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
 }
 
 
