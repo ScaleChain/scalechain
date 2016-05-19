@@ -91,7 +91,7 @@ object Wallet extends ChainEventListener {
     *
     * @param accountOption The account to get transactions related to an account
     */
-  protected[wallet] def getTransactionHashes(accountOption : Option[String]) : Iterator[Hash] = {
+  protected[wallet] def getTransactionHashes(accountOption : Option[String]) : List[Hash] = {
     store.getOutputOwnerships(accountOption).flatMap { ownership : OutputOwnership =>
       store.getTransactionHashes(Some(ownership))
     }
@@ -103,7 +103,7 @@ object Wallet extends ChainEventListener {
     * @param accountOption
     * @return
     */
-  protected [wallet] def getWalletTransactions(accountOption : Option[String]) : Iterator[WalletTransaction] = {
+  protected [wallet] def getWalletTransactions(accountOption : Option[String]) : List[WalletTransaction] = {
     getTransactionHashes(accountOption).map { transactionHash : Hash =>
       store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
     }.filter(_.isEmpty) // Filter out None values.
@@ -283,10 +283,10 @@ object Wallet extends ChainEventListener {
                       ) : List[TransactionDescriptor] = {
 
     // 1. Get transactions
-    val transactions : Iterator[WalletTransaction] = getWalletTransactions(accountOption)
+    val transactions : List[WalletTransaction] = getWalletTransactions(accountOption)
 
     // 2. Sort transactions by recency in descending order. Recent transactions come first.
-    val recentTransactions : List[WalletTransaction] = transactions.toList.sortWith(isMoreRecentThan)
+    val recentTransactions : List[WalletTransaction] = transactions.sortWith(isMoreRecentThan)
 
     var transactionIndex = -1L
     // 3. For each transaction,
@@ -364,7 +364,7 @@ object Wallet extends ChainEventListener {
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for UTXOs.
     */
-  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : Iterator[WalletOutputWithInfo] = {
+  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
     store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
       store.getWalletOutput(outPoint).map{ walletOutput => // convert WalletOutput to WalletOutputWithInfo
         WalletOutputWithInfo(
@@ -442,7 +442,7 @@ object Wallet extends ChainEventListener {
                  ) : List[UnspentCoinDescriptor] = {
 
     // TODO : BUGBUG : Need to consider ParsedPubKeyScript
-    val allAddresses = store.getOutputOwnerships(None).map{case address:CoinAddress => address}.toList
+    val allAddresses = store.getOutputOwnerships(None).map{case address:CoinAddress => address}
 
     val addressesFilter =
       if (addressesOption.isDefined) {
@@ -464,7 +464,6 @@ object Wallet extends ChainEventListener {
      .map( _.get )     // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
      .filter( _.confirmations >= minimumConfirmations )
      .filter( _.confirmations <= maximumConfirmations )
-     .toList
   }
 
   /** Import a watch-only address into the wallet.
@@ -572,7 +571,7 @@ object Wallet extends ChainEventListener {
     * @see ChainEventListener
     */
   def onNewTransaction(transaction : Transaction): Unit = {
-    registerTransaction(store.getOutputOwnerships(None).toList, transaction, None, None)
+    registerTransaction(store.getOutputOwnerships(None), transaction, None, None)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -587,7 +586,7 @@ object Wallet extends ChainEventListener {
     * @see ChainEventListener
     */
   def onRemoveTransaction(transaction : Transaction): Unit = {
-    unregisterTransaction(store.getOutputOwnerships(None).toList, transaction)
+    unregisterTransaction(store.getOutputOwnerships(None), transaction)
   }
 
   /** Invoked whenever a new block is added to the best blockchain.
@@ -598,7 +597,7 @@ object Wallet extends ChainEventListener {
     var transactionIndex = 0
     chainBlock.block.transactions foreach { transaction =>
       registerTransaction(
-        store.getOutputOwnerships(None).toList,
+        store.getOutputOwnerships(None),
         transaction,
         Some(chainBlock),
         Some(transactionIndex)
@@ -613,7 +612,7 @@ object Wallet extends ChainEventListener {
     */
   def onRemoveBlock(chainBlock:ChainBlock) : Unit = {
     chainBlock.block.transactions foreach { transaction =>
-      unregisterTransaction( store.getOutputOwnerships(None).toList, transaction )
+      unregisterTransaction( store.getOutputOwnerships(None), transaction )
     }
   }
 

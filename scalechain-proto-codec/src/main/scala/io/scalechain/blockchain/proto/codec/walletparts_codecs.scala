@@ -56,3 +56,4 @@ object WalletOutputCodec extends MessagePartCodec[WalletOutput] {
     ("transactionOutput" | TransactionOutputCodec.codec )
   }.as[WalletOutput]
 }
+

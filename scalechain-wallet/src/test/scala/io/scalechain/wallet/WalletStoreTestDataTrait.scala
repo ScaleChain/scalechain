@@ -34,8 +34,9 @@ trait WalletStoreTestDataTrait extends TransactionTestDataTrait with ShouldMatch
     )
   }
 
-  def checkElementEquality(actualOwnerships : Iterator[OutputOwnership], expectedOwnerships : List[OutputOwnership] )  {
-    scrubScript( actualOwnerships.toList.sortBy(_.stringKey()) ) shouldBe expectedOwnerships.sortBy(_.stringKey())
+  def checkElementEquality(actualOwnerships : List[OutputOwnership], expectedOwnerships : Set[OutputOwnership] )  {
+//    scrubScript( actualOwnerships.toList.sortBy(_.stringKey()) ) shouldBe expectedOwnerships.sortBy(_.stringKey())
+      scrubScript( actualOwnerships ).toSet  shouldBe expectedOwnerships
   }
 
   val WALLET_OUTPUT1 = generateWalletOutput(transaction1)

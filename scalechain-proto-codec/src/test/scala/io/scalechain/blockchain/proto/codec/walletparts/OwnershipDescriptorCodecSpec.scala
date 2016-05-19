@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec.walletparts
 
-import io.scalechain.blockchain.proto.{Hash, OwnershipDescriptor}
-import io.scalechain.blockchain.proto.codec.{OwnershipDescriptorCodec, OutPointCodec}
+import io.scalechain.blockchain.proto.{WalletOutput, Hash, OwnershipDescriptor}
+import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
@@ -19,6 +19,14 @@ class OwnershipDescriptorCodecSpec extends CodecSuite with ProtoTestData {
     "roundtrip" in {
       roundtrip(ownershipDescriptor)
     }
+/*
+    "test" in {
+
+      val serialized = OwnershipDescriptorCodec.serialize( ownershipDescriptor )
+      val parsed : OwnershipDescriptor = OwnershipDescriptorCodec.parse(serialized)
+      parsed shouldBe ownershipDescriptor
+    }
+    */
   }
 }
 

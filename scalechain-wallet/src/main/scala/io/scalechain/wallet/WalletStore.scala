@@ -8,6 +8,7 @@ import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.{WalletException, ErrorCode}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction._
+import io.scalechain.util.Using._
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Account -> Output Ownerships
@@ -201,9 +202,23 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     // We don't need a value mapped here. Just use one byte 0 for the value.
     // As we are iterating output ownerships for an account by using key prefix, we don't need any value here.
     db.putPrefixedObject(OWNERSHIPS, accountName, outputOwnership, OneByte(0))
-    db.putObject(OWNERSHIP_DESC, outputOwnership, OwnershipDescriptor(accountName, List()))
+    db.putObject(OWNERSHIP_DESC, outputOwnership, OwnershipDescriptor(accountName, privateKeys = List()))
   }
 
+
+  /** Delete an output ownership.
+    *
+    * This method is not used by Wallet yet, but is likely to be used in the future.
+    *
+    * @param accountName The name of the account to create.
+    * @param outputOwnership The address or public key script to add to the account.
+    */
+  def delOutputOwnership(accountName : String, outputOwnership : OutputOwnership ) : Unit = {
+    // We don't need a value mapped here. Just use one byte 0 for the value.
+    // As we are iterating output ownerships for an account by using key prefix, we don't need any value here.
+    db.delPrefixedObject(OWNERSHIPS, accountName, outputOwnership)
+    db.delObject(OWNERSHIP_DESC, outputOwnership)
+  }
   /** Put the receiving address into an account.
     *
     * Category : [Account -> Output Ownerships] - Modification
@@ -239,12 +254,13 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *
     * @param accountOption Some(account) to get ownerships for an account. None to get all ownerships for all accounts.
     */
-  def getOutputOwnerships(accountOption : Option[String]) : Iterator[OutputOwnership]= {
+  def getOutputOwnerships(accountOption : Option[String]) : List[OutputOwnership]= {
     (
       if (accountOption.isEmpty) {
-        db.seekPrefixedObject(OWNERSHIPS)(OutputOwnershipCodec, OneByteCodec)
+        using ( db.seekPrefixedObject(OWNERSHIPS)(OutputOwnershipCodec, OneByteCodec) ) in { _.toList }
+
       } else {
-        db.seekPrefixedObject(OWNERSHIPS, accountOption.get)(OutputOwnershipCodec, OneByteCodec)
+        using( db.seekPrefixedObject(OWNERSHIPS, accountOption.get)(OutputOwnershipCodec, OneByteCodec) ) in (_.toList)
       }
     // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
     ).map{ case (CStringPrefixed(_, ownership : OutputOwnership), _) => ownership }
@@ -327,7 +343,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @throws WalletException(ErrorCode.OwnershipNotFound) if the output ownership was not found.
     */
   def putTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
-    if (ownershipExists((outputOwnership))) {
+    if (!ownershipExists((outputOwnership))) {
       throw new WalletException(ErrorCode.OwnershipNotFound)
     }
 
@@ -349,13 +365,13 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @param outputOwnershipOption Some(ownership) to get transactions hashes related to an output ownership
     *                              None to get all transaction hashes for all output ownerships.
     */
-  def getTransactionHashes(outputOwnershipOption : Option[OutputOwnership]) : Iterator[Hash] = {
+  def getTransactionHashes(outputOwnershipOption : Option[OutputOwnership]) : List[Hash] = {
     (
       if (outputOwnershipOption.isEmpty) {
         // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-        db.seekPrefixedObject(TXHASHES)(HashCodec, OneByteCodec)
+        using( db.seekPrefixedObject(TXHASHES)(HashCodec, OneByteCodec) ) in { _.toList }
       } else {
-        db.seekPrefixedObject(TXHASHES, outputOwnershipOption.get.stringKey())(HashCodec, OneByteCodec)
+        using( db.seekPrefixedObject(TXHASHES, outputOwnershipOption.get.stringKey())(HashCodec, OneByteCodec) ) in { _.toList }
       }
     ).map{ case (CStringPrefixed(_, hash : Hash), _) => hash }
   }
@@ -370,7 +386,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @throws WalletException(ErrorCode.OwnershipNotFound) if the output ownership was not found.
     */
   def putTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
-    if (ownershipExists((outputOwnership))) {
+    if (!ownershipExists((outputOwnership))) {
       throw new WalletException(ErrorCode.OwnershipNotFound)
     }
 
@@ -392,13 +408,13 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for outpoints.
     */
-  def getTransactionOutPoints(outputOwnershipOption : Option[OutputOwnership]) : Iterator[OutPoint] = {
+  def getTransactionOutPoints(outputOwnershipOption : Option[OutputOwnership]) : List[OutPoint] = {
     (
       if (outputOwnershipOption.isEmpty) {
         // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-        db.seekPrefixedObject(OUTPOINTS)(OutPointCodec, OneByteCodec)
+        using( db.seekPrefixedObject(OUTPOINTS)(OutPointCodec, OneByteCodec) ) in { _.toList }
       } else {
-        db.seekPrefixedObject(OUTPOINTS, outputOwnershipOption.get.stringKey())(OutPointCodec, OneByteCodec)
+        using( db.seekPrefixedObject(OUTPOINTS, outputOwnershipOption.get.stringKey())(OutPointCodec, OneByteCodec) ) in { _.toList }
       }
     ).map{ case (CStringPrefixed(_, outPoint : OutPoint), _) => outPoint }
   }
@@ -442,7 +458,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
   def putWalletOutput(outPoint : OutPoint, walletOutput : WalletOutput) : Unit = {
-    db.putObject(WALLETOUTPUT, outPoint, walletOutput)
+    db.putObject(WALLETOUTPUT, outPoint, walletOutput)(OutPointCodec, WalletOutputCodec)
   }
 
   /** Remove a transaction output.

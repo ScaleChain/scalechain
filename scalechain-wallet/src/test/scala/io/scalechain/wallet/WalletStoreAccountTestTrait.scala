@@ -1,7 +1,6 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.{ErrorCode, WalletException}
-import io.scalechain.blockchain.storage.index.KeyValueCommonTrait
 import org.scalatest._
 
 /**
@@ -11,39 +10,60 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   var store: WalletStore
 
   "putOutputOwnership" should "be able to put an output ownership." in {
+    println("testing 1")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
-    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)).toList ) shouldBe List(ADDR1.address)
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address)
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (mixed)" in {
+    println("testing 2")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.pubKeyScript)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
 
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT1)),
-      List(ADDR1.address, ADDR2.pubKeyScript, ADDR3.address)
+      Set(ADDR1.address, ADDR2.pubKeyScript, ADDR3.address)
     )
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (coin addresses only)" in {
+    println("testing 3")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.address)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT1)),
-      List(ADDR1.address, ADDR2.address, ADDR3.address)
+      Set(ADDR1.address, ADDR2.address, ADDR3.address)
     )
   }
 
-
   "putOutputOwnership" should "be able to put multiple output ownerships. (public key scripts only)" in {
+    println("testing 4")
+
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      Set()
+    )
+
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
+
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      Set(ADDR1.pubKeyScript)
+    )
+
     store.putOutputOwnership(ACCOUNT1, ADDR2.pubKeyScript)
+
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      Set(ADDR1.pubKeyScript, ADDR2.pubKeyScript)
+    )
+
     store.putOutputOwnership(ACCOUNT1, ADDR3.pubKeyScript)
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT1)),
-      List(ADDR1.pubKeyScript, ADDR2.pubKeyScript, ADDR3.pubKeyScript)
+      Set(ADDR1.pubKeyScript, ADDR2.pubKeyScript, ADDR3.pubKeyScript)
     )
   }
 
@@ -101,7 +121,7 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
     checkElementEquality(
       store.getOutputOwnerships(None),
-      List(ADDR1.address, ADDR2.address, ADDR3.address)
+      Set(ADDR1.address, ADDR2.address, ADDR3.address)
     )
   }
 
@@ -110,11 +130,11 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
     store.putOutputOwnership(ACCOUNT2, ADDR2.address)
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT1)),
-      List(ADDR1.address)
+      Set(ADDR1.address)
     )
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT2)),
-      List(ADDR2.address)
+      Set(ADDR2.address)
     )
   }
 
@@ -125,7 +145,7 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
 
   "getPrivateKeys(None)" should "get nothing if no private key was put." in {
-    store.getPrivateKeys(None).toList shouldBe None
+    store.getPrivateKeys(None) shouldBe List()
   }
 
   "getPrivateKeys(None)" should "get all private keys put." in {
@@ -135,44 +155,82 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
     store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
     store.putPrivateKeys(ADDR2.address, List(ADDR2.privateKey))
     store.putPrivateKeys(ADDR3.address, List(ADDR3.privateKey))
-    store.getPrivateKeys(None) shouldBe List( ADDR1.privateKey, ADDR2.privateKey, ADDR2.privateKey)
+    store.getPrivateKeys(None).toSet shouldBe Set( ADDR1.privateKey, ADDR2.privateKey, ADDR3.privateKey)
   }
 
   "getPrivateKeys(addr)" should "get nothing if no private key was put for an address" in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
-    store.getPrivateKeys(Some(ADDR1.address)) shouldBe List()
+    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set()
   }
 
   "putPrivateKeys(addr)" should "put a private key for an output ownership." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
-    store.getPrivateKeys(Some(ADDR1.address)) shouldBe List(ADDR1.privateKey)
+    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set(ADDR1.privateKey)
   }
 
   "putPrivateKey" should "overwrite the previous private key for an output ownership." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
     store.putPrivateKeys(ADDR1.address, List(ADDR2.privateKey))
-    store.getPrivateKeys(Some(ADDR1.address)) shouldBe List(ADDR2.privateKey)
+    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set(ADDR2.privateKey)
   }
 
   "getPrivateKeys(pubKeyScript)" should "get nothing if no private key was put for a public key script" in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
-    store.getPrivateKeys(Some(ADDR1.pubKeyScript)) shouldBe List()
+    store.getPrivateKeys(Some(ADDR1.pubKeyScript)).toSet shouldBe Set()
   }
 
   "getPrivateKeys(pubKeyScript)" should "get a private key for a public key script." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
     store.putPrivateKeys(ADDR1.pubKeyScript, List(ADDR1.privateKey))
-    store.getPrivateKeys(Some(ADDR1.pubKeyScript)) shouldBe List(ADDR1.privateKey)
+    store.getPrivateKeys(Some(ADDR1.pubKeyScript)).toSet shouldBe Set(ADDR1.privateKey)
   }
 
   "getPrivateKeys(pubKeyScript)" should "get a nothing even with a matching address." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
     store.putPrivateKeys(ADDR1.pubKeyScript, List(ADDR1.privateKey))
     // Try to get with address instead of pubKeyScript
-    store.getPrivateKeys(Some(ADDR1.address)) shouldBe List(ADDR1.privateKey)
+    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set(ADDR1.privateKey)
   }
+
+  "delOutputOwnership" should "delete an output ownership" in {
+    store.putOutputOwnership(ACCOUNT1, ADDR1.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address)
+
+    store.delOutputOwnership(ACCOUNT1, ADDR1.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set()
+
+  }
+
+  "delOutputOwnership" should "delete multiple output ownerships" in {
+    store.putOutputOwnership(ACCOUNT1, ADDR1.address)
+    store.putOutputOwnership(ACCOUNT1, ADDR2.address)
+    store.putOutputOwnership(ACCOUNT1, ADDR3.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address, ADDR2.address, ADDR3.address)
+
+    store.delOutputOwnership(ACCOUNT1, ADDR2.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address, ADDR3.address)
+  }
+
+  "delOutputOwnership" should "delete all output ownerships" in {
+    store.putOutputOwnership(ACCOUNT1, ADDR1.address)
+    store.putOutputOwnership(ACCOUNT1, ADDR2.address)
+    store.putOutputOwnership(ACCOUNT1, ADDR3.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address, ADDR2.address, ADDR3.address)
+
+    store.delOutputOwnership(ACCOUNT1, ADDR1.address)
+    store.delOutputOwnership(ACCOUNT1, ADDR2.address)
+    store.delOutputOwnership(ACCOUNT1, ADDR3.address)
+
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set()
+  }
+
 
   "putPrivateKey" should "throw an exception if the output ownership for the private key does not exist." in {
     val thrown = the[WalletException] thrownBy {
