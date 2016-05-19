@@ -69,7 +69,7 @@ object ErrorCode {
 
 
   // Wallet Exceptions
-  val AddressNotFound = ErrorCode("address_not_found")
+  val OwnershipNotFound = ErrorCode("ownership_not_found")
   val WalletOutputNotFound = ErrorCode("wallet_output_not_found")
 }
 

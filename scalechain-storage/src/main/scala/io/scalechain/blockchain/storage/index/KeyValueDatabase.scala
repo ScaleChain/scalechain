@@ -31,7 +31,7 @@ trait KeyValueDatabase {
   private def prefixedKey(prefix: Byte, key:Array[Byte]) = Array(prefix) ++ key
   private def prefixedKey(prefix: Array[Byte], key:Array[Byte]) = prefix ++ key
 
-  def seekObject[V <: ProtocolMessage](rawKeyOption : Option[Array[Byte]] = None)(valueCodec : MessagePartCodec[V]) : ClosableIterator[(Array[Byte], V)] = {
+  def seekObject[V <: ProtocolMessage](rawKeyOption : Option[Array[Byte]] = None)(implicit valueCodec : MessagePartCodec[V]) : ClosableIterator[(Array[Byte], V)] = {
     class ValueMappedIterator(iterator:ClosableIterator[(Array[Byte],Array[Byte])]) extends ClosableIterator[(Array[Byte], V)] {
       def next : (Array[Byte], V) = {
         val (rawKey, rawValue) = iterator.next
@@ -44,15 +44,15 @@ trait KeyValueDatabase {
     new ValueMappedIterator(rawIterator)
   }
 
-  def seekObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(K,V)] = {
+  def seekObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, key : K)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(K,V)] = {
     seekObjectInternal( Array(prefix), Some(key))(keyCodec, valueCodec)
   }
 
-  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, keyPrefix:String)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
+  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte, keyPrefix:String)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
     seekObjectInternal( prefixedKey(prefix, CString.serialize(keyPrefix)), None)(new CStringPrefixedCodec(keyCodec), valueCodec)
   }
 
-  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
+  def seekPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix: Byte)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : ClosableIterator[(CStringPrefixed[K],V)] = {
     seekObjectInternal( Array(prefix), None)(new CStringPrefixedCodec(keyCodec), valueCodec)
   }
 
@@ -129,47 +129,47 @@ trait KeyValueDatabase {
 
 
 
-  def getObject[V <: ProtocolMessage](rawKey : Array[Byte])(valueCodec : MessagePartCodec[V]) : Option[V] = {
+  def getObject[V <: ProtocolMessage](rawKey : Array[Byte])(implicit valueCodec : MessagePartCodec[V]) : Option[V] = {
     get(rawKey).map( valueCodec.parse(_) )
   }
 
-  def getObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix : Byte, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Option[V] = {
+  def getObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix : Byte, key : K)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Option[V] = {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     getObject(rawKey)(valueCodec)
   }
 
-  def getPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Option[V] = {
+  def getPrefixedObject[K <: ProtocolMessage,V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Option[V] = {
     val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
     getObject(rawKey)(valueCodec)
   }
 
 
 
-  def putObject[V <: ProtocolMessage](rawKey : Array[Byte], value : V)(valueCodec : MessagePartCodec[V]) : Unit = {
+  def putObject[V <: ProtocolMessage](rawKey : Array[Byte], value : V)(implicit valueCodec : MessagePartCodec[V]) : Unit = {
     val rawValue = valueCodec.serialize(value)
 
     put(rawKey, rawValue)
   }
 
-  def putObject[K <: ProtocolMessage, V <: ProtocolMessage](prefix : Byte, key : K, value : V)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Unit = {
+  def putObject[K <: ProtocolMessage, V <: ProtocolMessage](prefix : Byte, key : K, value : V)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Unit = {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
 
     putObject(rawKey, value)(valueCodec)
   }
 
-  def putPrefixedObject[K <: ProtocolMessage, V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K, value : V)(keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Unit = {
+  def putPrefixedObject[K <: ProtocolMessage, V <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K, value : V)(implicit keyCodec : MessagePartCodec[K], valueCodec : MessagePartCodec[V]) : Unit = {
     val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
 
     putObject(rawKey, value)(valueCodec)
   }
 
 
-  def delObject[K <: ProtocolMessage](prefix : Byte, key : K)(keyCodec : MessagePartCodec[K]) = {
+  def delObject[K <: ProtocolMessage](prefix : Byte, key : K)(implicit keyCodec : MessagePartCodec[K]) = {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     del(rawKey)
   }
 
-  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(keyCodec : MessagePartCodec[K]) = {
+  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(implicit keyCodec : MessagePartCodec[K]) = {
     val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
     del(rawKey)
   }

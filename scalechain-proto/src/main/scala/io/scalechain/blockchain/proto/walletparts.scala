@@ -8,6 +8,13 @@ import io.scalechain.util.HexUtil
 /** case classes that are used for keys or values of the wallet database.
   */
 
+/** An account with a name.
+  *
+  * @param name The account name.
+  */
+case class Account(name : String) extends ProtocolMessage
+
+
 /** An outpoint points to an output in a transaction.
   *
   * @param transactionHash The hash of the transaction that has the output.
@@ -85,7 +92,13 @@ case class WalletTransaction(
                               transaction : Transaction
 ) extends ProtocolMessage
 
-case class OwnershipDescriptor(privateKeys : List[String]) extends ProtocolMessage
+/** Ownership is described as multiple private keys.
+  *
+  * TODO : Implement multiple private keys.
+  *
+  * @param privateKeys
+  */
+case class OwnershipDescriptor(account : String, privateKeys : List[String]) extends ProtocolMessage
 
 case class WalletOutput(
     // Some(block height) of the block on the local best block chain which includes this transaction. None otherwise.

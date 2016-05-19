@@ -62,11 +62,12 @@ trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestData
     store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(false)
   }
 
-  "markWalletOutputSpent" should "throw an exception if no wallet output was found for an out point." in {
-    val thrown = the[WalletException] thrownBy {
-      store.markWalletOutputSpent(OUTPOINT1, true)
-    }
-    thrown.code shouldBe ErrorCode.WalletOutputNotFound
+  "markWalletOutputSpent" should "return false if no wallet output was found for an out point." in {
+    store.markWalletOutputSpent(OUTPOINT1, true) shouldBe false
   }
 
+  "markWalletOutputSpent" should "return true if a wallet output was found for an out point." in {
+    store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
+    store.markWalletOutputSpent(OUTPOINT1, true) shouldBe true
+  }
 }

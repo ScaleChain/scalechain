@@ -2,20 +2,23 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import io.scalechain.blockchain.proto.codec._
+import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.{WalletException, ErrorCode}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, PrivateKey, UnspentTransactionOutput}
+import io.scalechain.blockchain.transaction._
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Account -> Output Ownerships
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. (Account + '\0' + OutputOwnership, OwnershipDescriptor) => for Search 2, 3
-// B. (OutputOwnership, Account) => for Search case 1
+// A. (Account + '\0' + OutputOwnership, Dummy) => for Search 2, 3
+// B. (OutputOwnership, OwnershipDescriptor) => for Search case 1
 // C. (Account, OutputOwnership) => For keeping the receiving address. For Modification 3 and Search 4
 //
 // OwnershipDescriptor has the following fields.
+// 1. Account     : String
 // 1. privateKeys : List[PrivateKey]
 //
 // Modifications :
@@ -28,6 +31,7 @@ import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership, Priva
 // 2. Iterate for each output ownerships for all accounts.
 // 3. Iterate private keys for all accounts.
 // 4. Get the receiving address of an account.
+// 5. Get a private key for an address.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,40 +111,40 @@ object WalletStore {
     // Account -> Output Ownerships
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // A. (Account + '\0' + OutputOwnership, OwnershipDescriptor)
-    val OWNERSHIPS = 'O'
+    // A. (Account + '\0' + OutputOwnership, Dummy)
+    val OWNERSHIPS : Byte = 'O'
 
-    // B. (OutputOwnership, Account)
-    val ACCOUNT = 'A'
+    // B. (OutputOwnership, OwnershipDescriptor)
+    val OWNERSHIP_DESC : Byte = 'D'
 
     // C. (Account, OutputOwnership)
-    val RECEIVING = 'R'
+    val RECEIVING : Byte = 'R'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Output Ownership -> Transactions
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // A. ( OutputOwnership + '\0' + TransactionHash )
-    val TXHASHES = 'H'
+    val TXHASHES : Byte = 'H'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Output Ownership -> UTXOs
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // A. ( OutputOwnership + '\0' + OutPoint, None )
-    val OUTPOINTS = 'P'
+    val OUTPOINTS : Byte = 'P'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // TransactionHash -> Transaction
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Keys and Values (K, V) :
     // A. (TransactionHash, WalletTransaction)
-    val WALLETTX = 'T'
+    val WALLETTX : Byte = 'T'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // OutPoint -> WalletOutput
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Keys and Values (K, V) :
     // A. (OutPoint, WalletOutput)
-    val WALLETOUTPUT = 'U'
+    val WALLETOUTPUT : Byte = 'U'
   }
 }
 
@@ -168,6 +172,15 @@ object WalletStore {
 class WalletStore(walletFolder : File) extends AutoCloseable {
   import WalletStore.PREFIXES._
 
+  implicit val accountCodec = AccountCodec
+  implicit val outputOwnershipCodec = OutputOwnershipCodec
+  implicit val outByteCodec = OneByteCodec
+  implicit val outPointCodec = OutPointCodec
+  implicit val walletOutputCodec = WalletOutputCodec
+  implicit val walletTransactionCodec = WalletTransactionCodec
+  implicit val ownershipDescriptorCodec = OwnershipDescriptorCodec
+  implicit val hashCodec = HashCodec
+
   val db : KeyValueDatabase = new RocksDatabase(walletFolder)
   /*******************************************************************************************************
    * Category : [Account -> Output Ownerships]
@@ -185,7 +198,10 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @param outputOwnership The address or public key script to add to the account.
     */
   def putOutputOwnership(accountName : String, outputOwnership : OutputOwnership ) : Unit = {
-    //db.putPrefixedObject(OWNERSHIPS, accountName, outputOwnership, None)(OutputOwnershipCodec, )
+    // We don't need a value mapped here. Just use one byte 0 for the value.
+    // As we are iterating output ownerships for an account by using key prefix, we don't need any value here.
+    db.putPrefixedObject(OWNERSHIPS, accountName, outputOwnership, OneByte(0))
+    db.putObject(OWNERSHIP_DESC, outputOwnership, OwnershipDescriptor(accountName, List()))
   }
 
   /** Put the receiving address into an account.
@@ -199,9 +215,8 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *
     * @throws WalletException(ErrorCode.AddressNotFound) if the address was not found.
     */
-  def putReceivingAddress(accountName : String, outputOwnership : CoinAddress ) : Unit = {
-    // TODO : Implement
-    assert(false)
+  def putReceivingAddress(accountName : String, outputOwnership : OutputOwnership ) : Unit = {
+    db.putObject(RECEIVING, Account(accountName), outputOwnership)
   }
 
   /** Find an account by coin address.
@@ -214,9 +229,8 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @return The found account.
     */
   def getAccount(ownership : OutputOwnership) : Option[String] = {
-    // TODO : Implement
-    assert(false)
-    null
+    val account : Option[OwnershipDescriptor] = db.getObject(OWNERSHIP_DESC, ownership)(OutputOwnershipCodec, OwnershipDescriptorCodec)
+    account.map(_.account)
   }
 
   /** Get an iterator for each output ownerships for all accounts.
@@ -226,59 +240,82 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @param accountOption Some(account) to get ownerships for an account. None to get all ownerships for all accounts.
     */
   def getOutputOwnerships(accountOption : Option[String]) : Iterator[OutputOwnership]= {
-    // TODO : Implement
-    assert(false)
-    null
+    (
+      if (accountOption.isEmpty) {
+        db.seekPrefixedObject(OWNERSHIPS)(OutputOwnershipCodec, OneByteCodec)
+      } else {
+        db.seekPrefixedObject(OWNERSHIPS, accountOption.get)(OutputOwnershipCodec, OneByteCodec)
+      }
+    // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
+    ).map{ case (_, ownership : OutputOwnership) => ownership }
   }
 
-  /** Get an iterator private keys for all accounts.
+  /** Get an iterator private keys for an address or all accounts.
+    *
+    * TODO : Instead of getting a CoinAddress, how about getting an OutputOwnership?
     *
     * Category : [Account -> Output Ownerships] - Search
+    *
+    * @param addressOption Some(address) to get private keys for an address. A Multisig address may have multiple keys for it.
+    *                      None to get private keys for all accounts.
     */
-  def getPrivateKeys() : Iterator[PrivateKey] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def getPrivateKeys(addressOption : Option[OutputOwnership]) : List[PrivateKey] = {
+    if (addressOption.isEmpty) {
+      getOutputOwnerships(None).flatMap{ outputOwnership : OutputOwnership =>
+        getPrivateKeys(Some(outputOwnership))
+      }.toList
+    } else {
+      val ownershipDescriptorOption:Option[OwnershipDescriptor] =
+        db.getObject(OWNERSHIP_DESC, addressOption.get)(OutputOwnershipCodec, OwnershipDescriptorCodec)
+      // Get PrivateKey object from base58 encoded private key string.
+      val privateKeyListOption = ownershipDescriptorOption.map(_.privateKeys.map(PrivateKey.from(_)))
+      // Get rid of the Option wrapper.
+      privateKeyListOption.getOrElse(List())
+    }
   }
 
   /** Get the receiving address of an account.
     *
     * Category : [Account -> Output Ownerships] - Search
     */
-  def getReceivingAddress(account:String) : Option[CoinAddress] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def getReceivingAddress(account:String) : Option[OutputOwnership] = {
+    db.getObject(RECEIVING, Account(account))(AccountCodec, OutputOwnershipCodec)
   }
 
 
-  /** Put a private key for a coin address.
-    * After putting the private key, we can sign transaction inputs
-    * which are pointing to an output whose locking script has the only public key hash,
-    * which matches the one of the coin address.
+  /** Put private keys for a coin address.
     *
-    * @param address The coin address generated from the private key.
-    * @param privateKey The private key to put under the coin address.
+    * After putting the private keys, we can sign transaction inputs
+    * which are pointing to an output whose locking script has public key hashes,
+    * which matches the private keys.
+    *
+    * We need to be able to put multiple private keys for multisig addresses.
+    *
+    * @param ownership The output ownership(ex>address) generated from the private key.
+    * @param privateKeys The private key to put under the coin address.
     * @throws WalletException(ErrorCode.AddressNotFound) if the address was not found.
     */
-  def putPrivateKey(address : CoinAddress, privateKey : PrivateKey) : Unit = {
-    // TODO : Implement
-    assert(false)
+  def putPrivateKeys(ownership : OutputOwnership, privateKeys : List[PrivateKey]) : Unit = {
+    val ownershipDescriptor : Option[OwnershipDescriptor] =
+      db.getObject(OWNERSHIP_DESC, ownership)(OutputOwnershipCodec, OwnershipDescriptorCodec)
+    if (ownershipDescriptor.isEmpty) {
+      throw new WalletException(ErrorCode.OwnershipNotFound)
+    } else {
+      db.putObject(OWNERSHIP_DESC, ownership,
+        ownershipDescriptor.get.copy(privateKeys = privateKeys.map(_.base58()))
+      )
+    }
   }
 
-
-  /** Get the private key for a coin address.
+  /** Check if an output exists.
     *
-    * @param address The coin address to get the private key.
-    * @return Some(key) if the private key exists for the coin address. None if the private key does not exist.
+    * @param outputOwnership The output ownership to check.
+    * @return true if the ownership exists; false otherwise.
     */
-  def getPrivateKey(address : CoinAddress) : Option[PrivateKey] = {
-    // TODO : Implement
-    assert(false)
-    null
+  protected [wallet] def ownershipExists(outputOwnership : OutputOwnership) : Boolean = {
+    val ownershipOption = db.getObject(OWNERSHIP_DESC, outputOwnership)(OutputOwnershipCodec, OwnershipDescriptorCodec)
+    ownershipOption.isDefined
   }
-
-
   /*******************************************************************************************************
    * Category : [Output Ownership -> TransactionHashes]
    *******************************************************************************************************/
@@ -287,11 +324,14 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *
     * Category : [Output Ownership -> Transactions] - Modification
     *
-    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
+    * @throws WalletException(ErrorCode.OwnershipNotFound) if the output ownership was not found.
     */
   def putTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
-    // TODO : Implement
-    assert(false)
+    if (ownershipExists((outputOwnership))) {
+      throw new WalletException(ErrorCode.OwnershipNotFound)
+    }
+
+    db.putPrefixedObject(TXHASHES, outputOwnership.stringKey, transactionHash, OneByte(0))
   }
 
   /** Remove a transaction from the output ownership by transaction hash.
@@ -299,20 +339,25 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [Output Ownership -> Transactions] - Modification
     */
   def delTransactionHash(outputOwnership : OutputOwnership, transactionHash : Hash) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.delPrefixedObject(TXHASHES, outputOwnership.stringKey, transactionHash)
   }
 
   /** Get an iterator of transaction hashes searched by an optional account.
     *
     * Category : [Output Ownership -> Transactions] - Search
     *
-    * @param outputOwnership The output ownership to get transactions related to an account
+    * @param outputOwnershipOption Some(ownership) to get transactions hashes related to an output ownership
+    *                              None to get all transaction hashes for all output ownerships.
     */
-  def getTransactionHashes(outputOwnership : OutputOwnership) : Iterator[Hash] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def getTransactionHashes(outputOwnershipOption : Option[OutputOwnership]) : Iterator[Hash] = {
+    (
+      if (outputOwnershipOption.isEmpty) {
+        // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
+        db.seekPrefixedObject(TXHASHES)(HashCodec, OneByteCodec)
+      } else {
+        db.seekPrefixedObject(TXHASHES, outputOwnershipOption.get.stringKey())(HashCodec, OneByteCodec)
+      }
+    ).map{ case (CStringPrefixed(_, hash : Hash), _) => hash }
   }
 
   /*******************************************************************************************************
@@ -322,11 +367,14 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *
     * Category : [Output Ownership -> UTXOs] - Modification
     *
-    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
+    * @throws WalletException(ErrorCode.OwnershipNotFound) if the output ownership was not found.
     */
   def putTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
-    // TODO : Implement
-    assert(false)
+    if (ownershipExists((outputOwnership))) {
+      throw new WalletException(ErrorCode.OwnershipNotFound)
+    }
+
+    db.putPrefixedObject(OUTPOINTS, outputOwnership.stringKey, output, OneByte(0))
   }
 
   /** Remove a UTXO from the output ownership.
@@ -334,8 +382,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [Output Ownership -> UTXOs] - Modification
     */
   def delTransactionOutPoint(outputOwnership: OutputOwnership, output : OutPoint) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.delPrefixedObject(OUTPOINTS, outputOwnership.stringKey, output)
   }
 
 
@@ -346,9 +393,14 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @return The iterator for outpoints.
     */
   def getTransactionOutPoints(outputOwnershipOption : Option[OutputOwnership]) : Iterator[OutPoint] = {
-    // TODO : Implement
-    assert(false)
-    null
+    (
+      if (outputOwnershipOption.isEmpty) {
+        // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
+        db.seekPrefixedObject(OUTPOINTS)(OutPointCodec, OneByteCodec)
+      } else {
+        db.seekPrefixedObject(OUTPOINTS, outputOwnershipOption.get.stringKey())(OutPointCodec, OneByteCodec)
+      }
+    ).map{ case (CStringPrefixed(_, outPoint : OutPoint), _) => outPoint }
   }
 
   /*******************************************************************************************************
@@ -359,12 +411,9 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     *
     * Category : [TransactionHash -> Transaction] - Modification
     *
-    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
-    *
     */
   def putWalletTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.putObject(WALLETTX, transactionHash, transaction)
   }
 
   /** Remove a transaction.
@@ -372,8 +421,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [TransactionHash -> Transaction] - Modification
     */
   def delWalletTransaction(transactionHash : Hash) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.delObject(WALLETTX, transactionHash)
   }
 
   /** Search a transaction by the hash.
@@ -381,9 +429,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [TransactionHash -> Transaction] - Search
     */
   def getWalletTransaction(transactionHash : Hash) : Option[WalletTransaction] = {
-    // TODO : Implement
-    assert(false)
-    null
+    db.getObject(WALLETTX, transactionHash)(HashCodec, WalletTransactionCodec)
   }
 
 
@@ -394,12 +440,9 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
   /** Add a transaction output.
     *
     * Category : [OutPoint -> TransactionOutput] - Modifications
-    *
-    * @throws WalletException(ErrorCode.AddressNotFound) if the output ownership was not found.
     */
   def putWalletOutput(outPoint : OutPoint, walletOutput : WalletOutput) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.putObject(WALLETOUTPUT, outPoint, walletOutput)
   }
 
   /** Remove a transaction output.
@@ -407,8 +450,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [OutPoint -> TransactionOutput] - Modifications
     */
   def delWalletOutput(outPoint : OutPoint) : Unit = {
-    // TODO : Implement
-    assert(false)
+    db.delObject(WALLETOUTPUT, outPoint)
   }
 
   /** Search a transaction output by the outpoint.
@@ -416,9 +458,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [OutPoint -> TransactionOutput] - Search
     */
   def getWalletOutput(outPoint : OutPoint) : Option[WalletOutput] = {
-    // TODO : Implement
-    assert(false)
-    null
+    db.getObject(WALLETOUTPUT, outPoint)(OutPointCodec, WalletOutputCodec)
   }
 
   /** Mark a UTXO spent searching by OutPoint.
@@ -426,14 +466,20 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * Category : [Output Ownership -> UTXOs] - Modification
     *
     * @return true if the output was found in the wallet; false otherwise.
-    * @throws WalletException(ErrorCode.WalletOutputNotFound) if the WalletOutput for the given OutPoint was not found.
     */
   def markWalletOutputSpent(outPoint : OutPoint, spent : Boolean) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    true
+    val outPointOption : Option[WalletOutput] = db.getObject(WALLETOUTPUT, outPoint)(OutPointCodec, WalletOutputCodec)
+    if (outPointOption.isEmpty) {
+      false
+    } else {
+      db.putObject(WALLETOUTPUT, outPoint,
+        outPointOption.get.copy(
+          spent = spent
+        )
+      )
+      true
+    }
   }
-
 
   def close() : Unit = {
     db.close()

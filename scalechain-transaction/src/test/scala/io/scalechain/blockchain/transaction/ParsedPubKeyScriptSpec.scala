@@ -3,6 +3,7 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual}
+import io.scalechain.util.HexUtil
 import org.scalatest._
 
 /**
@@ -65,6 +66,11 @@ class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with Trans
     // pubKeyScript1 owns the output.
     val output = TransactionOutput(1L, pubKeyScript1.lockingScript())
     pubKeyScript2.owns(output) shouldBe false
+  }
+
+  "stringKey" should "return hex representation of the locking script" in {
+    val pubKeyScript = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
+    pubKeyScript.stringKey shouldBe HexUtil.hex(pubKeyScript.lockingScript().data)
   }
 
   "lockingScript" should "create a locking script that can be used in ParsedPubKeyScript.from to create the same ParsedPubKeyScript." ignore {

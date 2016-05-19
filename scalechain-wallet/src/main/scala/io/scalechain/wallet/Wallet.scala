@@ -49,7 +49,7 @@ object Wallet extends ChainEventListener {
                      ) : SignedTransaction = {
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
-      val privateKeysFromWallet = store.getPrivateKeys().toList
+      val privateKeysFromWallet = store.getPrivateKeys(None)
 
       TransactionSigner.sign(transaction, dependencies, privateKeysFromWallet, sigHash )
     } else {
@@ -93,7 +93,7 @@ object Wallet extends ChainEventListener {
     */
   protected[wallet] def getTransactionHashes(accountOption : Option[String]) : Iterator[Hash] = {
     store.getOutputOwnerships(accountOption).flatMap { ownership : OutputOwnership =>
-      store.getTransactionHashes(ownership)
+      store.getTransactionHashes(Some(ownership))
     }
   }
 
@@ -224,7 +224,7 @@ object Wallet extends ChainEventListener {
       case _ => None
     }
 
-    val involvesWatchonly : Boolean = addressOption.map( store.getPrivateKey(_).isDefined ).getOrElse(false)
+    val involvesWatchonly : Boolean = addressOption.map( address => !store.getPrivateKeys(Some(address)).isEmpty ).getOrElse(false)
     if (involvesWatchonly && !includeWatchOnly) {
       None
     } else {
@@ -530,7 +530,7 @@ object Wallet extends ChainEventListener {
     store.putOutputOwnership(account, address)
 
     // Step 4 : Wallet Store : Put the private key into an the address.
-    store.putPrivateKey(address, privateKey)
+    store.putPrivateKeys(address, List(privateKey))
 
     // Step 5 : Put the address as the receiving address of the account.
     store.putReceivingAddress(account, address)
@@ -549,12 +549,16 @@ object Wallet extends ChainEventListener {
     * @return The coin address for receiving payments.
     */
   def getReceivingAddress(account:String) : CoinAddress = {
-    val addressOption = store.getReceivingAddress(account)
+    val addressOption : Option[OutputOwnership] = store.getReceivingAddress(account)
     if ( addressOption.isEmpty ) { // The account does not have any receiving address.
       // Create a new address and set it as the receiving address of the account.
       newAddress(account)
     } else {
-      addressOption.get
+      addressOption.get match {
+        case address : CoinAddress => address
+        // We should always get coin address. Because we are not putting any parsed public key script as the ownership.
+        case _ => assert(false); null
+      }
     }
   }
 

@@ -68,6 +68,6 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
     val thrown = the[WalletException] thrownBy {
       store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
     }
-    thrown.code shouldBe ErrorCode.AddressNotFound
+    thrown.code shouldBe ErrorCode.OwnershipNotFound
   }
 }

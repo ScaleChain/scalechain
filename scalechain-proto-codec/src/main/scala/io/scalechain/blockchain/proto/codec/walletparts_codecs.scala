@@ -7,8 +7,18 @@ import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray}
 import scodec.Codec
 import scodec.codecs._
 
-/** The codec for OutPoint.
-  */
+
+
+object AccountCodec extends MessagePartCodec[Account] {
+  val codec : Codec[Account] = {
+    // As the account is used as a key in KeyValueDatabase,
+    // we should not use codecs such as utf8_32 which prefixes the encoded data with the length of the data.
+    // If any length of data is encoded, we can't compare string values on a KeyValueDatabase.
+    ("name" | utf8 )
+  }.as[Account]
+}
+
+
 object OutPointCodec extends MessagePartCodec[OutPoint] {
   val codec : Codec[OutPoint] = {
     // Note that we are not using the reverseCodec here.
@@ -32,6 +42,7 @@ object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
 
 object OwnershipDescriptorCodec extends MessagePartCodec[OwnershipDescriptor] {
   val codec : Codec[OwnershipDescriptor] = {
+    ("account"     | utf8_32) ::
     ("privateKeys" | VarList.varList(utf8) )
   }.as[OwnershipDescriptor]
 }

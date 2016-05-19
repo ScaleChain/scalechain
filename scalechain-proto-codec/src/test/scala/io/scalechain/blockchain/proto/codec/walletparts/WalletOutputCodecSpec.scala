@@ -7,11 +7,11 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.util.HexUtil
 
-class OutputDescriptorCodecSpec extends CodecSuite with ProtoTestData {
+class WalletOutputCodecSpec extends CodecSuite with ProtoTestData {
 
   implicit val outputDescriptorCodec = WalletOutputCodec.codec
 
-  val outputDescriptor1 =
+  val walletOutput1 =
     WalletOutput(
       blockindex    = Some(100L),
       coinbase      = true,
@@ -19,10 +19,9 @@ class OutputDescriptorCodecSpec extends CodecSuite with ProtoTestData {
       transactionOutput = transaction1.outputs(0)
     )
 
-  "WalletTransactionCodec" should {
-
+  "WalletOutputCodec" should {
     "roundtrip" in {
-      roundtrip(outputDescriptor1)
+      roundtrip(walletOutput1)
     }
   }
 }

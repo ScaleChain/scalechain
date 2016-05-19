@@ -5,7 +5,7 @@ import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.script.{ScriptSerializer, ScriptValue, ScriptParser, ScriptOpList}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.crypto.{Hash160, ECKey, HashFunctions, Base58Check}
-import io.scalechain.util.ByteArray
+import io.scalechain.util.{HexUtil, ByteArray}
 
 import scala.collection.generic.SeqFactory
 
@@ -115,6 +115,12 @@ sealed trait OutputOwnership extends ProtocolMessage {
     * @return true if the ownership has owns the output. false otherwise.
     */
   def owns(output : TransactionOutput) : Boolean
+
+  /** A string key used for prefixed objects in the wallet database.
+    *
+    * @return The string to be used as a string key in the wallet database.
+    */
+  def stringKey() : String
 }
 
 /** A coin address with a version and public key hash.
@@ -159,6 +165,14 @@ case class CoinAddress(version:Byte, publicKeyHash : ByteArray) extends OutputOw
     assert(isValid)
     Base58Check.encode(version, publicKeyHash)
   }
+
+  /** Convert the address to string. The converted value is used for a prefixed string key in the wallet database.
+    *
+    * @return The string to be used as a key in the wallet database.
+    */
+  def stringKey() : String = {
+    base58()
+  }
 }
 
 /** A parsed public key script.
@@ -190,5 +204,9 @@ case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership 
   def lockingScript() : LockingScript = {
     val serializedScript = ScriptSerializer.serialize(scriptOps.operations)
     LockingScript(serializedScript)
+  }
+
+  override def stringKey() : String = {
+    HexUtil.hex(lockingScript().data)
   }
 }
