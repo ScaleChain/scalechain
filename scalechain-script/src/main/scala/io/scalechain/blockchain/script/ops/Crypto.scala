@@ -6,9 +6,8 @@ import io.scalechain.blockchain.script.TransactionSignature
 import io.scalechain.blockchain.{Config, ScriptParseException, ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ScriptOpList, ScriptValue, ScriptEnvironment}
 import io.scalechain.crypto.ECKey.ECDSASignature
-import io.scalechain.util.{HexUtil, Utils}
+import io.scalechain.util.{ByteArray, HexUtil, Utils}
 import HexUtil._
-import io.scalechain.util.Utils
 import io.scalechain.crypto.{Hash256, HashFunctions, ECKey}
 
 trait Crypto extends ScriptOp
@@ -339,7 +338,13 @@ case class OpCheckSig(val script : Script = null) extends CheckSig {
 
   // toString of LockingScript/UnlockingScript tries to parse the script to list all operations in it.
   // This causes stack overflow, so do not parse the script which is attached to operations while calling toString.
-  override def toString = s"OpCheckSig(Script(${scalaHex(script.data)}))"
+  //
+  // Note : When we create the script from scala program like OpCheckSig(), not by ScriptParser.parse,
+  // We may have script set to null. Need to check if it is null first.
+  override def toString = {
+    val scriptData = if (script == null) ByteArray.arrayToByteArray(Array()) else script.data
+    s"OpCheckSig(Script(${scalaHex(scriptData)}))"
+  }
 }
 
 /** OP_CHECKSIGVERIFY(0xad) : Same as CHECKSIG, then OP_VERIFY to halt if not TRUE

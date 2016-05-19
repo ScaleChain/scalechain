@@ -23,14 +23,14 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
 
   "putTransactionHash" should "put a transaction hash per output ownership." in {
     store.putTransactionHash(ADDR1.address, TXHASH1)
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List(TXHASH1)
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List(TXHASH1)
   }
 
   "putTransactionHash" should "put many transaction hashes per output ownership." in {
     store.putTransactionHash(ADDR1.address, TXHASH1)
     store.putTransactionHash(ADDR1.address, TXHASH2)
     store.putTransactionHash(ADDR1.address, TXHASH3)
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List(TXHASH1, TXHASH2, TXHASH3)
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List(TXHASH1, TXHASH2, TXHASH3)
   }
 
   "delTransactionHash" should "do nothing if there was no hash for an ownership." in {
@@ -40,7 +40,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
   "delTransactionHash" should "del a transaction hash when it was the only hash for an ownership." in {
     store.putTransactionHash(ADDR1.address, TXHASH1)
     store.delTransactionHash(ADDR1.address, TXHASH1)
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List()
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List()
   }
 
   "delTransactionHash" should "del a transaction hash when it was NOT the only hash for an ownership." in {
@@ -48,7 +48,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
     store.putTransactionHash(ADDR1.address, TXHASH2)
     store.putTransactionHash(ADDR1.address, TXHASH3)
     store.delTransactionHash(ADDR1.address, TXHASH2)
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List(TXHASH1, TXHASH3)
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List(TXHASH1, TXHASH3)
   }
 
   "getTransactionHashes(none)" should "get nothing if no transaction hash was put." in {
@@ -56,7 +56,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
   }
 
   "getTransactionHashes(addr)" should "get nothing if no transaction hash was put." in {
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List()
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List()
   }
 
   "getTransactionHashes(none)" should "get all transaction hashes" in {
@@ -64,7 +64,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
     store.putTransactionHash(ADDR2.address, TXHASH2)
     store.putTransactionHash(ADDR1.address, TXHASH3)
 
-    store.getTransactionHashes(None) shouldBe List(TXHASH1, TXHASH2, TXHASH3)
+    store.getTransactionHashes(None).toList shouldBe List(TXHASH1, TXHASH2, TXHASH3)
   }
 
   "getTransactionHashes(addr)" should "get all transaction hashes only for the address" in {
@@ -72,7 +72,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
     store.putTransactionHash(ADDR2.address, TXHASH2)
     store.putTransactionHash(ADDR1.address, TXHASH3)
 
-    store.getTransactionHashes(Some(ADDR1.address)) shouldBe List(TXHASH1, TXHASH3)
+    store.getTransactionHashes(Some(ADDR1.address)).toList shouldBe List(TXHASH1, TXHASH3)
   }
 
 

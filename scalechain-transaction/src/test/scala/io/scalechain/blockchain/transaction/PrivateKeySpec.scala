@@ -25,9 +25,10 @@ class PrivateKeySpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
     // PrivateKey.generate and base58 method are tested here.
 
     val privateKey = PrivateKey.generate()
-    val encodedPrivateKey = privateKey.base58()
-    val decodedPrivateKey = PrivateKey.from(encodedPrivateKey)
+    val expectedPrivateKey = privateKey.base58()
+    val decodedPrivateKey = PrivateKey.from(expectedPrivateKey)
+    val actualPrivateKey = decodedPrivateKey.base58
 
-    decodedPrivateKey shouldBe encodedPrivateKey
+    actualPrivateKey shouldBe expectedPrivateKey
   }
 }

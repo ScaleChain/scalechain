@@ -2,6 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironmentFactory
 import org.apache.commons.io.FileUtils
@@ -17,12 +18,15 @@ class WalletStoreSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
 
   var store : WalletStore = null
 
+  if (!Storage.isInitialized)
+    Storage.initialize()
+
   if (ChainEnvironmentFactory.getActive().isEmpty)
     ChainEnvironmentFactory.create("testnet")
 
   override def beforeEach() {
 
-    val testPath = new File("./target/unittests-RocksDatabaseSpec")
+    val testPath = new File("./target/unittests-WalletStoreSpec")
     FileUtils.deleteDirectory( testPath )
     store = new WalletStore( testPath )
 

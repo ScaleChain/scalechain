@@ -2,9 +2,10 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.script.ScriptOpList
-import io.scalechain.blockchain.script.ops.{OpPushData, OpEqual}
+import io.scalechain.blockchain.script.ops.{OpCheckSig, OpPushData, OpEqual}
 import io.scalechain.util.HexUtil
 import org.scalatest._
+import sun.font.Script
 
 /**
   * Created by kangmo on 5/18/16.
@@ -33,7 +34,9 @@ class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with Trans
     val expectedPubKeyScript = ParsedPubKeyScript.from(privateKey)
     val actualPubKeyScript = ParsedPubKeyScript.from(expectedPubKeyScript.lockingScript)
 
-    actualPubKeyScript shouldBe expectedPubKeyScript
+    val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
+
+    checksigScriptScrubbed shouldBe expectedPubKeyScript
   }
 
   /*

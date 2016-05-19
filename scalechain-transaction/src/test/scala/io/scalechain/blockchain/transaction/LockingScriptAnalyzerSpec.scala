@@ -27,7 +27,7 @@ class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with Tr
     //
   }
 
-  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list " in {
+  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pk)" in {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val encodedPublicKey = publicKey.encode(compressed = false)
@@ -39,10 +39,10 @@ class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with Tr
 
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(p2pkScript)
 
-    extractedAdddress shouldBe expectedAddress
+    extractedAdddress shouldBe List(expectedAddress)
   }
 
-  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list " in {
+  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pkh)" in {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val publicKeyHash = publicKey.getHash()
@@ -58,7 +58,7 @@ class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with Tr
 
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(p2pkScript)
 
-    extractedAdddress shouldBe expectedAddress
+    extractedAdddress shouldBe List(expectedAddress)
   }
 
   "extractAddress(ScriptOpList)" should "extract an address from a ParsedPubKeyScript" in {
@@ -101,7 +101,7 @@ class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with Tr
   "extractOutputOwnership" should "extract a parsed public key script " in {
     // A simple locking script asking to provide any unlocking script that results in value 5 on the value stack.
     val scriptOps = ScriptOpList( List(
-      OpPushData(5), OpEqual()
+      OpNum(5), OpEqual()
     ))
 
     val expectedOwnership = ParsedPubKeyScript(scriptOps)

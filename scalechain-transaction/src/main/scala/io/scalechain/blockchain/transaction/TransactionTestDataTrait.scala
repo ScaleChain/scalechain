@@ -2,7 +2,7 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Hash}
-import io.scalechain.blockchain.script.ops.{OpEqual, OpPushData}
+import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.script.{ScriptOpList, HashCalculator}
 import io.scalechain.util.HexUtil
 
@@ -11,6 +11,43 @@ import io.scalechain.util.HexUtil
   */
 trait TransactionTestDataTrait extends ProtoTestData {
   case class AddressData(privateKey : PrivateKey, publicKey : PublicKey, pubKeyScript : ParsedPubKeyScript, address : CoinAddress)
+
+  if (ChainEnvironmentFactory.getActive().isEmpty)
+    ChainEnvironmentFactory.create("testnet")
+
+  /** Get rid of bytes data in OpCheckSig in the operations of ParsedPubKeyScript.
+    *
+    * This is necessary for our test automation.
+    * If we parse a serialized script of script operations created from scala program, we will get script bytes attached to the OpCheckSig, OpCheckMultisig, etc..
+    *
+    * @param pubKeyScript The ParsedPubKeyScript to scrub script operations it it.
+    * @return The ParsedPubKeyScript which has scrubbed script operations.
+    */
+  def scrubScript(pubKeyScript : ParsedPubKeyScript) : ParsedPubKeyScript = {
+    pubKeyScript.copy(
+      scriptOps = ScriptOpList(pubKeyScript.scriptOps.operations.map { op =>
+        op match {
+          case OpCheckSig(_) => OpCheckSig()
+          case OpCheckMultiSig(_) => OpCheckMultiSig()
+          case op => op
+        }
+      })
+    )
+  }
+
+  /** Same as scrubScript, but checks from a list of output ownerships
+    *
+    * @param ownerships the list of ownerships to scrub scripts. Only ParsedPubKeyScript is scrubbed. CoinAddress remains untouched.
+    * @return The scrubbed scripts.
+    */
+  def scrubScript(ownerships : List[OutputOwnership]) : List[OutputOwnership] = {
+    ownerships.map { ownership =>
+      ownership match {
+        case p : ParsedPubKeyScript => scrubScript(p)
+        case ownership => ownership
+      }
+    }
+  }
 
   def generateAddress() : AddressData = {
     val privateKey   = PrivateKey.generate
@@ -50,8 +87,8 @@ trait TransactionTestDataTrait extends ProtoTestData {
   val OUTPUT2 = generateTransactionOutput(AMOUNT2, ADDR2.pubKeyScript)
   val OUTPUT3 = generateTransactionOutput(AMOUNT3, ADDR3.pubKeyScript)
 
-  val SIMPLE_SCRIPT_OPS_A = ScriptOpList(List(OpPushData(1), OpEqual()))
-  val SIMPLE_SCRIPT_OPS_B = ScriptOpList(List(OpPushData(2), OpEqual()))
+  val SIMPLE_SCRIPT_OPS_A = ScriptOpList(List(OpNum(2), OpEqual()))
+  val SIMPLE_SCRIPT_OPS_B = ScriptOpList(List(OpNum(3), OpEqual()))
 
 }
 

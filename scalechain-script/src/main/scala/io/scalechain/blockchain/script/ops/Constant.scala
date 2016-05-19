@@ -34,14 +34,25 @@ case class OpPush(val byteCount : Int, val inputValue : ScriptValue = null) exte
 
   /** create an OpPush object by copying the input data from the raw script.
    * This is called by script parser before execution.
-   * @param script The raw script before it is parsed.
+    *
+    * @param script The raw script before it is parsed.
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
   override def create(script : Script, offset : Int) : (ScriptOp, Int) = {
+    //println(s"Script.length : ${script.data.length}, offset : $offset, byteCount : $byteCount")
     val value = ScriptValue.valueOf(script.data, offset, byteCount)
 
     ( OpPush(byteCount, value), byteCount)
+  }
+
+  /** Serialize the script operation into an array buffer.
+    *
+    * @param buffer The array buffer where the script is serialized.
+    */
+  override def serialize(buffer: ArrayBuffer[Byte]): Unit = {
+    buffer.append(opCode().code.toByte)
+    buffer ++= inputValue.value
   }
 }
 
@@ -63,6 +74,7 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
 
   /** create an OpPushData object by copying the input data from the raw script.
     * This is called by script parser before execution.
+    *
     * @param script The raw script before it is parsed.
     * @param offset The offset where the byte count is read.
     * @return The number of bytes consumed to copy the input value.
@@ -104,6 +116,18 @@ case class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue = null
     assert(result < Int.MaxValue)
     result.toInt
   }
+
+  /** Serialize the script operation into an array buffer.
+    *
+    * @param buffer The array buffer where the script is serialized.
+    */
+  override def serialize(buffer: ArrayBuffer[Byte]): Unit = {
+    // TODO : BUGBUG : Need to implement
+    assert(false)
+//    buffer.append(opCode().code.toByte)
+//    buffer.append(inputValue.value)
+  }
+
 }
 
 /** OP_1NEGATE(0x4f) : Push the value "–1" onto the stack

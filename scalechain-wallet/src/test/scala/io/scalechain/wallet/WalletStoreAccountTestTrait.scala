@@ -12,21 +12,28 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
   "putOutputOwnership" should "be able to put an output ownership." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
-    store.getOutputOwnerships(Some(ACCOUNT1)) shouldBe ADDR1.address
+    scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)).toList ) shouldBe List(ADDR1.address)
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (mixed)" in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.pubKeyScript)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
-    store.getOutputOwnerships(Some(ACCOUNT1)) shouldBe List(ADDR1.address, ADDR2.pubKeyScript, ADDR3.address)
+
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      List(ADDR1.address, ADDR2.pubKeyScript, ADDR3.address)
+    )
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (coin addresses only)" in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.address)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
-    store.getOutputOwnerships(Some(ACCOUNT1)) shouldBe List(ADDR1.address, ADDR2.address, ADDR3.address)
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      List(ADDR1.address, ADDR2.address, ADDR3.address)
+    )
   }
 
 
@@ -34,7 +41,10 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
     store.putOutputOwnership(ACCOUNT1, ADDR2.pubKeyScript)
     store.putOutputOwnership(ACCOUNT1, ADDR3.pubKeyScript)
-    store.getOutputOwnerships(Some(ACCOUNT1)) shouldBe List(ADDR1.pubKeyScript, ADDR2.pubKeyScript, ADDR3.pubKeyScript)
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      List(ADDR1.pubKeyScript, ADDR2.pubKeyScript, ADDR3.pubKeyScript)
+    )
   }
 
 
@@ -89,14 +99,23 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
     store.putOutputOwnership(ACCOUNT2, ADDR2.address)
     store.putOutputOwnership(ACCOUNT3, ADDR3.address)
 
-    store.getOutputOwnerships(None) shouldBe List(ADDR1.address, ADDR2.address, ADDR3.address)
+    checkElementEquality(
+      store.getOutputOwnerships(None),
+      List(ADDR1.address, ADDR2.address, ADDR3.address)
+    )
   }
 
   "getOutputOwnerships" should "get output ownerships that an account has if Some(account) is passed for the parameter." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT2, ADDR2.address)
-    store.getOutputOwnerships(Some(ACCOUNT1)) shouldBe List(ADDR1.address)
-    store.getOutputOwnerships(Some(ACCOUNT2)) shouldBe List(ADDR2.address)
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT1)),
+      List(ADDR1.address)
+    )
+    checkElementEquality(
+      store.getOutputOwnerships(Some(ACCOUNT2)),
+      List(ADDR2.address)
+    )
   }
 
   "getOutputOwnerships" should "NOT get output ownerships of another account." ignore {

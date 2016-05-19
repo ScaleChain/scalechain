@@ -90,6 +90,7 @@ object ParsedPubKeyScript {
     // Step 2 : Hash the public key.
     val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
 
+    assert(publicKeyHash.value.length == 20)
     val scriptOps = List( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash.value)), OpEqualVerify(), OpCheckSig() )
 
     ParsedPubKeyScript(ScriptOpList(scriptOps))

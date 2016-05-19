@@ -27,14 +27,14 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
 
   "putTransactionOutPoint" should "put an out point per output ownership." in {
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
-    store.getTransactionOutPoints(Some(ADDR1.address)) shouldBe List(OUTPOINT1)
+    store.getTransactionOutPoints(Some(ADDR1.address)).toList shouldBe List(OUTPOINT1)
   }
 
   "putTransactionOutPoint" should "put many out points per output ownership." in {
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT2)
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT3)
-    store.getTransactionOutPoints(Some(ADDR1.address)) shouldBe List(OUTPOINT1, OUTPOINT2, OUTPOINT3)
+    store.getTransactionOutPoints(Some(ADDR1.address)).toList shouldBe List(OUTPOINT1, OUTPOINT2, OUTPOINT3)
   }
 
   "delTransactionOutPoint" should "do nothing if the out point was not found for an ownership." in {
@@ -44,7 +44,7 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
   "delTransactionOutPoint" should "del an out point when it was the only out point for an ownership." in {
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
     store.delTransactionOutPoint(ADDR1.address, OUTPOINT1)
-    store.getTransactionOutPoints(Some(ADDR1.address)) shouldBe List()
+    store.getTransactionOutPoints(Some(ADDR1.address)).toList shouldBe List()
   }
 
   "getTransactionOutPoints" should "del an out point when it was NOT the only out point for an ownership." in {
@@ -52,7 +52,7 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT2)
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT3)
     store.delTransactionOutPoint(ADDR1.address, OUTPOINT1)
-    store.getTransactionOutPoints(Some(ADDR1.address)) shouldBe List(OUTPOINT1, OUTPOINT3)
+    store.getTransactionOutPoints(Some(ADDR1.address)).toList shouldBe List(OUTPOINT1, OUTPOINT3)
   }
 
   "getTransactionOutPoints" should "get all out points for all output ownerships if None is passed for the parameter." in {
@@ -60,7 +60,7 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
     store.putTransactionOutPoint(ADDR2.address, OUTPOINT2)
     store.putTransactionOutPoint(ADDR3.address, OUTPOINT3)
 
-    store.getTransactionOutPoints(None) shouldBe List(OUTPOINT1, OUTPOINT2, OUTPOINT3)
+    store.getTransactionOutPoints(None).toList shouldBe List(OUTPOINT1, OUTPOINT2, OUTPOINT3)
   }
 
 

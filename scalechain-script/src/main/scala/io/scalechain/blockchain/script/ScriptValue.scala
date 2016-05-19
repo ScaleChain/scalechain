@@ -3,14 +3,14 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.util.{HexUtil, Utils}
+import io.scalechain.util.{ByteArray, HexUtil, Utils}
 import HexUtil._
-import io.scalechain.util.Utils
 
 
 object ScriptValue {
   /**
    * Get a ScriptValue which has a byte array of a given string.
+ *
    * @param value The string which will be converted to a byte array.
    * @return The ScriptValue we created.
    */
@@ -101,10 +101,10 @@ case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
   */
 }
 
-case class ScriptBytes(bytesValue:Array[Byte]) extends ScriptValue {
-  override val value = bytesValue
+case class ScriptBytes(bytesValue:ByteArray) extends ScriptValue {
+  override val value = bytesValue.array
   def copy() : ScriptValue = ScriptBytes(bytesValue)
-  override def toString() = s"ScriptBytes(${scalaHex(bytesValue)})"
+  override def toString() = s"ScriptBytes(${scalaHex(bytesValue.array)})"
   /*
   override def canEqual(that:Any) = super.canEqual(that)
   override def equals(that:Any) : Boolean = super.equals(that)

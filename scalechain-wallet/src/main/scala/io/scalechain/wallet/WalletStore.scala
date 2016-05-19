@@ -247,7 +247,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
         db.seekPrefixedObject(OWNERSHIPS, accountOption.get)(OutputOwnershipCodec, OneByteCodec)
       }
     // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-    ).map{ case (_, ownership : OutputOwnership) => ownership }
+    ).map{ case (CStringPrefixed(_, ownership : OutputOwnership), _) => ownership }
   }
 
   /** Get an iterator private keys for an address or all accounts.

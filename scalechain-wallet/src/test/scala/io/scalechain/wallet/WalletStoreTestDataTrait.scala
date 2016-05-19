@@ -2,12 +2,13 @@ package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.{Hash, Transaction, WalletTransaction, WalletOutput}
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.transaction.{TransactionTestDataTrait}
+import io.scalechain.blockchain.transaction.{OutputOwnership, TransactionTestDataTrait}
+import org.scalatest.ShouldMatchers
 
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreTestDataTrait extends TransactionTestDataTrait {
+trait WalletStoreTestDataTrait extends TransactionTestDataTrait with ShouldMatchers {
   val ACCOUNT1 = "acc1"
   val ACCOUNT2 = "acc2"
   val ACCOUNT3 = "acc3"
@@ -31,6 +32,10 @@ trait WalletStoreTestDataTrait extends TransactionTestDataTrait {
       transactionIndex = Some(1),
       transaction = transaction
     )
+  }
+
+  def checkElementEquality(actualOwnerships : Iterator[OutputOwnership], expectedOwnerships : List[OutputOwnership] )  {
+    scrubScript( actualOwnerships.toList.sortBy(_.stringKey()) ) shouldBe expectedOwnerships.sortBy(_.stringKey())
   }
 
   val WALLET_OUTPUT1 = generateWalletOutput(transaction1)
