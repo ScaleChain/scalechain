@@ -11,12 +11,15 @@ import org.scalatest._
 import scala.util.Random
 
 class WalletStoreSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers
-  //with WalletStoreAccountTestTrait
+  with WalletStoreAccountTestTrait
+/*
   with WalletStoreOutPointTestTrait
   with WalletStoreTransactionHashTestTrait
   with WalletStoreWalletOutputTestTrait // Need to fix the protocol codec exception.
   with WalletStoreWalletTransactionTestTrait
+  */
   {
+
   this: Suite =>
 
   var store : WalletStore = null
@@ -27,13 +30,9 @@ class WalletStoreSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
   if (ChainEnvironmentFactory.getActive().isEmpty)
     ChainEnvironmentFactory.create("testnet")
 
-  val testPath = new File(s"./target/unittests-WalletStoreSpec")
+  val testPath = new File(s"./target/unittests-WalletStoreSpec-${Random.nextLong}")
 
   override def beforeEach() {
-    println("BeforeEach WalletStoreSpec")
-
-    println("deleting files...")
-
     FileUtils.deleteDirectory( testPath )
     store = new WalletStore( testPath )
 

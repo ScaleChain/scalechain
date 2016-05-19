@@ -44,14 +44,14 @@ trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestData
   "markWalletOutputSpent" should "mark an output spent" in {
     store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
     store.markWalletOutputSpent(OUTPOINT1, true)
-    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(true)
+    store.getWalletOutput(OUTPOINT1).map(_.spent) shouldBe Some(true)
   }
 
   "markWalletOutputSpent" should "mark an output spent from unspent" in {
     store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
     store.markWalletOutputSpent(OUTPOINT1, false)
     store.markWalletOutputSpent(OUTPOINT1, true)
-    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(true)
+    store.getWalletOutput(OUTPOINT1).map(_.spent) shouldBe Some(true)
   }
 
 
@@ -59,7 +59,7 @@ trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestData
     store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)
     store.markWalletOutputSpent(OUTPOINT1, true)
     store.markWalletOutputSpent(OUTPOINT1, false)
-    store.getWalletOutput(OUTPOINT2).map(_.spent) shouldBe Some(false)
+    store.getWalletOutput(OUTPOINT1).map(_.spent) shouldBe Some(false)
   }
 
   "markWalletOutputSpent" should "return false if no wallet output was found for an out point." in {

@@ -13,6 +13,7 @@ import java.math.BigInteger;
  */
 public class Utils {
 
+
     /**
      * The regular {@link java.math.BigInteger#toByteArray()} method isn't quite what we often need: it appends a
      * leading zero to indicate that the number is positive and may need padding.
@@ -32,6 +33,11 @@ public class Utils {
         System.arraycopy(biBytes, start, bytes, numBytes - length, length);
         return bytes;
     }
+
+    public static BigInteger bytesToBigInteger(byte[] bytes) {
+        return new BigInteger(1, bytes);
+    }
+
 
     public static long readUint32(InputStream stream) throws IOException {
         return (stream.read() & 0xFFL) |

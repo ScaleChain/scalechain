@@ -69,10 +69,12 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
 
   "getReceivingAddress" should "get nothing if no receiving address is attached to an account." in {
+    println("testing 5")
     store.getReceivingAddress(ACCOUNT1) shouldBe None
   }
 
   "getReceivingAddress" should "get a receiving address if a receiving address was attached to the account." in {
+    println("testing 6")
     store.putReceivingAddress(ACCOUNT1, ADDR1.address)
     store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR1.address)
   }
@@ -83,6 +85,8 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putReceivingAddress" should "replace the previous receiving address if any." in {
+
+    println("testing 7")
     store.putReceivingAddress(ACCOUNT1, ADDR1.address)
     store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR1.address)
 
@@ -91,25 +95,29 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putReceivingAddress" should "put a public key script." in {
+    println("testing 8")
     store.putReceivingAddress(ACCOUNT1, ADDR1.pubKeyScript)
-    store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR1.pubKeyScript)
+    store.getReceivingAddress(ACCOUNT1).map(scrubScript(_)) shouldBe Some(ADDR1.pubKeyScript)
 
     store.putReceivingAddress(ACCOUNT1, ADDR2.pubKeyScript)
-    store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR2.pubKeyScript)
+    store.getReceivingAddress(ACCOUNT1).map(scrubScript(_)) shouldBe Some(ADDR2.pubKeyScript)
   }
 
   "getAccount" should "get nothing if the given output ownership was put for an account." in {
+    println("testing 9")
     store.getAccount(ADDR1.address) shouldBe None
   }
 
   "getAccount" should "get the account that has the given output ownership. (when output ownership count is 1 )." in {
-    store.putReceivingAddress(ACCOUNT1, ADDR1.address)
+    println("testing 10")
+    store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.getAccount(ADDR1.address) shouldBe Some(ACCOUNT1)
   }
 
   "getAccount" should "get the account that has the given output ownership. (when output ownership count is 2 )." in {
-    store.putReceivingAddress(ACCOUNT1, ADDR1.address)
-    store.putReceivingAddress(ACCOUNT2, ADDR2.address)
+    store.putOutputOwnership(ACCOUNT1, ADDR1.address)
+    store.putOutputOwnership(ACCOUNT2, ADDR2.address)
+
     store.getAccount(ADDR1.address) shouldBe Some(ACCOUNT1)
     store.getAccount(ADDR2.address) shouldBe Some(ACCOUNT2)
   }
@@ -170,6 +178,8 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putPrivateKey" should "overwrite the previous private key for an output ownership." in {
+    println(s"pk1 = ${ADDR1.privateKey}")
+    println(s"pk2 = ${ADDR2.privateKey}")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
     store.putPrivateKeys(ADDR1.address, List(ADDR2.privateKey))
@@ -191,7 +201,7 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
     store.putOutputOwnership(ACCOUNT1, ADDR1.pubKeyScript)
     store.putPrivateKeys(ADDR1.pubKeyScript, List(ADDR1.privateKey))
     // Try to get with address instead of pubKeyScript
-    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set(ADDR1.privateKey)
+    store.getPrivateKeys(Some(ADDR1.address)).toSet shouldBe Set()
   }
 
   "delOutputOwnership" should "delete an output ownership" in {

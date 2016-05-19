@@ -18,7 +18,7 @@ object PrivateKey {
     if (privateKeyBytes.length != 32) {
       throw new GeneralException(ErrorCode.RpcInvalidKey)
     }
-    val privateKeyBigInt = new BigInteger(1, privateKeyBytes)
+    val privateKeyBigInt = Utils.bytesToBigInteger(privateKeyBytes)
     PrivateKey(versionPrefix, privateKeyBigInt)
   }
 
@@ -41,7 +41,7 @@ object PrivateKey {
     assert(chainEnv.isDefined)
 
     // Step 3 : Create the private key.
-    PrivateKey(chainEnv.get.SecretKeyVersion, new BigInteger(keyValue))
+    PrivateKey(chainEnv.get.SecretKeyVersion, Utils.bytesToBigInteger(keyValue))
   }
 }
 

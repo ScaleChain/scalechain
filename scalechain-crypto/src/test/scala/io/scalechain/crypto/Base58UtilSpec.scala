@@ -1,8 +1,10 @@
 package io.scalechain.crypto
 
 import java.math.BigInteger
+import java.security.SecureRandom
 import java.util
 
+import io.scalechain.util.Utils
 import org.scalatest._
 
 /**
@@ -44,5 +46,48 @@ class Base58UtilSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
     intercept[NoSuchElementException] {
       decode("This isn't valid base58")
     }
+  }
+
+  "it" should "decode encoded string" in {
+    for (i <- 1 to 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
+    val random = new SecureRandom()
+      random.setSeed( random.generateSeed(32) )
+
+      val originalValue : Array[Byte] = new Array[Byte](32)
+      assert(originalValue.length == 32)
+      random.nextBytes(originalValue)
+
+      val encodedValue = encode(originalValue)
+
+      val decodedValue = decode(encodedValue)
+
+      val encodedValue2 = encode(decodedValue)
+
+      originalValue.toList shouldBe decodedValue.toList
+      encodedValue.toList shouldBe encodedValue2.toList
+    }
+  }
+
+  "Base58Check" should "decode encoded string" in {
+    val VERSION : Byte = 1
+    for (i <- 1 to 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
+      val random = new SecureRandom()
+      random.setSeed( random.generateSeed(32) )
+
+      val originalValue : Array[Byte] = new Array[Byte](32)
+      assert(originalValue.length == 32)
+      random.nextBytes(originalValue)
+
+      val encodedValue = Base58Check.encode(VERSION, originalValue)
+
+      val (decodedVersion, decodedValue) = Base58Check.decode(encodedValue)
+
+      val encodedValue2 = Base58Check.encode(VERSION, decodedValue)
+
+      decodedValue.toList shouldBe originalValue.toList
+      decodedVersion shouldBe decodedVersion
+      encodedValue2.toList shouldBe encodedValue.toList
+    }
+
   }
 }

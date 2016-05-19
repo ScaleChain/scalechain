@@ -49,7 +49,15 @@ trait TransactionTestDataTrait extends ProtoTestData {
     }
   }
 
+  def scrubScript(ownership : OutputOwnership) : OutputOwnership = {
+    ownership match {
+      case p : ParsedPubKeyScript => scrubScript(p)
+      case ownership => ownership
+    }
+  }
+
   def generateAddress() : AddressData = {
+
     val privateKey   = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val publicKeyScript = ParsedPubKeyScript.from(privateKey)
