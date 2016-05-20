@@ -39,6 +39,14 @@ trait ChainEnvironment {
   /** The magic value used by messages for the peer to peer communication and the block data file.
     */
   val MagicValue : Array[Byte]
+
+  /** The default transaction version
+    */
+  val DefaultTransactionVersion : Int
+
+  /** The default block version
+    */
+  val DefaultBlockVersion : Int
 }
 
 
@@ -80,6 +88,14 @@ object MainNetEnvironment extends ChainEnvironment {
   val SecretKeyVersion = 128.toByte
 
   val MagicValue = bytes("D9B4BEF9")
+
+  /** The default transaction version
+    */
+  val DefaultTransactionVersion : Int = 4
+
+  /** The default block version
+    */
+  val DefaultBlockVersion : Int = 1
 }
 
 /** The class that has environment values for the testnet and regtest.
@@ -120,6 +136,14 @@ class TestEnvironment extends ChainEnvironment {
   val SecretKeyVersion = 239.toByte
 
   val MagicValue = bytes("0709110B")
+
+  /** The default transaction version
+    */
+  val DefaultTransactionVersion : Int = 4
+
+  /** The default block version
+    */
+  val DefaultBlockVersion : Int = 1
 }
 
 /** The singleton for the testnet environment.
@@ -135,7 +159,7 @@ object RegTestEnvironment extends TestEnvironment {
 /** The chain environment factory which returns an environment based on an environment name.
   *
   */
-object ChainEnvironmentFactory {
+object ChainEnvironment {
   /** The map from an environment name to an environment object.
     *
     */
@@ -163,8 +187,14 @@ object ChainEnvironmentFactory {
     *
     * @return Some(env) if any chain environment is active. None otherwise.
     */
-  def getActive() : Option[ChainEnvironment] = {
-    activeEnvironmentOption
+  def get() : ChainEnvironment = {
+    activeEnvironmentOption.get
   }
 }
 
+
+/** The chain test trait to be mixed into test cases that needs to use the chain environment.
+  */
+trait ChainTestTrait {
+  val env = ChainEnvironment.create("testnet").get
+}

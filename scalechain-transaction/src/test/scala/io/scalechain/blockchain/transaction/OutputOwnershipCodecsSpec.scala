@@ -6,10 +6,7 @@ import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.blockchain.script.ScriptParser
 
-class OutputOwnershipCodecsSpec extends CodecSuite with TransactionTestDataTrait with ProtoTestData {
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
+class OutputOwnershipCodecsSpec extends CodecSuite with TransactionTestDataTrait with ChainTestTrait with ProtoTestData {
 
   "OutputOwnershipCodecsSpec" should {
 

@@ -21,12 +21,9 @@ import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 /** Test cases that have transactions failed verification after the release of v0.2.
   * We got these cases by running scalechain and logging BlovkVerifier.getFailures for every 1000 blocks.
   */
-class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach with SignatureTestTrait {
+class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach with ChainTestTrait with SignatureTestTrait {
 
   this: Suite =>
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
 
   override def beforeEach() {
     // set-up code

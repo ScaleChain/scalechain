@@ -2,10 +2,20 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{CoinAmount, OutputOwnership, ParsedPubKeyScript}
+import io.scalechain.blockchain.transaction.{ChainEnvironment, CoinAmount, OutputOwnership, ParsedPubKeyScript}
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
+
+object TransactionBuilder {
+  /** create a new transaction builder providing a way to search spending outputs using a coins view.
+    *
+    * @param coinsView A read-only view to transaction outputs.
+    * @return The transaction builder.
+    */
+  def newBuilder(coinsView : CoinsView) = new TransactionBuilder(coinsView)
+}
+
 
 /**
   * Build a transaction by using inputs and outputs provided.
@@ -26,20 +36,21 @@ class TransactionBuilder(coinsView : CoinsView) {
 
   /** The outputs of the transaction
     */
-  val outputs = new ListBuffer[TransactionOutput]
+  val newOutputs = new ListBuffer[TransactionOutput]
 
   /** Add a generation transaction input.
     *
     * @param coinbaseData The coinbase data to embed into the generation transaction input.
     * @param sequenceNumber The sequence number in the generation transaction input.
     */
-  def addGenerationInput(coinbaseData : CoinbaseData, sequenceNumber : Long) : Unit = {
+  def addGenerationInput(coinbaseData : CoinbaseData, sequenceNumber : Long = 0) : TransactionBuilder = {
     // TODO : Need to move to a singleton to avoid writing the same code over and over.
     val allZeroHash = TransactionHash( HexUtil.bytes("0"*64) )
     // TODO : Need to make sure that the output index is serialized correctly for the generation transaction
     val outputIndex : Long = 0xFFFFFF
 
     inputs.append( GenerationTransactionInput(allZeroHash, outputIndex, coinbaseData, sequenceNumber) )
+    this
   }
 
   /** Add a normal transaction input.
@@ -54,7 +65,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     *                             If Some(sequence) is passed, we will use the given value.
     *
     */
-  def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None) : Unit = {
+  def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None) : TransactionBuilder = {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
       TransactionHash(outPoint.transactionHash.value),
@@ -63,27 +74,36 @@ class TransactionBuilder(coinsView : CoinsView) {
       sequenceNumberOption.getOrElse(0L) )
 
     inputs.append( input )
+
+    spendingOutputs.append(
+      coinsView.getTransactionOutput(input.getOutPoint()).getOrElse(
+        throw new GeneralException(ErrorCode.SpendingOutputNotFound)
+      )
+    )
+    this
   }
 
   /** Add a transaction output with a public key hash.
     *
-    * @param value The amount of coins in satoshi.
+    * @param amount The amount of coins .
     * @param publicKeyHash The public key hash to put into the locking script.
     */
-  def addOutput(value : Long, publicKeyHash : Hash) : Unit = {
+  def addOutput(amount : CoinAmount, publicKeyHash : Hash) : TransactionBuilder = {
     val pubKeyScript = ParsedPubKeyScript.from(publicKeyHash.value.array)
-    val output = TransactionOutput( value, pubKeyScript.lockingScript() )
-    outputs.append( output )
+    val output = TransactionOutput( amount.coinUnits, pubKeyScript.lockingScript() )
+    newOutputs.append( output )
+    this
   }
 
   /** Add a transaction output with an output ownership.
     *
-    * @param value The amount of coins in satoshi.
+    * @param amount The amount of coins.
     * @param outputOwnership The output ownership that owns the output.
     */
-  def addOutput(value : Long, outputOwnership : OutputOwnership) : Unit = {
-    val output = TransactionOutput( value, outputOwnership.lockingScript() )
-    outputs.append( output )
+  def addOutput(amount : CoinAmount, outputOwnership : OutputOwnership) : TransactionBuilder = {
+    val output = TransactionOutput( amount.coinUnits, outputOwnership.lockingScript() )
+    newOutputs.append( output )
+    this
   }
 
   protected[chain] def calculateFee(spendingOutputs : Seq[TransactionOutput], newOutputs : Seq[TransactionOutput]) : CoinAmount = {
@@ -99,11 +119,11 @@ class TransactionBuilder(coinsView : CoinsView) {
       throw new GeneralException(ErrorCode.NotEnoughTransactionInput)
 
     // Step 2 : Check if we have at least one output.
-    if (outputs.length == 0)
+    if (newOutputs.length == 0)
     throw new GeneralException(ErrorCode.NotEnoughTransactionOutput)
 
     // Step 3 : Check if sum of input values is greater than or equal to the sum of output values.
-    if (calculateFee(spendingOutputs, outputs).value < 0) {
+    if (calculateFee(spendingOutputs, newOutputs).value < 0) {
       throw new GeneralException(ErrorCode.NotEnoughInputAmounts)
     }
 
@@ -121,17 +141,17 @@ class TransactionBuilder(coinsView : CoinsView) {
 
   /** Get the built transaction.
     *
-    * @param version The version of the transaction.
     * @param lockTime The lock time of the transaction.
+    * @param version The version of the transaction.
     * @return The built transaction.
     */
-  def getTransaction(version : Int, lockTime : Long) : Transaction = {
+  def build(lockTime : Long = 0, version : Int = ChainEnvironment.get.DefaultTransactionVersion) : Transaction = {
     checkValidity()
 
     Transaction(
       version = version,
       inputs.toList,
-      outputs.toList,
+      newOutputs.toList,
       lockTime = lockTime
     )
   }

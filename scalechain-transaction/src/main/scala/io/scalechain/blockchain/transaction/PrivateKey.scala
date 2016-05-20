@@ -37,11 +37,10 @@ object PrivateKey {
     random.nextBytes(keyValue)
 
     // Step 2 : Get the chain environment to get the secret key version.
-    val chainEnv = ChainEnvironmentFactory.getActive
-    assert(chainEnv.isDefined)
+    val chainEnv = ChainEnvironment.get
 
     // Step 3 : Create the private key.
-    PrivateKey(chainEnv.get.SecretKeyVersion, Utils.bytesToBigInteger(keyValue))
+    PrivateKey(chainEnv.SecretKeyVersion, Utils.bytesToBigInteger(keyValue))
   }
 }
 

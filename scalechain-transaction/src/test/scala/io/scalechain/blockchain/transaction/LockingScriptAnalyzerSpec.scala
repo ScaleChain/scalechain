@@ -7,12 +7,9 @@ import org.scalatest._
 import io.scalechain.util.ByteArray
 import ByteArray._
 
-class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ShouldMatchers {
+class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with ShouldMatchers {
 
   this: Suite =>
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
 
   override def beforeEach() {
     // set-up code

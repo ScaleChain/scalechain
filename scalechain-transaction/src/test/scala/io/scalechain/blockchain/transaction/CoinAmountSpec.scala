@@ -11,4 +11,8 @@ class CoinAmountSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
     CoinAmount.from(100000000) shouldBe CoinAmount( scala.math.BigDecimal(1))
     CoinAmount.from(1) shouldBe CoinAmount( scala.math.BigDecimal(0.00000001))
   }
+  "coinUnits" should "return a correct units of coins" in {
+    CoinAmount( scala.math.BigDecimal(1)).coinUnits shouldBe 100000000
+    CoinAmount( scala.math.BigDecimal(0.00000001)).coinUnits shouldBe 1
+  }
 }

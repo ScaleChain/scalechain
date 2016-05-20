@@ -2,11 +2,8 @@ package io.scalechain.blockchain.transaction
 
 import org.scalatest._
 
-class PublicKeySpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class PublicKeySpec extends FlatSpec with BeforeAndAfterEach with ChainTestTrait with ShouldMatchers {
   this: Suite =>
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
 
   override def beforeEach() {
     // set-up code

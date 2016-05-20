@@ -6,14 +6,9 @@ import io.scalechain.util.HexUtil._
 /**
   * Created by kangmo on 5/18/16.
   */
-class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ShouldMatchers {
+class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ChainTestTrait with ShouldMatchers {
 
   this: Suite =>
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
-
-  val env = ChainEnvironmentFactory.getActive().get
 
   override def beforeEach() {
     // set-up code

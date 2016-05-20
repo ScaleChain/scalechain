@@ -77,6 +77,7 @@ object ErrorCode {
   val NotEnoughTransactionOutput     = ErrorCode("not_enough_transaction_output")
   val NotEnoughInputAmounts          = ErrorCode("not_enough_input_amounts")
   val GenerationInputWithOtherInputs = ErrorCode("generation_input_with_other_inputs")
+  val SpendingOutputNotFound         = ErrorCode("spending_output_not_found")
 }
 
 

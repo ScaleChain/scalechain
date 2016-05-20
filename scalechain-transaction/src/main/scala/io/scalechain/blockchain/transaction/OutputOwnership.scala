@@ -37,11 +37,10 @@ object CoinAddress {
     */
   def from(publicKeyHash : Array[Byte]) : CoinAddress = {
     // Step 1 : Get the chain environment to get the address version.
-    val chainEnv = ChainEnvironmentFactory.getActive
-    assert(chainEnv.isDefined)
+    val chainEnv = ChainEnvironment.get
 
     // Step 2 : Create the CoinAddress
-    CoinAddress(chainEnv.get.PubkeyAddressVersion, publicKeyHash)
+    CoinAddress(chainEnv.PubkeyAddressVersion, publicKeyHash)
   }
 
 
@@ -149,7 +148,7 @@ case class CoinAddress(version:Byte, publicKeyHash : ByteArray) extends OutputOw
     * @return true if the address is valid. false otherwise.
     */
   def isValid(): Boolean = {
-    val env = ChainEnvironmentFactory.getActive().get
+    val env = ChainEnvironment.get
 
     // The public key hash uses RIPEMD160, so it should be 20 bytes.
     if (publicKeyHash.length != 20 ) {

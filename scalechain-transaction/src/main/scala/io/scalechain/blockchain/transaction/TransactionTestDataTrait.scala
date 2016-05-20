@@ -9,11 +9,8 @@ import io.scalechain.util.HexUtil
 /**
   * Created by kangmo on 5/18/16.
   */
-trait TransactionTestDataTrait extends ProtoTestData {
+trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
   case class AddressData(privateKey : PrivateKey, publicKey : PublicKey, pubKeyScript : ParsedPubKeyScript, address : CoinAddress)
-
-  if (ChainEnvironmentFactory.getActive().isEmpty)
-    ChainEnvironmentFactory.create("testnet")
 
   /** Get rid of bytes data in OpCheckSig in the operations of ParsedPubKeyScript.
     *
@@ -97,6 +94,8 @@ trait TransactionTestDataTrait extends ProtoTestData {
 
   val SIMPLE_SCRIPT_OPS_A = ScriptOpList(List(OpNum(2), OpEqual()))
   val SIMPLE_SCRIPT_OPS_B = ScriptOpList(List(OpNum(3), OpEqual()))
+
+
 
 }
 
