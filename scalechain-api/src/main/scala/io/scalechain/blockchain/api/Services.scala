@@ -26,16 +26,17 @@ object Services {
     DecodeRawTransaction,
     GetRawTransaction,
     SendRawTransaction,
-    ImportAddress
+    ImportAddress,
+    GetAccount,
+    GetAccountAddress,
+    GetNewAddress,
+    GetReceivedByAddress,
+    ListTransactions,
+    ListUnspent
+
     /*
-        SignRawTransaction,
-        GetAccount,
-        GetAccountAddress,
-        GetNewAddress,
-        GetReceivedByAddress,
         GetTransaction,
-        ListTransactions,
-        ListUnspent,
+        SignRawTransaction,
     */
   )
 

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.cli
 
+import java.io.File
 import java.net.InetSocketAddress
 
 import akka.actor.{Props, ActorSystem}
@@ -11,7 +12,8 @@ import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto.{ProtocolMessage, IPv6Address, NetworkAddress, Version}
 import io.scalechain.blockchain.script.BlockPrinterSetter
-import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
+import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
 import io.scalechain.util.HexUtil._
 import scala.collection.JavaConverters._
@@ -36,6 +38,13 @@ object ScaleChainPeer extends JsonRpc {
       opt[Int]('x', "peerPort") action { (x, c) =>
         c.copy(peerPort = Some(x)) } text("The port of the peer we want to connect.")
     }
+
+    // Create the testnet enviornment.
+    // TODO : Need to get an argument from the command line to decide which network to use. By default use testnet for now.
+    ChainEnvironment.create("testnet")
+
+    Storage.initialize()
+    DiskBlockStorage.create(new File("./target/blockstorage"))
 
     // parser.parse returns Option[C]
     parser.parse(args, Parameters()) match {

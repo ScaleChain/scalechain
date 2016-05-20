@@ -45,7 +45,5 @@ class TransactionOutputSet extends CoinsView {
   def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
     outputsByOutPoint.get(outPoint)
   }
-
-
 }
 

@@ -39,7 +39,7 @@ class ProtocolDecoder {
     // In case there is any remaining bits, we keep it in incompleteMessage
     incompleteMessage = codec.decode(inputMessage, messages)
 
-    // BUGBUG : Optimize the code to use List in the first place, instead of converting a Vector to a List.
+    // TODO : BUGBUG : Optimize the code to use List in the first place, instead of converting a Vector to a List.
     import collection.JavaConverters._
     val decodedMessages = messages.asScala.toList
 

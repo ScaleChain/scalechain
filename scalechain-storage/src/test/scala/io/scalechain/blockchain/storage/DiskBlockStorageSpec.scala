@@ -22,9 +22,9 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
 
   var diskBlockStorage : DiskBlockStorage = null
   var storage : BlockStorage = null
+  val testPath = new File("./target/unittests-DiskBlockStorageSpec/")
   override def beforeEach() {
 
-    val testPath = new File("./target/unittests-DiskBlockStorageSpec/")
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
@@ -38,6 +38,9 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     super.afterEach()
 
     storage.close()
+
+    FileUtils.deleteDirectory(testPath)
+
   }
 
   "updateFileInfo" should "pass case 1 : a new record file was created." in {

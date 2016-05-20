@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import io.scalechain.blockchain.proto._
 import org.slf4j.LoggerFactory
 
+
 class ProtocolMessageHandler  {
   private val logger = LoggerFactory.getLogger(classOf[ProtocolMessageHandler])
 

@@ -64,7 +64,7 @@ object Blockchain {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain extends BlockchainView{
+class Blockchain extends BlockchainView {
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -109,7 +109,7 @@ class Blockchain extends BlockchainView{
       // Step 2 : Create a new block descriptor for the given block.
       if (prevBlockDesc.isEmpty) {
         // The parent block was not received yet. Put it into an orphan block list.
-        orphanBlocks.putBlock(blockHash, block)
+        orphanBlocks.put(blockHash, block)
 
         // BUGBUG : An attacker can fill up my memory with lots of orphan blocks.
       } else {
@@ -138,10 +138,10 @@ class Blockchain extends BlockchainView{
       }
 
       // Step 5 : Check if the new block is a parent of an orphan block.
-      val orphans = orphanBlocks.findBlocks(blockHash)
+      val orphans = orphanBlocks.findByDependency(blockHash)
       orphans.map { blocks =>
-        orphanBlocks.removeBlocks(blockHash)
-        blocks.getBlockList foreach { orphanBlock =>
+        orphanBlocks.remove(blockHash)
+        blocks.get foreach { orphanBlock =>
           val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
 
           // Step 6 : Recursively call putBlock to put the orphans
@@ -227,7 +227,7 @@ class Blockchain extends BlockchainView{
     null
   }
 
-  /** Reorganize blocks when
+  /** Reorganize blocks.
     * This method is called when the new best block is not based on the original best block.
     *
     * @param originalBestBlock The original best block before the new best one was found.

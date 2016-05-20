@@ -1,1 +1,1 @@
-curl --verbose --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": ["mjSk1Ny9spzU2fouzYgLqGUD8U41iR35QN", 6] }' -H 'Content-Type: application/json' http://127.0.0.1:8080/ 
+curl --verbose --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": ["mgy6yqJmxsRWpcNxbrgYsgpEwpifrRR3d1", 0] }' -H 'Content-Type: application/json' http://127.0.0.1:8080/ 
