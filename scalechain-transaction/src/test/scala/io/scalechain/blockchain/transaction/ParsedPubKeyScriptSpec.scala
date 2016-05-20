@@ -39,6 +39,18 @@ class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with Trans
     checksigScriptScrubbed shouldBe expectedPubKeyScript
   }
 
+  "ParsedPubKeyScript.from(pubKeyHash)" should "create a ParsedPubKeyScript from the public key hash" in {
+    val privateKey = PrivateKey.generate()
+    val expectedPubKeyScript = ParsedPubKeyScript.from(privateKey)
+    val publicKey = PublicKey.from(privateKey)
+
+    val actualPubKeyScript = ParsedPubKeyScript.from(publicKey.getHash().value)
+
+    val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
+
+    checksigScriptScrubbed shouldBe expectedPubKeyScript
+  }
+
   /*
   "ParsedPubKeyScript.from(privateKey)" should "create a ParsedPubKeyScript" ignore {
     // Already tested by : "ParsedPubKeyScript.from(lockingScript)" should "parse a locking script created by lockingScript method"

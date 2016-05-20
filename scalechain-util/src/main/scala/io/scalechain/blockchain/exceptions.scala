@@ -71,6 +71,12 @@ object ErrorCode {
   // Wallet Exceptions
   val OwnershipNotFound = ErrorCode("ownership_not_found")
   val WalletOutputNotFound = ErrorCode("wallet_output_not_found")
+
+  // Transaction Builder exceptions.
+  val NotEnoughTransactionInput      = ErrorCode("not_enough_transaction_input")
+  val NotEnoughTransactionOutput     = ErrorCode("not_enough_transaction_output")
+  val NotEnoughInputAmounts          = ErrorCode("not_enough_input_amounts")
+  val GenerationInputWithOtherInputs = ErrorCode("generation_input_with_other_inputs")
 }
 
 

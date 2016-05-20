@@ -93,6 +93,16 @@ class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with Before
     address.stringKey shouldBe address.base58
   }
 
+  "lockingScript" should "produce locking script of the coin" in {
+    val privateKey = PrivateKey.generate
+    val address = CoinAddress.from(privateKey)
+
+    val expectedLockingScript = ParsedPubKeyScript.from(PublicKey.from(privateKey).getHash.bytes).lockingScript()
+
+    address.lockingScript shouldBe expectedLockingScript
+
+  }
+
   /*
   "base58" should "return the coin address if it is valid" ignore {
     already tested by : "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(privateKey)"

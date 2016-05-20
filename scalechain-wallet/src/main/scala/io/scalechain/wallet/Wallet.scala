@@ -10,16 +10,6 @@ import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 
-object CoinAmount {
-  val ONE_COIN_SATOSHI = scala.math.BigDecimal(100000000)
-  def from(satoshi : Long) = {
-    CoinAmount( scala.math.BigDecimal(satoshi) / ONE_COIN_SATOSHI )
-  }
-}
-
-case class CoinAmount(value : scala.math.BigDecimal)
-
-
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 object Wallet extends ChainEventListener {
   // TODO : Move to a configuration object.
@@ -364,7 +354,7 @@ object Wallet extends ChainEventListener {
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for UTXOs.
     */
-  def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
+  protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
     store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
       store.getWalletOutput(outPoint).map{ walletOutput => // convert WalletOutput to WalletOutputWithInfo
         WalletOutputWithInfo(

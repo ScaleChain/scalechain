@@ -13,9 +13,21 @@ case class ChainBlock (
                         block : Block
                       )
 
+/** The read-only view of the coins in the best blockchain.
+  *
+  */
+trait CoinsView {
+  /** Return a transaction output specified by a give out point.
+    *
+    * @param outPoint The outpoint that points to the transaction output.
+    * @return The transaction output we found.
+    */
+  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput]
+}
+
 /** The read-only view of the best blockchain.
   */
-trait BlockchainView {
+trait BlockchainView extends CoinsView {
   /** Return an iterator that iterates each ChainBlock.
     *
     * Used by importaddress RPC to rescan blockchain to put related transactions and transaction outputs into the wallet database.
@@ -42,10 +54,4 @@ trait BlockchainView {
     */
   def getTransaction(transactionHash : Hash) : Option[Transaction]
 
-  /** Return a transaction output specified by a give out point.
-    *
-    * @param outPoint The outpoint that points to the transaction output.
-    * @return The transaction output we found.
-    */
-  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput]
 }

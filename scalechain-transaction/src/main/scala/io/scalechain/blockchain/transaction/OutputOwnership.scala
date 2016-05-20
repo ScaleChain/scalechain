@@ -17,8 +17,6 @@ import scala.collection.generic.SeqFactory
 object CoinAddress {
   /** Decode an address and create a CoinAddress.
     *
-    * TODO : Test Automation.
-    *
     * @param address The address to decode.
     * @return The decoded CoinAddress.
     */
@@ -33,8 +31,6 @@ object CoinAddress {
   }
 
   /** Create a CoinAddress from a public key hash.
-    *
-    * TODO : Test Automation.
     *
     * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
     * @return The created CoinAddress.
@@ -78,7 +74,7 @@ object ParsedPubKeyScript {
     ParsedPubKeyScript( ScriptParser.parse(lockingScript) )
   }
 
-  /** Create a CoinAddress from a private key.
+  /** Create a ParsedPubKeyScript from a private key.
     *
     * @param privateKey The private key to use to generate public key and public key hash for the new coin address.
     * @return The created CoinAddress.
@@ -90,11 +86,21 @@ object ParsedPubKeyScript {
     // Step 2 : Hash the public key.
     val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
 
-    assert(publicKeyHash.value.length == 20)
-    val scriptOps = List( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash.value)), OpEqualVerify(), OpCheckSig() )
+    from(publicKeyHash.value)
+  }
+
+  /** Create a ParsedPubKeyScript from a public key hash.
+    *
+    * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
+    * @return The created ParsedPubKeyScript.
+    */
+  def from(publicKeyHash : Array[Byte]) : ParsedPubKeyScript = {
+    assert(publicKeyHash.length == 20)
+    val scriptOps = List( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash)), OpEqualVerify(), OpCheckSig() )
 
     ParsedPubKeyScript(ScriptOpList(scriptOps))
   }
+
 }
 
 /** An entity that describes the ownership of a coin.
@@ -116,6 +122,13 @@ sealed trait OutputOwnership extends ProtocolMessage {
     * @return true if the ownership has owns the output. false otherwise.
     */
   def owns(output : TransactionOutput) : Boolean
+
+
+  /** The locking script that this output ownership can unlock.
+    *
+    * @return The locking script.
+    */
+  def lockingScript() : LockingScript
 
   /** A string key used for prefixed objects in the wallet database.
     *
@@ -173,6 +186,16 @@ case class CoinAddress(version:Byte, publicKeyHash : ByteArray) extends OutputOw
     */
   def stringKey() : String = {
     base58()
+  }
+
+  /** Get the locking script of this coin address.
+    *
+    * TODO : Test automation.
+    *
+    * @return The locking script of this coin address.
+    */
+  def lockingScript() : LockingScript = {
+    ParsedPubKeyScript.from(publicKeyHash).lockingScript()
   }
 }
 

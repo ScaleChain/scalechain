@@ -1,4 +1,4 @@
-package io.scalechain.wallet
+package io.scalechain.blockchain.transaction
 
 import org.scalatest._
 
