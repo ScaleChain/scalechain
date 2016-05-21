@@ -1,32 +1,34 @@
 package io.scalechain.blockchain.api
 
 import akka.actor.ActorSystem
-import akka.event.Logging
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Directives
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.server.directives.{LogEntry, LoggingMagnet, DebuggingDirectives}
 import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
-import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
 import io.scalechain.blockchain.api.command.blockchain._
 import io.scalechain.blockchain.api.command.wallet._
-import io.scalechain.blockchain.api.command.control._
-import io.scalechain.blockchain.api.command.generating._
-import io.scalechain.blockchain.api.command.help._
-import io.scalechain.blockchain.api.command.mining._
 import io.scalechain.blockchain.api.command.network._
 import io.scalechain.blockchain.api.command.rawtx._
-import io.scalechain.blockchain.api.command.utility._
 
 import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.net.service.PeerInfo
-import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.TransactionDescriptor
+import org.apache.http.protocol.ExecutionContext
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-import io.scalechain.util.{ByteArray, HexUtil, Config}
+
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+
+import scala.concurrent.ExecutionContextExecutor
+
+//import scala.io.StdIn
 
 // TODO : Need to move to scalechain-api-domain?
 object RpcResultJsonFormat {
@@ -110,11 +112,9 @@ object RpcResponseJsonFormat {
   implicit object formatter extends RootJsonFormat[RpcResponse] {
     def write(rpcResponse: RpcResponse) =
       JsObject(
-        //"result" -> rpcResponse.result.map( JsonRpcResultFormat.write(_) ).getOrElse(JsNull),
         "result" -> rpcResponse.result.map( _.toJson ).getOrElse(JsNull),
-        //"error"  -> rpcResponse.error.map( implicitJsonRpcError.write(_) ).getOrElse(JsNull),
         "error"  -> rpcResponse.error.map( _.toJson ).getOrElse(JsNull),
-        "id" -> JsString(rpcResponse.id)
+        "id" -> JsNumber(rpcResponse.id)
       )
 
     // Not used.
@@ -128,7 +128,7 @@ object RpcResponseJsonFormat {
 
 // use it wherever json (un)marshalling is needed
 trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
-/*
+  /*
   implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
     def write(value : AnyRef) = value.toJson
     def read(value :JsValue) = ""
@@ -178,6 +178,7 @@ trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol 
   }
 }
 
+/*
 // BUGBUG :
 // Currently, only the following is accepted for the content-type HTTP header.
 //   Content-Type: application/json
@@ -192,8 +193,28 @@ object JsonRpcMicroservice extends App with JsonRpc {
     implicit val system = ActorSystem("my-system")
     implicit val materializer = ActorMaterializer()
     implicit val ec = system.dispatcher
+/*
+    import akka.http.scaladsl.server.directives.DebuggingDirectives
+    val clientRouteLogged = DebuggingDirectives.logRequestResult("scalechain-access.log", Logging.InfoLevel)(routes)
+*/
+
+/*
+    def printRequestMethod(req: HttpRequest): Unit = {
+      println(s"request : ${req}")
+    }
+    val logRequestPrintln = DebuggingDirectives.logRequest(LoggingMagnet(_ => printRequestMethod))
+*/
+/*
+    def requestMethodAsInfo(req: HttpRequest): LogEntry = {
+      println(s"request : ${req}")
+      LogEntry(req.method.toString, Logging.WarningLevel)
+    }
+    val logRequest = DebuggingDirectives.logRequest(requestMethodAsInfo _)
+*/
 
     val port = Config.scalechain.getInt("scalechain.api.port")
+//    val bindingFuture = Http().bindAndHandle(logRequestPrintln(routes), "localhost", port)
+//    val bindingFuture = Http().bindAndHandle(logRequest(routes), "localhost", port)
     val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
 
     println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
@@ -201,6 +222,96 @@ object JsonRpcMicroservice extends App with JsonRpc {
     bindingFuture
       .flatMap(_.unbind()) // trigger unbinding from the port
       .onComplete(_ ⇒ system.shutdown()) // and shutdown when done
+  }
+}
+*/
+
+object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
+
+  import RpcParamsJsonFormat._
+
+  //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
+
+  import RpcResponseJsonFormat._
+
+/*
+  runService()
+
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+  // needed for the future map/flatmap in the end
+  implicit val executionContext = system.dispatcher
+*/
+  def handleRequest(requestString : String) : String = {
+  println(s"String Request : ${requestString}")
+/*
+    val source1 = """{ "some": "JSON source" }"""
+    val jsonAst1 = source1.parseJson // or JsonParser(source)
+    println(s"jsonAst1=${jsonAst1}")
+
+    val source2 = """{"id":1463838854805,"method":"getaccountaddress","params":["B3BirN2BGeW9TMJao"]}"""
+    val jsonAst2 = source2.parseJson // or JsonParser(source)
+    println(s"jsonAst2=${jsonAst2}")
+*/
+    val parsedRequest = requestString.parseJson
+    assert( parsedRequest != null)
+
+    val id = parsedRequest.asJsObject.fields("id")
+    val method = parsedRequest.asJsObject.fields("method")
+    val params = parsedRequest.asJsObject.fields("params")
+
+    val request = RpcRequest(
+       jsonrpc = None,
+       id = id.convertTo[Long],
+       method = method.convertTo[String],
+       params = params.convertTo[RpcParams]
+    )
+
+    val serviceResponse : RpcResponse = dispatch(request)
+    val stringResponse = serviceResponse.toJson.prettyPrint
+    println(s"String Response : ${stringResponse}")
+  stringResponse
+  }
+
+  def runService(implicit system : ActorSystem, materializer : ActorMaterializer, ec : ExecutionContextExecutor) = {
+
+    val requestHandler: HttpRequest => HttpResponse = {
+      case req @ HttpRequest(POST, Uri.Path("/"), headers, requestEntity, protocol) =>
+        //println(s"POST / => ${req}")
+
+//        val requestEntity : RequestEntity = incomingEntity.withContentType(ContentTypes.`application/json`)
+
+        requestEntity match {
+          case strict : HttpEntity.Strict => {
+
+            //println(s"request data => ${strict.data.toString}")
+
+            val responseString = handleRequest(strict.data.utf8String)
+
+            HttpResponse(entity = HttpEntity(ContentTypes.`application/json`,
+              responseString))
+          }
+          case other => {
+            println(s"Other than strict entity => ${other}")
+            HttpResponse(404, entity = "Unknown resource entity!")
+          }
+        }
+
+      case req: HttpRequest => {
+        println(s"Unknown request => ${req}")
+
+        HttpResponse(404, entity = "Unknown resource!")
+      }
+    }
+
+    val bindingFuture = Http().bindAndHandleSync(requestHandler, "localhost", 8080)
+    println(s"ScaleChain RPC service online at http://localhost:8080/\nPress RETURN to stop...")
+/*
+    Console.readLine() // let it run until user presses return
+    bindingFuture
+      .flatMap(_.unbind()) // trigger unbinding from the port
+      .onComplete(_ ⇒ system.terminate()) // and shutdown when done
+*/
   }
 }
 

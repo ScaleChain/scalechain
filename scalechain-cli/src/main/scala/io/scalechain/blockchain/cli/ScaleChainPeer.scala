@@ -5,6 +5,8 @@ import java.net.InetSocketAddress
 
 import akka.actor.{Props, ActorSystem}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.server.directives.{LoggingMagnet, DebuggingDirectives}
 import akka.stream.ActorMaterializer
 import akka.util
 import com.typesafe.config.{ConfigFactory, Config}
@@ -17,7 +19,7 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
 import io.scalechain.util.HexUtil._
 import scala.collection.JavaConverters._
-import io.scalechain.blockchain.api.JsonRpc
+import io.scalechain.blockchain.api.{JsonRpcMicroservice, JsonRpc}
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
@@ -128,14 +130,23 @@ object ScaleChainPeer extends JsonRpc {
       }
     }
 
+    JsonRpcMicroservice.runService(system, materializer, system.dispatcher)
+
     /** Start RPC server.
       *
       */
+    /*
     implicit val ec = system.dispatcher
 
+    def printRequestMethod(req: HttpRequest): Unit = {
+      println(s"request : ${req}")
+    }
+    val logRequestPrintln = DebuggingDirectives.logRequest(LoggingMagnet(_ => printRequestMethod))
+
     val port = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port")
-    val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
+    val bindingFuture = Http().bindAndHandle( logRequestPrintln(routes), "localhost", port)
 
     println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
+    */
   }
 }
