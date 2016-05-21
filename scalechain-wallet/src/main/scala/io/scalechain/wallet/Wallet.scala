@@ -10,13 +10,23 @@ import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 
+object Wallet extends Wallet(new File("./target/wallet")) {
+}
+
+/** The WalletOutput with additional information such as OutPoint.
+  *
+  * @param outPoint The OutPoint which has the transaction hash and output index of this output.
+  * @param walletOutput The wallet output stored on the wallet database.
+  */
+case class WalletOutputWithInfo(
+                                 outPoint : OutPoint,
+                                 walletOutput : WalletOutput
+                               )
+
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
-object Wallet extends ChainEventListener {
+class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
   // TODO : Move to a configuration object.
   val COINBASE_MATURITY_CONFIRMATIONS = 100
-
-  // BUGBUG : Change the folder name without the "target" path.
-  val walletFolder = new File("./target/wallet")
 
   val store = new WalletStore(walletFolder)
 
@@ -154,7 +164,7 @@ object Wallet extends ChainEventListener {
     * @param includeWatchOnly true to include transaction inputs and outputs related to the watch-only addresses. false otherwise.
     * @return the transformed TransactionDescriptor.
     */
-  protected [Wallet] def getTransactionDescriptor( blockchainView  : BlockchainView,
+  protected [wallet] def getTransactionDescriptor( blockchainView  : BlockchainView,
                                                    walletTransaction : WalletTransaction,
                                                    inputOrOutput : Either[TransactionInput, TransactionOutput],
                                                    vout : Int,
@@ -336,16 +346,6 @@ object Wallet extends ChainEventListener {
     transactionDescriptors
   }
 
-  /** The WalletOutput with additional information such as OutPoint.
-    *
-    * @param outPoint The OutPoint which has the transaction hash and output index of this output.
-    * @param walletOutput The wallet output stored on the wallet database.
-    */
-  case class WalletOutputWithInfo(
-    outPoint : OutPoint,
-    walletOutput : WalletOutput
-  )
-
   /** Get an iterator for UTXOs.
     *
     * Category : [Output Ownership -> UTXOs] - Search
@@ -443,14 +443,14 @@ object Wallet extends ChainEventListener {
 
     addressesFilter.flatMap { coinAddress =>
       // Wallet Store : Iterate UTXOs for a specific coin address
-      getTransactionOutputs(Some(coinAddress)).map { walletOutput =>
-        getUnspentCoinDescription(
-          blockchainView, Some(coinAddress), walletOutput
-        )
-      }
-    }
-
-      .filter( _.isEmpty ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
+      getTransactionOutputs(Some(coinAddress))
+        .filter(!_.walletOutput.spent) // filter only unspent.
+        .map { walletOutput =>
+          getUnspentCoinDescription(
+            blockchainView, Some(coinAddress), walletOutput
+          )
+        }
+    }.filter( _.isEmpty ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
      .map( _.get )     // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
      .filter( _.confirmations >= minimumConfirmations )
      .filter( _.confirmations <= maximumConfirmations )
@@ -760,5 +760,12 @@ object Wallet extends ChainEventListener {
     } else {
       assert(store.getWalletTransaction(transactionHash).isEmpty)
     }
+  }
+
+  /** Close the wallet.
+    *
+    */
+  def close() : Unit = {
+    store.close
   }
 }

@@ -11,13 +11,10 @@ import scala.util.Random
 
 class WalletStoreSpec extends FlatSpec with BeforeAndAfterEach with ChainTestTrait with ShouldMatchers
   with WalletStoreAccountTestTrait
-/*
   with WalletStoreOutPointTestTrait
   with WalletStoreTransactionHashTestTrait
   with WalletStoreWalletOutputTestTrait // Need to fix the protocol codec exception.
-  with WalletStoreWalletTransactionTestTrait
-  */
-  {
+  with WalletStoreWalletTransactionTestTrait {
 
   this: Suite =>
 
