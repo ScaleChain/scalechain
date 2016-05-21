@@ -122,12 +122,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     if (newOutputs.length == 0)
     throw new GeneralException(ErrorCode.NotEnoughTransactionOutput)
 
-    // Step 3 : Check if sum of input values is greater than or equal to the sum of output values.
-    if (calculateFee(spendingOutputs, newOutputs).value < 0) {
-      throw new GeneralException(ErrorCode.NotEnoughInputAmounts)
-    }
-
-    // Step 4 : Check if we have other inputs when we have a generation input.
+    // Step 3 : Check if we have other inputs when we have a generation input.
     if (inputs(0).isCoinBaseInput()) {
       if (inputs.length != 1)
         throw new GeneralException(ErrorCode.GenerationInputWithOtherInputs)
@@ -136,6 +131,13 @@ class TransactionBuilder(coinsView : CoinsView) {
     for ( i <- 1 until inputs.length) {
       if (inputs(i).isCoinBaseInput())
         throw new GeneralException(ErrorCode.GenerationInputWithOtherInputs)
+    }
+
+    // Step 4 : Check if sum of input values is greater than or equal to the sum of output values.
+    if (!inputs(0).isCoinBaseInput()) {
+      if (calculateFee(spendingOutputs, newOutputs).value < 0) {
+        throw new GeneralException(ErrorCode.NotEnoughInputAmounts)
+      }
     }
   }
 

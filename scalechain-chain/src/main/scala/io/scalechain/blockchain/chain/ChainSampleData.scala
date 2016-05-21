@@ -1,8 +1,5 @@
 package io.scalechain.blockchain.chain
 
-
-
-
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.BlockIndex
@@ -57,6 +54,16 @@ class TestBlockIndex extends BlockIndex {
   }
 }
 
+/** A transaction output with an outpoint of it.
+  *
+  * @param output The transaction output.
+  * @param outPoint The transaction out point which is used for pointing the transaction output.
+  */
+case class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
+
+
+case class TransactionWithName(name:String, transaction:Transaction)
+
 /**
   * A blockchain sample data for testing purpose only.
   */
@@ -110,24 +117,26 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     }
   }
 
-  def getTxHash(transaction : Transaction) = Hash( HashCalculator.transactionHash(transaction))
+  def getTxHash(transactionWithName : TransactionWithName) = Hash( HashCalculator.transactionHash(transactionWithName.transaction))
+  def getBlockHash(block : Block) = Hash( HashCalculator.blockHeaderHash(block.header) )
 
   /** Add all outputs in a transaction into an output set.
     *
     * @param outputSet The output set where each output of the given transaction is added.
-    * @param transaction The transaction that has outputs to be added to the set.
+    * @param transactionWithName The transaction that has outputs to be added to the set.
     */
-  def addTransaction(outputSet : TransactionOutputSet, transaction : Transaction ) = {
-    val transactionHash = getTxHash(transaction)
+  def addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) = {
+    val transactionHash = getTxHash(transactionWithName)
     var outputIndex = -1
 
-    transaction.outputs foreach { output =>
+    transactionWithName.transaction.outputs foreach { output =>
       outputIndex += 1
       outputSet.addTransactionOutput( OutPoint(transactionHash, outputIndex), output )
     }
 
-    blockIndex.addTransaction(TransactionHash(transactionHash.value), transaction)
-    chainEventListener.map(_.onNewTransaction(transaction))
+    blockIndex.addTransaction(TransactionHash(transactionHash.value), transactionWithName.transaction)
+    chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
+    println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
   /** Create a generation transaction
@@ -136,33 +145,29 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     * @param generatedBy The OutputOwnership that owns the newly generated coin. Ex> a coin address.
     * @return The newly generated transaction
     */
-  def generationTransaction( amount : CoinAmount,
+  def generationTransaction( name : String,
+                             amount : CoinAmount,
                              generatedBy : OutputOwnership
-                           ) : Transaction = {
+                           ) : TransactionWithName = {
     val transaction = TransactionBuilder.newBuilder(availableOutputs)
       .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Kangmo, Chanwoo, Rachel."))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
-    addTransaction( availableOutputs, transaction)
-    transaction
+    val transactionWithName = TransactionWithName(name, transaction)
+    addTransaction( availableOutputs, transactionWithName)
+    transactionWithName
   }
 
-  /** A transaction output with an outpoint of it.
-    *
-    * @param output The transaction output.
-    * @param outPoint The transaction out point which is used for pointing the transaction output.
-    */
-  case class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
 
   /** Get an output of a given transaction.
     *
-    * @param transaction The transaction where we get an output.
+    * @param transactionWithName The transaction where we get an output.
     * @param outputIndex The index of the output. Zero-based index.
     * @return The transaction output with an out point.
     */
-  def getOutput(transaction : Transaction, outputIndex : Int) : OutputWithOutPoint = {
-    val transactionHash = Hash(HashCalculator.transactionHash(transaction))
-    OutputWithOutPoint( transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
+  def getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint = {
+    val transactionHash = Hash(HashCalculator.transactionHash(transactionWithName.transaction))
+    OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
   }
 
   case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
@@ -173,7 +178,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     * @param newOutputs The list of newly created outputs.
     * @return
     */
-  def normalTransaction( spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) = {
+  def normalTransaction( name : String, spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) : TransactionWithName = {
     val builder = TransactionBuilder.newBuilder(availableOutputs)
 
     spendingOutputs foreach { output =>
@@ -186,9 +191,11 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
     val transaction = builder.build()
 
-    addTransaction( availableOutputs, transaction)
+    val transactionWithName = TransactionWithName(name, transaction)
 
-    transaction
+    addTransaction( availableOutputs, transactionWithName)
+
+    transactionWithName
   }
 
   def addBlock(block: Block) : Unit = {
@@ -199,14 +206,14 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     ))
   }
 
-  def newBlock(transactions : List[Transaction]) : Block = {
+  def newBlock(transactionsWithName : List[TransactionWithName]) : Block = {
     val builder = BlockBuilder.newBuilder()
 
-    transactions foreach { transaction =>
+    transactionsWithName.map(_.transaction) foreach { transaction =>
       builder.addTransaction(transaction)
     }
 
-    val block = builder.build(blockIndex.bestBlockHash, System.currentTimeMillis())
+    val block = builder.build(blockIndex.bestBlockHash, System.currentTimeMillis() / 1000)
     addBlock(block)
     block
   }
@@ -228,12 +235,15 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   /////////////////////////////////////////////////////////////////////////////////
   // Scenario : Coin Generation Only
   // Alice mines a coin with amount 50 SC.
-  val S1_AliceGenTx = generationTransaction( CoinAmount(50), Alice.Addr1.address )
+  val S1_AliceGenTx = generationTransaction( "S1_AliceGenTx", CoinAmount(50), Alice.Addr1.address )
   val S1_AliceGenTxHash = getTxHash(S1_AliceGenTx)
   val S1_AliceGenCoin_A50 = getOutput(S1_AliceGenTx, 0)
+  assert(S1_AliceGenCoin_A50.outPoint.outputIndex == 0)
 
   // Create the first block.
   val S1_Block = newBlock(List(S1_AliceGenTx))
+  val S1_BlockHash = getBlockHash(S1_Block)
+  val S1_BlockHeight = 1
   onStepFinish(1)
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -242,13 +252,14 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   // Block height  : 2
   // Confirmations : 2
   /////////////////////////////////////////////////////////////////////////////////
-  val S2_BobGenTx = generationTransaction( CoinAmount(50), Bob.Addr1.address )
+  val S2_BobGenTx = generationTransaction( "S2_BobGenTx", CoinAmount(50), Bob.Addr1.address )
   val S2_BobGenTxHash = getTxHash(S2_BobGenTx)
   val S2_BobGenCoin_A50 = getOutput(S2_BobGenTx, 0)
   /////////////////////////////////////////////////////////////////////////////////
   // Scenario : Send to one address keeping change
   // Alice sends 10 SC to Bob, and keeps 39 SC paying 1 SC as fee.
   val S2_AliceToBobTx = normalTransaction(
+    "S2_AliceToBobTx",
     spendingOutputs = List(S1_AliceGenCoin_A50),
     newOutputs = List(
       NewOutput(CoinAmount(10), Bob.Addr1.address),
@@ -263,6 +274,9 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
   // Create the second block.
   val S2_Block = newBlock(List(S2_BobGenTx, S2_AliceToBobTx))
+  val S2_BlockHash = getBlockHash(S2_Block)
+  val S2_BlockHeight = 2
+
   onStepFinish(2)
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -271,13 +285,14 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   // Block height  : 3
   // Confirmations : 1
   /////////////////////////////////////////////////////////////////////////////////
-  val S3_CarryGenTx = generationTransaction( CoinAmount(50), Carry.Addr1.address )
+  val S3_CarryGenTx = generationTransaction( "S3_CarryGenTx", CoinAmount(50), Carry.Addr1.address )
   val S3_CarryGenTxHash = getTxHash(S3_CarryGenTx)
   val S3_CarrayGenCoin_A50 = getOutput(S3_CarryGenTx, 0)
   /////////////////////////////////////////////////////////////////////////////////
   // Scenario : Spending a coin, send to many addresses
   // Step 3 : Bob sends 2 SC to Alice, 3 SC to Carray, and keeps 5 SC paying no fee.
   val S3_BobToAliceAndCarrayTx = normalTransaction(
+    "S3_BobToAliceAndCarrayTx",
     spendingOutputs = List(S2_BobCoin1_A10),
     newOutputs = List(
       NewOutput(CoinAmount(2), Alice.Addr1.address),
@@ -294,6 +309,9 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
   // Create the second block.
   val S3_Block = newBlock(List(S3_CarryGenTx, S3_BobToAliceAndCarrayTx))
+  val S3_BlockHash = getBlockHash(S3_Block)
+  val S3_BlockHeight = 3
+
   onStepFinish(3)
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -302,6 +320,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   // Scenario : Spending a coin send to one address.
   // Alice sends 2 SC to Carray paying 1 SC as fee.
   val S4_AliceToCarryTx = normalTransaction(
+    "S4_AliceToCarryTx",
     spendingOutputs = List(S3_AliceCoin1_A2),
     newOutputs = List(
       NewOutput(CoinAmount(2), Carry.Addr2.address)
@@ -318,9 +337,10 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   // Scenaro : Merge coins into one coin for an address
   // Carry uses two coins 3 SC and 1 SC to send 4SC to Alice without any fee.
   val S5_CarryMergeToAliceTx = normalTransaction(
+    "S5_CarryMergeToAliceTx",
     spendingOutputs = List(S3_CarrayCoin1_A3, S4_CarryCoin2_A1),
     newOutputs = List(
-      NewOutput(CoinAmount(4), Carry.Addr1.address)
+      NewOutput(CoinAmount(4), Alice.Addr1.address)
     )
   )
   val S5_CarryMergeToAliceTxHash = getTxHash(S5_CarryMergeToAliceTx)

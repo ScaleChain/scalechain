@@ -74,8 +74,8 @@ object ListUnspent extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
 
     handlingException {
-      val minimumConfirmations  : Long                 = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
-      val maximumConfirmations  : Long                 = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(Long.MaxValue)
+      val minimumConfirmations  : Long                = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
+      val maximumConfirmations  : Long                = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(Long.MaxValue)
       val addressStringsOption : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
 
       val coinAddressesOption = addressStringsOption.map{ addressStrings =>

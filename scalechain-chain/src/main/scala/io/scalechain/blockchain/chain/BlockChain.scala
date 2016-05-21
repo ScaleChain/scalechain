@@ -6,6 +6,7 @@ import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock}
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
+import io.scalechain.blockchain.transaction.CoinAmount
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -64,7 +65,7 @@ object Blockchain {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain extends BlockchainView {
+class Blockchain extends BlockchainView with ChainConstraints{
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -309,6 +310,25 @@ class Blockchain extends BlockchainView {
     null
   }
 
+
+  /** Get the current difficulty of block hash.
+    *
+    * @return
+    */
+  def getDifficulty() : Long = {
+    // TODO : Implement
+    assert(false)
+    0L
+  }
+
+  /** Get the amount of reward that a minder gets from the generation input.
+    *
+    * @return
+    */
+  def getCoinbaseAmount() : CoinAmount = {
+    // TODO : Implement
+    CoinAmount(50)
+  }
 }
 
 

@@ -3,19 +3,27 @@ package io.scalechain.wallet
 import java.io.File
 
 import io.scalechain.blockchain.TransactionVerificationException
-import io.scalechain.blockchain.chain.{ChainSampleData, ChainTestDataTrait}
+import io.scalechain.blockchain.chain.{TransactionWithName, OutputWithOutPoint, ChainSampleData, ChainTestDataTrait}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage}
-import io.scalechain.blockchain.transaction.{CoinAmount, TransactionVerifier, NormalTransactionVerifier, SigHash}
+import io.scalechain.blockchain.transaction._
+import io.scalechain.util.HexUtil
 import org.apache.commons.io.FileUtils
 import org.scalatest._
+
+import HexUtil._
+import org.scalatest.matchers.HavePropertyMatcher
+
+import scala.collection.SortedSet
+
+// TODO : BUGBUG : Need to check if coinbase maturity for transaction validation. Need to change test cases as well.
 
 /**
   * Created by kangmo on 5/12/16.
   */
-
-class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrait with ShouldMatchers {
+//@Ignore
+class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrait with Matchers {
 
   this: Suite =>
 
@@ -57,7 +65,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
-      S.S4_AliceToCarryTx,
+      S.S4_AliceToCarryTx.transaction,
       List(),
       Some(List( S.Alice.Addr1.privateKey )),
       SigHash.ALL
@@ -73,7 +81,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
-      S.S4_AliceToCarryTx,
+      S.S4_AliceToCarryTx.transaction,
       List(),
       None,
       SigHash.ALL
@@ -99,7 +107,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     //////////////////////////////////////////////////////////////////////////
     // Step 1 : sign for the first input.
     val signedTransaction1 = Wallet.signTransaction(
-      S.S5_CarryMergeToAliceTx,
+      S.S5_CarryMergeToAliceTx.transaction,
       List(),
       Some(List(S.Carry.Addr1.privateKey)),
       SigHash.ALL
@@ -128,14 +136,17 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   ////////////////////////////////////////////////////////////////////////////////
   // Methods for getreceivedbyaddress RPC
   ////////////////////////////////////////////////////////////////////////////////
-  "getReceivedByAddress" should "" in {
+  "getReceivedByAddress" should "show the amount of coins received for an address." in {
     val S = new WalletSampleData(wallet)
-
+/*
+    println(s"address000(${S.Alice.Addr1.address.base58})")
+    println(s"outputs000=${wallet.getTransactionOutputs(Some(S.Alice.Addr1.address))}")
+*/
     // To see the full history of coin receival, see ChainTestDataTrait.History.
-    Wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 3) shouldBe CoinAmount(50)
-    Wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 2) shouldBe CoinAmount(50)
-    Wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 1) shouldBe CoinAmount(50+2)
-    Wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 0) shouldBe CoinAmount(50+2+4)
+    wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 3) shouldBe CoinAmount(50)
+    wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 2) shouldBe CoinAmount(50)
+    wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 1) shouldBe CoinAmount(50+2)
+    wallet.getReceivedByAddress(S.TestBlockchainView, S.Alice.Addr1.address, 0) shouldBe CoinAmount(50+2+4)
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -151,11 +162,6 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
             )
           }
           case 2 => {
-            wallet.getTransactionHashes(Some("Alice")).toSet shouldBe Set(
-              S1_AliceGenTxHash
-            )
-            wallet.getTransactionHashes(Some("Bob")).toSet shouldBe Set()
-            wallet.getTransactionHashes(Some("Carry")).toSet shouldBe Set()
             wallet.getTransactionHashes(None).toSet shouldBe Set(
               S1_AliceGenTxHash,
               S2_BobGenTxHash, S2_AliceToBobTxHash
@@ -190,21 +196,25 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
+
   "getTransactionHashes(Some(account))" should "return transaction hashes for an account" in {
     val S = new WalletSampleData(wallet)
 
-    wallet.getTransactionHashes(Some("Alice")).toSet shouldBe Set(
+    wallet.getTransactionHashes(Some("Alice")) shouldBe Set(
       S.S1_AliceGenTxHash,
       S.S2_AliceToBobTxHash,
       S.S3_BobToAliceAndCarrayTxHash,
       S.S4_AliceToCarryTxHash,
       S.S5_CarryMergeToAliceTxHash
     )
-    wallet.getTransactionHashes(Some("Bob")).toSet shouldBe Set(
+
+    wallet.getTransactionHashes(Some("Bob")) shouldBe Set(
       S.S2_BobGenTxHash,
+      S.S2_AliceToBobTxHash,
       S.S3_BobToAliceAndCarrayTxHash
     )
-    wallet.getTransactionHashes(Some("Carry")).toSet shouldBe Set(
+
+    wallet.getTransactionHashes(Some("Carry")) shouldBe Set(
       S.S3_CarryGenTxHash,
       S.S3_BobToAliceAndCarrayTxHash,
       S.S4_AliceToCarryTxHash,
@@ -218,19 +228,19 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       override def onStepFinish(step : Int): Unit = {
         step match {
           case 1 => {
-            wallet.getWalletTransactions(None).toSet shouldBe Set()
+            wallet.getWalletTransactions(None) shouldBe Set(1)
           }
           case 2 => {
-            wallet.getWalletTransactions(None).toSet shouldBe Set()
+            wallet.getWalletTransactions(None) shouldBe Set(1)
           }
           case 3 => {
-            wallet.getWalletTransactions(None).toSet shouldBe Set()
+            wallet.getWalletTransactions(None) shouldBe Set(1)
           }
           case 4 => {
-            wallet.getWalletTransactions(None).toSet shouldBe Set()
+            wallet.getWalletTransactions(None) shouldBe Set(1)
           }
           case 5 => {
-            wallet.getWalletTransactions(None).toSet shouldBe Set()
+            wallet.getWalletTransactions(None) shouldBe Set(1)
           }
         }
       }
@@ -240,60 +250,60 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "getWalletTransactions(Some(account))" should "return wallet transactions for an account" in {
     val S = new WalletSampleData(wallet)
 
-    wallet.getWalletTransactions(Some("Alice")).toSet shouldBe Set()
-    wallet.getWalletTransactions(Some("Bob")).toSet shouldBe Set()
-    wallet.getWalletTransactions(Some("Carry")).toSet shouldBe Set()
+    wallet.getWalletTransactions(Some("Alice")) shouldBe Set(1)
+    wallet.getWalletTransactions(Some("Bob")) shouldBe Set(1)
+    wallet.getWalletTransactions(Some("Carry")) shouldBe Set(1)
   }
 
 
-  def tx(blockIndexOption : Option[Long], addedTime : Long) = {
+  def tx(blockIndexOption : Option[Long], txIndexOption : Option[Int], addedTime : Long) = {
     WalletTransaction(
       blockHash        = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
       blockIndex       = blockIndexOption,
       blockTime        = Some(1411051649),
       transactionId    = Some(Hash("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
       addedTime        = addedTime,
-      transactionIndex = Some(1),
+      transactionIndex = txIndexOption,
       transaction = transaction1
     )
   }
 
   "isMoreRecentThan" should "should return true if a transaction is more recent than another" in {
-    wallet.isMoreRecentThan( tx(None, 101), tx(None, 100) ) shouldBe true
-    wallet.isMoreRecentThan( tx(None, 100), tx(None, 101) ) shouldBe false
-    wallet.isMoreRecentThan( tx(Some(1), 101), tx(Some(1), 100) ) shouldBe true
-    wallet.isMoreRecentThan( tx(Some(1), 100), tx(Some(1), 101) ) shouldBe false
-    wallet.isMoreRecentThan( tx(Some(1), 101), tx(None, 100) ) shouldBe false
-    wallet.isMoreRecentThan( tx(Some(1), 100), tx(None, 101) ) shouldBe false
-    wallet.isMoreRecentThan( tx(Some(1), 100), tx(None, 100) ) shouldBe false
-    wallet.isMoreRecentThan( tx(None, 101), tx(Some(1), 100) ) shouldBe true
-    wallet.isMoreRecentThan( tx(None, 100), tx(Some(1), 100) ) shouldBe true
-    wallet.isMoreRecentThan( tx(None, 100), tx(Some(1), 101) ) shouldBe true
+    wallet.isMoreRecentThan( tx(None, None, 101), tx(None, None, 100) ) shouldBe true
+    wallet.isMoreRecentThan( tx(None, None, 100), tx(None, None, 101) ) shouldBe false
+    wallet.isMoreRecentThan( tx(Some(1), Some(101), 1), tx(Some(1), Some(100), 1) ) shouldBe true
+    wallet.isMoreRecentThan( tx(Some(1), Some(100), 1), tx(Some(1), Some(101), 1) ) shouldBe false
+    wallet.isMoreRecentThan( tx(Some(1), Some(101), 1), tx(None, None, 100) ) shouldBe false
+    wallet.isMoreRecentThan( tx(Some(1), Some(100), 1), tx(None, None, 101) ) shouldBe false
+    wallet.isMoreRecentThan( tx(Some(1), Some(100), 1), tx(None, None, 100) ) shouldBe false
+    wallet.isMoreRecentThan( tx(None, None,101), tx(Some(1), Some(100), 1) ) shouldBe true
+    wallet.isMoreRecentThan( tx(None, None,100), tx(Some(1), Some(100), 1) ) shouldBe true
+    wallet.isMoreRecentThan( tx(None, None,100), tx(Some(1), Some(101), 1) ) shouldBe true
   }
 
   "isMoreRecentThan" should "should hit an assertion if two transactions has the same timestamp" in {
     an [AssertionError] should be thrownBy {
-      wallet.isMoreRecentThan( tx(Some(1), 100), tx(Some(1), 100) )
+      wallet.isMoreRecentThan( tx(Some(1), Some(100), 100), tx(Some(1), Some(100), 101) )
     }
   }
 
-  def walletTx(transaction : Transaction, block : Option[Block]) = {
+  def walletTx(transactionWithName : TransactionWithName, block : Option[Block], blockHeight : Long) = {
     WalletTransaction(
       blockHash        = block.map( b => Hash( HashCalculator.blockHeaderHash(b.header)) ),
-      blockIndex       = Some(11),
+      blockIndex       = block.map( b => blockHeight ),
       blockTime        = block.map(_.header.timestamp),
-      transactionId    = Some(Hash(HashCalculator.transactionHash(transaction))),
+      transactionId    = Some(Hash(HashCalculator.transactionHash(transactionWithName.transaction))),
       addedTime     = 1418695703,
       transactionIndex = Some(1),
-      transaction = transaction
+      transaction = transactionWithName.transaction
     )
   }
 
   "getTransactionDescriptor(Left(input), includeWatchOnly=true)" should "return some valid descriptor" in {
     val S = new WalletSampleData(wallet)
-    wallet.getTransactionDescriptor(
+    val txDesc = wallet.getTransactionDescriptor(
       S.TestBlockchainView,
-      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block)),
+      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
         TransactionHash(S.S1_AliceGenCoin_A50.outPoint.transactionHash.value),
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
@@ -303,14 +313,31 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
       includeWatchOnly = true
-    ).get shouldBe Some(1) // need to update
+    ).get
+
+    txDesc should have (
+      ('involvesWatchonly (true)),
+      ('account           ("Alice")),
+      ('address           (Some(S.Alice.Addr1.address.base58))),
+      ('category          ("send")),
+      ('amount   (scala.math.BigDecimal(50))),
+      ('vout     (Some(S.S1_AliceGenCoin_A50.outPoint.outputIndex))),
+      ('fee      (Some(scala.math.BigDecimal(-1)))),
+      ('confirmations  (Some(2))),
+      ('generated  (None)),
+      ('blockhash  (Some(S.S2_BlockHash))),
+      ('blockindex (Some(S.S2_BlockHeight))),
+      //('blocktime  ()),
+      ('txid       (Some(S.S2_AliceToBobTxHash)))
+      //('time ())*/
+    )
   }
 
   "getTransactionDescriptor(Left(input), includeWatchOnly=false)" should "return None" in {
     val S = new WalletSampleData(wallet)
     wallet.getTransactionDescriptor(
       S.TestBlockchainView,
-      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block)),
+      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
         TransactionHash(S.S1_AliceGenCoin_A50.outPoint.transactionHash.value),
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
@@ -325,21 +352,38 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
   "getTransactionDescriptor(Right(output))" should "return some valid descriptor" in {
     val S = new WalletSampleData(wallet)
-    wallet.getTransactionDescriptor(
+    val txDesc = wallet.getTransactionDescriptor(
       S.TestBlockchainView,
-      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block)),
+      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Right(S.S2_BobCoin1_A10.output),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
       includeWatchOnly = true
-    ).get shouldBe Some(1) // need to update
+    ).get
+
+    txDesc should have (
+      ('involvesWatchonly (true)),
+      ('account           ("Bob")),
+      ('address           (Some(S.Bob.Addr1.address.base58))),
+      ('category          ("receive")),
+      ('amount   (scala.math.BigDecimal(10))),
+      ('vout     (Some(S.S2_BobCoin1_A10.outPoint.outputIndex))),
+      ('fee      (Some(scala.math.BigDecimal(-1)))),
+      ('confirmations  (Some(2))),
+      ('generated  (None)),
+      ('blockhash  (Some(S.S2_BlockHash))),
+      ('blockindex (Some(S.S2_BlockHeight))),
+      //('blocktime  ()),
+      ('txid       (Some(S.S2_AliceToBobTxHash)))
+      //('time ())*/
+    )
   }
 
   "getTransactionDescriptor(Right(output), includeWatchOnly=false)" should "return None" in {
     val S = new WalletSampleData(wallet)
     wallet.getTransactionDescriptor(
       S.TestBlockchainView,
-      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block)),
+      walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Right(S.S2_BobCoin1_A10.output),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
@@ -358,7 +402,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       1000, // count
       0,    // skip
       false//includeWatchOnly
-    ) shouldBe List() // TODO : Update with actual result.
+    ) shouldBe List(1) // TODO : Update with actual result.
   }
 
   "listTransactions(None, includeWatchOnly=true)" should "return all transactions" in {
@@ -372,7 +416,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
               1000, // count
               0,    // skip
               true//includeWatchOnly
-            ) shouldBe List() // TODO : Update with actual result.
+            ) shouldBe List(1) // TODO : Update with actual result.
           }
           case 2 => {
             wallet.listTransactions(
@@ -381,7 +425,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
               1000, // count
               0,    // skip
               true//includeWatchOnly
-            ) shouldBe List() // TODO : Update with actual result.
+            ) shouldBe List(1) // TODO : Update with actual result.
           }
           case 3 => {
             wallet.listTransactions(
@@ -390,7 +434,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
               1000, // count
               0,    // skip
               true//includeWatchOnly
-            ) shouldBe List() // TODO : Update with actual result.
+            ) shouldBe List(1) // TODO : Update with actual result.
           }
           case 4 => {
             wallet.listTransactions(
@@ -399,7 +443,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
               1000, // count
               0,    // skip
               true//includeWatchOnly
-            ) shouldBe List() // TODO : Update with actual result.
+            ) shouldBe List(1) // TODO : Update with actual result.
           }
           case 5 => {
             wallet.listTransactions(
@@ -408,7 +452,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
               1000, // count
               0,    // skip
               true//includeWatchOnly
-            ) shouldBe List() // TODO : Update with actual result.
+            ) shouldBe List(1) // TODO : Update with actual result.
           }
         }
       }
@@ -424,7 +468,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       1000, // count
       0,    // skip
       true//includeWatchOnly
-    ) shouldBe List() // TODO : Update with actual result.
+    ) shouldBe List(1) // TODO : Update with actual result.
 
     wallet.listTransactions(
       S.TestBlockchainView,
@@ -432,7 +476,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       1000, // count
       0,    // skip
       true//includeWatchOnly
-    ) shouldBe List() // TODO : Update with actual result.
+    ) shouldBe List(1) // TODO : Update with actual result.
 
     wallet.listTransactions(
       S.TestBlockchainView,
@@ -440,10 +484,21 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       1000, // count
       0,    // skip
       true//includeWatchOnly
-    ) shouldBe List() // TODO : Update with actual result.
+    ) shouldBe List(1) // TODO : Update with actual result.
 
   }
 
+  def walletOutputWithInfo(output : OutputWithOutPoint, blockHeightOption : Option[Long], coinbase : Boolean, spent : Boolean) = {
+    WalletOutputWithInfo(
+      output.outPoint,
+      WalletOutput(
+        blockHeightOption,
+        coinbase,
+        spent,
+        transactionOutput = output.output
+      )
+    )
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Methods for listunspent RPC
@@ -453,19 +508,69 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
       override def onStepFinish(step : Int): Unit = {
         step match {
           case 1 => {
-            wallet.getTransactionOutputs(None).toSet shouldBe Set()
+            wallet.getTransactionOutputs(None).toSet shouldBe Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=false)
+            )
           }
           case 2 => {
-            wallet.getTransactionOutputs(None).toSet shouldBe Set()
+            wallet.getTransactionOutputs(None).toSet should contain theSameElementsAs Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=true), // newly spent
+              walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase=false, spent=false)
+            )
+            // For debugging purpose.
+/*
+            (
+              wallet.getTransactionOutputs(None).sortBy(_.hashCode()) zip List(
+                walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=true), // newly spent
+                walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase=true, spent=false),
+                walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase=false, spent=false),
+                walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase=false, spent=false)
+              ).sortBy(_.hashCode)
+            ) foreach { case (actual, expected) =>
+              actual shouldBe expected
+            }
+*/
           }
           case 3 => {
-            wallet.getTransactionOutputs(None).toSet shouldBe Set()
+            wallet.getTransactionOutputs(None).toSet should contain theSameElementsAs Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=true),
+              walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase=false, spent=true),  // newly spent
+              walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_CarrayGenCoin_A50, Some(S3_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S3_AliceCoin1_A2, Some(S3_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_CarrayCoin1_A3, Some(S3_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_BobChangeCoin1_A5, Some(S3_BlockHeight), coinbase=false, spent=false)
+            )
           }
           case 4 => {
-            wallet.getTransactionOutputs(None).toSet shouldBe Set()
+            wallet.getTransactionOutputs(None).toSet should contain theSameElementsAs Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=true),
+              walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase=false, spent=true),
+              walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_CarrayGenCoin_A50, Some(S3_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S3_AliceCoin1_A2, Some(S3_BlockHeight), coinbase=false, spent=true), // newly spent
+              walletOutputWithInfo(S3_CarrayCoin1_A3, Some(S3_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_BobChangeCoin1_A5, Some(S3_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S4_CarryCoin2_A1, None, coinbase=false, spent=false)
+            )
           }
           case 5 => {
-            wallet.getTransactionOutputs(None).toSet shouldBe Set()
+            wallet.getTransactionOutputs(None).toSet should contain theSameElementsAs Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=true),
+              walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase=false, spent=true),
+              walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S3_CarrayGenCoin_A50, Some(S3_BlockHeight), coinbase=true, spent=false),
+              walletOutputWithInfo(S3_AliceCoin1_A2, Some(S3_BlockHeight), coinbase=false, spent=true),
+              walletOutputWithInfo(S3_CarrayCoin1_A3, Some(S3_BlockHeight), coinbase=false, spent=true), // newly spent
+              walletOutputWithInfo(S3_BobChangeCoin1_A5, Some(S3_BlockHeight), coinbase=false, spent=false),
+              walletOutputWithInfo(S4_CarryCoin2_A1, None, coinbase=false, spent=true), // newly spent
+              walletOutputWithInfo(S5_AliceCoin3_A4, None, coinbase=false, spent=false)
+            )
           }
         }
       }
@@ -474,56 +579,114 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
   "getTransactionOutputs(Some(account))" should "return transaction outputs for an account" in {
     val S = new WalletSampleData(wallet) {
-      override def onStepFinish(step : Int): Unit = {
+      override def onStepFinish(step: Int): Unit = {
         step match {
           case 1 => {
-            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set()
+            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase=true, spent=false)
+            )
             wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set()
             wallet.getTransactionOutputs(Some(Carry.Addr1.address)).toSet shouldBe Set()
           }
           case 2 => {
-            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set()
+            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set(
+              walletOutputWithInfo(S1_AliceGenCoin_A50, Some(S1_BlockHeight), coinbase = true, spent = true) // newly spent
+            )
+            wallet.getTransactionOutputs(Some(Alice.Addr2.address)).toSet shouldBe Set(
+              walletOutputWithInfo(S2_AliceChangeCoin1_A39, Some(S2_BlockHeight), coinbase = false, spent = false)
+            )
+            wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set(
+              walletOutputWithInfo(S2_BobGenCoin_A50, Some(S2_BlockHeight), coinbase = true, spent = false),
+              walletOutputWithInfo(S2_BobCoin1_A10, Some(S2_BlockHeight), coinbase = false, spent = false)
+            )
             wallet.getTransactionOutputs(Some(Carry.Addr1.address)).toSet shouldBe Set()
           }
-          case 3 => {
-            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Carry.Addr1.address)).toSet shouldBe Set()
-          }
-          case 4 => {
-            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Carry.Addr1.address)).toSet shouldBe Set()
-          }
-          case 5 => {
-            wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Bob.Addr1.address)).toSet shouldBe Set()
-            wallet.getTransactionOutputs(Some(Carry.Addr1.address)).toSet shouldBe Set()
+          case _ => {
+            //do nothing
           }
         }
       }
     }
   }
 
-  "getUnspentCoinDescription" should "" in {
+
+  "getUnspentCoinDescription" should "return the description of the UTXO for generation transaction(spendable=false)" in {
     val S = new WalletSampleData(wallet)
-    wallet.getUnspentCoinDescription(
+    val utxoDesc = wallet.getUnspentCoinDescription(
+      S.TestBlockchainView,
+      Some(S.Carry.Addr1.address),
+      WalletOutputWithInfo(
+        S.S3_CarrayGenCoin_A50.outPoint,
+        walletOutput = WalletOutput(
+          blockindex    = Some(S.S3_BlockHeight),
+          coinbase      = true,
+          spent         = false,
+          transactionOutput = S.S3_CarrayGenCoin_A50.output
+        )
+      )
+    ).get
+
+    utxoDesc should have (
+      ('txid (S.S3_CarrayGenCoin_A50.outPoint.transactionHash)),
+      ('vout (S.S3_CarrayGenCoin_A50.outPoint.outputIndex)),
+      ('address (Some(S.Carry.Addr1.address.base58()))),
+      ('account (Some("Carry"))),
+      ('scriptPubKey (hex(S.S3_CarrayGenCoin_A50.output.lockingScript.data))),
+      ('redeemScript (None)),
+      ('amount (scala.math.BigDecimal(50L))),
+      ('confirmations (1)),
+      ('spendable (false)) // because of coinbase maturity
+    )
+  }
+
+  "getUnspentCoinDescription" should "return the description of the UTXO for generation transaction(spendable=true)" ignore {
+    // TODO : Implement
+  }
+
+  "getUnspentCoinDescription" should "return the description of the UTXO for normal transaction" in {
+    val S = new WalletSampleData(wallet)
+    val utxoDesc = wallet.getUnspentCoinDescription(
+      S.TestBlockchainView,
+      Some(S.Alice.Addr2.address),
+      WalletOutputWithInfo(
+        S.S2_AliceChangeCoin1_A39.outPoint,
+        walletOutput = WalletOutput(
+          blockindex    = Some(S.S2_BlockHeight),
+          coinbase      = false,
+          spent         = false,
+          transactionOutput = S.S2_AliceChangeCoin1_A39.output
+        )
+      )
+    ).get
+
+    utxoDesc should have (
+      ('txid (S.S2_AliceChangeCoin1_A39.outPoint.transactionHash)),
+      ('vout (S.S2_AliceChangeCoin1_A39.outPoint.outputIndex)),
+      ('address (Some(S.Alice.Addr2.address.base58()))),
+      ('account (Some("Alice"))),
+      ('scriptPubKey (hex(S.S2_AliceChangeCoin1_A39.output.lockingScript.data))),
+      ('redeemScript (None)),
+      ('amount (scala.math.BigDecimal(39L))),
+      ('confirmations (2)),
+      ('spendable (true))
+    )
+  }
+
+  "getUnspentCoinDescription" should "return nothing if a coin is spent." in {
+    val S = new WalletSampleData(wallet)
+    val utxoDesc = wallet.getUnspentCoinDescription(
       S.TestBlockchainView,
       Some(S.Alice.Addr1.address),
       WalletOutputWithInfo(
-        outPoint = OutPoint(
-          transactionHash  = Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929"),
-          outputIndex      = 1
-        ),
+        S.S1_AliceGenCoin_A50.outPoint,
         walletOutput = WalletOutput(
-          blockindex    = Some(100L),
+          blockindex    = Some(S.S1_BlockHeight),
           coinbase      = true,
-          spent         = false,
-          transactionOutput = transaction1.outputs(0)
+          spent         = true,
+          transactionOutput = S.S1_AliceGenCoin_A50.output
         )
       )
-    ) shouldBe None // Need to update
+    ) shouldBe None
   }
 
   "getConfirmations" should "" in {
@@ -556,62 +719,93 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
   }
 
+  def utxo(account:String, output : OutputWithOutPoint, confirmations : Int, spendable : Boolean) : UnspentCoinDescriptor = {
+    UnspentCoinDescriptor(
+      txid          = output.outPoint.transactionHash,
+      vout          = output.outPoint.outputIndex,
+      address       = Some(LockingScriptAnalyzer.extractAddresses(output.output.lockingScript).head.base58()),
+      account       = Some(account),
+      scriptPubKey  = hex(output.output.lockingScript.data),
+      redeemScript  = None,
+      amount        = CoinAmount.from(output.output.value).value,
+      confirmations = confirmations,
+      spendable     = spendable
+    )
+  }
+
   "listUnspent(all addresses)" should "" in {
     val S = new WalletSampleData(wallet) {
       override def onStepFinish(step : Int): Unit = {
         step match {
           case 1 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set()
+            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
+              utxo("Alice", S1_AliceGenCoin_A50, confirmations = 1, spendable = false)
+            )
           }
           case 2 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set()
+            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 1, spendable = false),
+              utxo("Bob", S2_BobCoin1_A10, confirmations = 1, spendable = true),
+              utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 1, spendable = true)
+            )
           }
           case 3 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set()
+            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
+              utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
+              utxo("Alice", S3_AliceCoin1_A2, confirmations = 1, spendable = true),
+              utxo("Carry", S3_CarrayCoin1_A3, confirmations = 1, spendable = true),
+              utxo("Bob", S3_BobChangeCoin1_A5, confirmations = 1, spendable = true)
+            )
           }
           case 4 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set()
+            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
+              utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
+              utxo("Carry", S3_CarrayCoin1_A3, confirmations = 1, spendable = true),
+              utxo("Bob", S3_BobChangeCoin1_A5, confirmations = 1, spendable = true),
+              utxo("Carry", S4_CarryCoin2_A1, confirmations = 0, spendable = true)
+            )
           }
+
           case 5 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set()
+            wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
+              utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
+              utxo("Bob", S3_BobChangeCoin1_A5, confirmations = 1, spendable = true),
+              utxo("Alice", S5_AliceCoin3_A4, confirmations = 0, spendable = true)
+            )
           }
         }
       }
     }
   }
 
-  "listUnspent(some addresses)" should "" in {
-    val S = new WalletSampleData(wallet) {
-      override def onStepFinish(step : Int): Unit = {
-        step match {
-          case 1 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Alice.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Bob.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Carry.Addr1.address))).toSet shouldBe Set()
-          }
-          case 2 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Alice.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Bob.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Carry.Addr1.address))).toSet shouldBe Set()
-          }
-          case 3 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Alice.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Bob.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Carry.Addr1.address))).toSet shouldBe Set()
-          }
-          case 4 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Alice.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Bob.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Carry.Addr1.address))).toSet shouldBe Set()
-          }
-          case 5 => {
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Alice.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Bob.Addr1.address))).toSet shouldBe Set()
-            wallet.listUnspent(TestBlockchainView, 0, 100, Some(List(Carry.Addr1.address))).toSet shouldBe Set()
-          }
-        }
-      }
-    }
+  "listUnspent(some addresses)" should "list UTXO for an account." in {
+    val S = new WalletSampleData(wallet)
+
+    wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Alice.Addr1.address))).toSet shouldBe Set(
+      utxo("Alice", S.S5_AliceCoin3_A4, confirmations = 0, spendable = true)
+    )
+
+    wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Alice.Addr2.address))).toSet shouldBe Set(
+      utxo("Alice", S.S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true)
+    )
+
+    wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Bob.Addr1.address))).toSet shouldBe Set(
+      utxo("Bob", S.S2_BobGenCoin_A50, confirmations = 2, spendable = false)
+    )
+
+    wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Bob.Addr2.address))).toSet shouldBe Set(
+      utxo("Bob", S.S3_BobChangeCoin1_A5, confirmations = 1, spendable = true)
+    )
+
+    wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Carry.Addr1.address))).toSet shouldBe Set(
+      utxo("Carry", S.S3_CarrayGenCoin_A50, confirmations = 1, spendable = false)
+    )
   }
 
   ////////////////////////////////////////////////////////////////////////////////

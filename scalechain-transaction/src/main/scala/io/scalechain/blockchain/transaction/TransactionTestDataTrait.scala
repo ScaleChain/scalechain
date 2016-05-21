@@ -75,7 +75,13 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
   val TXHASH1 = Hash( HashCalculator.transactionHash(transaction1) )
   val TXHASH2 = Hash( HashCalculator.transactionHash(transaction2) )
   val TXHASH3 = Hash( HashCalculator.transactionHash(transaction3) )
-
+/*
+  val DUMMY_TXHASH1 = Hash
+  val DUMMY_TXHASH2 =
+  val DUMMY_TXHASH3 =
+  val DUMMY_TXHASH4 =
+  val DUMMY_TXHASH5 =
+*/
   val OUTPOINT1 = OutPoint(TXHASH1, 0)
   val OUTPOINT2 = OutPoint(TXHASH2, 0)
   val OUTPOINT3 = OutPoint(TXHASH3, 0)

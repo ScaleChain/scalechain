@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto.{Account, Hash, OutPoint}
 import io.scalechain.blockchain.proto.codec.{AccountCodec, OutPointCodec}
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
+import org.scalatest.matchers.HavePropertyMatcher
 
 /**
   * Created by kangmo on 5/19/16.

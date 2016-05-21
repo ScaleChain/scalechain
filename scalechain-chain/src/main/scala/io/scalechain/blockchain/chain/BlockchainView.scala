@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.transaction.CoinAmount
 
 /** A block in a best blockchain.
   * Has all data of a block and also additional information such as the height of a block.
@@ -54,4 +55,19 @@ trait BlockchainView extends CoinsView {
     */
   def getTransaction(transactionHash : Hash) : Option[Transaction]
 
+}
+
+
+trait ChainConstraints {
+  /** Get the current difficulty of block hash.
+    *
+    * @return
+    */
+  def getDifficulty(): Long
+
+  /** Get the amount of reward that a minder gets from the generation input.
+    *
+    * @return
+    */
+  def getCoinbaseAmount(): CoinAmount
 }

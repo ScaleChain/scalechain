@@ -113,4 +113,23 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
     }
     thrown.code shouldBe ErrorCode.OwnershipNotFound
   }
+
+  "getTransactionHashes" should "should get hashes for an account even though the same hash belongs to multiple addresses" in {
+    prepareTxHashTest()
+
+    store.putTransactionHash(ADDR1.address, TXHASH1)
+    store.putTransactionHash(ADDR1.address, TXHASH2)
+    store.putTransactionHash(ADDR1.address, TXHASH3)
+    store.putTransactionHash(ADDR2.address, TXHASH2)
+    store.putTransactionHash(ADDR2.address, TXHASH3)
+    store.putTransactionHash(ADDR3.address, TXHASH1)
+    store.putTransactionHash(ADDR3.address, TXHASH3)
+
+    store.getTransactionHashes(Some(ADDR1.address)).toSet shouldBe Set(TXHASH1, TXHASH2, TXHASH3)
+    store.getTransactionHashes(Some(ADDR2.address)).toSet shouldBe Set(TXHASH2, TXHASH3)
+    store.getTransactionHashes(Some(ADDR3.address)).toSet shouldBe Set(TXHASH1, TXHASH3)
+
+  }
+
+
 }

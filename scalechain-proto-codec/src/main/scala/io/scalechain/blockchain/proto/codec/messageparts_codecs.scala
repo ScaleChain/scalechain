@@ -20,6 +20,7 @@ trait SerializeParseUtil[T] {
         bitVector.toByteArray
       }
       case Attempt.Failure(err) => {
+        //println(s"error : ${err.toString}")
         throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
       }
     }
