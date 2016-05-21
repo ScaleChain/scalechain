@@ -78,6 +78,10 @@ object ErrorCode {
   val NotEnoughInputAmounts          = ErrorCode("not_enough_input_amounts")
   val GenerationInputWithOtherInputs = ErrorCode("generation_input_with_other_inputs")
   val SpendingOutputNotFound         = ErrorCode("spending_output_not_found")
+
+  // Transaction Signer
+  val UnableToSignCoinbaseTransaction = ErrorCode("unable_to_sign_coinbase_transaction")
+  val InvalidTransactionInput = ErrorCode("invalid_transaction_input")
 }
 
 
@@ -117,6 +121,8 @@ class TransactionVerificationException(val code:ErrorCode, override val message 
     s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"
   }
 }
+
+class TransactionSignException(val code:ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class BlockVerificationException(val code : ErrorCode) extends ExceptionWithErrorCode
 

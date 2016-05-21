@@ -38,7 +38,7 @@ trait ServiceDispatcher {
       }
     } else {
       RpcResponse(
-        result = None, // TODO : Need to make sure if this is converted to a json string, "result = null".
+        result = None,
         error = Some(RpcError(
           code = RpcError.RPC_METHOD_NOT_FOUND.code,
           message = RpcError.RPC_METHOD_NOT_FOUND.messagePrefix,

@@ -5,6 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.chain.{TransactionAnalyzer, ChainBlock, BlockchainView, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
@@ -35,6 +36,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * Used by : signrawtransaction RPC.
     *
     * TODO : Test Automation
+    * TODO : Need to connect inputs before signing.
     *
     * @param transaction The transaction to sign.
     * @param dependencies  Unspent transaction output details. The previous outputs being spent by this transaction.
@@ -47,13 +49,16 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                       privateKeys   : Option[List[PrivateKey]],
                       sigHash       : SigHash
                      ) : SignedTransaction = {
+    // TODO : Use blockchainView on the chain layer instead of blockIndex on the storage layer..
+    val blockIndex = DiskBlockStorage.get
+
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
       val privateKeysFromWallet = store.getPrivateKeys(None)
 
-      TransactionSigner.sign(transaction, dependencies, privateKeysFromWallet, sigHash )
+      TransactionSigner.sign(transaction, blockIndex, dependencies, privateKeysFromWallet, sigHash )
     } else {
-      TransactionSigner.sign(transaction, dependencies, privateKeys.get, sigHash )
+      TransactionSigner.sign(transaction, blockIndex, dependencies, privateKeys.get, sigHash )
     }
   }
 

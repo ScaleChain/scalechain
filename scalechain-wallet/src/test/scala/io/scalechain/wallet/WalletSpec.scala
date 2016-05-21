@@ -61,7 +61,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   ////////////////////////////////////////////////////////////////////////////////
   // Methods for signrawtransaction RPC
   ////////////////////////////////////////////////////////////////////////////////
-  "signTransaction" should "sign successfully with the private keys argument" in {
+  "signTransaction" should "sign successfully with the private keys argument" ignore {
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
@@ -77,7 +77,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
   }
 
-  "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
+  "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" ignore {
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
@@ -95,13 +95,13 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
-  "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" in {
+  "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" ignore {
     val S = new WalletSampleData(wallet)
 
     // TODO : Implement
   }
 
-  "signTransaction" should "sign two inputs from different address in two steps" in {
+  "signTransaction" should "sign two inputs from different address in two steps" ignore {
     val S = new WalletSampleData(wallet)
 
     //////////////////////////////////////////////////////////////////////////
@@ -223,7 +223,8 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   }
 
 
-  "getWalletTransactions(None)" should "return all wallet transactions for all accounts" in {
+  "getWalletTransactions(None)" should "return all wallet transactions for all accounts" ignore {
+    // TODO : Implement
     val S = new WalletSampleData(wallet) {
       override def onStepFinish(step : Int): Unit = {
         step match {
@@ -247,7 +248,10 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
-  "getWalletTransactions(Some(account))" should "return wallet transactions for an account" in {
+  "getWalletTransactions(Some(account))" should "return wallet transactions for an account" ignore {
+
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     wallet.getWalletTransactions(Some("Alice")) shouldBe Set(1)
@@ -391,7 +395,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     ) shouldBe None // need to update
   }
 
-  "listTransactions(None, includeWatchOnly=false)" should "return no transaction" in {
+  "listTransactions(None, includeWatchOnly=false)" should "return no transaction" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     // Because we did not call wallet.newAddress but wallet.importOutputOwnership,
@@ -405,7 +411,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     ) shouldBe List(1) // TODO : Update with actual result.
   }
 
-  "listTransactions(None, includeWatchOnly=true)" should "return all transactions" in {
+  "listTransactions(None, includeWatchOnly=true)" should "return all transactions" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet) {
       override def onStepFinish(step : Int): Unit = {
         step match {
@@ -459,7 +467,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
-  "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" in {
+  "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     wallet.listTransactions(

@@ -27,7 +27,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
   "RpcParams" should "be able to leave list of JsValues as is, if we want" in {
 
     val jsonrpcValue = "1.0"
-    val id = "abc"
+    val id = 1
     val method = "mymethod"
     val params = JsArray(
       // a simple string
@@ -62,30 +62,28 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
 
     val jsObject = JsObject(
       "jsonrpc" -> JsString(jsonrpcValue),
-      "id" -> JsString(id),
+      "id" -> JsNumber(id),
       "method" -> JsString(method),
       "params" -> params
       )
 
     val request = jsObject.convertTo[RpcRequest]
 
-    request.jsonrpc shouldBe jsonrpcValue
+    request.jsonrpc shouldBe Some(jsonrpcValue)
     request.id shouldBe id
     request.method shouldBe method
     request.params.paramValues shouldBe params.elements.toList
   }
 
-  "RpcParams" should "throw DeserializationException if jsonrpc field is missing " in {
+  "RpcParams" should "not throw a DeserializationException even though jsonrpc field is missing " in {
     val jsObject = JsObject(
       //"jsonrpc" -> JsString("1.0"),
-      "id" -> JsString("abc"),
+      "id" -> JsNumber(1),
       "method" -> JsString("myMethod"),
       "params" -> JsArray( JsString("arg1") )
     )
 
-    the [spray.json.DeserializationException] thrownBy {
-      jsObject.convertTo[RpcRequest]
-    } should have message "Object is missing required member 'jsonrpc'"
+    jsObject.convertTo[RpcRequest]
   }
 
   "RpcParams" should "throw DeserializationException if id field is missing " in {
@@ -104,7 +102,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
   "RpcParams" should "throw DeserializationException if method field is missing " in {
     val jsObject = JsObject(
       "jsonrpc" -> JsString("1.0"),
-      "id" -> JsString("abc"),
+      "id" -> JsNumber(1),
       //"method" -> JsString("myMethod"),
       "params" -> JsArray( JsString("arg1") )
     )
@@ -117,7 +115,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
   "RpcParams" should "throw DeserializationException if params field is missing " in {
     val jsObject = JsObject(
       "jsonrpc" -> JsString("1.0"),
-      "id" -> JsString("abc"),
+      "id" -> JsNumber(1),
       "method" -> JsString("myMethod")
       //"params" -> JsArray( JsString("arg1") )
     )
@@ -130,7 +128,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
   "RpcParams" should "throw DeserializationException if params field is not an array " in {
     val jsObject = JsObject(
       "jsonrpc" -> JsString("1.0"),
-      "id" -> JsString("abc"),
+      "id" -> JsNumber(1),
       "method" -> JsString("myMethod"),
       "params" -> JsString("arg1")
     )
