@@ -13,7 +13,7 @@ import io.scalechain.blockchain.api.command.network._
 import io.scalechain.blockchain.api.command.rawtx._
 
 import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.net.service.PeerInfo
+import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.TransactionDescriptor

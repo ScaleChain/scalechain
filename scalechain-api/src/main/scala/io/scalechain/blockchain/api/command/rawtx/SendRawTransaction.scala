@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
@@ -72,7 +72,7 @@ object SendRawTransaction extends RpcCommand {
 
       // Step 2 : Check if the transaction already exists.
       val txHash = Hash( HashCalculator.transactionHash(transaction))
-      val transactionOption = SubSystem.getTransaction(txHash)
+      val transactionOption = RpcSubSystem.get.getTransaction(txHash)
 
       if (transactionOption.isDefined) {
         // BUGBUG : check bitcoin core code to make sure the error code matches.
@@ -81,7 +81,7 @@ object SendRawTransaction extends RpcCommand {
               RpcError.RPC_INVALID_PARAMETER.messagePrefix,
               "The transaction already exists."))
       } else {
-        SubSystem.peerService.sendRawTransaction(transaction, allowHighFees)
+        RpcSubSystem.get.sendRawTransaction(transaction, allowHighFees)
         Right(Some(StringResult(ByteArray.byteArrayToString(txHash.value))))
       }
     }

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.api.command.blockchain
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{BlockFormatter, RpcCommand}
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
@@ -111,7 +111,7 @@ object GetBlock extends RpcCommand {
 
       val headerHash = Hash( HexUtil.bytes(headerHashString) )
 
-      val blockOption : Option[(BlockInfo, Block)] = SubSystem.blockDatabaseService.getBlock(headerHash)
+      val blockOption : Option[(BlockInfo, Block)] = RpcSubSystem.get.getBlock(headerHash)
 
       val resultOption = if (format) {
         blockOption.map{ case (blockInfo, block) => BlockFormatter.getBlockResult(blockInfo, block) }

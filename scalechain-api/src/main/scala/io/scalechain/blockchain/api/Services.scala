@@ -32,11 +32,11 @@ object Services {
     GetNewAddress,
     GetReceivedByAddress,
     ListTransactions,
-    ListUnspent
+    ListUnspent,
+    SignRawTransaction
 
     /*
         GetTransaction,
-        SignRawTransaction,
     */
   )
 

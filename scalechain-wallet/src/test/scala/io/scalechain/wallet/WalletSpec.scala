@@ -839,6 +839,16 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     // TODO : Implement test case
   }
 
+  "importOutputOwnership" should "change the receiving address to the imported address" in {
+    val S = new WalletSampleData(wallet)
+    wallet.importOutputOwnership(
+      S.TestBlockchainView,
+      "test1",
+      S.Alice.Addr1.address,
+      rescanBlockchain = false)
+    wallet.getReceivingAddress("test1") shouldBe S.Alice.Addr1.address
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
   // Methods for getaccount RPC
   ////////////////////////////////////////////////////////////////////////////////

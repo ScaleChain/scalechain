@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{TransactionFormatter, RpcCommand}
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
@@ -170,7 +170,7 @@ object GetRawTransaction extends RpcCommand {
 
       val txHash = Hash ( HexUtil.bytes(txHashString) )
 
-      val transactionOption = SubSystem.getTransaction(txHash)
+      val transactionOption = RpcSubSystem.get.getTransaction(txHash)
 
       val rawTransactionOption = transactionOption.map( TransactionFormatter.getRawTransaction(_) )
 

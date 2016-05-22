@@ -89,6 +89,10 @@ trait BlockStorage extends BlockIndex {
     }
   }
 
+  /** Get the block header hash of the tip on the best blockchain.
+    *
+    * @return The best block hash.
+    */
   def getBestBlockHash() : Option[Hash] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.

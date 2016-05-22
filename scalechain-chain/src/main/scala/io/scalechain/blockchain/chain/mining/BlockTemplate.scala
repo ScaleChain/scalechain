@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.chain.mining
 
 import io.scalechain.blockchain.chain.BlockDescriptor
-import io.scalechain.blockchain.proto.{Block, BlockHeader, MerkleRootHash, Transaction}
+import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.transaction.ChainEnvironment
 
 /** The template of a block for creating a block.
   * It has list of transactions to put into a block.
@@ -19,7 +20,7 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     *
     * @return the merkle root hash.
     */
-  def calculateMerkleRoot() : MerkleRootHash = {
+  protected[mining] def calculateMerkleRoot() : MerkleRootHash = {
     // TODO : Implement
     assert(false)
 
@@ -32,27 +33,17 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
 
   /** Get the block header from this template.
     *
-    * @param prevBlockDesc the descriptor of the previous block
+    * @param prevBlockHash the hash of the previous block header.
     * @return The block header created from this template.
     */
-  def getBlockHeader(prevBlockDesc : BlockDescriptor) : BlockHeader = {
+  def getBlockHeader(prevBlockHash : BlockHash) : BlockHeader = {
     // Step 1 : Calculate the merkle root hash.
     val merkleRootHash = calculateMerkleRoot()
 
-    // Step 2 : Create the block header
-    BlockHeader(Block.VERSION, prevBlockDesc.blockHash, merkleRootHash, System.currentTimeMillis(), difficultyBits, 0L)
-  }
+    val env = ChainEnvironment.get
 
-  /** Find the nonce value by trying N times.
-    *
-    * @param blockHeader The header of the block.
-    * @param tryCount The number of times to try to find a nonce.
-    * @return Some nonce if the nonce was found. None otherwise.
-    */
-  def findNonce(blockHeader : BlockHeader, tryCount : Int) : Option[Long] = {
-    // TODO : Implement
-    assert(false)
-    None
+    // Step 2 : Create the block header
+    BlockHeader(env.DefaultBlockVersion, prevBlockHash, merkleRootHash, System.currentTimeMillis(), difficultyBits, 0L)
   }
 
   /** Create a block based on the block header and nonce.

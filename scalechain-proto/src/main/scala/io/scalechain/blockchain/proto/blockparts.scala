@@ -194,7 +194,6 @@ case class Transaction(val version : Int,
 
 object Block {
   // Need to move these to configurations.
-  val VERSION = 1
   val MAX_SIZE = 1024 * 1024
 }
 

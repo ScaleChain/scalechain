@@ -482,6 +482,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * TODO : Test Automation
     *
+    *
     * @param blockchainView Provides a chain iterator, which iterates blocks in the best blockchain.
     * @param outputOwnership The ownership object that describes an ownership of a coin.
     * @param account The account name
@@ -497,8 +498,12 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
     store.putOutputOwnership(account, outputOwnership)
 
+    // Step 2 : Register the address as an receiving address.
+    // TODO : Bitcoin Compatibility : bitcoind might not register the watch-only address as a receiving address.
+    store.putReceivingAddress(account, outputOwnership)
+
     var tranasctionIndex = -1
-    // Step 2 : Rescan blockchain
+    // Step 3 : Rescan blockchain
     if (rescanBlockchain) {
       blockchainView.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
         chainBlock.block.transactions foreach { transaction =>

@@ -1,20 +1,28 @@
 package io.scalechain.blockchain.chain
 
+import java.io.File
+
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock}
+import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
-import io.scalechain.blockchain.transaction.CoinAmount
+import io.scalechain.blockchain.transaction.{CoinAddress, CoinAmount}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
 object Blockchain {
-  var theBlockchain = new Blockchain()
-  def get() = theBlockchain
+  var theBlockchain : Blockchain = null
+  def create(storage : BlockStorage) = {
+    new Blockchain(storage)
+  }
+  def get() = {
+    assert( theBlockchain != null)
+    theBlockchain
+  }
 }
 
 /** Maintains the best blockchain, whose chain work is the biggest one.
@@ -65,7 +73,16 @@ object Blockchain {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain extends BlockchainView with ChainConstraints{
+class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstraints{
+  var chainEventListener : Option[ChainEventListener] = None
+
+  /** Set an event listener of the blockchain.
+    *
+    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction mempool..
+    */
+  def setEventListener( listener : ChainEventListener ): Unit = {
+    chainEventListener = Some(listener)
+  }
 
   /** The descriptor of the best block.
     * This value is updated whenever a new best block is found.
@@ -188,7 +205,7 @@ class Blockchain extends BlockchainView with ChainConstraints{
     *
     * @return The block template which has a sorted list of transactions to include into a block.
     */
-  def getBlockTemplate() : BlockTemplate = {
+  def getBlockTemplate(minerAddress : CoinAddress) : BlockTemplate = {
     val difficultyBits = calculateDifficulty(prevBlockDesc = theBestBlock)
 
     val validTransactions = mempool.getValidTransactions()
@@ -286,6 +303,49 @@ class Blockchain extends BlockchainView with ChainConstraints{
     0L
   }
 
+  /**
+    *
+    * @return
+    */
+  def getBestBlockHash() : Option[Hash] = {
+    storage.getBestBlockHash()
+  }
+
+
+  /** Get the hash of a block specified by the block height on the best blockchain.
+    *
+    * Used by : getblockhash RPC.
+    *
+    * @param blockHeight The height of the block.
+    * @return The hash of the block header.
+    */
+  def getBlockHash(blockHeight : Long) : Hash = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+  /** See if a block exists on the blockchain.
+    *
+    * Used by : submitblock RPC to check if a block already exists.
+    *
+    * @param blockHash The hash of the block header to check.
+    * @return true if the block exists; false otherwise.
+    */
+  def hasBlock(blockHash : Hash) : Boolean = {
+    storage.hasBlock(blockHash)
+  }
+
+  /** Get a block searching by the header hash.
+    *
+    * Used by : getblock RPC.
+    *
+    * @param blockHash The header hash of the block to search.
+    * @return The searched block.
+    */
+  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
+    storage.getBlock(blockHash)
+  }
   /** Return a transaction that matches the given transaction hash.
     *
     * Used by listtransaction RPC to get the
@@ -294,6 +354,29 @@ class Blockchain extends BlockchainView with ChainConstraints{
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+/*
+      // Step 1 : Search mempool.
+      val mempoolTransactionOption = RpcSubSystem.mempoolService.getTransaction(txHash)
+
+      // Step 2 : Search block database.
+      val dbTransactionOption = RpcSubSystem.blockDatabaseService.getTransaction(txHash)
+
+      // Step 3 : Run validation.
+
+      //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
+      //mempoolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+      //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+
+      if ( mempoolTransactionOption.isDefined ) {
+        Some(mempoolTransactionOption.get)
+      } else if (dbTransactionOption.isDefined){
+        Some(dbTransactionOption.get)
+      } else {
+        None
+      }
+
+ */
+
     // TODO : Implement
     assert(false)
     null

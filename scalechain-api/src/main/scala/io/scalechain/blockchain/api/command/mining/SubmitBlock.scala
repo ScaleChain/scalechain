@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.api.command.mining
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.transaction.TransactionVerifier
