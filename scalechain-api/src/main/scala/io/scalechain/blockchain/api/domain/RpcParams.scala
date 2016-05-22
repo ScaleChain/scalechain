@@ -57,12 +57,19 @@ case class RpcParams(paramValues:List[JsValue]) {
   def getListOption[T](name:String, index:Int)(implicit reader : spray.json.JsonReader[List[T]]): Option[List[T]] = {
     if (index < paramValues.length) {
       val value = paramValues(index)
-      try {
-        val convertedValue = value.convertTo[List[T]]
-        Some( convertedValue )
-      } catch {
-        case e : spray.json.DeserializationException => {
-          throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.getMessage)
+      if ( value == JsNull) {
+        // TODO : Add test case for this branch.
+        // bitcoind's signrawtransaction treats null as if the parameter was not passed.
+        // {"id":1463951880819,"method":"signrawtransaction","params":["010000000142cc891b5688fcab5b4e377f8d6270763caea8860e84f556917a60ee7f51bcec0000000000ffffffff02400d0300000000001976a914d07e90533f40a45d5d8bc3f3c22803a5fdbeac1788aca096022a010000001976a91426368831bb36b9285664570379c6e699b9bc72a988ac00000000",[],null]}
+        None
+      } else {
+        try {
+          val convertedValue = value.convertTo[List[T]]
+          Some( convertedValue )
+        } catch {
+          case e : spray.json.DeserializationException => {
+            throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.getMessage)
+          }
         }
       }
     } else {
@@ -74,18 +81,24 @@ case class RpcParams(paramValues:List[JsValue]) {
     if (index < paramValues.length) {
       val value = paramValues(index)
 
-      try {
-        val convertedValue = value.convertTo[T]
+      if ( value == JsNull) {
+        // TODO : Add test case for this branch.
+        // Make it consistent with getListOption. Treat null value as if no parameter was given.
+        None
+      } else {
+        try {
+          val convertedValue = value.convertTo[T]
 
-        // Make sure all validation checks succeed.
-        parameterValidators.foreach { validator =>
-          validator.validate(name, index, convertedValue)
-        }
+          // Make sure all validation checks succeed.
+          parameterValidators.foreach { validator =>
+            validator.validate(name, index, convertedValue)
+          }
 
-        Some( convertedValue )
-      } catch {
-        case e : spray.json.DeserializationException => {
-          throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.getMessage)
+          Some( convertedValue )
+        } catch {
+          case e : spray.json.DeserializationException => {
+            throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.getMessage)
+          }
         }
       }
     } else {

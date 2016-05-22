@@ -395,7 +395,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   def getBestBlockHeight() : Long = {
     assert(theBestBlock != null)
-    println(s"best height : ${theBestBlock.height}")
     theBestBlock.height
   }
 

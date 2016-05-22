@@ -43,7 +43,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   // For every 10 seconds, create a new block template for mining a block.
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
-
+  val PREMINE_BLOCKS = 5;
   def start() : Unit = {
 
     val thread = new Thread {
@@ -83,8 +83,10 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   blockFound = true
                   println("Coin Mined.")
 
-                  // Sleep 30 seconds
-                  Thread.sleep(30000)
+                  if ( chain.getBestBlockHeight() >= PREMINE_BLOCKS) {
+                    // Sleep 30 seconds
+                    Thread.sleep(30000)
+                  }
                 }
               }
             } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)

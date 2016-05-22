@@ -269,7 +269,8 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
 
     val serviceResponse : RpcResponse = dispatch(request)
     val stringResponse = serviceResponse.toJson.prettyPrint
-    println(s"String Response : ${stringResponse}")
+    // Show the first 256 chars of the response.
+    println(s"String Response : ${if (stringResponse.length() >= 2048) stringResponse.substring(0,2047)+"..." else stringResponse}")
   stringResponse
   }
 

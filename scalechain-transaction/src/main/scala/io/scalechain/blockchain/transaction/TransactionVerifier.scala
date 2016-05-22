@@ -130,14 +130,15 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
     */
   def getLockingScript(blockIndex : BlockIndex): LockingScript = {
     val outputTxOption = blockIndex.getTransaction(transactionInput.outputTransactionHash)
+    lazy val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${HashCalculator.transactionHash(transaction)}"
     if (outputTxOption.isEmpty) {
       // The transaction which produced the UTXO does not exist.
-      throw new TransactionVerificationException(ErrorCode.InvalidOutputTransactionHash, message = s"Invalid Output Tranasction Hash")
+      throw new TransactionVerificationException(ErrorCode.InvalidOutputTransactionHash, message = s"Invalid Output Tranasction Hash." + details)
     }
     // The transaction that produced UTXO exists.
     val outputTx = outputTxOption.get
     if (transactionInput.outputIndex < 0 || transactionInput.outputIndex >= outputTx.outputs.length) {
-      throw new TransactionVerificationException(ErrorCode.InvalidOutputIndex, message = s"Invalid Output Index")
+      throw new TransactionVerificationException(ErrorCode.InvalidOutputIndex, message = s"Invalid Output Index." + details)
     }
 
     /**
