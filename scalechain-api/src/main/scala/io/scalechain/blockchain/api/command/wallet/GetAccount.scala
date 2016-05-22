@@ -48,7 +48,7 @@ object GetAccount extends RpcCommand {
 
       val coinAddress = CoinAddress.from(address)
 
-      val accountNameOption : Option[String] = Wallet.getAccount(coinAddress)
+      val accountNameOption : Option[String] = Wallet.get.getAccount(coinAddress)
       Right(Some(StringResult(accountNameOption.getOrElse(""))))
     }
   }

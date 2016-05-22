@@ -47,7 +47,7 @@ object GetAccountAddress extends RpcCommand {
     handlingException {
       val account: String = request.params.get[String]("Account", 0)
 
-      val receivingCoinAddress : CoinAddress = Wallet.getReceivingAddress(account)
+      val receivingCoinAddress : CoinAddress = Wallet.get.getReceivingAddress(account)
 
       val address = receivingCoinAddress.base58
       Right(Some(StringResult(address)))

@@ -58,7 +58,7 @@ object GetReceivedByAddress extends RpcCommand {
 
       val address = CoinAddress.from(addressString)
 
-      val amount : CoinAmount = Wallet.getReceivedByAddress(Blockchain.get, address, confirmation)
+      val amount : CoinAmount = Wallet.get.getReceivedByAddress(Blockchain.get, address, confirmation)
 
       Right(Some(NumberResult(amount.value)))
 

@@ -43,7 +43,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
     DiskBlockStorage.theBlockStorage = storage
-    wallet = new Wallet(testPathForWallet)
+    wallet = Wallet.create(testPathForWallet)
 
     super.beforeEach()
   }
@@ -67,7 +67,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "signTransaction" should "sign successfully with the private keys argument" in {
     val S = new WalletSampleData(wallet)
 
-    val signedTransaction = Wallet.signTransaction(
+    val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -84,7 +84,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
     val S = new WalletSampleData(wallet)
 
-    val signedTransaction = Wallet.signTransaction(
+    val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -111,7 +111,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     //////////////////////////////////////////////////////////////////////////
     // Step 1 : sign for the first input.
-    val signedTransaction1 = Wallet.signTransaction(
+    val signedTransaction1 = Wallet.get.signTransaction(
       S.S5_CarryMergeToAliceTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -127,7 +127,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     //////////////////////////////////////////////////////////////////////////
     // Step 2 : sign for the second input.
-    val finalTransaction = Wallet.signTransaction(
+    val finalTransaction = Wallet.get.signTransaction(
       signedTransaction1.transaction,
       S.TestBlockchainView,
       List(),

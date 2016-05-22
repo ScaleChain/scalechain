@@ -127,7 +127,7 @@ object ScaleChainPeer extends JsonRpc {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = new File("./target/blockstorage")
+    val blockStoragePath = new File(s"./target/blockstorage-${params.inboundPort}")
     Storage.initialize()
     // Initialize the block storage.
     val storage: BlockStorage = DiskBlockStorage.create(blockStoragePath)
@@ -152,7 +152,9 @@ object ScaleChainPeer extends JsonRpc {
 
     // Step 7 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    chain.setEventListener(Wallet)
+    val walletPath = new File(s"./target/wallet-${params.inboundPort}")
+    val wallet = Wallet.create(walletPath)
+    chain.setEventListener(wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
@@ -160,6 +162,6 @@ object ScaleChainPeer extends JsonRpc {
     JsonRpcMicroservice.runService(system, materializer, system.dispatcher)
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    CoinMiner.create(params.miningAccount, Wallet, chain, peerCommunicator)
+    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator)
   }
 }

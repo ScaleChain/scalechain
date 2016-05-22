@@ -11,8 +11,19 @@ import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 
-object Wallet extends Wallet(new File("./target/wallet")) {
+object Wallet {
+  private var theWallet : Wallet = null
+  def create( walletPath : File) : Wallet = {
+    theWallet = new Wallet(walletPath)
+    theWallet
+  }
+
+  def get() = {
+    assert(theWallet != null)
+    theWallet
+  }
 }
+
 
 /** The WalletOutput with additional information such as OutPoint.
   *

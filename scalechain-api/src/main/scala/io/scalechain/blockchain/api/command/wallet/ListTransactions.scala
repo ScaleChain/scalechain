@@ -90,7 +90,7 @@ object ListTransactions extends RpcCommand {
 
       // None means to list transactions from all accounts in the wallet.
       val accountOption = if (account == "*") None else Some(account)
-      val transactionDescs : List[TransactionDescriptor] = Wallet.listTransactions(
+      val transactionDescs : List[TransactionDescriptor] = Wallet.get.listTransactions(
         Blockchain.get, accountOption, count, skip, includeWatchOnly
       )
 
