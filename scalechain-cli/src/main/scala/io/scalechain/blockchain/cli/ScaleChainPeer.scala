@@ -45,6 +45,9 @@ object ScaleChainPeer extends JsonRpc {
     // TODO : Need to get an argument from the command line to decide which network to use. By default use testnet for now.
     ChainEnvironment.create("testnet")
 
+    // Initialize the printer setter, to print script operations on transactions.
+    BlockPrinterSetter.initialize
+
     Storage.initialize()
     DiskBlockStorage.create(new File("./target/blockstorage"))
 
@@ -90,11 +93,6 @@ object ScaleChainPeer extends JsonRpc {
         }
       }
 
-    // Initialize the storage sub-system.
-    Storage.initialize()
-
-    // Initialize the printer setter, to print script operations on transactions.
-    BlockPrinterSetter.initialize
 
     /** Create the actor system.
       */

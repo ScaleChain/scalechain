@@ -136,7 +136,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
     blockIndex.addTransaction(TransactionHash(transactionHash.value), transactionWithName.transaction)
     chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
-    println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
+    //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
   /** Create a generation transaction

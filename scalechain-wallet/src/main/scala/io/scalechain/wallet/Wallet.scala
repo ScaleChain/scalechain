@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.chain.{TransactionAnalyzer, ChainBlock, BlockchainView, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
-import io.scalechain.blockchain.storage.DiskBlockStorage
+import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
@@ -39,18 +39,18 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * TODO : Need to connect inputs before signing.
     *
     * @param transaction The transaction to sign.
+    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
     * @param dependencies  Unspent transaction output details. The previous outputs being spent by this transaction.
     * @param privateKeys An array holding private keys.
     * @param sigHash The type of signature hash to use for all of the signatures performed.
     * @return
     */
   def signTransaction(transaction   : Transaction,
+                      blockIndex    : BlockIndex,
                       dependencies  : List[UnspentTransactionOutput],
                       privateKeys   : Option[List[PrivateKey]],
                       sigHash       : SigHash
                      ) : SignedTransaction = {
-    // TODO : Use blockchainView on the chain layer instead of blockIndex on the storage layer..
-    val blockIndex = DiskBlockStorage.get
 
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
@@ -704,7 +704,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
       // Step 4 : Wallet Store : Put a transaction into the output ownership.
       if (isTransactionRelatedToTheOwnership) {
-        println(s"putTxHash:${ownership}, ${transactionHash}")
+        //println(s"putTxHash:${ownership}, ${transactionHash}")
         store.putTransactionHash(ownership, transactionHash)
       }
     }

@@ -19,6 +19,14 @@ case class Op0() extends Constant {
   }
 }
 
+object OpPush {
+  val MAX_SIZE = 75
+  def from(value : Array[Byte]) = {
+    assert(value.length <= MAX_SIZE)
+    OpPush(value.length, ScriptValue.valueOf(value))
+  }
+}
+
 /** 1-75(0x01-0x4b) : Push the next N bytes onto the stack, where N is 1 to 75 bytes
   */
 case class OpPush(val byteCount : Int, val inputValue : ScriptValue = null) extends Constant {

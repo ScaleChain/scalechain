@@ -32,15 +32,18 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   val TEST_RECORD_FILE_SIZE = 1024 * 1024
 
   var wallet  : Wallet = null
-//  var storage : BlockStorage = null
-  val testPath = new File("./target/unittests-WalletSpec/")
+  var storage : DiskBlockStorage = null
+  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
+  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
   override def beforeEach() {
+    FileUtils.deleteDirectory(testPathForWallet)
+    FileUtils.deleteDirectory(testPathForStorage)
+    testPathForWallet.mkdir()
+    testPathForStorage.mkdir()
 
-    FileUtils.deleteDirectory(testPath)
-    testPath.mkdir()
-
-//    storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
-    wallet = new Wallet(testPath)
+    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
+    DiskBlockStorage.theBlockStorage = storage
+    wallet = new Wallet(testPathForWallet)
 
     super.beforeEach()
   }
@@ -48,24 +51,25 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   override def afterEach() {
     super.afterEach()
 
-//    storage.close()
+    storage.close()
     wallet.close()
 
-//    storage = null
+    storage = null
     wallet  = null
 
-    FileUtils.deleteDirectory(testPath)
-
+    FileUtils.deleteDirectory(testPathForWallet)
+    FileUtils.deleteDirectory(testPathForStorage)
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   // Methods for signrawtransaction RPC
   ////////////////////////////////////////////////////////////////////////////////
-  "signTransaction" should "sign successfully with the private keys argument" ignore {
+  "signTransaction" should "sign successfully with the private keys argument" in {
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
+      S.blockIndex,
       List(),
       Some(List( S.Alice.Addr1.privateKey )),
       SigHash.ALL
@@ -77,11 +81,12 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
   }
 
-  "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" ignore {
+  "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
     val S = new WalletSampleData(wallet)
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
+      S.blockIndex,
       List(),
       None,
       SigHash.ALL
@@ -101,13 +106,14 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     // TODO : Implement
   }
 
-  "signTransaction" should "sign two inputs from different address in two steps" ignore {
+  "signTransaction" should "sign two inputs from different address in two steps" in {
     val S = new WalletSampleData(wallet)
 
     //////////////////////////////////////////////////////////////////////////
     // Step 1 : sign for the first input.
     val signedTransaction1 = Wallet.signTransaction(
       S.S5_CarryMergeToAliceTx.transaction,
+      S.blockIndex,
       List(),
       Some(List(S.Carry.Addr1.privateKey)),
       SigHash.ALL
@@ -123,13 +129,14 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     // Step 2 : sign for the second input.
     val finalTransaction = Wallet.signTransaction(
       signedTransaction1.transaction,
+      S.blockIndex,
       List(),
       Some(List(S.Carry.Addr2.privateKey)),
       SigHash.ALL
     )
 
     finalTransaction.complete shouldBe true
-    new TransactionVerifier(signedTransaction1.transaction).verify(S.blockIndex)
+    new TransactionVerifier(finalTransaction.transaction).verify(S.blockIndex)
   }
 
 
