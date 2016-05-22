@@ -69,7 +69,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
-      S.blockIndex,
+      S.TestBlockchainView,
       List(),
       Some(List( S.Alice.Addr1.privateKey )),
       SigHash.ALL
@@ -78,7 +78,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     signedTransaction.complete shouldBe true
 
     // Should not throw an exception.
-    new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
+    new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
   }
 
   "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
@@ -86,7 +86,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
-      S.blockIndex,
+      S.TestBlockchainView,
       List(),
       None,
       SigHash.ALL
@@ -96,7 +96,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     // Should throw an exception.
     a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
+      new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
     }
   }
 
@@ -113,7 +113,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     // Step 1 : sign for the first input.
     val signedTransaction1 = Wallet.signTransaction(
       S.S5_CarryMergeToAliceTx.transaction,
-      S.blockIndex,
+      S.TestBlockchainView,
       List(),
       Some(List(S.Carry.Addr1.privateKey)),
       SigHash.ALL
@@ -122,21 +122,21 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     signedTransaction1.complete shouldBe false
 
     a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction1.transaction).verify(S.blockIndex)
+      new TransactionVerifier(signedTransaction1.transaction).verify(S.TestBlockchainView)
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Step 2 : sign for the second input.
     val finalTransaction = Wallet.signTransaction(
       signedTransaction1.transaction,
-      S.blockIndex,
+      S.TestBlockchainView,
       List(),
       Some(List(S.Carry.Addr2.privateKey)),
       SigHash.ALL
     )
 
     finalTransaction.complete shouldBe true
-    new TransactionVerifier(finalTransaction.transaction).verify(S.blockIndex)
+    new TransactionVerifier(finalTransaction.transaction).verify(S.TestBlockchainView)
   }
 
 

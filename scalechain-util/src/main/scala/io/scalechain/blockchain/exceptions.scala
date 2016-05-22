@@ -21,14 +21,15 @@ object ErrorCode {
 
   // Transaction verification errors
   val InvalidInputIndex = ErrorCode("invalid_input_index")
-  val InvalidOutputIndex = ErrorCode("invalid_output_index")
   val TopValueFalse = ErrorCode("top_value_false")
   val ScriptParseFailure = ErrorCode("script_parse_failure")
   val ScriptEvalFailure = ErrorCode("script_eval_failure")
   val GeneralFailure= ErrorCode("general_failure")
-  val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
   val UnsupportedHashType = ErrorCode("unsupported_hash_type")
   val NotEnoughStackValues = ErrorCode("not_enough_stack_values")
+
+//  val InvalidOutputIndex = ErrorCode("invalid_output_index")
+//  val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
 
   // HTTP errors
   val HttpRequestFailure = ErrorCode("http_request_failure")

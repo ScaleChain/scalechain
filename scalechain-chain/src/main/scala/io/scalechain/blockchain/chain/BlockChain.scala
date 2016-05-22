@@ -9,7 +9,7 @@ import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
-import io.scalechain.blockchain.transaction.{ChainEnvironment, CoinAddress, CoinAmount}
+import io.scalechain.blockchain.transaction._
 import io.scalechain.util.Utils
 import org.slf4j.LoggerFactory
 

@@ -4,6 +4,7 @@ import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Hash, HashFormat}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.DiskBlockStorage
@@ -68,7 +69,7 @@ object SendRawTransaction extends RpcCommand {
 
       // Step 1 : Decode the transaction and run validation.
       val transaction = TransactionDecoder.decodeTransaction(serializedTransaction)
-      new TransactionVerifier(transaction).verify(DiskBlockStorage.get)
+      new TransactionVerifier(transaction).verify(Blockchain.get)
 
       // Step 2 : Check if the transaction already exists.
       val txHash = Hash( HashCalculator.transactionHash(transaction))

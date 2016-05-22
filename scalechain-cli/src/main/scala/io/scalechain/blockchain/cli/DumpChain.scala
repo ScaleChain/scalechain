@@ -2,6 +2,7 @@ package io.scalechain.blockchain.cli
 
 import java.io.{File, ByteArrayInputStream, ByteArrayOutputStream}
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter, HashCalculator, ScriptParser, ScriptBytes}
@@ -29,7 +30,8 @@ object DumpChain {
 
   /** Dump all blocks in blkNNNNN.dat files in a directory.
    * Before dumping blocks, order files by its name, so that blocks are dumped in an order
-   * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
+    *
+    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
   def dumpBlocks(blocksPath : String) : Unit = {
 
@@ -65,7 +67,8 @@ object DumpChain {
    * tx : transaction hash
    * bk : block hash
    * mk : merkle root hash
-   * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
+    *
+    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
   def dumpHashes(blocksPath : String) : Unit = {
     class BlockListener extends BlockReadListener {
@@ -107,13 +110,14 @@ object DumpChain {
     val blockStoragePath = new File("./target/tempblockstorage/")
     blockStoragePath.mkdir()
     val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
-    storage.putBlock( GenesisBlock.BLOCK )
+    val chain = Blockchain.create(storage)
+    chain.putBlock( BlockHash(GenesisBlock.HASH.value), GenesisBlock.BLOCK )
 
     var blockHeight = 0
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         storage.putBlock(block)
-        new BlockVerifier(block).verify(storage)
+        new BlockVerifier(block).verify(chain)
         println(s"At block height : $blockHeight, ${BlockVerifier.statistics()}")
         blockHeight += 1
       }
@@ -177,7 +181,8 @@ object DumpChain {
 
     /**
      * Count the number of operations having a given OP code.
-     * @param opCode
+      *
+      * @param opCode
      * @return
      */
     def locking_script_has(opCode : OpCode) : ScriptFilter = {

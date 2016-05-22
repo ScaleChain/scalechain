@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.transaction.CoinsView
 import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint}
 

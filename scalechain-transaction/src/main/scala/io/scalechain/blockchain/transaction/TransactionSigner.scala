@@ -40,10 +40,10 @@ object TransactionSigner {
     * @param inputIndex The input we want to sign. it is an index to transaction.inputs.
     * @param privateKeys An array holding private keys.
     * @param lockingScript The locking script that the given input unlocks. From the ouput pointed by the out point in the input.
-    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The signed input.
     */
-  protected [transaction] def signInput(transaction: Transaction, inputIndex : Int, normalTxInput : NormalTransactionInput, privateKeys : List[PrivateKey], lockingScript : LockingScript, sigHash : SigHash, blockIndex : BlockIndex) : TransactionInput = {
+  protected [transaction] def signInput(transaction: Transaction, inputIndex : Int, normalTxInput : NormalTransactionInput, privateKeys : List[PrivateKey], lockingScript : LockingScript, sigHash : SigHash, chainView : BlockchainView) : TransactionInput = {
     // We already checked if the number of private keys is 1. Multisig is not supported yet.
     assert(!privateKeys.isDefinedAt(1))
     // We already checked that we have at least one private key.
@@ -94,15 +94,15 @@ object TransactionSigner {
     * @param inputIndex The input we want to sign. it is an index to transaction.inputs.
     * @param privateKeys An array holding private keys.
     * @param sigHash The type of signature hash to use for all of the signatures performed.
-    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return Some(transaction) if the given input was signed and the signature was verified. None otherwise.
     */
-  protected[transaction] def tryToSignInput(transaction: Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, blockIndex : BlockIndex) : Option[Transaction] = {
+  protected[transaction] def tryToSignInput(transaction: Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Option[Transaction] = {
     val inputToSign = transaction.inputs(inputIndex)
 
     inputToSign match {
       case normalTxInput : NormalTransactionInput => {
-        val lockingScript : LockingScript = new NormalTransactionVerifier(normalTxInput, transaction, inputIndex).getLockingScript(blockIndex)
+        val lockingScript : LockingScript = new NormalTransactionVerifier(normalTxInput, transaction, inputIndex).getLockingScript(chainView)
         val addresses : List[CoinAddress] = LockingScriptAnalyzer.extractAddresses(lockingScript)
 
         // TODO : Sign an input with multiple public key hashes.
@@ -130,7 +130,7 @@ object TransactionSigner {
           None
         } else {
           // Get the signed input to create a new transaction that has the signed input instead of the original one.
-          val signedInput : TransactionInput = signInput(transaction, inputIndex, normalTxInput, keysToUse, lockingScript, sigHash, blockIndex)
+          val signedInput : TransactionInput = signInput(transaction, inputIndex, normalTxInput, keysToUse, lockingScript, sigHash, chainView)
           val transactionWithSignedInput = transaction.copy(
             inputs = transaction.inputs.updated(inputIndex, signedInput)
           )
@@ -150,23 +150,22 @@ object TransactionSigner {
   /** Signs a transaction from the first input. This is a recursive function with the base case at the end of the inputs.
     *
     * @param transaction The transaction to sign
-    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
     * @param privateKeys An array holding private keys.
     * @param sigHash The type of signature hash to use for all of the signatures performed.
-    * @param blockIndex The block index required to verify transaction signature.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The transaction with the newly signed input updated.
     */
-  protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, blockIndex : BlockIndex) : Transaction = {
+  protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
 
     // TODO : List.length is costly. Optimize it by passing an input itself by dropping one item at head for each invocation of this method.
     if (inputIndex >= transaction.inputs.length) { // The base case. We try to sign all inputs.
       transaction
     } else {
       // Do our best to sign an input
-      val newTransaction = tryToSignInput(transaction, inputIndex, privateKeys, sigHash, blockIndex).getOrElse(transaction)
+      val newTransaction = tryToSignInput(transaction, inputIndex, privateKeys, sigHash, chainView).getOrElse(transaction)
 
       // Recursively call the signInputsFrom by increasing the input index.
-      signInputsFrom(newTransaction, inputIndex + 1, privateKeys, sigHash, blockIndex )
+      signInputsFrom(newTransaction, inputIndex + 1, privateKeys, sigHash, chainView )
     }
   }
 
@@ -174,10 +173,10 @@ object TransactionSigner {
     *
     * @param beforeSigning The original transaction.
     * @param afterSigning The newly signed transaction.
-    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The transaction with merged inputs.
     */
-  protected[transaction] def mergeSignatures(beforeSigning : Transaction, afterSigning : Transaction, blockIndex : BlockIndex): SignedTransaction = {
+  protected[transaction] def mergeSignatures(beforeSigning : Transaction, afterSigning : Transaction, chainView : BlockchainView): SignedTransaction = {
     assert(beforeSigning.inputs.length == afterSigning.inputs.length)
 
     var allInputsSigned = true
@@ -207,7 +206,7 @@ object TransactionSigner {
 
     // Make sure that the transaction verification passes if all inputs are signed.
     if (allInputsSigned) {
-      new TransactionVerifier(finalTransaction).verify(blockIndex)
+      new TransactionVerifier(finalTransaction).verify(chainView)
     }
 
     SignedTransaction(
@@ -219,14 +218,14 @@ object TransactionSigner {
   /** Sign a transaction.
     *
     * @param transaction The transaction to sign.
-    * @param blockIndex The block index required to get the outputs poined by inputs in this transaction.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @param dependencies  Unspent transaction output details. The previous outputs being spent by this transaction.
     * @param privateKeys An array holding private keys.
     * @param sigHash The type of signature hash to use for all of the signatures performed.
     * @return true if all inputs are signed, false otherwise.
     */
   def sign(transaction   : Transaction,
-           blockIndex    : BlockIndex,
+           chainView     : BlockchainView,
            dependencies  : List[UnspentTransactionOutput],
            privateKeys   : List[PrivateKey],
            sigHash       : SigHash
@@ -245,9 +244,9 @@ object TransactionSigner {
       throw new TransactionSignException( ErrorCode.UnableToSignCoinbaseTransaction )
     }
 
-    val signedTranasction = signInputsFrom(transaction, inputIndex = 0, privateKeys, sigHash, blockIndex)
+    val signedTranasction = signInputsFrom(transaction, inputIndex = 0, privateKeys, sigHash, chainView)
 
-    val signedResult : SignedTransaction = mergeSignatures(transaction, signedTranasction, blockIndex)
+    val signedResult : SignedTransaction = mergeSignatures(transaction, signedTranasction, chainView)
     signedResult
   }
 }

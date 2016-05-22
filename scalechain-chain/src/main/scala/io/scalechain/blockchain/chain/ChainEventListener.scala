@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.transaction.ChainBlock
 
 /**
   * A listener that subscribes chain events such as new transactions or removed transactions.

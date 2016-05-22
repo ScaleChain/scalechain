@@ -15,9 +15,9 @@ class TransactionVerifier(spendingTransaction : Transaction) {
   /** Check if a transaction's input successfully unlocks the locking script attached to the UTXO, which the input references.
    *
    * @param inputIndex Among multiple transaction inputs in the spending transaction, which one are we going to verify?
-   * @param blockIndex A block index that can search a transaction by its hash.
+   * @param chainView A blockchain view that can get the transaction output pointed by an out point.
    */
-  def verifyInput(inputIndex : Int, blockIndex : BlockIndex) = {
+  def verifyInput(inputIndex : Int, chainView : BlockchainView) = {
     val env = new ScriptEnvironment(spendingTransaction, Some(inputIndex))
 
     if (inputIndex < 0 || inputIndex >= spendingTransaction.inputs.length) {
@@ -26,19 +26,19 @@ class TransactionVerifier(spendingTransaction : Transaction) {
 
     spendingTransaction.inputs(inputIndex) match {
       case tx : NormalTransactionInput => {
-        new NormalTransactionVerifier(tx, spendingTransaction, inputIndex).verify(env, blockIndex)
+        new NormalTransactionVerifier(tx, spendingTransaction, inputIndex).verify(env, chainView)
       }
       case tx : GenerationTransactionInput => {
-        new GenerationTransactionVerifier(tx).verify(env, blockIndex)
+        new GenerationTransactionVerifier(tx).verify(env, chainView)
       }
     }
   }
 
   /** Verify all inputs of the spendingTransaction.
    */
-  def verify(blockIndex : BlockIndex) : Unit = {
+  def verify(chainView : BlockchainView) : Unit = {
     for ( inputIndex <- 0 until spendingTransaction.inputs.length) {
-      verifyInput(inputIndex, blockIndex)
+      verifyInput(inputIndex, chainView)
     }
   }
 }
@@ -124,11 +124,26 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
 
   /** Get the locking script attached to the UTXO which this input references with transactionHash and outputIndex.
     *
-    * @param blockIndex A block index that can search a transaction by its hash.
-    *
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The locking script attached to the UTXO which this input references.
     */
-  def getLockingScript(blockIndex : BlockIndex): LockingScript = {
+  def getLockingScript(chainView : BlockchainView): LockingScript = {
+    try {
+      val output = chainView.getTransactionOutput(
+        OutPoint(
+          Hash( transactionInput.outputTransactionHash.value) ,
+          transactionInput.outputIndex.toInt
+        )
+      )
+      output.lockingScript
+      // TODO : BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
+    } catch {
+      case _ : Exception => {
+        val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${HashCalculator.transactionHash(transaction)}"
+        throw new TransactionVerificationException(ErrorCode.InvalidOutPoint, message = s"Invalid Output Index." + details)
+      }
+    }
+/*
     val outputTxOption = blockIndex.getTransaction(transactionInput.outputTransactionHash)
     lazy val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${HashCalculator.transactionHash(transaction)}"
     if (outputTxOption.isEmpty) {
@@ -140,23 +155,20 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
     if (transactionInput.outputIndex < 0 || transactionInput.outputIndex >= outputTx.outputs.length) {
       throw new TransactionVerificationException(ErrorCode.InvalidOutputIndex, message = s"Invalid Output Index." + details)
     }
-
-    /**
-      *  BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
-      */
     outputTx.outputs(transactionInput.outputIndex.toInt).lockingScript
+*/
   }
 
   /** With a block index, verify that the unlocking script of the input successfully unlocks the locking script attached to the UTXO that this input references.
     *
     * @param env The script execution environment, which has (1) the transaction that this input belongs to, and (2) the index of the inputs of the transaction that corresponds to this transaction input.
-    * @param blockIndex A block index that can search a transaction by its hash.
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return (unlocking script, locking script) pair. This is used for debugging purpose. When an transaction verification fails, we will log the information to execute the transaction again using our debugger.
     * @throws TransactionVerificationException if the verification failed.
     */
-  def verify(env : ScriptEnvironment, blockIndex : BlockIndex): Unit = {
+  def verify(env : ScriptEnvironment, chainView : BlockchainView): Unit = {
     val lockingScript : LockingScript = throwingTransactionVerificationException {
-      getLockingScript(blockIndex)
+      getLockingScript(chainView)
     }
 
     // The merged script to use for debugging purpose.
@@ -165,7 +177,7 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
     // We can use it to debug why the transaction failed.
     val mergedScriptOption = Some(MergedScript(transaction, inputIndex, transactionInput.unlockingScript, lockingScript))
     throwingTransactionVerificationException(mergedScriptOption) {
-      val lockingScript : LockingScript = getLockingScript(blockIndex)
+      val lockingScript : LockingScript = getLockingScript(chainView)
 
       verify(env, lockingScript)
     }
@@ -272,13 +284,12 @@ class GenerationTransactionVerifier(transaction : GenerationTransactionInput) {
     * after the block where this generation transaction exists.
     *
     * @param env For a generation transaction, this is null, because we don't need to execute any script.
-    * @param blockIndex For a generation tranasction, this is null, because we don't need to search any tranasction by its hash.
-    *
+    * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @throws TransactionVerificationException if the verification failed.
     */
-  def verify(env : ScriptEnvironment, blockIndex : BlockIndex) : Unit = {
+  def verify(env : ScriptEnvironment, chainView : BlockchainView): Unit = {
     //assert(env == null)
-    //assert(blockIndex == null)
+    //assert(chainView == null)
     // Do nothing.
     // TODO : Verify that 100 blocks are created after the generation transaction was created.
   }
