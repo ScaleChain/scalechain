@@ -55,8 +55,9 @@ class TransactionMempool(blockStorage : BlockStorage) {
     */
   def put(transaction : Transaction): Unit = {
     val txHash = Hash( HashCalculator.transactionHash(transaction) )
-    // TODO : Implement
-    assert(false)
+
+    // TODO : check if the transaction inputs are connected and points to unspent outputs.
+    completeTransactions.put(txHash, transaction)
   }
 
   /** Remove a transaction.
@@ -64,8 +65,7 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @param txHash The hash of the transaction to remove.
     */
   def del(txHash : Hash) : Unit = {
-    // TODO : Implement
-    assert(false)
+    completeTransactions.del(txHash)
   }
 
   /** Check if the storage has a transaction.
@@ -74,9 +74,7 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @return true if the transaction exists. false otherwise.
     */
   def exists(txHash : Hash): Boolean = {
-    // TODO : Implement
-    assert(false)
-    false
+    completeTransactions.exists(txHash)
   }
 
   /** Get a transaction by hash.

@@ -31,7 +31,7 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     val env = ChainEnvironment.get
 
     // Step 2 : Create the block header
-    BlockHeader(env.DefaultBlockVersion, prevBlockHash, merkleRootHash, System.currentTimeMillis(), difficultyBits, 0L)
+    BlockHeader(env.DefaultBlockVersion, prevBlockHash, merkleRootHash, System.currentTimeMillis()/1000, difficultyBits, 0L)
   }
 
   /** Create a block based on the block header and nonce.

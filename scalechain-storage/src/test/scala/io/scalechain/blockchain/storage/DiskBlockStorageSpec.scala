@@ -29,6 +29,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     testPath.mkdir()
 
     diskBlockStorage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
+
     storage = diskBlockStorage
 
     super.beforeEach()

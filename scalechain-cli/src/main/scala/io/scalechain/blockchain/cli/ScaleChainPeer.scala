@@ -13,9 +13,9 @@ import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
-import io.scalechain.blockchain.proto.{ProtocolMessage, IPv6Address, NetworkAddress, Version}
-import io.scalechain.blockchain.script.BlockPrinterSetter
-import io.scalechain.blockchain.storage.{BlockStorage, DiskBlockStorage, Storage}
+import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.script.{HashCalculator, BlockPrinterSetter}
+import io.scalechain.blockchain.storage.{GenesisBlock, BlockStorage, DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
 import io.scalechain.util.HexUtil._
@@ -120,7 +120,11 @@ object ScaleChainPeer extends JsonRpc {
     BlockPrinterSetter.initialize
 
     // Step 3 : Create the testnet enviornment.
-    ChainEnvironment.create(params.network)
+    val env : ChainEnvironment = ChainEnvironment.create(params.network).getOrElse {
+      println(s"Invalid p2p network : ${params.network}")
+      System.exit(-1)
+      null
+    }
 
     // Step 4 : Storage Layer : Initialize block storage.
     val blockStoragePath = new File("./target/blockstorage")
@@ -132,6 +136,15 @@ object ScaleChainPeer extends JsonRpc {
     // Step 5 : Chain Layer : Initialize blockchain.
     // BUGBUG : Need to change the folder name according to the production env.
     val chain = Blockchain.create(storage)
+
+    // See if we have genesis block. If not, put one.
+    if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
+      chain.putBlock(BlockHash(env.GenesisBlockHash.value), env.GenesisBlock)
+    }
+
+    assert( chain.getBestBlockHash().isDefined )
+
+
 
     // Step 6 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.

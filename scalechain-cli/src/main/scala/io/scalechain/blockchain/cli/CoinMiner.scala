@@ -25,14 +25,6 @@ object CoinMiner {
     assert(theCoinMiner != null)
     theCoinMiner
   }
-}
-
-class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator) {
-  // For every 10 seconds, create a new block template for mining a block.
-  // This means that transactions received within the time window may not be put into the mined block.
-  val MINING_TRIAL_WINDOW_MILLIS = 10000
-
-  val COINBASE_MESSAGE = CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo.")
 
   def isLessThan(hash1 : Hash, hash2 : Hash): Boolean = {
     val value1 = Utils.bytesToBigInteger(hash1.value)
@@ -44,6 +36,15 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
       false
     }
   }
+}
+
+
+class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator) {
+  // For every 10 seconds, create a new block template for mining a block.
+  // This means that transactions received within the time window may not be put into the mined block.
+  val MINING_TRIAL_WINDOW_MILLIS = 10000
+
+  val COINBASE_MESSAGE = CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo.")
 
   def start() : Unit = {
 
@@ -67,20 +68,23 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             do {
               nonce += 1
               // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-              val blockHashThreshold = Hash("0001000000000000000000000000000000000000000000000000000000000000")
+              val blockHashThreshold = Hash("0000F00000000000000000000000000000000000000000000000000000000000")
 
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = Hash(HashCalculator.blockHeaderHash(newBlockHeader))
 
-              if (isLessThan(newBlockHash, blockHashThreshold)) {
-                // Step 5 : When a block is found, create the block and put it on the blockchain.
-                // Also propate the block to the peer to peer network.
-                val block = blockTemplate.createBlock(newBlockHeader, nonce)
-                peerCommunicator.propagateBlock(block)
-                chain.putBlock(BlockHash(newBlockHash.value), block)
-                blockFound = true
+              if (CoinMiner.isLessThan(newBlockHash, blockHashThreshold)) {
+                // Check the best block hash once more.
+                if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
+                  // Step 5 : When a block is found, create the block and put it on the blockchain.
+                  // Also propate the block to the peer to peer network.
+                  val block = blockTemplate.createBlock(newBlockHeader, nonce)
+                  peerCommunicator.propagateBlock(block)
+                  chain.putBlock(BlockHash(newBlockHash.value), block)
+                  blockFound = true
+                  println("Coin Mined.")
+                }
               }
-
             } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
           } else {
             println("The best block hash is not defined yet.")

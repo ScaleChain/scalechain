@@ -86,6 +86,8 @@ object ErrorCode {
   // Chain layer
   val InvalidOutPoint                = ErrorCode("invalid_out_point")
   val InvalidBlockHeight             = ErrorCode("invalid_block_height")
+  val InvalidBlockHeightOnDatabase   = ErrorCode("invalid_block_height_on_database")
+
 }
 
 

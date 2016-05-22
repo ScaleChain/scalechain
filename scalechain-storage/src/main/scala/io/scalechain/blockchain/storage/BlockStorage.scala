@@ -116,6 +116,19 @@ trait BlockStorage extends BlockIndex {
     }
   }
 
+  /** Get the information about the block, such as block height etc.
+    *
+    * @param blockHash The hash of the block header to get the information.
+    * @return The information about the block.
+    */
+  def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
+    // TODO : Refactor : Remove synchronized.
+    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
+    this.synchronized {
+      blockDatabase.getBlockInfo(blockHash)
+    }
+  }
+
   def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader) : Unit = {
     this.synchronized {
       // get the height of the previous block, to calculate the height of the given block.
