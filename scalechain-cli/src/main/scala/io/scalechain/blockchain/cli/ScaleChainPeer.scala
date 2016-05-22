@@ -30,7 +30,8 @@ object ScaleChainPeer extends JsonRpc {
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          peerPort: Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         inboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.inbound_port"),
+                         p2pInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.port"),
+                         apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
                          network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name")
                        )
@@ -38,9 +39,13 @@ object ScaleChainPeer extends JsonRpc {
   def main(args: Array[String]) = {
     val parser = new scopt.OptionParser[Parameters]("scalechain") {
       head("scalechain", "1.0")
-      opt[Int]('p', "port") action { (x, c) =>
-        c.copy(inboundPort = x)
-      } text ("The inbound port to use to accept connection from other peers.")
+      opt[Int]('p', "p2pPort") action { (x, c) =>
+        c.copy(p2pInboundPort = x)
+      } text ("The P2P inbound port to use to accept connection from other peers.")
+      // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
+      opt[Int]('c', "apiPort") action { (x, c) =>
+        c.copy(apiInboundPort = x)
+      } text ("The API inbound port to use to accept connection from RPC clients.")
       opt[String]('a', "peerAddress") action { (x, c) =>
         c.copy(peerAddress = Some(x))
       } text ("The address of the peer we want to connect.")
@@ -71,7 +76,7 @@ object ScaleChainPeer extends JsonRpc {
   protected[cli] def initializeNetLayer(params: Parameters, system: ActorSystem, materializer: ActorMaterializer): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) =
-      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.inboundPort)
+      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
 
     /**
       * Read list of peers from scalechain.conf
@@ -99,7 +104,7 @@ object ScaleChainPeer extends JsonRpc {
       }
 
     PeerToPeerNetworking.getPeerCommunicator(
-      params.inboundPort,
+      params.p2pInboundPort,
       peerAddresses.filter(isMyself),
       system,
       materializer)
@@ -127,7 +132,7 @@ object ScaleChainPeer extends JsonRpc {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = new File(s"./target/blockstorage-${params.inboundPort}")
+    val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
     // Initialize the block storage.
     val storage: BlockStorage = DiskBlockStorage.create(blockStoragePath)
@@ -152,14 +157,14 @@ object ScaleChainPeer extends JsonRpc {
 
     // Step 7 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    val walletPath = new File(s"./target/wallet-${params.inboundPort}")
+    val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create(walletPath)
     chain.setEventListener(wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
     RpcSubSystem.create(chain, peerCommunicator)
-    JsonRpcMicroservice.runService(system, materializer, system.dispatcher)
+    JsonRpcMicroservice.runService(params.apiInboundPort, system, materializer, system.dispatcher)
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator)

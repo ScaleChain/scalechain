@@ -274,8 +274,10 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
   stringResponse
   }
 
-  def runService(implicit system : ActorSystem, materializer : ActorMaterializer, ec : ExecutionContextExecutor) = {
-
+  def runService(inboundPort : Int,  system : ActorSystem, materializer : ActorMaterializer, ec : ExecutionContextExecutor) = {
+    implicit val s = system
+    implicit val m = materializer
+    implicit val e = ec
     val requestHandler: HttpRequest => HttpResponse = {
       case req @ HttpRequest(POST, Uri.Path("/"), headers, requestEntity, protocol) =>
         //println(s"POST / => ${req}")
@@ -305,8 +307,8 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
       }
     }
 
-    val bindingFuture = Http().bindAndHandleSync(requestHandler, "localhost", 8080)
-    println(s"ScaleChain RPC service online at http://localhost:8080/\nPress RETURN to stop...")
+    val bindingFuture = Http().bindAndHandleSync(requestHandler, "localhost", inboundPort)
+    println(s"ScaleChain RPC service online at http://localhost:${inboundPort}/\nPress RETURN to stop...")
 /*
     Console.readLine() // let it run until user presses return
     bindingFuture
