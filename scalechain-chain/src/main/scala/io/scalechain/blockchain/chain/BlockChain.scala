@@ -394,14 +394,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return The best block height.
     */
   def getBestBlockHeight() : Long = {
-    val bestBlockHashOption = storage.getBestBlockHash()
-
-    // Because we always have the genesis block, the bestBlockHashOption should not be None
-    assert(bestBlockHashOption.isDefined)
-
-    val blockDescriptorOption = chainIndex.findBlock(BlockHash( bestBlockHashOption.get.value) )
-
-    blockDescriptorOption.get.height
+    assert(theBestBlock != null)
+    println(s"best height : ${theBestBlock.height}")
+    theBestBlock.height
   }
 
   /** Return the hash of block on the tip of the best blockchain.
@@ -487,6 +482,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return The transaction output we found.
     */
   def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    // Coinbase outpoints should never come here
+    assert( !outPoint.transactionHash.isAllZero() )
+
     val transaction = getTransaction(outPoint.transactionHash)
     if (transaction.isEmpty) {
       throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)

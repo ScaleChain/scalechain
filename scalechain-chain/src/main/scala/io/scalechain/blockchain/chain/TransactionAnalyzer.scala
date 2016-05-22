@@ -20,6 +20,9 @@ object TransactionAnalyzer {
     * @return
     */
   def calculateFee(blockchainView : BlockchainView, transaction : Transaction) : scala.math.BigDecimal = {
+    // We can't calculate the fee for the generation transaction.
+    assert(!transaction.inputs(0).isCoinBaseInput())
+
     val sumOfInputAmounts = sumAmount( getSpentOutputs(blockchainView, transaction) )
 
     val sumOfOutputAmounts = sumAmount( transaction.outputs )

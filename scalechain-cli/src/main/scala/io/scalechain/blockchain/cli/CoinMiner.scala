@@ -44,8 +44,6 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
 
-  val COINBASE_MESSAGE = CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo.")
-
   def start() : Unit = {
 
     val thread = new Thread {
@@ -54,6 +52,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
         val minerAddress = wallet.getReceivingAddress(minerAccount)
 
         while(true) { // This thread loops forever.
+          val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
           val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress)
           val bestBlockHash = chain.getBestBlockHash()
@@ -68,7 +67,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             do {
               nonce += 1
               // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-              val blockHashThreshold = Hash("0000F00000000000000000000000000000000000000000000000000000000000")
+              val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
 
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = Hash(HashCalculator.blockHeaderHash(newBlockHeader))
@@ -83,6 +82,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   chain.putBlock(BlockHash(newBlockHash.value), block)
                   blockFound = true
                   println("Coin Mined.")
+
+                  // Sleep 30 seconds
+                  Thread.sleep(30000)
                 }
               }
             } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)

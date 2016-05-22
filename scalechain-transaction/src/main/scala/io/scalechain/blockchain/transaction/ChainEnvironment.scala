@@ -47,6 +47,11 @@ trait ChainEnvironment {
   /** The default block version
     */
   val DefaultBlockVersion : Int
+
+  /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
+    *
+    */
+  val CoinbaseMaturity : Int
 }
 
 
@@ -96,6 +101,11 @@ object MainNetEnvironment extends ChainEnvironment {
   /** The default block version
     */
   val DefaultBlockVersion : Int = 1
+
+  /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
+    *
+    */
+  val CoinbaseMaturity : Int = 100
 }
 
 /** The class that has environment values for the testnet and regtest.
@@ -144,6 +154,11 @@ class TestEnvironment extends ChainEnvironment {
   /** The default block version
     */
   val DefaultBlockVersion : Int = 1
+
+  /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
+    *
+    */
+  val CoinbaseMaturity : Int = 3
 }
 
 /** The singleton for the testnet environment.
