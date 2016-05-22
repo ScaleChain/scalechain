@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain.mining
 
-import io.scalechain.blockchain.chain.BlockDescriptor
+import io.scalechain.blockchain.chain.{BlockBuilder, MerkleRootCalculator, BlockDescriptor}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
@@ -16,20 +16,8 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
   *
   */
 class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction]) {
-  /** Calculate the merkle root hash from the sorted transactions.
-    *
-    * @return the merkle root hash.
-    */
-  protected[mining] def calculateMerkleRoot() : MerkleRootHash = {
-    // TODO : Implement
-    assert(false)
 
-    // Step 1 : Sort
-
-    // Step 2 : Recursively calculate the merkle root hash.
-
-    null
-  }
+  // TODO : Use difficultyBits
 
   /** Get the block header from this template.
     *
@@ -38,7 +26,7 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     */
   def getBlockHeader(prevBlockHash : BlockHash) : BlockHeader = {
     // Step 1 : Calculate the merkle root hash.
-    val merkleRootHash = calculateMerkleRoot()
+    val merkleRootHash = MerkleRootHash( MerkleRootCalculator.calculate(sortedTransactions).value )
 
     val env = ChainEnvironment.get
 

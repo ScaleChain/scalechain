@@ -82,6 +82,10 @@ object ErrorCode {
   // Transaction Signer
   val UnableToSignCoinbaseTransaction = ErrorCode("unable_to_sign_coinbase_transaction")
   val InvalidTransactionInput = ErrorCode("invalid_transaction_input")
+
+  // Chain layer
+  val InvalidOutPoint                = ErrorCode("invalid_out_point")
+  val InvalidBlockHeight             = ErrorCode("invalid_block_height")
 }
 
 
@@ -112,6 +116,8 @@ class HttpRequestException(val code:ErrorCode, httpCode : Int, reponse : String 
 class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
+
+class ChainException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class WalletException(val code : ErrorCode) extends ExceptionWithErrorCode
 

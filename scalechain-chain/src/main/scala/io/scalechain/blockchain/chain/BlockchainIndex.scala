@@ -9,7 +9,8 @@ import scala.collection.mutable
 class BlockchainIndex {
   /** A map from the block hash to a block descriptor.
     */
-  private val blockByHash = mutable.HashMap[BlockHash, BlockDescriptor]()
+  private val blockByHash   = mutable.HashMap[BlockHash, BlockDescriptor]()
+  private val blockByHeight = mutable.HashMap[Long,      BlockDescriptor]()
 
   /** Find a block descriptor by a block hash.
     *
@@ -20,6 +21,16 @@ class BlockchainIndex {
     blockByHash.get(blockHash)
   }
 
+
+  /** Find a block descriptor by the block height.
+    *
+    * @param blockHeight The height of the block to find.
+    * @return The found block descriptor.
+    */
+  def findBlock(blockHeight : Long) : Option[BlockDescriptor] = {
+    blockByHeight.get(blockHeight)
+  }
+
   /** Put a block descriptor.
     *
     * @param blockHash The hash of the block.
@@ -27,5 +38,6 @@ class BlockchainIndex {
     */
   def putBlock(blockHash : BlockHash, blockDescriptor : BlockDescriptor) : Unit = {
     blockByHash.put(blockHash, blockDescriptor)
+    blockByHeight.put(blockDescriptor.height, blockDescriptor)
   }
 }

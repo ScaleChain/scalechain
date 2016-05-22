@@ -23,7 +23,7 @@ trait CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput]
+  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput
 }
 
 /** The read-only view of the best blockchain.

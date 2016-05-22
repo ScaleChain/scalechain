@@ -4,7 +4,7 @@ import java.util
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.PeerCommunicator
-import io.scalechain.blockchain.proto.{Hash, BlockHash, Block}
+import io.scalechain.blockchain.proto.{CoinbaseData, Hash, BlockHash, Block}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
@@ -32,6 +32,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
 
+  val COINBASE_MESSAGE = CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+
   def isLessThan(hash1 : Hash, hash2 : Hash): Boolean = {
     val value1 = Utils.bytesToBigInteger(hash1.value)
     val value2 = Utils.bytesToBigInteger(hash2.value)
@@ -44,6 +46,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   }
 
   def start() : Unit = {
+
     val thread = new Thread {
       override def run {
         // Step 1 : Set the minder's coin address to receive block minging reward.
@@ -51,7 +54,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
         while(true) { // This thread loops forever.
           // Step 2 : Create the block template
-          val blockTemplate = chain.getBlockTemplate(minerAddress)
+          val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress)
           val bestBlockHash = chain.getBestBlockHash()
           if (bestBlockHash.isDefined) {
             // Step 3 : Get block header

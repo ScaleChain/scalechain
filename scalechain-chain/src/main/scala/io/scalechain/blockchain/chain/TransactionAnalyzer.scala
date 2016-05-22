@@ -42,6 +42,6 @@ object TransactionAnalyzer {
         Hash( transactionInput.outputTransactionHash.value ),
         transactionInput.outputIndex.toInt
       ))
-    }.filter(_.isEmpty).map(_.get) // Remove None values, get rid Option wrapper.
+    }
   }
 }

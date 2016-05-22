@@ -76,9 +76,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     inputs.append( input )
 
     spendingOutputs.append(
-      coinsView.getTransactionOutput(input.getOutPoint()).getOrElse(
-        throw new GeneralException(ErrorCode.SpendingOutputNotFound)
-      )
+      coinsView.getTransactionOutput(input.getOutPoint())
     )
     this
   }

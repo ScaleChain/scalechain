@@ -200,11 +200,9 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
     val (ownership : OutputOwnership, category: String, amount : scala.math.BigDecimal ) = inputOrOutput match {
       case Left(input) => {
-        val spentOutputOption = blockchainView.getTransactionOutput(input.getOutPoint)
+        val spentOutput = blockchainView.getTransactionOutput(input.getOutPoint)
         // We get a wallet transaction from the wallet database.
         // It means that all inputs were validated, so the output pointed by an input of a validtransaction should exist.
-        assert(spentOutputOption.isDefined)
-        val spentOutput = spentOutputOption.get
         val ownership = LockingScriptAnalyzer.extractOutputOwnership(spentOutput.lockingScript)
         (ownership, "send", CoinAmount.from(spentOutput.value).value)
       }

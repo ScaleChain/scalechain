@@ -44,6 +44,9 @@ object RpcCommand {
     ErrorCode.RpcInvalidKey     -> RpcError.RPC_INVALID_ADDRESS_OR_KEY,
     // used by signrawtranasction : while decoding the raw tranasction parameter.
     ErrorCode.RemainingNotEmptyAfterDecoding -> RpcError.RPC_DESERIALIZATION_ERROR,
-    ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR
+    ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR,
+    // used by getblockheight.
+    // TODO : Bitcoin Compatibility : Need to use the same RPC error when the height parameter has an invalid value.
+    ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMS
   )
 }

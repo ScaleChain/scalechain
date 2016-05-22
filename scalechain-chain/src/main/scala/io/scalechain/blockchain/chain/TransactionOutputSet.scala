@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint}
 
 import scala.collection.mutable
@@ -29,6 +30,7 @@ class TransactionOutputSet extends CoinsView {
 
   /**
     * Get the out point by searching with the transaction output.
+    *
     * @param transactionOutput The transaction output to search.
     * @return The found output.
     */
@@ -42,8 +44,12 @@ class TransactionOutputSet extends CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
-    outputsByOutPoint.get(outPoint)
+  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    val outputOption = outputsByOutPoint.get(outPoint)
+    if (outputOption.isEmpty) {
+      throw new ChainException( ErrorCode.InvalidOutPoint )
+    }
+    outputOption.get
   }
 }
 

@@ -100,7 +100,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
 
   object TestBlockchainView extends BlockchainView {
-    def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
+    def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
       availableOutputs.getTransactionOutput(outPoint)
     }
     def getIterator(height : Long) : Iterator[ChainBlock] = {
@@ -150,7 +150,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
                              generatedBy : OutputOwnership
                            ) : TransactionWithName = {
     val transaction = TransactionBuilder.newBuilder(availableOutputs)
-      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Kangmo, Chanwoo, Rachel."))
+      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)

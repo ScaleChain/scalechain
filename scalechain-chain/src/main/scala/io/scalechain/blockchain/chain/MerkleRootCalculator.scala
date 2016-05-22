@@ -9,7 +9,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Calculates Merkle root hash from transactions.
   */
-object MerkleRootHash {
+object MerkleRootCalculator {
   /** Concatenate two hash values and calculate double SHA256 on it.
     *
     * @param hash1 The first hash value
@@ -86,7 +86,6 @@ object MerkleRootHash {
 
     // Step 2 : Duplicate the last hash item if the number of hashes is odd, and calculate the merkle root hash.
     val merkleRootHashes : ArrayBuffer[Hash] = calculateMerkleRoot( transactionHashes )
-
 
     assert( merkleRootHashes.length == 1 )
     merkleRootHashes(0)

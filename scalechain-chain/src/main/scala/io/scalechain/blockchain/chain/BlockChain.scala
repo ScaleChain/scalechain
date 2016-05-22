@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
@@ -9,6 +10,8 @@ import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
 import io.scalechain.blockchain.transaction.{CoinAddress, CoinAmount}
+import io.scalechain.util.Utils
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -74,6 +77,8 @@ object Blockchain {
   *
   */
 class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstraints{
+  private val logger = LoggerFactory.getLogger(classOf[Blockchain])
+
   var chainEventListener : Option[ChainEventListener] = None
 
   /** Set an event listener of the blockchain.
@@ -133,37 +138,44 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
       } else {
         val blockDesc = BlockDescriptor.create(prevBlockDesc.get, blockHash, block)
 
+        var blockAccepted = false
         // Step 3 : Check if the previous block of the new block is the current best block.
         if (prevBlockDesc == theBestBlock) {
           // Step 3.A.1 : Update the best block
           theBestBlock = blockDesc
+
+          // Step 3.A.2 : Remove transactions in the block from the mempool.
+          block.transactions.foreach { transaction =>
+            val transactionHash = Hash(HashCalculator.transactionHash(transaction))
+            mempool.del(transactionHash)
+          }
+
+          // Step 3.A.3 : Check if the new block is a parent of an orphan block.
+          val orphans = orphanBlocks.findByDependency(blockHash)
+          orphans.map { blocks =>
+            orphanBlocks.remove(blockHash)
+            blocks.get foreach { orphanBlock =>
+              val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
+
+              // Step 6 : Recursively call putBlock to put the orphans
+              putBlock(blockHash, orphanBlock)
+            }
+          }
+
+          blockAccepted = true
         } else {
+          logger.warn("Block reorganization is required.")
+          /*
           // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
           if (blockDesc.chainWork > theBestBlock.chainWork) {
             // Step 3.B.2 : Reorganize the blocks.
+            // transaction handling, orphan block handling is done in this method.
             reorganize(originalBestBlock = theBestBlock, newBestBlock = blockDesc)
 
             // Step 3.B.3 : Update the best block
             theBestBlock = blockDesc
           }
-        }
-
-        // Step 4 : Remove transactions in the block from the mempool.
-        block.transactions.foreach { transaction =>
-          val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
-          mempool.del(transactionHash)
-        }
-      }
-
-      // Step 5 : Check if the new block is a parent of an orphan block.
-      val orphans = orphanBlocks.findByDependency(blockHash)
-      orphans.map { blocks =>
-        orphanBlocks.remove(blockHash)
-        blocks.get foreach { orphanBlock =>
-          val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
-
-          // Step 6 : Recursively call putBlock to put the orphans
-          putBlock(blockHash, orphanBlock)
+          */
         }
       }
     }
@@ -176,8 +188,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
   def putTransaction(transaction : Transaction) : Unit = {
     mempool.put(transaction)
   }
-
-
 
 
   /** Calculate the (encoded) difficulty bits that should be in the block header.
@@ -205,13 +215,21 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * @return The block template which has a sorted list of transactions to include into a block.
     */
-  def getBlockTemplate(minerAddress : CoinAddress) : BlockTemplate = {
-    val difficultyBits = calculateDifficulty(prevBlockDesc = theBestBlock)
+  def getBlockTemplate(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : BlockTemplate = {
+    // TODO : P1 - Use difficulty bits
+    //val difficultyBits = getDifficulty()
+    val difficultyBits = 10
 
     val validTransactions = mempool.getValidTransactions()
     // Select transactions by priority and fee. Also, sort them.
     val sortedTransactions = selectTransactions(validTransactions, Block.MAX_SIZE)
-    new BlockTemplate(difficultyBits, sortedTransactions)
+    val generationTranasction =
+      TransactionBuilder.newBuilder(this)
+      .addGenerationInput(coinbaseData)
+      .addOutput(CoinAmount(50), minerAddress)
+      .build()
+
+    new BlockTemplate(difficultyBits, generationTranasction :: sortedTransactions)
   }
 
 
@@ -230,19 +248,18 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
-  protected def selectTransactions(transactions : Seq[Transaction], maxBlockSize : Int) : List[Transaction] = {
-    // TODO : Implement
-    assert(false)
+  protected def selectTransactions(transactions : Iterator[Transaction], maxBlockSize : Int) : List[Transaction] = {
+    // Step 1 : TODO : Select high priority transactions
 
-    // Step 1 : Select high priority transactions
 
-    // Step 2 : Sort transactions by fee in descending order.
+    // Step 2 : TODO : Sort transactions by fee in descending order.
 
-    // Step 3 : Choose transactions until we fill up the max block size.
+    // Step 3 : TODO : Choose transactions until we fill up the max block size.
 
-    // Step 4 : Sort transactions based on a criteria to store into a block.
+    // Step 4 : TODO : Sort transactions based on a criteria to store into a block.
+
     // TODO : Need to check the sort order of transactions in a block.
-    null
+    transactions.toList
   }
 
   /** Reorganize blocks.
@@ -253,8 +270,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   protected def reorganize(originalBestBlock : BlockDescriptor, newBestBlock : BlockDescriptor) : Unit = {
     assert( originalBestBlock.chainWork < newBestBlock.chainWork)
-    // TODO : Implement
-    assert(false)
 
     // Step 1 : find the common ancestor of the two blockchains.
     val commonBlock : BlockDescriptor = findCommonBlock(originalBestBlock, newBestBlock)
@@ -262,13 +277,13 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     // The transactions to add to the mempool. These are ones in the invalidated blocks but are not in the new blocks.
     val transactionsToAddToMempool : Seq[Transaction] = null
 
-    // Step 2 : transactionsToAddToMempool: add all transactions in (commonBlock, originalBestBlock] to transactions.
+    // Step 2 : TODO : transactionsToAddToMempool: add all transactions in (commonBlock, originalBestBlock] to transactions.
 
-    // Step 3 : transactionsToAddToMempool: remove all transactions in (commonBlock, newBestBlock]
+    // Step 3 : TODO : transactionsToAddToMempool: remove all transactions in (commonBlock, newBestBlock]
 
-    // Step 4 : move transactionsToAddToMempool to mempool.
+    // Step 4 : TODO : move transactionsToAddToMempool to mempool.
 
-    // Step 5 : update the best block in the storage layer.
+    // Step 5 : TODO : update the best block in the storage layer.
   }
 
   /** Get the descriptor of the common ancestor of the two given blocks.
@@ -282,7 +297,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     null
   }
 
-  /** Return an iterator that iterates each ChainBlock.
+  /** Return an iterator that iterates each ChainBlock from a given height.
+    *
+    * Used by : importAddress RPC to rescan the blockchain.
     *
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
@@ -298,14 +315,19 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return The best block height.
     */
   def getBestBlockHeight() : Long = {
-    // TODO : Implement
-    assert(false)
-    0L
+    val bestBlockHashOption = storage.getBestBlockHash()
+
+    // Because we always have the genesis block, the bestBlockHashOption should not be None
+    assert(bestBlockHashOption.isDefined)
+
+    val blockDescriptorOption = chainIndex.findBlock(BlockHash( bestBlockHashOption.get.value) )
+
+    blockDescriptorOption.get.height
   }
 
-  /**
+  /** Return the hash of block on the tip of the best blockchain.
     *
-    * @return
+    * @return The best block hash.
     */
   def getBestBlockHash() : Option[Hash] = {
     storage.getBestBlockHash()
@@ -320,9 +342,12 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return The hash of the block header.
     */
   def getBlockHash(blockHeight : Long) : Hash = {
-    // TODO : Implement
-    assert(false)
-    null
+    val foundBlockOption = chainIndex.findBlock(blockHeight)
+    // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
+    if (foundBlockOption.isEmpty) {
+      throw new ChainException( ErrorCode.InvalidBlockHeight)
+    }
+    Hash( HashCalculator.blockHeaderHash(foundBlockOption.get.blockHeader) )
   }
 
   /** See if a block exists on the blockchain.
@@ -354,32 +379,27 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-/*
-      // Step 1 : Search mempool.
-      val mempoolTransactionOption = RpcSubSystem.mempoolService.getTransaction(txHash)
 
-      // Step 2 : Search block database.
-      val dbTransactionOption = RpcSubSystem.blockDatabaseService.getTransaction(txHash)
+    // Step 1 : Search mempool.
+    val mempoolTransactionOption = mempool.get(transactionHash)
 
-      // Step 3 : Run validation.
+    // Step 2 : Search block database.
+    val dbTransactionOption = storage.getTransaction(TransactionHash( transactionHash.value ))
 
-      //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
-      //mempoolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
-      //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+    // Step 3 : TODO : Run validation.
 
-      if ( mempoolTransactionOption.isDefined ) {
-        Some(mempoolTransactionOption.get)
-      } else if (dbTransactionOption.isDefined){
-        Some(dbTransactionOption.get)
-      } else {
-        None
-      }
+    //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
+    //mempoolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+    //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
- */
-
-    // TODO : Implement
-    assert(false)
-    null
+    if ( mempoolTransactionOption.isDefined ) {
+      assert(dbTransactionOption.isEmpty)
+      Some(mempoolTransactionOption.get)
+    } else if (dbTransactionOption.isDefined){
+      Some(dbTransactionOption.get)
+    } else {
+      None
+    }
   }
 
   /** Return a transaction output specified by a give out point.
@@ -387,10 +407,19 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    val transaction = getTransaction(outPoint.transactionHash)
+    if (transaction.isEmpty) {
+      throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)
+    }
+
+    val outputs = transaction.get.outputs
+
+    if( outPoint.outputIndex >= outputs.length) {
+      throw new ChainException(ErrorCode.InvalidOutPoint, s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}")
+    }
+
+    outputs(outPoint.outputIndex)
   }
 
 
@@ -399,9 +428,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return
     */
   def getDifficulty() : Long = {
-    // TODO : Implement
-    assert(false)
-    0L
+    calculateDifficulty(prevBlockDesc = theBestBlock)
   }
 
   /** Get the amount of reward that a minder gets from the generation input.
@@ -423,13 +450,12 @@ object BlockDescriptor {
     * @param blockHash The block header hash to calculate the estimated number of hash calculations for creating the block.
     * @return The estimated number of hash calculations for the given block.
     */
-  protected def getHashCalculations(blockHash : BlockHash) : Long = {
-    // TODO : Implement
-    assert(false)
-    // Step 1 : Calculate the block hash
-
+  protected[chain] def getHashCalculations(blockHash : BlockHash) : Long = {
     // Step 2 : Calculate the (estimated) number of hash calculations based on the hash value.
-    0
+    val hashValue = Utils.bytesToBigInteger(blockHash.value)
+    val totalBits = 8 * 32
+
+    scala.math.pow(2, totalBits - hashValue.bitLength()).toLong
   }
 
   /** Create a block descriptor.
