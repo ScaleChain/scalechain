@@ -19,7 +19,7 @@ object Services {
   val all = Seq (
     GetBestBlockHash,
     GetBlock,
-//    GetBlockHash,
+    GetBlockHash,
     Help,
 //    SubmitBlock,
     GetPeerInfo,
