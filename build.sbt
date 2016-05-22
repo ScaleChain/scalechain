@@ -11,3 +11,4 @@ libraryDependencies in ThisBuild ++= Seq(
   "org.scalacheck"%% "scalacheck" % "1.12.5")
 
 fork in test := true
+traceLevel in run := 0

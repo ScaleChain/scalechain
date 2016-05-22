@@ -8,5 +8,5 @@ case class NumberResult(value : scala.math.BigDecimal) extends RpcResult
 
 
 
-case class RpcResponse(result : Option[RpcResult], error:Option[RpcError], id:String)
+case class RpcResponse(result : Option[RpcResult], error:Option[RpcError], id:Long)
 

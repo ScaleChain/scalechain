@@ -123,31 +123,6 @@ case class OpCodeSparator(sigCheckOffset : Int = 0) extends Crypto {
 }
 
 trait CheckSig extends Crypto {
-  /** Get the script for verifying if a signature is valid.
-   * Also it gets rid of signatures from the given script.
-   *
-   * @param rawScript The script where we want to remove the signature.
-   * @param startOffset Copy bytes from this offset in rawScript to get the script for check sign
-   * @param rawSignatures The signatures we are going to remove. To support OP_CHECKMULTISIG, it accepts multiple signatures.
-   * @return The script for verifying if a signature is valid.
-   */
-  def getScriptForCheckSig(rawScript:Array[Byte], startOffset:Int, rawSignatures : Array[ScriptValue]) : Array[Byte] = {
-    // Step 1 : Copy the region of the raw script starting from startOffset
-    val scriptFromStartOffset =
-      if (startOffset>0)
-        util.Arrays.copyOfRange(rawScript, startOffset, rawScript.length)
-      else
-        rawScript // In most cases, startOffset is 0. Do not copy anything.
-
-    // Step 2 : Remove the signatures from the script if any.
-    var signatureRemoved : Array[Byte] = scriptFromStartOffset
-    for (rawSignature : ScriptValue <- rawSignatures) {
-      signatureRemoved = Utils.removeAllInstancesOf(signatureRemoved, rawSignature.value)
-    }
-
-    // Step 3 : Remove OP_CODESEPARATOR if any.
-    Utils.removeAllInstancesOfOp(signatureRemoved, OpCodeSparator().opCode().code)
-  }
 
   def checkSig(script : Script, env : ScriptEnvironment): Unit = {
     assert(script != null)
@@ -173,7 +148,7 @@ trait CheckSig extends Crypto {
 
     val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
 
-    val scriptData : Array[Byte] = getScriptForCheckSig(script.data, env.getSigCheckOffset, Array(rawSignature) )
+    val scriptData : Array[Byte] = TransactionSignature.getScriptForCheckSig(script.data, env.getSigCheckOffset, Array(rawSignature) )
 
     // use only the low 5 bits from the last byte of the signature to get the hash mode.
     // TODO : The 0x1f constant is from TransactionSignature.sigHashMode of BitcoinJ. Investigate if it is necessary.
@@ -253,7 +228,7 @@ trait CheckSig extends Crypto {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Step 5 : Scrub scriptData to get rid of signatures from it.
-    val scriptData : Array[Byte] = getScriptForCheckSig(script.data, env.getSigCheckOffset, signatures.toArray )
+    val scriptData : Array[Byte] = TransactionSignature.getScriptForCheckSig(script.data, env.getSigCheckOffset, signatures.toArray )
 
     var isValid = true
     var consumedPublicKeyCount = 0

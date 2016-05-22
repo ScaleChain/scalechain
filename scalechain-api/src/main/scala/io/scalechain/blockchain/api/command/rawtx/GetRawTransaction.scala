@@ -1,13 +1,14 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{TransactionFormatter, RpcCommand}
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
+import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.HexUtil
 import spray.json.DefaultJsonProtocol._
-import io.scalechain.blockchain.transaction.TransactionVerifier
 
 /*
   CLI command :
@@ -170,9 +171,15 @@ object GetRawTransaction extends RpcCommand {
 
       val txHash = Hash ( HexUtil.bytes(txHashString) )
 
-      val transactionOption = SubSystem.getTransaction(txHash)
+      val transactionOption = RpcSubSystem.get.getTransaction(txHash)
 
-      val rawTransactionOption = transactionOption.map( TransactionFormatter.getRawTransaction(_) )
+      val rawTransactionOption = transactionOption.map{ transaction =>
+        if (verbose != 0 ) {
+          TransactionFormatter.getRawTransaction(transaction)
+        } else {
+          StringResult( TransactionFormatter.getSerializedTranasction(transaction) )
+        }
+      }
 
       // If the transaction wasn’t found, the result will be JSON null.
       // This can occur because the transaction doesn’t exist in the block chain or memory pool,

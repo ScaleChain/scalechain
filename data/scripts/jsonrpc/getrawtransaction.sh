@@ -1,1 +1,1 @@
-curl --verbose --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getrawtransaction", "params": ["4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b", 1] }' -H 'Content-Type: application/json' http://127.0.0.1:8080/ 
+curl --verbose --data-binary '{"jsonrpc": "1.0", "id":1, "method": "getrawtransaction", "params": ["fa2cfda11fa772fdcd6c1d8fe00de0f1f85738f0db4c4e746e20d31cf529e155", 1] }' -H 'Content-Type: application/json' http://127.0.0.1:8080/ 

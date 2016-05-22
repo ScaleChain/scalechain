@@ -4,11 +4,16 @@ import io.scalechain.blockchain.api.command._
 import io.scalechain.blockchain.api.command.blockchain.p1.GetTxOut
 import io.scalechain.blockchain.api.command.control.p1.GetInfo
 import io.scalechain.blockchain.api.domain.{ RpcError, RpcResponse, RpcRequest}
+import org.slf4j.{LoggerFactory, Logger}
 import spray.json._
 
 trait ServiceDispatcher {
+  //private val logger = LoggerFactory.getLogger(classOf[ServiceDispatcher])
+
   // A map from Json-Rpc method to the actual JsonRpcService object that handles it.
   def dispatch(request : RpcRequest) : RpcResponse = {
+    //logger.info(s"new RPC request : ${request}")
+    //println(s"new RPC request : ${request}")
 
     val methodName = request.method
     val serviceOption = Services.serviceByCommand.get(methodName)
@@ -33,7 +38,7 @@ trait ServiceDispatcher {
       }
     } else {
       RpcResponse(
-        result = None, // TODO : Need to make sure if this is converted to a json string, "result = null".
+        result = None,
         error = Some(RpcError(
           code = RpcError.RPC_METHOD_NOT_FOUND.code,
           message = RpcError.RPC_METHOD_NOT_FOUND.messagePrefix,

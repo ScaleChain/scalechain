@@ -53,7 +53,7 @@ class BlockBuilder {
             target : Long = 0, /* TODO : Set The default target */
             nonce : Long = 0) : Block = {
     val transactions = transactionsBuffer.toList
-    val merkleRootHash = MerkleRootHash.calculate(transactions)
+    val merkleRootHash = MerkleRootCalculator.calculate(transactions)
     val blockHeader = BlockHeader(version, hashPrevBlock, proto.MerkleRootHash(merkleRootHash.value), timestamp, target, nonce)
     val block = Block(
       blockHeader,

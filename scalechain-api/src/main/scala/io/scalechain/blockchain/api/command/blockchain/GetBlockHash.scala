@@ -1,11 +1,12 @@
 package io.scalechain.blockchain.api.command.blockchain
 
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode}
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
 import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{HashFormat, Hash}
-import io.scalechain.util.ByteArray
+import io.scalechain.util.{HexUtil, ByteArray}
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -44,13 +45,17 @@ object GetBlockHash extends RpcCommand {
 
       // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
       val blockHeight : Long = request.params.get[Long]("Block Height", 0)
+
+      val blockHash = RpcSubSystem.get.getBlockHash(blockHeight)
+
+      Right(Some(StringResult(HexUtil.hex(blockHash.value))))
+
 /*
       // TODO : Implement
       val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
       val hashString = ByteArray.byteArrayToString(blockHash.value)
       Right(Some(StringResult(hashString)))
 */
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
   def help() : String =

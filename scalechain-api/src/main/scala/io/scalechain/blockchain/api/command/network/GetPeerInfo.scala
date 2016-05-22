@@ -1,11 +1,11 @@
 package io.scalechain.blockchain.api.command.network
 
 
-import io.scalechain.blockchain.api.SubSystem
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.mining.SubmitBlock._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.net.service.PeerInfo
+import io.scalechain.blockchain.net.PeerInfo
 
 
 /*
@@ -67,7 +67,7 @@ case class GetPeerInfoResult(peerInfos : List[PeerInfo]) extends RpcResult
 object GetPeerInfo extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     handlingException {
-      val peerInfos = SubSystem.peerService.getPeerInfos()
+      val peerInfos = RpcSubSystem.get.getPeerInfos()
       Right(Some(GetPeerInfoResult(peerInfos)))
     }
   }

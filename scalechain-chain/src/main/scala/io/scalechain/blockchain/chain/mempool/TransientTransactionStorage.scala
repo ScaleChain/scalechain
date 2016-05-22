@@ -47,4 +47,14 @@ class TransientTransactionStorage {
     transactionsByHash.contains(txHash)
   }
 
+  /** Get the list of transactions in the transient storage /
+    *
+    * @return The list of transactions.
+    */
+  def transactions() : Iterator[Transaction] = {
+    transactionsByHash.iterator.map{ case (hash, transaction ) =>
+      transaction
+    }
+  }
+
 }

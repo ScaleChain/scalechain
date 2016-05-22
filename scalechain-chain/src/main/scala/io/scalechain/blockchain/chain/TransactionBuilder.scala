@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{ChainEnvironment, CoinAmount, OutputOwnership, ParsedPubKeyScript}
+import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
@@ -76,9 +76,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     inputs.append( input )
 
     spendingOutputs.append(
-      coinsView.getTransactionOutput(input.getOutPoint()).getOrElse(
-        throw new GeneralException(ErrorCode.SpendingOutputNotFound)
-      )
+      coinsView.getTransactionOutput(input.getOutPoint())
     )
     this
   }

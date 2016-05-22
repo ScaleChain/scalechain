@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.mempool
 
+import io.scalechain.blockchain.chain.OrphanTransactions
 import io.scalechain.blockchain.proto.{Hash, Transaction}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.BlockStorage
@@ -42,11 +43,11 @@ class TransactionMempool(blockStorage : BlockStorage) {
 
   /** For transactions whose transactions pointed by inputs are not missing.
     */
-  val normalPool = new TransientTransactionStorage()
+  val completeTransactions = new TransientTransactionStorage()
 
   /** For the orphan transactions, which have at least one input that points to a missing transaction.
     */
-  val orphanPool = new TransientTransactionStorage()
+  val orphanPool = new OrphanTransactions()
 
   /** Put a transaction into the mempool.
     *
@@ -54,8 +55,9 @@ class TransactionMempool(blockStorage : BlockStorage) {
     */
   def put(transaction : Transaction): Unit = {
     val txHash = Hash( HashCalculator.transactionHash(transaction) )
-    // TODO : Implement
-    assert(false)
+
+    // TODO : check if the transaction inputs are connected and points to unspent outputs.
+    completeTransactions.put(txHash, transaction)
   }
 
   /** Remove a transaction.
@@ -63,8 +65,7 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @param txHash The hash of the transaction to remove.
     */
   def del(txHash : Hash) : Unit = {
-    // TODO : Implement
-    assert(false)
+    completeTransactions.del(txHash)
   }
 
   /** Check if the storage has a transaction.
@@ -73,9 +74,16 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @return true if the transaction exists. false otherwise.
     */
   def exists(txHash : Hash): Boolean = {
-    // TODO : Implement
-    assert(false)
-    false
+    completeTransactions.exists(txHash)
+  }
+
+  /** Get a transaction by hash.
+    *
+    * @param txHash The transaction hash.
+    * @return Some(transaction) if found; None otherwise.
+    */
+  def get(txHash : Hash) : Option[Transaction] = {
+    completeTransactions.get(txHash)
   }
 
   /** Get transactions whose input transactions all exist.
@@ -83,10 +91,8 @@ class TransactionMempool(blockStorage : BlockStorage) {
     *
     * @return A sequence of transactions.
     */
-  def getValidTransactions() : Seq[Transaction] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def getValidTransactions() : Iterator[Transaction] = {
+    completeTransactions.transactions()
   }
 }
 

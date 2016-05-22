@@ -21,12 +21,6 @@ object DiskBlockStorage {
   def create(storagePath : File) : BlockStorage = {
     assert(theBlockStorage == null)
     theBlockStorage = new DiskBlockStorage(storagePath, MAX_FILE_SIZE)
-
-    // See if we have genesis block. If not, put one.
-    if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
-      theBlockStorage.putBlock(GenesisBlock.BLOCK)
-    }
-
     theBlockStorage
   }
 

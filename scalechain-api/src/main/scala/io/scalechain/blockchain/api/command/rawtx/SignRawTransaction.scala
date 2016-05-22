@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.api.command.rawtx
 
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.transaction.{UnspentTransactionOutput, PrivateKey, SigHash}
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
@@ -103,6 +105,7 @@ object SignRawTransaction extends RpcCommand {
       val signedTransaction : SignedTransaction =
         Wallet.signTransaction(
           transaction,
+          Blockchain.get,
           dependencies.getOrElse(List()),
           privateKeys,
           sigHash)

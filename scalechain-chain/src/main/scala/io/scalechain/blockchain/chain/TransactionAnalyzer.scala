@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.transaction.BlockchainView
 
 /**
   * Analyze a transaction
@@ -20,6 +21,9 @@ object TransactionAnalyzer {
     * @return
     */
   def calculateFee(blockchainView : BlockchainView, transaction : Transaction) : scala.math.BigDecimal = {
+    // We can't calculate the fee for the generation transaction.
+    assert(!transaction.inputs(0).isCoinBaseInput())
+
     val sumOfInputAmounts = sumAmount( getSpentOutputs(blockchainView, transaction) )
 
     val sumOfOutputAmounts = sumAmount( transaction.outputs )
@@ -42,6 +46,6 @@ object TransactionAnalyzer {
         Hash( transactionInput.outputTransactionHash.value ),
         transactionInput.outputIndex.toInt
       ))
-    }.filter(_.isEmpty).map(_.get) // Remove None values, get rid Option wrapper.
+    }
   }
 }

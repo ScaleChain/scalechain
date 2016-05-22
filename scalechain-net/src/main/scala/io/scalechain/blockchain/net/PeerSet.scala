@@ -79,8 +79,10 @@ class PeerSet {
   }
 
   def peers() : Iterable[(InetSocketAddress, Peer)] = {
-    for ( (address,peer) <- peerByAddress)
-      yield (address,peer)
+    synchronized {
+      for ((address, peer) <- peerByAddress)
+        yield (address, peer)
+    }
   }
 }
 

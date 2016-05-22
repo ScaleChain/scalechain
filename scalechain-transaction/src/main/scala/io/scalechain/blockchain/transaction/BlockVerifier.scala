@@ -73,14 +73,14 @@ object BlockVerifier {
 class BlockVerifier(block : Block) {
   private val logger = LoggerFactory.getLogger(classOf[BlockVerifier])
 
-  def verify(blockIndex : BlockIndex) : Unit = {
+  def verify(chainView : BlockchainView) : Unit = {
     // (1) verify the hash of the block is within the difficulty level
     // TODO : Implement
 
     // (2) verify each transaction in the block
     block.transactions.map { transaction =>
       try {
-        new TransactionVerifier(transaction).verify(blockIndex)
+        new TransactionVerifier(transaction).verify(chainView)
       } catch {
         case e: TransactionVerificationException => {
           // Because the exception is defined in the util layer, we could not use the MergedScript type, but AnyRef.

@@ -32,15 +32,18 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   val TEST_RECORD_FILE_SIZE = 1024 * 1024
 
   var wallet  : Wallet = null
-//  var storage : BlockStorage = null
-  val testPath = new File("./target/unittests-WalletSpec/")
+  var storage : DiskBlockStorage = null
+  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
+  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
   override def beforeEach() {
+    FileUtils.deleteDirectory(testPathForWallet)
+    FileUtils.deleteDirectory(testPathForStorage)
+    testPathForWallet.mkdir()
+    testPathForStorage.mkdir()
 
-    FileUtils.deleteDirectory(testPath)
-    testPath.mkdir()
-
-//    storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
-    wallet = new Wallet(testPath)
+    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
+    DiskBlockStorage.theBlockStorage = storage
+    wallet = new Wallet(testPathForWallet)
 
     super.beforeEach()
   }
@@ -48,14 +51,14 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   override def afterEach() {
     super.afterEach()
 
-//    storage.close()
+    storage.close()
     wallet.close()
 
-//    storage = null
+    storage = null
     wallet  = null
 
-    FileUtils.deleteDirectory(testPath)
-
+    FileUtils.deleteDirectory(testPathForWallet)
+    FileUtils.deleteDirectory(testPathForStorage)
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +69,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
+      S.TestBlockchainView,
       List(),
       Some(List( S.Alice.Addr1.privateKey )),
       SigHash.ALL
@@ -74,7 +78,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     signedTransaction.complete shouldBe true
 
     // Should not throw an exception.
-    new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
+    new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
   }
 
   "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
@@ -82,6 +86,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     val signedTransaction = Wallet.signTransaction(
       S.S4_AliceToCarryTx.transaction,
+      S.TestBlockchainView,
       List(),
       None,
       SigHash.ALL
@@ -91,11 +96,11 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     // Should throw an exception.
     a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction.transaction).verify(S.blockIndex)
+      new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
     }
   }
 
-  "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" in {
+  "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" ignore {
     val S = new WalletSampleData(wallet)
 
     // TODO : Implement
@@ -108,6 +113,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     // Step 1 : sign for the first input.
     val signedTransaction1 = Wallet.signTransaction(
       S.S5_CarryMergeToAliceTx.transaction,
+      S.TestBlockchainView,
       List(),
       Some(List(S.Carry.Addr1.privateKey)),
       SigHash.ALL
@@ -116,20 +122,21 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     signedTransaction1.complete shouldBe false
 
     a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction1.transaction).verify(S.blockIndex)
+      new TransactionVerifier(signedTransaction1.transaction).verify(S.TestBlockchainView)
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Step 2 : sign for the second input.
     val finalTransaction = Wallet.signTransaction(
       signedTransaction1.transaction,
+      S.TestBlockchainView,
       List(),
       Some(List(S.Carry.Addr2.privateKey)),
       SigHash.ALL
     )
 
     finalTransaction.complete shouldBe true
-    new TransactionVerifier(signedTransaction1.transaction).verify(S.blockIndex)
+    new TransactionVerifier(finalTransaction.transaction).verify(S.TestBlockchainView)
   }
 
 
@@ -223,7 +230,8 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   }
 
 
-  "getWalletTransactions(None)" should "return all wallet transactions for all accounts" in {
+  "getWalletTransactions(None)" should "return all wallet transactions for all accounts" ignore {
+    // TODO : Implement
     val S = new WalletSampleData(wallet) {
       override def onStepFinish(step : Int): Unit = {
         step match {
@@ -247,7 +255,10 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
-  "getWalletTransactions(Some(account))" should "return wallet transactions for an account" in {
+  "getWalletTransactions(Some(account))" should "return wallet transactions for an account" ignore {
+
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     wallet.getWalletTransactions(Some("Alice")) shouldBe Set(1)
@@ -391,7 +402,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     ) shouldBe None // need to update
   }
 
-  "listTransactions(None, includeWatchOnly=false)" should "return no transaction" in {
+  "listTransactions(None, includeWatchOnly=false)" should "return no transaction" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     // Because we did not call wallet.newAddress but wallet.importOutputOwnership,
@@ -405,7 +418,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     ) shouldBe List(1) // TODO : Update with actual result.
   }
 
-  "listTransactions(None, includeWatchOnly=true)" should "return all transactions" in {
+  "listTransactions(None, includeWatchOnly=true)" should "return all transactions" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet) {
       override def onStepFinish(step : Int): Unit = {
         step match {
@@ -459,7 +474,9 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
-  "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" in {
+  "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" ignore {
+    // TODO : Implement
+
     val S = new WalletSampleData(wallet)
 
     wallet.listTransactions(
@@ -820,6 +837,16 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "importOutputOwnership(rescan=false)" should "should not rescan the current blockchain" ignore {
     val S = new WalletSampleData(wallet)
     // TODO : Implement test case
+  }
+
+  "importOutputOwnership" should "change the receiving address to the imported address" in {
+    val S = new WalletSampleData(wallet)
+    wallet.importOutputOwnership(
+      S.TestBlockchainView,
+      "test1",
+      S.Alice.Addr1.address,
+      rescanBlockchain = false)
+    wallet.getReceivingAddress("test1") shouldBe S.Alice.Addr1.address
   }
 
   ////////////////////////////////////////////////////////////////////////////////

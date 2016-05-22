@@ -40,7 +40,7 @@ trait APITestSuite extends ShouldMatchers {
   StartPeer()
 
   def invoke(command : RpcCommand, args : List[JsValue] = List()) : Either[RpcError, Option[RpcResult]] = {
-    val request = RpcRequest("1.0", "id", "command-unused", RpcParams(args))
+    val request = RpcRequest(Some("1.0"), 1L, "command-unused", RpcParams(args))
     command.invoke(request)
   }
 }

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.BlockIndex
-import io.scalechain.blockchain.transaction.{OutputOwnership, CoinAddress, CoinAmount, TransactionTestDataTrait}
+import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable
@@ -69,7 +69,7 @@ case class TransactionWithName(name:String, transaction:Transaction)
   */
 class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends TransactionTestDataTrait{
 
-  val blockIndex = new TestBlockIndex()
+  private val blockIndex = new TestBlockIndex()
 
   val availableOutputs = new TransactionOutputSet()
 
@@ -100,7 +100,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
 
   object TestBlockchainView extends BlockchainView {
-    def getTransactionOutput(outPoint : OutPoint) : Option[TransactionOutput] = {
+    def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
       availableOutputs.getTransactionOutput(outPoint)
     }
     def getIterator(height : Long) : Iterator[ChainBlock] = {
@@ -136,7 +136,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
 
     blockIndex.addTransaction(TransactionHash(transactionHash.value), transactionWithName.transaction)
     chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
-    println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
+    //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
   /** Create a generation transaction
@@ -150,7 +150,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
                              generatedBy : OutputOwnership
                            ) : TransactionWithName = {
     val transaction = TransactionBuilder.newBuilder(availableOutputs)
-      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Kangmo, Chanwoo, Rachel."))
+      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)

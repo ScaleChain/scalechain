@@ -15,9 +15,12 @@ object PrivateKey {
     */
   def from(walletImportFormat : String) : PrivateKey = {
     val (versionPrefix, privateKeyBytes) = Base58Check.decode(walletImportFormat)
+    // TODO : Investigate : Bitcoin allows the private keys whose lengths are not 32
+    /*
     if (privateKeyBytes.length != 32) {
       throw new GeneralException(ErrorCode.RpcInvalidKey)
     }
+    */
     val privateKeyBigInt = Utils.bytesToBigInteger(privateKeyBytes)
     PrivateKey(versionPrefix, privateKeyBigInt)
   }

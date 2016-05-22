@@ -21,14 +21,15 @@ object ErrorCode {
 
   // Transaction verification errors
   val InvalidInputIndex = ErrorCode("invalid_input_index")
-  val InvalidOutputIndex = ErrorCode("invalid_output_index")
   val TopValueFalse = ErrorCode("top_value_false")
   val ScriptParseFailure = ErrorCode("script_parse_failure")
   val ScriptEvalFailure = ErrorCode("script_eval_failure")
   val GeneralFailure= ErrorCode("general_failure")
-  val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
   val UnsupportedHashType = ErrorCode("unsupported_hash_type")
   val NotEnoughStackValues = ErrorCode("not_enough_stack_values")
+
+//  val InvalidOutputIndex = ErrorCode("invalid_output_index")
+//  val InvalidOutputTransactionHash = ErrorCode("invalid_output_transaction")
 
   // HTTP errors
   val HttpRequestFailure = ErrorCode("http_request_failure")
@@ -78,6 +79,16 @@ object ErrorCode {
   val NotEnoughInputAmounts          = ErrorCode("not_enough_input_amounts")
   val GenerationInputWithOtherInputs = ErrorCode("generation_input_with_other_inputs")
   val SpendingOutputNotFound         = ErrorCode("spending_output_not_found")
+
+  // Transaction Signer
+  val UnableToSignCoinbaseTransaction = ErrorCode("unable_to_sign_coinbase_transaction")
+  val InvalidTransactionInput = ErrorCode("invalid_transaction_input")
+
+  // Chain layer
+  val InvalidOutPoint                = ErrorCode("invalid_out_point")
+  val InvalidBlockHeight             = ErrorCode("invalid_block_height")
+  val InvalidBlockHeightOnDatabase   = ErrorCode("invalid_block_height_on_database")
+
 }
 
 
@@ -109,6 +120,8 @@ class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErr
 
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
+class ChainException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
+
 class WalletException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class TransactionVerificationException(val code:ErrorCode, override val message : String = "", val stackTraceElements : Array[StackTraceElement] = Array(), var debuggingInfo : Option[AnyRef] = None) extends ExceptionWithErrorCode
@@ -117,6 +130,8 @@ class TransactionVerificationException(val code:ErrorCode, override val message 
     s"TransactionVerificationException($code, $message, ${stackTraceElements.mkString(",\n")})"
   }
 }
+
+class TransactionSignException(val code:ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class BlockVerificationException(val code : ErrorCode) extends ExceptionWithErrorCode
 
