@@ -273,13 +273,13 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
       val txHash = Hash(HashCalculator.transactionHash( transaction ))
-      if (mempool.exists(txHash)) {
+      if ( mempool.exists(txHash)) {
+        logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
+      } else {
         mempool.put(transaction)
         chainEventListener.map(_.onNewTransaction(transaction))
 
         logger.info(s"A new transaction was put into mempool. Hash : ${txHash}")
-      } else {
-        logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
       }
     }
   }

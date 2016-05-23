@@ -8,7 +8,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.crypto.ECKey.ECDSASignature
 import io.scalechain.crypto.{ECKey, Hash256}
-import io.scalechain.util.ByteArray
+import io.scalechain.util.{HexUtil, ByteArray}
 
 
 object SigHash extends Enumeration {
@@ -113,9 +113,15 @@ object TransactionSigner {
           throw new TransactionSignException(ErrorCode.UnsupportedFeature, "Unsupported locking script for the transaction input. Input Index : " + inputIndex)
         }
 
+        println(s"locking script = ${lockingScript}")
+
         val address = addresses.head
+
+        println(s"address = ${address.base58}")
+
         val keysToUse = privateKeys.filter { key =>
           val publicKey = PublicKey.from(key)
+          println(s"input=${inputIndex}, private key=${key}, publicKeyHash:${HexUtil.hex(publicKey.getHash().value)}, address pub key:${address.publicKeyHash}\n")
           if ( ByteArray( publicKey.getHash().value ) == address.publicKeyHash ) { // If a public key hash matches, we can sign the transaction.
             true
           } else {
