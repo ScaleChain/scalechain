@@ -103,7 +103,7 @@ object SignRawTransaction extends RpcCommand {
       val transaction : Transaction = TransactionDecoder.decodeTransaction(rawTransaction)
 
       val signedTransaction : SignedTransaction =
-        Wallet.signTransaction(
+        Wallet.get.signTransaction(
           transaction,
           Blockchain.get,
           dependencies.getOrElse(List()),

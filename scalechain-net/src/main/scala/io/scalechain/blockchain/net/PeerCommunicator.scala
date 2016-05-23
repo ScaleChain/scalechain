@@ -16,7 +16,8 @@ class PeerCommunicator(peerSet : PeerSet) {
   */
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
-    peerSet.all() foreach { peer : Peer =>
+    peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
+      println(s"Sending to one of all peers : ${address}, ${message}")
       peer.send(message)
     }
   }

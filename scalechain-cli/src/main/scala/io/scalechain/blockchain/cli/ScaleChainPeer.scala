@@ -14,10 +14,11 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{HashCalculator, BlockPrinterSetter}
 import io.scalechain.blockchain.storage.{GenesisBlock, BlockStorage, DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.ChainEnvironment
-import io.scalechain.util.Config
+import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironment}
+import io.scalechain.util.{HexUtil, Config}
 import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
 import scala.collection.JavaConverters._
@@ -30,7 +31,8 @@ object ScaleChainPeer extends JsonRpc {
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          peerPort: Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         inboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.inbound_port"),
+                         p2pInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.port"),
+                         apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
                          network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name")
                        )
@@ -38,9 +40,13 @@ object ScaleChainPeer extends JsonRpc {
   def main(args: Array[String]) = {
     val parser = new scopt.OptionParser[Parameters]("scalechain") {
       head("scalechain", "1.0")
-      opt[Int]('p', "port") action { (x, c) =>
-        c.copy(inboundPort = x)
-      } text ("The inbound port to use to accept connection from other peers.")
+      opt[Int]('p', "p2pPort") action { (x, c) =>
+        c.copy(p2pInboundPort = x)
+      } text ("The P2P inbound port to use to accept connection from other peers.")
+      // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
+      opt[Int]('c', "apiPort") action { (x, c) =>
+        c.copy(apiInboundPort = x)
+      } text ("The API inbound port to use to accept connection from RPC clients.")
       opt[String]('a', "peerAddress") action { (x, c) =>
         c.copy(peerAddress = Some(x))
       } text ("The address of the peer we want to connect.")
@@ -71,7 +77,7 @@ object ScaleChainPeer extends JsonRpc {
   protected[cli] def initializeNetLayer(params: Parameters, system: ActorSystem, materializer: ActorMaterializer): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) =
-      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.inboundPort)
+      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
 
     /**
       * Read list of peers from scalechain.conf
@@ -99,8 +105,8 @@ object ScaleChainPeer extends JsonRpc {
       }
 
     PeerToPeerNetworking.getPeerCommunicator(
-      params.inboundPort,
-      peerAddresses.filter(isMyself),
+      params.p2pInboundPort,
+      peerAddresses.filter(! isMyself(_) ),
       system,
       materializer)
   }
@@ -127,7 +133,7 @@ object ScaleChainPeer extends JsonRpc {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = new File("./target/blockstorage")
+    val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
     // Initialize the block storage.
     val storage: BlockStorage = DiskBlockStorage.create(blockStoragePath)
@@ -152,14 +158,46 @@ object ScaleChainPeer extends JsonRpc {
 
     // Step 7 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    chain.setEventListener(Wallet)
+    val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
+    val wallet = Wallet.create(walletPath)
+    chain.setEventListener(wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
     RpcSubSystem.create(chain, peerCommunicator)
-    JsonRpcMicroservice.runService(system, materializer, system.dispatcher)
+    JsonRpcMicroservice.runService(params.apiInboundPort, system, materializer, system.dispatcher)
+
+/*
+String Request : {"id":1463980875505,"method":"signrawtransaction","params":["01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000",[],["cTZEJ2ftKbmXfQRjhAVHZ9NNs7Z6CMtKWF4dxnrneRGtK2VqdbKv","cVshLKgH4DwVKoQ3a4opLoMNnoGfxSvKN8myurxRe7ff3fLjweSL"]]}
+String Response : {
+  "result": {
+    "hex": "01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000",
+    "complete": false
+  },
+  "error": null,
+  "id": 1463980875505
+}
+
+ */
+
+/*
+    val transaction = TransactionCodec.parse(
+      HexUtil.bytes("01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000")
+    )
+    val privateKey1 = PrivateKey.from("cTZEJ2ftKbmXfQRjhAVHZ9NNs7Z6CMtKWF4dxnrneRGtK2VqdbKv")
+    val privateKey2 = PrivateKey.from("cVshLKgH4DwVKoQ3a4opLoMNnoGfxSvKN8myurxRe7ff3fLjweSL")
+
+    val signedTransaction = Wallet.get.signTransaction(
+      transaction,
+      chain,
+      List(),
+      Some(List( privateKey1, privateKey2 )),
+      SigHash.ALL
+    )
+    println("signedTransaction : " + signedTransaction)
+*/
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    CoinMiner.create(params.miningAccount, Wallet, chain, peerCommunicator)
+    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator)
   }
 }

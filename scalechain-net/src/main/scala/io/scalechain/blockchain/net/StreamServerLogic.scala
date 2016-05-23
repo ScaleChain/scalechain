@@ -30,7 +30,7 @@ class StreamServerLogic(system : ActorSystem, materializer : Materializer, peerS
   implicit val s = system
   implicit val m = materializer
 
-  val connections : Source[IncomingConnection, Future[ServerBinding]] = Tcp().bind(address.getAddress.getHostAddress, address.getPort)
+  val connections : Source[IncomingConnection, Future[ServerBinding]] = Tcp().bind("0.0.0.0", address.getPort)
 
   connections runForeach { connection : IncomingConnection =>
     println(s"Accepting connection from client : ${connection.remoteAddress}")

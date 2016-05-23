@@ -5,6 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.chain.{TransactionWithName, OutputWithOutPoint, ChainSampleData, ChainTestDataTrait}
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage}
 import io.scalechain.blockchain.transaction._
@@ -43,7 +44,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
     DiskBlockStorage.theBlockStorage = storage
-    wallet = new Wallet(testPathForWallet)
+    wallet = Wallet.create(testPathForWallet)
 
     super.beforeEach()
   }
@@ -67,7 +68,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "signTransaction" should "sign successfully with the private keys argument" in {
     val S = new WalletSampleData(wallet)
 
-    val signedTransaction = Wallet.signTransaction(
+    val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -84,7 +85,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
   "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
     val S = new WalletSampleData(wallet)
 
-    val signedTransaction = Wallet.signTransaction(
+    val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -100,6 +101,19 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
     }
   }
 
+  /*
+String Request : {"id":1463979961277,"method":"signrawtransaction","params":["010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000",[],["cMvpcxdeLot2Zn7Ps99RZ4HC2fqst5FZ5mgyzf8TgENmsSd2qtAm","cR8oUtf44zW4gahPews8JtsAPknXX9sdTxjYNqzw462C43pWMYg4"]]}
+String Response : {
+  "result": {
+    "hex": "010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000",
+    "complete": false
+  },
+  "error": null,
+  "id": 1463979961277
+}
+
+   */
+
   "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" ignore {
     val S = new WalletSampleData(wallet)
 
@@ -111,7 +125,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     //////////////////////////////////////////////////////////////////////////
     // Step 1 : sign for the first input.
-    val signedTransaction1 = Wallet.signTransaction(
+    val signedTransaction1 = Wallet.get.signTransaction(
       S.S5_CarryMergeToAliceTx.transaction,
       S.TestBlockchainView,
       List(),
@@ -127,7 +141,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrai
 
     //////////////////////////////////////////////////////////////////////////
     // Step 2 : sign for the second input.
-    val finalTransaction = Wallet.signTransaction(
+    val finalTransaction = Wallet.get.signTransaction(
       signedTransaction1.transaction,
       S.TestBlockchainView,
       List(),

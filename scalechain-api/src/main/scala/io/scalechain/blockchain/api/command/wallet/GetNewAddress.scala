@@ -52,7 +52,7 @@ object GetNewAddress extends RpcCommand {
     handlingException {
       val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
 
-      val newCoinAddress : CoinAddress = Wallet.newAddress(account)
+      val newCoinAddress : CoinAddress = Wallet.get.newAddress(account)
 
       Right(Some(StringResult(newCoinAddress.base58)))
     }

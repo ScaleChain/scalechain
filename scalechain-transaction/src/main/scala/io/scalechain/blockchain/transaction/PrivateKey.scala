@@ -14,15 +14,17 @@ object PrivateKey {
     * @return The translated private key.
     */
   def from(walletImportFormat : String) : PrivateKey = {
-    val (versionPrefix, privateKeyBytes) = Base58Check.decode(walletImportFormat)
+    val (versionPrefix, rawPrivateKeyBytes) = Base58Check.decode(walletImportFormat)
     // TODO : Investigate : Bitcoin allows the private keys whose lengths are not 32
-    /*
-    if (privateKeyBytes.length != 32) {
-      throw new GeneralException(ErrorCode.RpcInvalidKey)
+
+    val (isCompressed, privateKeyBytes) = if (rawPrivateKeyBytes.length == 33) {
+      (true, rawPrivateKeyBytes.dropRight(1))
+    } else {
+      (false, rawPrivateKeyBytes)
     }
-    */
+
     val privateKeyBigInt = Utils.bytesToBigInteger(privateKeyBytes)
-    PrivateKey(versionPrefix, privateKeyBigInt)
+    PrivateKey(versionPrefix, privateKeyBigInt, isCompressed)
   }
 
   /** Generate a private key.
@@ -42,15 +44,20 @@ object PrivateKey {
     // Step 2 : Get the chain environment to get the secret key version.
     val chainEnv = ChainEnvironment.get
 
+    // BUGBUG : Use compressed private key by default.
+
     // Step 3 : Create the private key.
-    PrivateKey(chainEnv.SecretKeyVersion, Utils.bytesToBigInteger(keyValue))
+    PrivateKey(chainEnv.SecretKeyVersion, Utils.bytesToBigInteger(keyValue), false)
   }
 }
 
 
 /** A private key.
+  *
+  * Details :
+  * https://en.bitcoin.it/wiki/Wallet_import_format
   */
-case class PrivateKey(version:Byte, value:BigInteger) {
+case class PrivateKey(version:Byte, value:BigInteger, isForCompressedPublicKey : Boolean) {
   /** Return the address in base58 encoding format.
     *
     * @return The base 58 check encoded private key.

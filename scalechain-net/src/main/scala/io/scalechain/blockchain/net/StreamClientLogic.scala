@@ -26,7 +26,6 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerS
   implicit val s = system
   implicit val m = materializer
 
-
   val connection = Tcp().outgoingConnection(remoteAddress.getAddress.getHostAddress, remoteAddress.getPort)
 
   val peerAddress = s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}"
@@ -51,7 +50,13 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerS
     }
 
     case Failure(throwable) => {
-      println(s"Failed to connect to the peer : $peerAddress")
+      println(s"Failed to connect to the peer : $peerAddress. Will retry in 10 seconds.")
+      val PEER_CONNECTION_RETRY_MILLIS = 10000
+
+//      if ( !peerSet.hasPeer(remoteAddress.getAddress) ) {
+        Thread.sleep(PEER_CONNECTION_RETRY_MILLIS)
+        StreamClientLogic(system, materializer, peerSet, remoteAddress)
+//      }
     }
   }
 }

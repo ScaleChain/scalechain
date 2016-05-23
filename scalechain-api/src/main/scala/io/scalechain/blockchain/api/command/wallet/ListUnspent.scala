@@ -82,7 +82,7 @@ object ListUnspent extends RpcCommand {
         addressStrings.map( CoinAddress.from( _ ) )
       }
 
-      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.listUnspent(
+      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.get.listUnspent(
         Blockchain.get, minimumConfirmations, maximumConfirmations, coinAddressesOption
       )
 

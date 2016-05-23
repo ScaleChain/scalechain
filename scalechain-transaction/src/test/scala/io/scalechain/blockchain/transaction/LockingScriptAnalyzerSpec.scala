@@ -27,7 +27,7 @@ class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with Tr
   "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pk)" in {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
-    val encodedPublicKey = publicKey.encode(compressed = false)
+    val encodedPublicKey = publicKey.encode()
     val p2pkScript = ScriptOpList( List(
                         OpPush(encodedPublicKey.length, ScriptValue.valueOf(encodedPublicKey)),
                         OpCheckSig()) )
