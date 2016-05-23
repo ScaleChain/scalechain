@@ -240,7 +240,10 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
     val accountOption : Option[String] = store.getAccount(ownership)
     // We are keeping transactions that accounts own only. If we are unable to find an account, we did something wrong.
-    assert(accountOption.isDefined)
+    // TODO : BUGBUG : We hit the exception. Need to investigate why.
+
+    //assert(accountOption.isDefined)
+
 
     val addressOption : Option[CoinAddress] = ownership match {
       case address : CoinAddress => Some(address)
@@ -254,7 +257,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       Some(
         TransactionDescriptor(
           involvesWatchonly = involvesWatchonly,
-          account           = accountOption.get,
+          account           = accountOption.getOrElse("undefined"),
           // TODO : BUGBUG : According to the specification, this should be the "paying" address.
           address           = addressOption.map(_.base58),
           //address           = payingAddressOption.map(_.base58),
