@@ -8,17 +8,19 @@ import io.scalechain.blockchain.proto.{CoinbaseData, Hash, BlockHash, Block}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
+import org.slf4j.LoggerFactory
 
 import scala.util.Random
 
+case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int )
 /**
   * Created by kangmo on 3/15/16.
   */
 object CoinMiner {
   var theCoinMiner : CoinMiner = null
 
-  def create(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator) = {
-    theCoinMiner = new CoinMiner(minerAccount, wallet, chain, peerCommunicator)
+  def create(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) = {
+    theCoinMiner = new CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)
     theCoinMiner.start()
     theCoinMiner
   }
@@ -41,7 +43,9 @@ object CoinMiner {
 }
 
 
-class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator) {
+class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
+  private val logger = LoggerFactory.getLogger(classOf[CoinMiner])
+
   // For every 10 seconds, create a new block template for mining a block.
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
@@ -50,10 +54,10 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
     val thread = new Thread {
       override def run {
-        println("Miner started.")
+        logger.info(s"Miner started. Params : ${params}")
         // TODO : Need to eliminate this code.
         // Sleep for one minute to wait for each peer to start.
-        Thread.sleep(20000)
+        Thread.sleep(params.InitialDelayMS)
 
         // Step 1 : Set the minder's coin address to receive block mining reward.
         val minerAddress = wallet.getReceivingAddress(minerAccount)
@@ -65,10 +69,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
           // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
           // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
-          Thread.sleep(100 + Random.nextInt(100))
-//          Thread.sleep(1 + Random.nextInt(1))
-
-          //          Thread.sleep(10 + Random.nextInt(10))
+          Thread.sleep(Random.nextInt(params.HashDelayMS))
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
@@ -107,7 +108,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               }
  //           } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
           } else {
-            println("The best block hash is not defined yet.")
+            logger.error("The best block hash is not defined yet.")
           }
         }
       }

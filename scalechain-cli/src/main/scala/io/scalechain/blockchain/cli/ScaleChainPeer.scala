@@ -34,7 +34,9 @@ object ScaleChainPeer extends JsonRpc {
                          p2pInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.port"),
                          apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
-                         network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name")
+                         network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name"),
+                         minerInitialDelayMS: Int = 20000,
+                         minerHashDelayMS : Int = 200
                        )
 
   def main(args: Array[String]) = {
@@ -61,7 +63,15 @@ object ScaleChainPeer extends JsonRpc {
       opt[String]('n', "network") action { (x, c) =>
         c.copy(network = x)
       } text ("The network to use. currently 'testnet' is supported. Will support 'mainnet' as well as 'regtest' soon.")
-    }
+      opt[Int]("minerInitialDelayMS") action { (x, c) =>
+        c.copy(minerInitialDelayMS = x) } validate { x =>
+        if (x > 0) success else failure("Value <minerInitialDelayMS> must be >0")
+      } text ("Seconds to sleep before starting the miner.")
+      opt[Int]("minerHashDelayMS") action { (x, c) =>
+        c.copy(minerHashDelayMS = x) } validate { x =>
+          if (x > 0) success else failure("Value <minerHashDelayMS> must be >0")
+        } text ("Maximum seconds to sleep for each hash calculation.")
+      }
 
     // parser.parse returns Option[C]
     parser.parse(args, Parameters()) match {
@@ -167,37 +177,11 @@ object ScaleChainPeer extends JsonRpc {
     RpcSubSystem.create(chain, peerCommunicator)
     JsonRpcMicroservice.runService(params.apiInboundPort, system, materializer, system.dispatcher)
 
-/*
-String Request : {"id":1463980875505,"method":"signrawtransaction","params":["01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000",[],["cTZEJ2ftKbmXfQRjhAVHZ9NNs7Z6CMtKWF4dxnrneRGtK2VqdbKv","cVshLKgH4DwVKoQ3a4opLoMNnoGfxSvKN8myurxRe7ff3fLjweSL"]]}
-String Response : {
-  "result": {
-    "hex": "01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000",
-    "complete": false
-  },
-  "error": null,
-  "id": 1463980875505
-}
 
- */
-
-/*
-    val transaction = TransactionCodec.parse(
-      HexUtil.bytes("01000000011618ad6c51702c1f83af1f04bb4801a0a884bac81fe67fe3e03e43d53923a8180000000000ffffffff0358020000000000001976a914e28eeda56bd49d295d6736763be3eec34167e16b88ac00000000000000001d6a1b4f410100001568d1828fa9517b8eab50acb4e00c8cb0912eee407fc8bc0200000000001976a914938b40455b520bd97f7208b776c79be1610137fa88ac00000000")
-    )
-    val privateKey1 = PrivateKey.from("cTZEJ2ftKbmXfQRjhAVHZ9NNs7Z6CMtKWF4dxnrneRGtK2VqdbKv")
-    val privateKey2 = PrivateKey.from("cVshLKgH4DwVKoQ3a4opLoMNnoGfxSvKN8myurxRe7ff3fLjweSL")
-
-    val signedTransaction = Wallet.get.signTransaction(
-      transaction,
-      chain,
-      List(),
-      Some(List( privateKey1, privateKey2 )),
-      SigHash.ALL
-    )
-    println("signedTransaction : " + signedTransaction)
-*/
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator)
+    val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS )
+
+    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator, minerParams)
   }
 }
