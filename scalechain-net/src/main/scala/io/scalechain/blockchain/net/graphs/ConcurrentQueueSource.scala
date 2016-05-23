@@ -6,10 +6,13 @@ import akka.stream.{Graph, Attributes, Outlet, SourceShape}
 import akka.stream.scaladsl._
 import akka.stream.stage.{AsyncCallback, GraphStageWithMaterializedValue, OutHandler, GraphStageLogic}
 
-import scala.concurrent.Future
-
+import scala.concurrent.{Future}
+import io.scalechain.util.ExecutionContextUtil
 
 object ConcurrentQueueSource {
+  // TODO : Tune the number of threads in the execution contexts
+  val executionContext = ExecutionContextUtil.createContext(threadCount = 16)
+
   def create[T] : Source[T, LinkedBlockingQueue[T]] = {
 
     val sourceGraph : Graph[SourceShape[T], LinkedBlockingQueue[T]] = new ConcurrentQueueSource[T]()
@@ -17,7 +20,6 @@ object ConcurrentQueueSource {
     Source.fromGraph(sourceGraph)
   }
 }
-
 /** A source than materializes a concurrent queue.
   * All elements put into the queue is emit by the source.
   */
@@ -29,6 +31,7 @@ class ConcurrentQueueSource[T](outletName : String = "ConcurrentQueueSource")
   override val shape : SourceShape[T] = SourceShape(out)
 
   override def createLogicAndMaterializedValue(inheritedAttributes : Attributes) : (GraphStageLogic, LinkedBlockingQueue[T]) = {
+
     val logic = new GraphStageLogic(shape) {
       var onQueueItem : AsyncCallback[T] = null
 
@@ -44,7 +47,7 @@ class ConcurrentQueueSource[T](outletName : String = "ConcurrentQueueSource")
       setHandler( out, new OutHandler {
         override def onPull() : Unit = {
           if (queue.isEmpty) { // The queue is empty.
-            import scala.concurrent.ExecutionContext.Implicits.global
+            implicit val ec = ConcurrentQueueSource.executionContext
             Future {
               // Wait for an item forever.
               queue.poll(Integer.MAX_VALUE, TimeUnit.DAYS )

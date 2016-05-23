@@ -12,9 +12,6 @@ case class PeerAddress(address : String, port : Int)
 object PeerToPeerNetworking {
   def getPeerCommunicator(inboundPort : Int, peerAddresses : List[PeerAddress],  system : ActorSystem, materializer : ActorMaterializer ) : PeerCommunicator = {
 
-    // TODO : BUGBUG : Investigate if using the global pool is ok.
-    import ExecutionContext.Implicits.global
-
     // The peer set that keeps multiple PeerNode(s).
     val peerSet = PeerSet.create
 

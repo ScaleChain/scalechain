@@ -5,6 +5,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.directives.{LogEntry, LoggingMagnet, DebuggingDirectives}
+import com.typesafe.config.ConfigFactory
 import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
 import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
 import io.scalechain.blockchain.api.command.blockchain._
@@ -276,10 +277,11 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
     stringResponse
   }
 
-  def runService(inboundPort : Int,  system : ActorSystem, materializer : ActorMaterializer, ec : ExecutionContextExecutor) = {
-    implicit val s = system
-    implicit val m = materializer
-    implicit val e = ec
+  def runService(inboundPort : Int) = {
+    implicit val system = ActorSystem("ScaleChainApiLayer")
+    implicit val materializer = ActorMaterializer()
+    implicit val e = system.dispatcher
+
     val requestHandler: HttpRequest => HttpResponse = {
       case req @ HttpRequest(POST, Uri.Path("/"), headers, requestEntity, protocol) =>
         //println(s"POST / => ${req}")

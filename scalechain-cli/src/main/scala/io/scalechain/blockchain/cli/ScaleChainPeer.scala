@@ -84,7 +84,7 @@ object ScaleChainPeer extends JsonRpc {
     }
   }
 
-  protected[cli] def initializeNetLayer(params: Parameters, system: ActorSystem, materializer: ActorMaterializer): PeerCommunicator = {
+  protected[cli] def initializeNetLayer(params: Parameters): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) =
       (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
@@ -114,6 +114,10 @@ object ScaleChainPeer extends JsonRpc {
         }
       }
 
+    // Step 1 : Create the actor system.
+    implicit val system = ActorSystem("ScaleChainNetLayer", ConfigFactory.load.getConfig("server"))
+    implicit val materializer = ActorMaterializer()
+
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
       peerAddresses.filter(! isMyself(_) ),
@@ -126,11 +130,6 @@ object ScaleChainPeer extends JsonRpc {
     * @param params The command line parameter of ScaleChain.
     */
   def initializeSystem(params: Parameters) {
-
-    // Step 1 : Create the actor system.
-    implicit val system = ActorSystem("ScaleChainPeer", ConfigFactory.load.getConfig("server"))
-    implicit val materializer = ActorMaterializer()
-
 
     // Step 2 : Initialize the printer setter, to print script operations on transactions.
     BlockPrinterSetter.initialize
@@ -164,7 +163,7 @@ object ScaleChainPeer extends JsonRpc {
 
     // Step 6 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
-    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, system, materializer)
+    val peerCommunicator: PeerCommunicator = initializeNetLayer(params)
 
     // Step 7 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
@@ -175,7 +174,7 @@ object ScaleChainPeer extends JsonRpc {
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
     RpcSubSystem.create(chain, peerCommunicator)
-    JsonRpcMicroservice.runService(params.apiInboundPort, system, materializer, system.dispatcher)
+    JsonRpcMicroservice.runService(params.apiInboundPort)
 
 
 
