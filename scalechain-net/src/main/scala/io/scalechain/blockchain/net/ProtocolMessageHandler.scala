@@ -22,6 +22,7 @@ class ProtocolMessageHandler  {
     // Return Some[ProtocolMessage] if we need to reply a message. Return None otherwise.
     message match {
       case version: Version => {
+        println(s"Version accepted : ${version}")
         // TODO : Implement - Update peerInfo.version.
         Some(Verack())
       }
