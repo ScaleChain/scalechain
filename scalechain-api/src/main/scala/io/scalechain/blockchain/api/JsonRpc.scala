@@ -228,8 +228,9 @@ object JsonRpcMicroservice extends App with JsonRpc {
 }
 */
 
+class JsonRpcMicroservice
 object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
-  private val logger = LoggerFactory.getLogger(JsonRpcMicroservice.getClass)
+  private val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
 
   import RpcParamsJsonFormat._
 
@@ -312,7 +313,7 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
     }
 
     val bindingFuture = Http().bindAndHandleSync(requestHandler, "0.0.0.0", inboundPort)
-    logger.info(s"ScaleChain RPC service online at http://localhost:${inboundPort}/\nPress RETURN to stop...")
+    logger.info(s"ScaleChain RPC service online at http://localhost:${inboundPort}.")
 /*
     Console.readLine() // let it run until user presses return
     bindingFuture
