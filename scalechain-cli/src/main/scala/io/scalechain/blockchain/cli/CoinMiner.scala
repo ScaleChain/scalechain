@@ -53,7 +53,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
         println("Miner started.")
         // TODO : Need to eliminate this code.
         // Sleep for one minute to wait for each peer to start.
-        Thread.sleep(20000)
+//        Thread.sleep(20000)
 
         // Step 1 : Set the minder's coin address to receive block mining reward.
         val minerAddress = wallet.getReceivingAddress(minerAccount)
@@ -65,8 +65,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
           // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
           // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
-          Thread.sleep(1000 + Random.nextInt(1000))
-//          Thread.sleep(10 + Random.nextInt(10))
+//          Thread.sleep(1000 + Random.nextInt(1000))
+          Thread.sleep(1 + Random.nextInt(1))
 
           //          Thread.sleep(10 + Random.nextInt(10))
 
