@@ -74,7 +74,7 @@ object TransactionSigner {
 
     val publickKey = PublicKey.from(keyToUse)
     // If we use compressed version, the transaction verification fails. Need investigation.
-    val encodedPublicKey = publickKey.encode(compressed = false)
+    val encodedPublicKey = publickKey.encode()
 
     val unlockingScriptOps = List(
       OpPush.from(encodedSignature), // Signature.

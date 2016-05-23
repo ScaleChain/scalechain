@@ -23,7 +23,7 @@ object LockingScriptAnalyzer {
       // Pay to public key
       case List( OpPush(_, encodedPublicKey : ScriptValue), OpCheckSig(_) ) => {
         val publicKey : PublicKey = PublicKey.from(encodedPublicKey.value)
-        val uncompressedPublicKey = publicKey.encode(false)
+        val uncompressedPublicKey = publicKey.encode()
         val publicKeyHash = HashFunctions.hash160(uncompressedPublicKey)
         List( CoinAddress.from(publicKeyHash.value) )
       }
