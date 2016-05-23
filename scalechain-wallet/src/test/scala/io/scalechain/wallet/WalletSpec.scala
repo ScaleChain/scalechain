@@ -337,6 +337,7 @@ String Response : {
       )),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = true
     ).get
 
@@ -371,6 +372,7 @@ String Response : {
       )),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = false
     ) shouldBe None // need to update
   }
@@ -383,6 +385,7 @@ String Response : {
       Right(S.S2_BobCoin1_A10.output),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = true
     ).get
 
@@ -412,6 +415,7 @@ String Response : {
       Right(S.S2_BobCoin1_A10.output),
       0,
       negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = false
     ) shouldBe None // need to update
   }
