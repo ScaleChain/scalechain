@@ -10,6 +10,7 @@ class ProtocolMessageHandler  {
 
   private val logger = LoggerFactory.getLogger(classOf[ProtocolMessageHandler])
 
+  val peerCommunication = new PeerCommunicator(PeerSet.get)
   /** Handle a message coming from the TCP stream.
     *
     * @param message The messages to handle.
@@ -51,16 +52,23 @@ class ProtocolMessageHandler  {
       case transaction: Transaction => {
         val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
         if (chain.getTransaction(transactionHash).isEmpty) { // Process the transaction only if we don't have it yet.
-          println(s"[P2P] Received a transaction. ${transaction}")
+          println(s"[P2P] Received a transaction.\n Hash : ${transactionHash}\n Transaction : ${transaction}\n\n")
           chain.putTransaction(transaction)
+
+          // Propagate the transaction only if the block transaction was not found.
+          peerCommunication.sendToAll(transaction)
         }
         None
       }
       case block: Block => {
         val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
         if (chain.getBlock(blockHash).isEmpty) { // Process the transaction only if we don't have it yet.
-          println(s"[P2P] Received a block. ${block}")
+          println(s"[P2P] Received a block. \n Hash : ${blockHash}\n Block : ${block}\n\n")
           chain.putBlock(BlockHash(blockHash.value), block)
+
+          // Propagate the block only if the block was not found.
+          peerCommunication.sendToAll(block)
+
         }
         None
       }

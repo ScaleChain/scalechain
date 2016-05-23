@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.net
 
-import java.net.InetSocketAddress
+import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
 import io.scalechain.blockchain.proto.ProtocolMessage
@@ -83,6 +83,17 @@ class PeerSet {
       for ((address, peer) <- peerByAddress)
         yield (address, peer)
     }
+  }
+
+  /** See if a peer from the given address exists. This method does not check the port.
+    *
+    * @param address The address of the peer to find.
+    * @return true if a peer from the address was found; false otherwise.
+    */
+  def hasPeer(address : InetAddress) = {
+    ! peers.filter { case (inetSocketAddress, _) =>
+      inetSocketAddress.getAddress == address
+    }.isEmpty
   }
 }
 

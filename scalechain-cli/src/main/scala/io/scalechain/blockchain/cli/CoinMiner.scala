@@ -9,6 +9,8 @@ import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
 
+import scala.util.Random
+
 /**
   * Created by kangmo on 3/15/16.
   */
@@ -48,10 +50,25 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
     val thread = new Thread {
       override def run {
-        // Step 1 : Set the minder's coin address to receive block minging reward.
+        println("Miner started.")
+        // TODO : Need to eliminate this code.
+        // Sleep for one minute to wait for each peer to start.
+//        Thread.sleep(20000)
+
+        // Step 1 : Set the minder's coin address to receive block mining reward.
         val minerAddress = wallet.getReceivingAddress(minerAccount)
 
+        var nonce : Int = 1
+
         while(true) { // This thread loops forever.
+          nonce += 1
+          // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
+          // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
+          // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
+          Thread.sleep(10 + Random.nextInt(10))
+
+          //          Thread.sleep(10 + Random.nextInt(10))
+
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
           val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress)
@@ -61,11 +78,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             val blockHeader = blockTemplate.getBlockHeader(BlockHash(bestBlockHash.get.value))
             val startTime = System.currentTimeMillis()
             var blockFound = false;
-            var nonce = -1L
 
             // Step 3 : Loop until we find a block header hash less than the threshold.
-            do {
-              nonce += 1
+//            do {
               // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
               val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
 
@@ -81,15 +96,15 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   peerCommunicator.propagateBlock(block)
                   chain.putBlock(BlockHash(newBlockHash.value), block)
                   blockFound = true
-                  println("Coin Mined.")
-
-                  if ( chain.getBestBlockHeight() >= PREMINE_BLOCKS) {
-                    // Sleep 30 seconds
-                    Thread.sleep(30000)
+                  println(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
+/*
+                  if ( chain.getBestBlockHeight() <= PREMINE_BLOCKS) {
+                    Thread.sleep(Random.nextInt(120000))
                   }
+*/
                 }
               }
-            } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
+ //           } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
           } else {
             println("The best block hash is not defined yet.")
           }

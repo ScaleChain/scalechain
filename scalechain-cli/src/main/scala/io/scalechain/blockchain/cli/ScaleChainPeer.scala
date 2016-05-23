@@ -105,7 +105,7 @@ object ScaleChainPeer extends JsonRpc {
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
-      peerAddresses.filter(isMyself),
+      peerAddresses.filter(! isMyself(_) ),
       system,
       materializer)
   }

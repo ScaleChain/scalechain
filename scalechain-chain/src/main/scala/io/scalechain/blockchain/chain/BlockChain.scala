@@ -186,70 +186,81 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param block The block to put into the blockchain.
     */
   def putBlock(blockHash : BlockHash, block:Block) : Unit = {
-    // Step 0 : Check if the block is the genesis block
-    if (block.header.hashPrevBlock.isAllZero()) {
-      assert(theBestBlock == null)
-      theBestBlock = BlockDescriptor.create(null, blockHash, block.header, block.transactions.length)
-      storage.putBlock(block)
-      chainIndex.putBlock(blockHash, theBestBlock)
-      chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
-    } else {
-      assert(theBestBlock != null)
-
-      // Step 1 : Get the block descriptor of the previous block.
-      val prevBlockDesc: Option[BlockDescriptor] = chainIndex.findBlock(block.header.hashPrevBlock)
-
-      // Step 2 : Create a new block descriptor for the given block.
-      if (prevBlockDesc.isEmpty) {
-        logger.warn("An orphan block was found.")
-        // The parent block was not received yet. Put it into an orphan block list.
-        orphanBlocks.put(blockHash, block)
-
-        // BUGBUG : An attacker can fill up my memory with lots of orphan blocks.
+    synchronized {
+      if (storage.hasBlock(Hash(blockHash.value))) {
+        logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
       } else {
-        val blockDesc = BlockDescriptor.create(prevBlockDesc.get, blockHash, block.header, block.transactions.length)
 
-        // Step 3 : Check if the previous block of the new block is the current best block.
-        if (prevBlockDesc.get.blockHash.value == theBestBlock.blockHash.value) {
-          // Step 3.A.1 : Update the best block
-          theBestBlock = blockDesc
+        // Step 0 : Check if the block is the genesis block
+        if (block.header.hashPrevBlock.isAllZero()) {
+          assert(theBestBlock == null)
+          theBestBlock = BlockDescriptor.create(null, blockHash, block.header, block.transactions.length)
           storage.putBlock(block)
-          chainIndex.putBlock(blockHash, blockDesc)
+          chainIndex.putBlock(blockHash, theBestBlock)
+          chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
+        } else {
+          assert(theBestBlock != null)
+
+          // Step 1 : Get the block descriptor of the previous block.
+          val prevBlockDesc: Option[BlockDescriptor] = chainIndex.findBlock(block.header.hashPrevBlock)
+
+          // Step 2 : Create a new block descriptor for the given block.
+          if (prevBlockDesc.isEmpty) {
+            logger.warn("An orphan block was found.")
+            // The parent block was not received yet. Put it into an orphan block list.
+            orphanBlocks.put(blockHash, block)
+
+            // BUGBUG : An attacker can fill up my memory with lots of orphan blocks.
+          } else {
+            val blockDesc = BlockDescriptor.create(prevBlockDesc.get, blockHash, block.header, block.transactions.length)
+
+            // Step 3 : Check if the previous block of the new block is the current best block.
+            if (prevBlockDesc.get.blockHash.value == theBestBlock.blockHash.value) {
+              // Step 3.A.1 : Update the best block
+              theBestBlock = blockDesc
+              storage.putBlock(block)
+              chainIndex.putBlock(blockHash, blockDesc)
 
 
-          // Step 3.A.2 : Remove transactions in the block from the mempool.
-          block.transactions.foreach { transaction =>
-            val transactionHash = Hash(HashCalculator.transactionHash(transaction))
-            mempool.del(transactionHash)
-          }
+              // Step 3.A.2 : Remove transactions in the block from the mempool.
+              block.transactions.foreach { transaction =>
+                val transactionHash = Hash(HashCalculator.transactionHash(transaction))
+                mempool.del(transactionHash)
+              }
 
-          // Step 3.A.3 : Check if the new block is a parent of an orphan block.
-          val orphans = orphanBlocks.findByDependency(blockHash)
-          orphans.map { blocks =>
-            orphanBlocks.remove(blockHash)
-            blocks.get foreach { orphanBlock =>
-              val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
+              // Step 3.A.3 : Check if the new block is a parent of an orphan block.
+              val orphans = orphanBlocks.findByDependency(blockHash)
+              orphans.map { blocks =>
+                orphanBlocks.remove(blockHash)
+                blocks.get foreach { orphanBlock =>
+                  val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
 
-              // Step 6 : Recursively call putBlock to put the orphans
-              putBlock(blockHash, orphanBlock)
+                  // Step 6 : Recursively call putBlock to put the orphans
+                  putBlock(blockHash, orphanBlock)
+                }
+              }
+
+              chainEventListener.map(_.onNewBlock(ChainBlock(height = blockDesc.height, block)))
+
+              logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
+
+            } else {
+              if (blockDesc.chainWork > theBestBlock.chainWork) {
+                logger.warn("Block reorganization is required.")
+              }
+              /*
+              // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
+              if (blockDesc.chainWork > theBestBlock.chainWork) {
+                // Step 3.B.2 : Reorganize the blocks.
+                // transaction handling, orphan block handling is done in this method.
+                reorganize(originalBestBlock = theBestBlock, newBestBlock = blockDesc)
+
+                // Step 3.B.3 : Update the best block
+                theBestBlock = blockDesc
+              }
+              */
             }
           }
-
-          chainEventListener.map(_.onNewBlock(ChainBlock( height = blockDesc.height, block)))
-
-        } else {
-          logger.warn("Block reorganization is required.")
-          /*
-          // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
-          if (blockDesc.chainWork > theBestBlock.chainWork) {
-            // Step 3.B.2 : Reorganize the blocks.
-            // transaction handling, orphan block handling is done in this method.
-            reorganize(originalBestBlock = theBestBlock, newBestBlock = blockDesc)
-
-            // Step 3.B.3 : Update the best block
-            theBestBlock = blockDesc
-          }
-          */
         }
       }
     }
@@ -260,8 +271,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param transaction The transaction to put into the mempool.
     */
   def putTransaction(transaction : Transaction) : Unit = {
-    mempool.put(transaction)
-    chainEventListener.map(_.onNewTransaction(transaction))
+    synchronized {
+      val txHash = Hash(HashCalculator.transactionHash( transaction ))
+      if (mempool.exists(txHash)) {
+        mempool.put(transaction)
+        chainEventListener.map(_.onNewTransaction(transaction))
+
+        logger.info(s"A new transaction was put into mempool. Hash : ${txHash}")
+      } else {
+        logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
+      }
+    }
   }
 
 
