@@ -10,13 +10,11 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   var store: WalletStore
 
   "putOutputOwnership" should "be able to put an output ownership." in {
-    println("testing 1")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     scrubScript( store.getOutputOwnerships(Some(ACCOUNT1)) ).toSet shouldBe Set(ADDR1.address)
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (mixed)" in {
-    println("testing 2")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.pubKeyScript)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
@@ -28,7 +26,6 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (coin addresses only)" in {
-    println("testing 3")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT1, ADDR2.address)
     store.putOutputOwnership(ACCOUNT1, ADDR3.address)
@@ -39,8 +36,6 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putOutputOwnership" should "be able to put multiple output ownerships. (public key scripts only)" in {
-    println("testing 4")
-
     checkElementEquality(
       store.getOutputOwnerships(Some(ACCOUNT1)),
       Set()
@@ -69,12 +64,10 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
 
   "getReceivingAddress" should "get nothing if no receiving address is attached to an account." in {
-    println("testing 5")
     store.getReceivingAddress(ACCOUNT1) shouldBe None
   }
 
   "getReceivingAddress" should "get a receiving address if a receiving address was attached to the account." in {
-    println("testing 6")
     store.putReceivingAddress(ACCOUNT1, ADDR1.address)
     store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR1.address)
   }
@@ -86,7 +79,6 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
   "putReceivingAddress" should "replace the previous receiving address if any." in {
 
-    println("testing 7")
     store.putReceivingAddress(ACCOUNT1, ADDR1.address)
     store.getReceivingAddress(ACCOUNT1) shouldBe Some(ADDR1.address)
 
@@ -95,7 +87,6 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putReceivingAddress" should "put a public key script." in {
-    println("testing 8")
     store.putReceivingAddress(ACCOUNT1, ADDR1.pubKeyScript)
     store.getReceivingAddress(ACCOUNT1).map(scrubScript(_)) shouldBe Some(ADDR1.pubKeyScript)
 
@@ -104,12 +95,10 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "getAccount" should "get nothing if the given output ownership was put for an account." in {
-    println("testing 9")
     store.getAccount(ADDR1.address) shouldBe None
   }
 
   "getAccount" should "get the account that has the given output ownership. (when output ownership count is 1 )." in {
-    println("testing 10")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.getAccount(ADDR1.address) shouldBe Some(ACCOUNT1)
   }
@@ -178,8 +167,6 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
   }
 
   "putPrivateKey" should "overwrite the previous private key for an output ownership." in {
-    println(s"pk1 = ${ADDR1.privateKey}")
-    println(s"pk2 = ${ADDR2.privateKey}")
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
     store.putPrivateKeys(ADDR1.address, List(ADDR2.privateKey))

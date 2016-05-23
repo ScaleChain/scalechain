@@ -37,8 +37,6 @@ public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMess
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
-        System.out.println("[Debug] BitcoinProtocolEncoder : " + msg.toString());
-
         // TODO : Make sure that we are not having any performance issue here.
         byte[] bytes = codec.encode(msg);
 

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.api.command.blockchain.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import org.slf4j.LoggerFactory
 
 /*
   CLI command :
@@ -61,6 +62,7 @@ case class GetTxOutResult(
   * https://bitcoin.org/en/developer-reference#gettxout
   */
 object GetTxOut extends RpcCommand {
+
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     Right(

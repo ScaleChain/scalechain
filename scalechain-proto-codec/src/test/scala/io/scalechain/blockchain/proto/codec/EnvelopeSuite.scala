@@ -22,17 +22,12 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
     if (message != null) {
       val encodedBits = encode(message)
 
-      println("Encoded bits : " + encodedBits.bytes.toString)
-
       encodedBits shouldBe payloadBits
     }
   }
 
   "payload" should "be correctly decoded" in {
     val actual = decodeFully(payloadBits)
-
-    println("actual message = " + actual)
-    println("expected message = " + message)
 
     if (message != null) {
       decodeFully(payloadBits) shouldBe message

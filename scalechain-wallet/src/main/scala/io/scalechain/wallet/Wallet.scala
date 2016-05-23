@@ -10,6 +10,7 @@ import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
+import org.slf4j.LoggerFactory
 
 object Wallet {
   private var theWallet : Wallet = null
@@ -37,6 +38,7 @@ case class WalletOutputWithInfo(
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
+  private val logger = LoggerFactory.getLogger(classOf[Wallet])
 
   val store = new WalletStore(walletFolder)
 
@@ -113,10 +115,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param accountOption The account to get transactions related to an account
     */
   protected[wallet] def getTransactionHashes(accountOption : Option[String]) : Set[Hash] = {
-    println(s"all ownerships:${store.getOutputOwnerships(None)}")
-
     store.getOutputOwnerships(accountOption).flatMap { ownership : OutputOwnership =>
-      println(s"ownerships: ${ownership} - ${store.getTransactionHashes(Some(ownership))}")
       store.getTransactionHashes(Some(ownership))
     }.toSet
   }
@@ -466,7 +465,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
-      println(s"best=${blockchainView.getBestBlockHeight()} blockHeight= ${blockHeight}")
+      logger.error(s"best=${blockchainView.getBestBlockHeight()} blockHeight= ${blockHeight}")
       assert( false )
     }
     confirmations
@@ -625,7 +624,6 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @see ChainEventListener
     */
   def onNewTransaction(transaction : Transaction): Unit = {
-    println("onNewTransaction called.")
     registerTransaction(store.getOutputOwnerships(None), transaction, None, None)
   }
 

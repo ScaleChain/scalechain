@@ -3,11 +3,14 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 
 import io.scalechain.blockchain.proto._
+import org.slf4j.LoggerFactory
 
 /**
   * Created by kangmo on 5/22/16.
   */
 class PeerCommunicator(peerSet : PeerSet) {
+  private val logger = LoggerFactory.getLogger(classOf[PeerCommunicator])
+
   /*
     protected[net] def sendToAny(message : ProtocolMessage): Unit = {
     }
@@ -17,7 +20,8 @@ class PeerCommunicator(peerSet : PeerSet) {
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
-      println(s"Sending to one of all peers : ${address}, ${message}")
+
+      logger.info(s"Sending to one of all peers : ${address}, ${message}")
       peer.send(message)
     }
   }

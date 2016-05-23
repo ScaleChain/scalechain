@@ -18,6 +18,7 @@ import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.TransactionDescriptor
 import org.apache.http.protocol.ExecutionContext
+import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
@@ -227,6 +228,7 @@ object JsonRpcMicroservice extends App with JsonRpc {
 */
 
 object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
+  private val logger = LoggerFactory.getLogger(JsonRpcMicroservice.getClass)
 
   import RpcParamsJsonFormat._
 
@@ -243,7 +245,7 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
   implicit val executionContext = system.dispatcher
 */
   def handleRequest(requestString : String) : String = {
-  println(s"String Request : ${requestString}")
+  logger.info(s"String Request : ${requestString}")
 /*
     val source1 = """{ "some": "JSON source" }"""
     val jsonAst1 = source1.parseJson // or JsonParser(source)
@@ -270,8 +272,8 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
     val serviceResponse : RpcResponse = dispatch(request)
     val stringResponse = serviceResponse.toJson.prettyPrint
     // Show the first 256 chars of the response.
-    println(s"String Response : ${if (stringResponse.length() >= 2048) stringResponse.substring(0,2047)+"..." else stringResponse}")
-  stringResponse
+    logger.info(s"String Response : ${if (stringResponse.length() >= 2048) stringResponse.substring(0,2047)+"..." else stringResponse}")
+    stringResponse
   }
 
   def runService(inboundPort : Int,  system : ActorSystem, materializer : ActorMaterializer, ec : ExecutionContextExecutor) = {
@@ -295,20 +297,20 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
               responseString))
           }
           case other => {
-            println(s"Other than strict entity => ${other}")
+            logger.warn(s"Other than strict entity => ${other}")
             HttpResponse(404, entity = "Unknown resource entity!")
           }
         }
 
       case req: HttpRequest => {
-        println(s"Unknown request => ${req}")
+        logger.warn(s"Unknown request => ${req}")
 
         HttpResponse(404, entity = "Unknown resource!")
       }
     }
 
     val bindingFuture = Http().bindAndHandleSync(requestHandler, "0.0.0.0", inboundPort)
-    println(s"ScaleChain RPC service online at http://localhost:${inboundPort}/\nPress RETURN to stop...")
+    logger.info(s"ScaleChain RPC service online at http://localhost:${inboundPort}/\nPress RETURN to stop...")
 /*
     Console.readLine() // let it run until user presses return
     bindingFuture

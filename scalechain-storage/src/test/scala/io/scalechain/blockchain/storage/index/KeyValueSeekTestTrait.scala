@@ -228,7 +228,7 @@ trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Shoul
       iter1.toList
     }
 
-    println("outerLoopResult : " + outerLoopResult)
+    //println("outerLoopResult : " + outerLoopResult)
 
     // Use toList to iterate all matching (key,value) pairs before starting the nested iteration.
     val nestedIterationResult = outerLoopResult.flatMap{ case (fileNumber1,recordLocator1) =>

@@ -22,7 +22,7 @@ class ProtocolMessageHandler  {
     // Return Some[ProtocolMessage] if we need to reply a message. Return None otherwise.
     message match {
       case version: Version => {
-        println(s"Version accepted : ${version}")
+        logger.info(s"Version accepted : ${version}")
         // TODO : Implement - Update peerInfo.version.
         Some(Verack())
       }
@@ -53,7 +53,7 @@ class ProtocolMessageHandler  {
       case transaction: Transaction => {
         val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
         if (chain.getTransaction(transactionHash).isEmpty) { // Process the transaction only if we don't have it yet.
-          println(s"[P2P] Received a transaction.\n Hash : ${transactionHash}\n Transaction : ${transaction}\n\n")
+          logger.info(s"[P2P] Received a transaction. Hash : ${transactionHash}")
           chain.putTransaction(transaction)
 
           // Propagate the transaction only if the block transaction was not found.
@@ -64,7 +64,7 @@ class ProtocolMessageHandler  {
       case block: Block => {
         val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
         if (chain.getBlock(blockHash).isEmpty) { // Process the transaction only if we don't have it yet.
-          println(s"[P2P] Received a block. \n Hash : ${blockHash}\n Block : ${block}\n\n")
+          logger.info(s"[P2P] Received a block. Hash : ${blockHash}")
           chain.putBlock(BlockHash(blockHash.value), block)
 
           // Propagate the block only if the block was not found.
@@ -74,7 +74,7 @@ class ProtocolMessageHandler  {
         None
       }
       case m: ProtocolMessage => {
-        logger.info("Received a message, but done nothing : " + m.getClass.getName)
+        logger.warn("Received a message, but done nothing : " + m.getClass.getName)
         None
       }
     }

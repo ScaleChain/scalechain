@@ -26,15 +26,15 @@ trait OperationTestTrait extends ShouldMatchers {
    * @param expectedValues A list of expected values.
    */
   protected def verifyStack(subject : String, actualStack:ScriptStack, expectedValues : Array[ScriptValue]) : Unit = {
-    println ("We are comparing the stack. subject : " + subject)
+    //println ("We are comparing the stack. subject : " + subject)
     //println ("stack : " + actualStack)
 
     for (i <- 0 until expectedValues.length) {
       val actualOutput = actualStack(expectedValues.length-1-i)
       val expectedOutput = expectedValues(i)
 
-      println (s"expected output : ${expectedOutput}" )
-      println (s"actual output : ${actualOutput}" )
+      //println (s"expected output : ${expectedOutput}" )
+      //println (s"actual output : ${actualOutput}" )
 
       actualOutput should be (expectedOutput)
     }
@@ -81,7 +81,7 @@ trait OperationTestTrait extends ShouldMatchers {
                   altStackOutputs : Array[ScriptValue],
                   serializeAndExecute : Boolean = false
                 ) : Unit = {
-    println (s"Testing with input ${mainStackInputs.mkString(",")}" )
+    //println (s"Testing with input ${mainStackInputs.mkString(",")}" )
 
     // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
     val env = new ScriptEnvironment()
@@ -105,7 +105,7 @@ trait OperationTestTrait extends ShouldMatchers {
         }
 
       for (op : ScriptOp <- operationsToExecute) {
-        println (s"Executing operation : ${op}" )
+        //println (s"Executing operation : ${op}" )
         op.execute(env)
       }
     }
@@ -127,9 +127,9 @@ trait OperationTestTrait extends ShouldMatchers {
       case expectedOutputValues : Array[ScriptValue] => {
         executeOps()
 
-        println ("expected values (main) :" + expectedOutputValues.mkString(","))
+        //println ("expected values (main) :" + expectedOutputValues.mkString(","))
         if (altStackOutputs != null)
-        println ("expected values (alt) :" + altStackOutputs.mkString(","))
+        //println ("expected values (alt) :" + altStackOutputs.mkString(","))
 
 
         verifyStack("actual main stack", env.stack, expectedOutputValues)

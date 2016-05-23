@@ -98,7 +98,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   peerCommunicator.propagateBlock(block)
                   chain.putBlock(BlockHash(newBlockHash.value), block)
                   blockFound = true
-                  println(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
+                  logger.info(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
 /*
                   if ( chain.getBestBlockHeight() <= PREMINE_BLOCKS) {
                     Thread.sleep(Random.nextInt(120000))

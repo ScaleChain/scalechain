@@ -2,6 +2,7 @@ package io.scalechain.blockchain.api.command.blockchain.p1
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import org.slf4j.LoggerFactory
 
 /*
   CLI command :
@@ -47,6 +48,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   * https://bitcoin.org/en/developer-reference#getrawmempool
   */
 object GetRawMemPool extends RpcCommand {
+
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
     // TODO : Implement
     assert(false)

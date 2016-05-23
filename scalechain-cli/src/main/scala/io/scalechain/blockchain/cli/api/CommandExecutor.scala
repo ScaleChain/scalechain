@@ -38,8 +38,6 @@ object CommandExecutor {
     parser.parse(args, Parameters()) match {
       case Some(params) =>
         val response = RpcInvoker.invoke(params.command, params.args, params.host, params.port, params.user, params.password)
-        println("params:" + params)
-        println("response:" + response)
 
       case None =>
       // arguments are bad, error message will have been displayed

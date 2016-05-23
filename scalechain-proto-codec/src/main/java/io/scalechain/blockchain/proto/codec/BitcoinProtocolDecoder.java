@@ -68,8 +68,6 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         // In case there is any remaining bits, we keep it in incompleteMessage
         incompleteMessage = codec.decode(inputMessage, messages);
         for (ProtocolMessage message : messages) {
-            System.out.println("[Debug] BitcoinProtocolDecoder : " + message);
-
             out.add(message);
         }
     }
