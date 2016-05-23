@@ -19,7 +19,7 @@ object PeerToPeerNetworking {
     val peerSet = PeerSet.create
 
     // The consumer that opens an inbound port, and waits for connections from other peers.
-    val server = StreamServerLogic(system, materializer, peerSet, new InetSocketAddress("127.0.0.1", inboundPort))
+    val server = StreamServerLogic(system, materializer, peerSet, new InetSocketAddress("0.0.0.0", inboundPort))
 
     peerAddresses.map { peer =>
       val peerAddress = new InetSocketAddress(peer.address, peer.port)

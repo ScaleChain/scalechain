@@ -114,30 +114,6 @@ String Response : {
 
    */
 
-  "signTransaction" should "sign a transaction using decoded values" in {
-    val S = new WalletSampleData(wallet)
-    val transaction = TransactionCodec.parse(
-        HexUtil.bytes("010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000")
-      )
-
-    val privateKey1 = PrivateKey.from("cMvpcxdeLot2Zn7Ps99RZ4HC2fqst5FZ5mgyzf8TgENmsSd2qtAm")
-    val privateKey2 = PrivateKey.from("cR8oUtf44zW4gahPews8JtsAPknXX9sdTxjYNqzw462C43pWMYg4")
-
-    val signedTransaction = Wallet.get.signTransaction(
-      transaction,
-      S.TestBlockchainView,
-      List(),
-      Some(List( privateKey1, privateKey2 )),
-      SigHash.ALL
-    )
-
-    signedTransaction.complete shouldBe true
-
-    // Should not throw an exception.
-    new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
-  }
-
-
   "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" ignore {
     val S = new WalletSampleData(wallet)
 

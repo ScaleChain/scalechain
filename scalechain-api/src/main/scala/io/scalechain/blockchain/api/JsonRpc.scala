@@ -307,7 +307,7 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
       }
     }
 
-    val bindingFuture = Http().bindAndHandleSync(requestHandler, "localhost", inboundPort)
+    val bindingFuture = Http().bindAndHandleSync(requestHandler, "0.0.0.0", inboundPort)
     println(s"ScaleChain RPC service online at http://localhost:${inboundPort}/\nPress RETURN to stop...")
 /*
     Console.readLine() // let it run until user presses return
