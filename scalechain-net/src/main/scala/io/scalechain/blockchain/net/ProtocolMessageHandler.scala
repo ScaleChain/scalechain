@@ -57,7 +57,7 @@ class ProtocolMessageHandler  {
           chain.putTransaction(transaction)
 
           // Propagate the transaction only if the block transaction was not found.
-          peerCommunication.sendToAll(transaction)
+          //peerCommunication.sendToAll(transaction)
         }
         None
       }
@@ -68,7 +68,7 @@ class ProtocolMessageHandler  {
           chain.putBlock(BlockHash(blockHash.value), block)
 
           // Propagate the block only if the block was not found.
-          peerCommunication.sendToAll(block)
+          //peerCommunication.sendToAll(block)
 
         }
         None
