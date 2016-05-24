@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.util.StringUtil
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,7 +22,7 @@ class PeerCommunicator(peerSet : PeerSet) {
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
 
-      logger.info(s"Sending to one of all peers : ${address}, ${message}")
+      logger.info(s"Sending to one of all peers : ${address}, ${StringUtil.getBrief(message.toString, 256)}")
       peer.send(message)
     }
   }

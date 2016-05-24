@@ -16,6 +16,7 @@ import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat}
+import io.scalechain.util.StringUtil
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.TransactionDescriptor
 import org.apache.http.protocol.ExecutionContext
@@ -228,9 +229,10 @@ object JsonRpcMicroservice extends App with JsonRpc {
 }
 */
 
-class JsonRpcMicroservice
-object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
-  private val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
+object JsonRpcMicroservice extends JsonRpcMicroservice
+
+class JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
+  private lazy val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
 
   import RpcParamsJsonFormat._
 
@@ -274,7 +276,7 @@ object JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonPro
     val serviceResponse : RpcResponse = dispatch(request)
     val stringResponse = serviceResponse.toJson.prettyPrint
     // Show the first 256 chars of the response.
-    logger.info(s"String Response : ${if (stringResponse.length() >= 2048) stringResponse.substring(0,2047)+"..." else stringResponse}")
+    logger.info(s"String Response : ${StringUtil.getBrief(stringResponse,1024)}")
     stringResponse
   }
 

@@ -33,7 +33,7 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerS
 
   val peerAddress = s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}"
 
-  logger.info(s"Connecting to server : $peerAddress")
+  //logger.info(s"Connecting to server : $peerAddress")
 
   val peerLogicFlow = PeerLogic.flow(remoteAddress)
   val (outgoingConnection : Future[Tcp.OutgoingConnection], sendQueue:LinkedBlockingQueue[ProtocolMessage]) = connection.joinMat(peerLogicFlow)(Keep.both).run()
@@ -49,11 +49,11 @@ class StreamClientLogic(system : ActorSystem, materializer : Materializer, peerS
 
       sendQueue.add( versionMessage )
 
-      logger.info(s"Connected to the server : peerAddress")
+      logger.info(s"Connected to the server : ${peerAddress}")
     }
 
     case Failure(throwable) => {
-      logger.info(s"Failed to connect to the peer : $peerAddress. Will retry in 1 seconds.")
+      //logger.info(s"Failed to connect to the peer : $peerAddress. Will retry in 1 seconds.")
       val PEER_CONNECTION_RETRY_MILLIS = 1000
 
 //      if ( !peerSet.hasPeer(remoteAddress.getAddress) ) {
