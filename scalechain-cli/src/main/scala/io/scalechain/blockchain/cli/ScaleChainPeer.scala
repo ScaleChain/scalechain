@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.cli
 
 import java.io.File
-import java.net.InetSocketAddress
+import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
+import java.util
 
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
@@ -23,6 +24,8 @@ import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
 import scala.collection.JavaConverters._
 import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice, JsonRpc}
+
+import scala.collection.mutable.ArrayBuffer
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
@@ -86,8 +89,26 @@ object ScaleChainPeer extends JsonRpc {
 
   protected[cli] def initializeNetLayer(params: Parameters): PeerCommunicator = {
 
-    def isMyself(addr: PeerAddress) =
-      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
+    def isMyself(addr: PeerAddress) = {
+      def getLocalAddresses() : List[String] = {
+        val addresses = new ArrayBuffer[String]()
+        val e = NetworkInterface.getNetworkInterfaces();
+        while(e.hasMoreElements())
+        {
+          val n = e.nextElement().asInstanceOf[NetworkInterface]
+          val ee = n.getInetAddresses();
+          while (ee.hasMoreElements())
+          {
+            val i = ee.nextElement().asInstanceOf[InetAddress]
+            addresses.append(i.getHostAddress())
+          }
+        }
+        addresses.toList
+      }
+      getLocalAddresses().contains(addr.address) && addr.port == params.p2pInboundPort
+    }
+//      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
+
 
     /**
       * Read list of peers from scalechain.conf

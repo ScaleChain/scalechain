@@ -3,7 +3,8 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.util.StringUtil
+import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.util.{HexUtil, StringUtil}
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,8 +22,18 @@ class PeerCommunicator(peerSet : PeerSet) {
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
-
-      logger.info(s"Sending to one of all peers : ${address}, ${StringUtil.getBrief(message.toString, 256)}")
+      val messageString = message match {
+        case m : Block => {
+          s"Block. Hash : ${HexUtil.hex(HashCalculator.blockHeaderHash(m.header))}"
+        }
+        case m : Transaction => {
+          s"Transaction. Hash : ${HexUtil.hex(HashCalculator.transactionHash(m))}"
+        }
+        case m => {
+          StringUtil.getBrief(m.toString, 256)
+        }
+      }
+      logger.info(s"Sending to one of all peers : ${address}, ${messageString}")
       peer.send(message)
     }
   }
