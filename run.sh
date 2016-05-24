@@ -1,4 +1,10 @@
-source .env
+ENV_FILE=.env
+if [ ! -f $ENV_FILE ]; then
+   echo "Copy the .env-template to .env, and edit .env file for your configuration."
+   exit 
+fi
+
+source $ENV_FILE
 
 P2P_PORT=$[$1+$P2P_PORT_BASE]
 RPC_PORT=$[$1+$RPC_PORT_BASE]
