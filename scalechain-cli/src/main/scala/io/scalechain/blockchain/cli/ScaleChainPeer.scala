@@ -22,6 +22,7 @@ import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironme
 import io.scalechain.util.{HexUtil, Config}
 import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
+import org.apache.log4j.PropertyConfigurator
 import scala.collection.JavaConverters._
 import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice, JsonRpc}
 
@@ -136,7 +137,7 @@ object ScaleChainPeer extends JsonRpc {
       }
 
     // Step 1 : Create the actor system.
-    implicit val system = ActorSystem("ScaleChainNetLayer", ConfigFactory.load.getConfig("server"))
+    implicit val system = ActorSystem("net-layer")
     implicit val materializer = ActorMaterializer()
 
     PeerToPeerNetworking.getPeerCommunicator(
@@ -151,6 +152,8 @@ object ScaleChainPeer extends JsonRpc {
     * @param params The command line parameter of ScaleChain.
     */
   def initializeSystem(params: Parameters) {
+
+    PropertyConfigurator.configure(this.getClass().getClassLoader().getResource("log4j.properties"));
 
     // Step 2 : Initialize the printer setter, to print script operations on transactions.
     BlockPrinterSetter.initialize

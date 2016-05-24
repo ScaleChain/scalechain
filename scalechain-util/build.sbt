@@ -1,3 +1,7 @@
+//////////////////////////////////////////////////////////////////////////
+// scalechain-util/build.sbt
+//////////////////////////////////////////////////////////////////////////
+
 //import Version._
 libraryDependencies ++= {
   val akkaV       = "2.4.2"
@@ -9,6 +13,7 @@ libraryDependencies ++= {
     //"com.typesafe.akka" %% "akka-http-core-experimental"          % akkaV,
     "com.typesafe.akka" %% "akka-http-experimental"               % akkaV,
     "com.typesafe.akka" %% "akka-http-spray-json-experimental"    % akkaV
+
     //"com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaV
   )
 }

@@ -231,7 +231,7 @@ object JsonRpcMicroservice extends App with JsonRpc {
 
 object JsonRpcMicroservice extends JsonRpcMicroservice
 
-class JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
+class JsonRpcMicroservice extends SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
   private lazy val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
 
   import RpcParamsJsonFormat._
@@ -281,7 +281,7 @@ class JsonRpcMicroservice extends App with SprayJsonSupport with DefaultJsonProt
   }
 
   def runService(inboundPort : Int) = {
-    implicit val system = ActorSystem("ScaleChainApiLayer")
+    implicit val system = ActorSystem("api-layer")
     implicit val materializer = ActorMaterializer()
     implicit val e = system.dispatcher
 
