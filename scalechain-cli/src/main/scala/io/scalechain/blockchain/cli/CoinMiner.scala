@@ -55,6 +55,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     val thread = new Thread {
       override def run {
         logger.info(s"Miner started. Params : ${params}")
+        val random = new Random(System.currentTimeMillis())
+
         // TODO : Need to eliminate this code.
         // Sleep for one minute to wait for each peer to start.
         Thread.sleep(params.InitialDelayMS)
@@ -69,7 +71,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
           // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
           // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
-          Thread.sleep(Random.nextInt(params.HashDelayMS))
+          Thread.sleep(random.nextInt(params.HashDelayMS))
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
