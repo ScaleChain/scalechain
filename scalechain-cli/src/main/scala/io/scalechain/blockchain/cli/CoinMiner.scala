@@ -71,7 +71,16 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
           // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
           // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
-          Thread.sleep(random.nextInt(params.HashDelayMS))
+
+          var sleep = true
+          if (params.InitialDelayMS % 100 == 76) {
+            if ( chain.getBestBlockHeight() < 10 ) {
+              sleep = false
+            }
+          }
+          if (sleep) {
+            Thread.sleep(random.nextInt(params.HashDelayMS))
+          }
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
@@ -101,11 +110,6 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   chain.putBlock(BlockHash(newBlockHash.value), block)
                   blockFound = true
                   logger.info(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
-/*
-                  if ( chain.getBestBlockHeight() <= PREMINE_BLOCKS) {
-                    Thread.sleep(Random.nextInt(120000))
-                  }
-*/
                 }
               }
  //           } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
