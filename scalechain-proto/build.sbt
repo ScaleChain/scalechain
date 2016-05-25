@@ -2,8 +2,7 @@
 // scalechain-proto/build.sbt
 //////////////////////////////////////////////////////////////////////////
 
-val akkaV       = "2.4.2"
-
 libraryDependencies ++= Seq(
+  // def inetAddress = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reverse)
   "com.google.guava" % "guava" % "19.0"
 )

@@ -7,14 +7,9 @@ libraryDependencies ++= Seq(
   "org.fusesource.leveldbjni" % "leveldbjni-osx" % "1.8",
 //  "org.fusesource.leveldbjni" % "leveldbjni-linux64" % "1.8",
   "org.apache.cassandra" % "cassandra-all" % "3.4",
-  "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.0",
-  "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.0",
-//  "com.websudos" %% "phantom" % "1.22.0",
-//  "com.websudos" %% "phantom-connectors" % "1.22.0",
-//  "com.websudos" %% "phantom-dsl" % "1.22.0",
-  "org.cassandraunit" % "cassandra-unit" % "3.0.0.1",
-  // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
-  "org.apache.commons" % "commons-io" % "1.3.2"
+  "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.2",
+  "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.2",
+  "org.cassandraunit" % "cassandra-unit" % "3.0.0.1"
 )
 
 // We need to start/stop embedded cassandra within our unit tests.

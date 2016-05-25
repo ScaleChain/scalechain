@@ -3,6 +3,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 libraryDependencies ++= Seq(
-  "com.madgag.spongycastle" % "core" % "1.53.0.0" 
+  "com.madgag.spongycastle" % "core" % "1.54.0.0"
 )
 

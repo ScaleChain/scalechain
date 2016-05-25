@@ -3,6 +3,5 @@
 //////////////////////////////////////////////////////////////////////////
 
 libraryDependencies ++= Seq(
-  "org.scodec" %% "scodec-core" % "1.9.0",
-  "io.netty" % "netty-all" % "4.0.33.Final"
+  "org.scodec" %% "scodec-core" % "1.10.0"
 )
