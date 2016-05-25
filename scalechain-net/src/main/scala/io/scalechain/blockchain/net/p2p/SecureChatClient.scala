@@ -29,6 +29,9 @@ class SecureChatClient {
   def connect(address : String, port : Int) : Unit = {
     // Configure SSL.
     val sslCtx : SslContext = SslContextBuilder.forClient()
+      // TODO : BUGBUG : Do not use an insecure trust manager.
+      // From the comment of InsecureTrustManagerFactory :
+      //   An insecure that trusts all X.509 certificates without any verification.
       .trustManager(InsecureTrustManagerFactory.INSTANCE).build()
 
     val group : EventLoopGroup = new NioEventLoopGroup()

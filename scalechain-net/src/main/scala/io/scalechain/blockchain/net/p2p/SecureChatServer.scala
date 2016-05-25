@@ -23,6 +23,7 @@ object SecureChatServer {
 
 class SecureChatServer() {
   def listen(port : Int) = {
+    // TODO : BUGBUG : SelfSignedCertificate is insecure. Replace it with another one.
     val ssc : SelfSignedCertificate = new SelfSignedCertificate()
     val sslCtx : SslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
       .build()

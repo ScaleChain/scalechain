@@ -30,13 +30,13 @@ class SecureChatServerHandler extends SimpleChannelInboundHandler[String] {
       new GenericFutureListener[Future[Channel]]() {
         override def operationComplete(future : Future[Channel])  {
           ctx.writeAndFlush(
-            "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n");
+            "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n")
           ctx.writeAndFlush(
             "Your session is protected by " +
               ctx.pipeline().get(classOf[SslHandler]).engine().getSession().getCipherSuite() +
-            " cipher suite.\n");
+            " cipher suite.\n")
 
-          channels.add(ctx.channel());
+          channels.add(ctx.channel())
         }
       })
   }

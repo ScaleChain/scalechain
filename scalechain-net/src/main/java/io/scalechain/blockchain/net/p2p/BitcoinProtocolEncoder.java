@@ -13,13 +13,15 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.scalechain.blockchain.proto.codec;
+package io.scalechain.blockchain.net.p2p;
 
 import io.netty.buffer.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
+import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
+import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
