@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.net
 
-import java.net.InetSocketAddress
+import java.net.{InetAddress, InetSocketAddress}
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashCalculator

@@ -10,7 +10,6 @@ class ProtocolMessageHandler  {
 
   private val logger = LoggerFactory.getLogger(classOf[ProtocolMessageHandler])
 
-  val peerCommunication = new PeerCommunicator(PeerSet.get)
   /** Handle a message coming from the TCP stream.
     *
     * @param message The messages to handle.

@@ -136,15 +136,9 @@ object ScaleChainPeer extends JsonRpc {
         }
       }
 
-    // Step 1 : Create the actor system.
-    implicit val system = ActorSystem("net-layer")
-    implicit val materializer = ActorMaterializer()
-
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
-      peerAddresses.filter(! isMyself(_) ),
-      system,
-      materializer)
+      peerAddresses.filter(! isMyself(_) ))
   }
 
   /** Initialize sub-moudles from the lower layer to the upper layer.

@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
+import io.netty.channel.Channel
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.CollectionUtil
 import org.slf4j.LoggerFactory
@@ -30,6 +31,8 @@ object PeerSet {
   * As a stream is materialized using Akka actors, multiple threads can run at the same time trying to access the peer set.
   */
 class PeerSet {
+  private val logger = LoggerFactory.getLogger(classOf[PeerSet])
+
   val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
 
 /*
@@ -46,10 +49,21 @@ class PeerSet {
     }
   }
 */
-  def add(remoteAddress : InetSocketAddress, sendQueue : LinkedBlockingQueue[ProtocolMessage]) = {
+  /** Add a new peer connected via the given channel.
+    *
+    * @param channel The connected channel.
+    * @return
+    */
+  def add(channel : Channel) = {
     synchronized {
-      // BUGBUG : Make sure if it is ok to overwrite the original (existing) peer with the new peer.
-      peerByAddress.put(remoteAddress, Peer(sendQueue) )
+      channel.remoteAddress() match {
+        case inetAddress : InetSocketAddress => {
+          peerByAddress.put(inetAddress, Peer(channel) )
+        }
+        case _ => {
+          logger.error(s"The remove address of the channel was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}")
+        }
+      }
     }
   }
 
@@ -90,7 +104,7 @@ class PeerSet {
     * @param address The address of the peer to find.
     * @return true if a peer from the address was found; false otherwise.
     */
-  def hasPeer(address : InetAddress) = {
+  def hasPeer(address : InetSocketAddress) = {
     ! peers.filter { case (inetSocketAddress, _) =>
       inetSocketAddress.getAddress == address
     }.isEmpty

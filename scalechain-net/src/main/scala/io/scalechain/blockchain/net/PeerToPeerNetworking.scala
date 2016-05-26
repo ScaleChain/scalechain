@@ -4,26 +4,27 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import io.netty.channel.ChannelFuture
+import io.scalechain.blockchain.net.p2p.RetryingConnector
+import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}
+import io.scalechain.util.HexUtil._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 case class PeerAddress(address : String, port : Int)
 
 object PeerToPeerNetworking {
-  def getPeerCommunicator(inboundPort : Int, peerAddresses : List[PeerAddress],  system : ActorSystem, materializer : ActorMaterializer ) : PeerCommunicator = {
+  def getPeerCommunicator(inboundPort : Int, peerAddresses : List[PeerAddress] ) : PeerCommunicator = {
 
     // The peer set that keeps multiple PeerNode(s).
     val peerSet = PeerSet.create
 
-    // The consumer that opens an inbound port, and waits for connections from other peers.
-    val server = StreamServerLogic(system, materializer, peerSet, new InetSocketAddress("0.0.0.0", inboundPort))
+    val bindChannelFuture : ChannelFuture = new NodeServer(peerSet).listen(inboundPort)
+    // Wait until the inbound port is bound.
+    bindChannelFuture.sync()
 
     peerAddresses.map { peer =>
-      val peerAddress = new InetSocketAddress(peer.address, peer.port)
-      StreamClientLogic(system, materializer, peerSet, peerAddress)
-
-      // Send StartPeer message to the peer, so that it can initiate the node start-up process.
-      //peerBroker ! (clientProducer /*connected peer*/, peerAddress, Some(StartPeer) /* No message to send to the peer node */  )
+      new RetryingConnector(peerSet, retryIntervalSeconds=1).connect(peer.address, peer.port)
     }
 
     new PeerCommunicator(peerSet)

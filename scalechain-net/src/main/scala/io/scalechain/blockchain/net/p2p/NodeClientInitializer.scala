@@ -8,11 +8,12 @@ import io.netty.handler.codec.Delimiters
 import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import io.netty.handler.ssl.SslContext
+import io.scalechain.blockchain.net.p2p.{BitcoinProtocolEncoder, BitcoinProtocolDecoder}
 
 /**
   * Creates a newly configured {@link ChannelPipeline} for a new channel.
   */
-class SecureChatServerInitializer(sslCtx : SslContext) extends ChannelInitializer[SocketChannel] {
+class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int) extends ChannelInitializer[SocketChannel]{
 
   override def initChannel(ch : SocketChannel) : Unit = {
     val pipeline : ChannelPipeline = ch.pipeline()
@@ -22,14 +23,12 @@ class SecureChatServerInitializer(sslCtx : SslContext) extends ChannelInitialize
     // and accept any invalid certificates in the client side.
     // You will need something more complicated to identify both
     // and server in the real world.
-    pipeline.addLast(sslCtx.newHandler(ch.alloc()))
+    pipeline.addLast(sslCtx.newHandler(ch.alloc(), address, port))
 
-    // On top of the SSL handler, add the text line codec.
-    pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter(): _*))
-    pipeline.addLast(new StringDecoder())
-    pipeline.addLast(new StringEncoder())
+    pipeline.addLast(new BitcoinProtocolDecoder())
+    pipeline.addLast(new BitcoinProtocolEncoder())
 
     // and then business logic.
-    pipeline.addLast(new SecureChatServerHandler())
+    pipeline.addLast(new NodeClientHandler())
   }
 }
