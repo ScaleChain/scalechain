@@ -163,6 +163,7 @@ object ScaleChainPeer extends JsonRpc {
     val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
     // Initialize the block storage.
+    // TODO : Investigate when to call storage.close.
     val storage: BlockStorage = DiskBlockStorage.create(blockStoragePath)
 
 

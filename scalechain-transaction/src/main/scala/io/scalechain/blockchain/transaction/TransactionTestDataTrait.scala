@@ -101,7 +101,5 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
   val SIMPLE_SCRIPT_OPS_A = ScriptOpList(List(OpNum(2), OpEqual()))
   val SIMPLE_SCRIPT_OPS_B = ScriptOpList(List(OpNum(3), OpEqual()))
 
-
-
 }
 

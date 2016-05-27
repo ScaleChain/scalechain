@@ -142,7 +142,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstraints{
+class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstraints {
   private val logger = LoggerFactory.getLogger(classOf[Blockchain])
 
   var chainEventListener : Option[ChainEventListener] = None
@@ -182,6 +182,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * Caller of this method should check if the bestBlock was changed.
     * If changed, we need to update the best block on the storage layer.
+    *
+    * TODO : Need to check the merkle root hash in the block.
     *
     * @param block The block to put into the blockchain.
     */
