@@ -5,7 +5,8 @@ import java.io.{File, ByteArrayInputStream, ByteArrayOutputStream}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.script.{BlockPrinterSetter, HashCalculator, ScriptParser, ScriptBytes}
+import io.scalechain.blockchain.script.{BlockPrinterSetter, ScriptParser, ScriptBytes}
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock, Storage}
 import io.scalechain.blockchain.transaction.BlockVerifier
@@ -54,7 +55,7 @@ object DumpChain {
     class BlockListener extends BlockReadListener {
       def onBlock(block: Block): Unit = {
         val serializedBlock = BlockCodec.serialize(block)
-        val blockHeaderHash = HashCalculator.blockHeaderHash(block.header)
+        val blockHeaderHash = block.header.hash
 
         println(s"${hex(blockHeaderHash.value)} ${hex(serializedBlock)}")
       }
@@ -243,8 +244,7 @@ object DumpChain {
         for (tx : Transaction <- block.transactions ) {
           //println( "tx:"+tx )
           // Step 2) For each transaction, calculate hash, and put it into the map.
-          val txHash = HashCalculator.transactionHash(tx).value
-          txMap(txHash) = tx
+          txMap(tx.hash.value) = tx
 
           // Step 3) For each normal transaction input, check if the input transaction exists in the map.
           var inputIndex = 0

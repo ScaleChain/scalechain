@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
@@ -226,8 +226,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
               // Step 3.A.2 : Remove transactions in the block from the mempool.
               block.transactions.foreach { transaction =>
-                val transactionHash = HashCalculator.transactionHash(transaction)
-                mempool.del(transactionHash)
+                mempool.del(transaction.hash)
               }
 
               // Step 3.A.3 : Check if the new block is a parent of an orphan block.
@@ -272,7 +271,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
-      val txHash = HashCalculator.transactionHash( transaction )
+      val txHash = transaction.hash
       if ( mempool.exists(txHash)) {
         logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
       } else {
@@ -441,7 +440,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
       throw new ChainException( ErrorCode.InvalidBlockHeight)
     }
-    HashCalculator.blockHeaderHash(foundBlockOption.get.blockHeader)
+    foundBlockOption.get.blockHeader.hash
   }
 
   /** See if a block exists on the blockchain.

@@ -2,7 +2,7 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, BlockPrinterSetter}
+import io.scalechain.blockchain.script.{ScriptParser, BlockPrinterSetter}
 import io.scalechain.util.HexUtil._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.Tables.Table

@@ -2,7 +2,7 @@ package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, TransactionCountCodec, BlockHeaderCodec, BlockCodec}
 import io.scalechain.blockchain.proto.{TransactionCount, Hash, Block, FileRecordLocator}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 
 
@@ -74,7 +74,6 @@ class BlockWriter(storage : BlockRecordStorage) {
     // Step 3 : Write each transaction
     val txLocators =
       for( transaction <- block.transactions;
-           txHash = HashCalculator.transactionHash(transaction) ;
            txLocator = storage.appendRecord(transaction)(TransactionCodec)
       ) yield {
         // Step 31 : Check if a new file was created during step 2 or step 3.
@@ -82,7 +81,7 @@ class BlockWriter(storage : BlockRecordStorage) {
           // BUGBUG : We have written a transaction on the new file, and the space is wasted.
           throw new BlockWriter.RecordFileChangedWhileWritingBlock()
         }
-        TransactionLocator(txHash, txLocator)
+        TransactionLocator(transaction.hash, txLocator)
       }
 
     // Step 4 : Calculate block locator

@@ -2,7 +2,7 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockIndex
 import org.slf4j.LoggerFactory
 
@@ -35,7 +35,7 @@ object BlockVerifier {
     for ( (message, tracker) <- txFailureMapByMessage) {
       builder.append(s"[$message] count = ${tracker.count}\n")
       builder.append("------------------------------------\n")
-      builder.append(s"blockHash=${HashCalculator.blockHeaderHash(tracker.block.header)}\n")
+      builder.append(s"blockHash=${tracker.block.header.hash}\n")
 /*
       builder.append("------------------------------------\n")
       builder.append(s"block=${tracker.block}\n")

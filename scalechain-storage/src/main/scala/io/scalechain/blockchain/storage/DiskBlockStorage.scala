@@ -4,7 +4,6 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import org.slf4j.LoggerFactory

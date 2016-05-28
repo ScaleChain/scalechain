@@ -3,7 +3,7 @@ package io.scalechain.blockchain.api
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator, PeerSet}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import spray.json.JsObject
 
@@ -90,7 +90,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     */
   def submitBlock(block : Block, parameters : JsObject) : Option[SubmitBlockResult.Value] = {
     // TODO : BUGBUG : parameters is not used.
-    val blockHash = HashCalculator.blockHeaderHash((block.header))
+    val blockHash = block.header.hash
     if (chain.hasBlock(blockHash)) {
       Some(SubmitBlockResult.DUPLICATE)
     } else {

@@ -5,11 +5,11 @@ import java.math.BigInteger
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.test.ProtoTestData
-import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.HexUtil
 import org.apache.commons.io.FileUtils
+import io.scalechain.blockchain.script.HashSupported._
 import org.scalatest._
 
 trait BlockchainTestTrait extends FlatSpec with ChainTestDataTrait with BeforeAndAfterEach {
@@ -62,7 +62,7 @@ trait BlockchainTestTrait extends FlatSpec with ChainTestDataTrait with BeforeAn
   }
 
   def numberToHash(blockHeight : Int) = {
-    HashCalculator.blockHeaderHash( createBlock(blockHeight).header )
+    createBlock(blockHeight).header.hash
 /*
     new Hash( HashCalculator.blockHeaderHash( createBlock(blockHeight).header ).value ) {
       // Put height of the block on the hash for debugging purpose.

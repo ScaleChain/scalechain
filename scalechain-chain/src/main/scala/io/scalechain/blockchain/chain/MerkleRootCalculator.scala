@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.{Transaction, Hash}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashFunctions
 
 import scala.collection.mutable.ArrayBuffer
@@ -80,9 +80,7 @@ object MerkleRootCalculator {
     // Step 1 : Calculate transaction hashes for each transaction.
     // Note : We may duplicate the last element, so prepare space for one more element in the array buffer.
     val transactionHashes = new ArrayBuffer[Hash](transactions.length + 1)
-    transactionHashes ++= transactions.map { transaction =>
-      HashCalculator.transactionHash(transaction)
-    }
+    transactionHashes ++= transactions.map { transaction => transaction.hash }
 
     // Step 2 : Duplicate the last hash item if the number of hashes is odd, and calculate the merkle root hash.
     val merkleRootHashes : ArrayBuffer[Hash] = calculateMerkleRoot( transactionHashes )

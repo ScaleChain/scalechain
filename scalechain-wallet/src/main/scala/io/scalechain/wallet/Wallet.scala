@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.chain.{TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
@@ -689,7 +689,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
 
       // Step 1 : Calulate the transaction hash.
-      val transactionHash = HashCalculator.transactionHash(transaction)
+      val transactionHash = transaction.hash
 
       val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
@@ -764,7 +764,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       // Step 5 : Add a transaction.
       if (isTransactionRelated) {
         val walletTransaction = WalletTransaction(
-          blockHash         = chainBlock.map{ b => HashCalculator.blockHeaderHash(b.block.header) },
+          blockHash         = chainBlock.map( _.block.header.hash ),
           blockIndex        = chainBlock.map( _.height ),
           blockTime         = chainBlock.map( _.block.header.timestamp ) ,
           transactionId     = Some(transactionHash),
@@ -792,7 +792,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       val currentTime = System.currentTimeMillis()
 
       // Step 1 : Calulate the transaction hash.
-      val transactionHash = HashCalculator.transactionHash(transaction)
+      val transactionHash = transaction.hash
 
       // If the transaction is related to the output
       var isTransactionRelated = false

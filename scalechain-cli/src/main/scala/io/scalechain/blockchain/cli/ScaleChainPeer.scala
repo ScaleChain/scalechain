@@ -16,7 +16,7 @@ import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.script.{HashCalculator, BlockPrinterSetter}
+import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage.{GenesisBlock, BlockStorage, DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{HexUtil, Config}

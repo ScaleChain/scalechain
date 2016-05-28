@@ -7,11 +7,9 @@ import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.proto.UnlockingScript
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.BlockPrinterSetter
-import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.blockchain.script.{HashCalculator, ScriptParser, BlockPrinterSetter}
-import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.script.{ScriptParser, BlockPrinterSetter}
 import io.scalechain.util.HexUtil._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import org.scalatest.prop.Tables.Table

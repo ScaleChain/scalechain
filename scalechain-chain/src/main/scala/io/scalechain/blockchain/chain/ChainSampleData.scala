@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
@@ -16,7 +16,7 @@ class TestBlockIndex extends BlockIndex {
   val blocks = new mutable.HashMap[Hash, (BlockInfo,Block)]
 
   def addBlock(block : Block, height : Int) : Unit = {
-    val blockHash : Hash = HashCalculator.blockHeaderHash(block.header)
+    val blockHash : Hash = block.header.hash
     blocks.put(blockHash, (
       BlockInfo(
         height,
@@ -117,8 +117,8 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     }
   }
 
-  def getTxHash(transactionWithName : TransactionWithName) = HashCalculator.transactionHash(transactionWithName.transaction)
-  def getBlockHash(block : Block) = HashCalculator.blockHeaderHash(block.header)
+  def getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
+  def getBlockHash(block : Block) = block.header.hash
 
   /** Add all outputs in a transaction into an output set.
     *
@@ -166,7 +166,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     * @return The transaction output with an out point.
     */
   def getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint = {
-    val transactionHash = HashCalculator.transactionHash(transactionWithName.transaction)
+    val transactionHash = transactionWithName.transaction.hash
     OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
   }
 

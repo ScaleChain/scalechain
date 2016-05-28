@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script._
 import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushData}
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain._
 import io.scalechain.util.Utils
 
@@ -139,13 +140,13 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
       // TODO : BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
     } catch {
       case _ : Exception => {
-        val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${HashCalculator.transactionHash(transaction)}"
+        val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${transaction.hash}"
         throw new TransactionVerificationException(ErrorCode.InvalidOutPoint, message = s"Invalid Output Index." + details)
       }
     }
 /*
     val outputTxOption = blockIndex.getTransaction(transactionInput.outputTransactionHash)
-    lazy val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${HashCalculator.transactionHash(transaction)}"
+    lazy val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${transaction.hash}"
     if (outputTxOption.isEmpty) {
       // The transaction which produced the UTXO does not exist.
       throw new TransactionVerificationException(ErrorCode.InvalidOutputTransactionHash, message = s"Invalid Output Tranasction Hash." + details)

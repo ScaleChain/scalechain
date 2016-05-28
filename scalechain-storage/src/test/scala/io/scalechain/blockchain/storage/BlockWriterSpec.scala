@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec, BlockHeaderCodec}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.record.{BlockRecordStorage, RecordStorage}
 import io.scalechain.blockchain.storage.test.TestData
 import org.apache.commons.io.FileUtils
@@ -58,7 +58,8 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     // Step 4 : Read each transaction on each transaction locator.
     for (transaction <- block1.transactions) {
       // Step 4.1 : Calculate transaction hash.
-      val txHash = HashCalculator.transactionHash(transaction)
+      val txHash = transaction.hash
+
       // Step 4.2 : Get the transaction locator.
       val txLocatorOptin = txLocatorByHash.get(txHash)
 
@@ -69,7 +70,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
       readTransaction shouldBe transaction
 
       // Step 4.5 : Make sure the transaction hash matches.
-      HashCalculator.transactionHash(readTransaction) shouldBe txHash
+      readTransaction.hash shouldBe txHash
     }
   }
 

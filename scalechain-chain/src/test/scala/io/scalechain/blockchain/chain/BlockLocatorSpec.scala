@@ -3,7 +3,6 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.apache.commons.io.FileUtils

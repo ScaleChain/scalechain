@@ -3,7 +3,7 @@ package io.scalechain.blockchain.script
 import io.scalechain.blockchain.proto.{Hash, BlockHeader, Block, Transaction}
 import io.scalechain.blockchain.proto.codec.{BlockHeaderCodec, BlockCodec, TransactionCodec}
 
-object HashCalculator {
+protected[script] object HashCalculator {
   def transactionHash(transaction : Transaction ) : Hash = {
     val serializedBytes = TransactionCodec.serialize(transaction)
 
@@ -23,4 +23,20 @@ object HashCalculator {
   }
 }
 
+object HashSupported {
+  implicit def toHashSupportedBlockHeader(blockHeader: BlockHeader) = HashSupportedBlockHeader(blockHeader)
+  implicit def toHashSupportedTransaction(transaction : Transaction) = HashSupportedTransaction(transaction)
+}
+
+case class HashSupportedTransaction(transaction:Transaction)  {
+  def hash() = {
+    HashCalculator.transactionHash(transaction)
+  }
+}
+
+case class HashSupportedBlockHeader(blockHeader:BlockHeader)  {
+  def hash() = {
+    HashCalculator.blockHeaderHash(blockHeader)
+  }
+}
 

@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.{BlockDatabase, CassandraDatabase}
 import org.slf4j.LoggerFactory
 
@@ -101,7 +101,7 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     for (transaction <- block.transactions) {
       // case 1.1 and case 2.1 has newly stored transactions.
       transactionsTable.put(
-        HashCalculator.transactionHash(transaction).value,
+        transaction.hash.value,
         TransactionCodec.serialize(transaction))
     }
 
