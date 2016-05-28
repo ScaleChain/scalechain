@@ -4,7 +4,7 @@ import java.util
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.PeerCommunicator
-import io.scalechain.blockchain.proto.{CoinbaseData, Hash, BlockHash, Block}
+import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
@@ -88,7 +88,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           val bestBlockHash = chain.getBestBlockHash()
           if (bestBlockHash.isDefined) {
             // Step 3 : Get block header
-            val blockHeader = blockTemplate.getBlockHeader(BlockHash(bestBlockHash.get.value))
+            val blockHeader = blockTemplate.getBlockHeader(Hash(bestBlockHash.get.value))
             val startTime = System.currentTimeMillis()
             var blockFound = false;
 
@@ -98,7 +98,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
 
               val newBlockHeader = blockHeader.copy(nonce = nonce)
-              val newBlockHash = Hash(HashCalculator.blockHeaderHash(newBlockHeader))
+              val newBlockHash = HashCalculator.blockHeaderHash(newBlockHeader)
 
               if (CoinMiner.isLessThan(newBlockHash, blockHashThreshold)) {
                 // Check the best block hash once more.
@@ -107,7 +107,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   // Also propate the block to the peer to peer network.
                   val block = blockTemplate.createBlock(newBlockHeader, nonce)
                   peerCommunicator.propagateBlock(block)
-                  chain.putBlock(BlockHash(newBlockHash.value), block)
+                  chain.putBlock(Hash(newBlockHash.value), block)
                   blockFound = true
                   logger.info(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
                 }

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto.{BlockHash, Hash, Block, ProtocolMessage}
+import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage}
 import io.scalechain.util.HexUtil
 import scodec.{DecodeResult, Attempt}
 import scodec.bits.{BitVector}
@@ -48,7 +48,7 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
 /*
         if (envelope.command == "block") {
           val block = protocolMessage.asInstanceOf[Block]
-          if (block.header.hashPrevBlock == BlockHash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
+          if (block.header.hashPrevBlock == Hash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
             println(s"decoded:\n$protocolMessage\nprotocol data:\n${HexUtil.hex(bitVector.bytes.toArray)}\n")
             System.exit(-1)
           }

@@ -50,7 +50,7 @@ class ProtocolMessageHandler  {
         None
       }
       case transaction: Transaction => {
-        val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+        val transactionHash = HashCalculator.transactionHash(transaction)
         if (chain.getTransaction(transactionHash).isEmpty) { // Process the transaction only if we don't have it yet.
           logger.info(s"[P2P] Received a transaction. Hash : ${transactionHash}")
           chain.putTransaction(transaction)
@@ -61,10 +61,10 @@ class ProtocolMessageHandler  {
         None
       }
       case block: Block => {
-        val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+        val blockHash = HashCalculator.blockHeaderHash(block.header)
         if (chain.getBlock(blockHash).isEmpty) { // Process the transaction only if we don't have it yet.
           logger.info(s"[P2P] Received a block. Hash : ${blockHash}")
-          chain.putBlock(BlockHash(blockHash.value), block)
+          chain.putBlock(blockHash, block)
 
           // Propagate the block only if the block was not found.
           //peerCommunication.sendToAll(block)

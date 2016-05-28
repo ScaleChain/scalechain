@@ -90,7 +90,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
   // https://github.com/ScaleChain/scalechain/issues/36
   "getBlock" should "read a block correctly on the file boundary" in {
     diskBlockStorage.putBlock(block1)
-    var prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(block1.header))
+    var prevBlockHash = HashCalculator.blockHeaderHash(block1.header)
     while( diskBlockStorage.blockRecordStorage.files.size < 2) {
       val newBlock = block1.copy(
         header = block1.header.copy(
@@ -98,7 +98,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
         )
       )
       diskBlockStorage.putBlock(newBlock)
-      prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(newBlock.header))
+      prevBlockHash = HashCalculator.blockHeaderHash(newBlock.header)
 
       diskBlockStorage.getBlock(prevBlockHash).map(_._2) shouldBe Some(newBlock)
     }

@@ -54,7 +54,7 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @param transaction The transaction to put into the mempool.
     */
   def put(transaction : Transaction): Unit = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
+    val txHash = HashCalculator.transactionHash(transaction)
 
     // TODO : check if the transaction inputs are connected and points to unspent outputs.
     completeTransactions.put(txHash, transaction)

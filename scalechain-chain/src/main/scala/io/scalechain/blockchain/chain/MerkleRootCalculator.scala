@@ -81,7 +81,7 @@ object MerkleRootCalculator {
     // Note : We may duplicate the last element, so prepare space for one more element in the array buffer.
     val transactionHashes = new ArrayBuffer[Hash](transactions.length + 1)
     transactionHashes ++= transactions.map { transaction =>
-      Hash( HashCalculator.transactionHash(transaction) )
+      HashCalculator.transactionHash(transaction)
     }
 
     // Step 2 : Duplicate the last hash item if the number of hashes is odd, and calculate the merkle root hash.

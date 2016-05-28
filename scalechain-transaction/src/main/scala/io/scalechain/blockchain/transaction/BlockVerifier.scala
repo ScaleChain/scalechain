@@ -35,7 +35,7 @@ object BlockVerifier {
     for ( (message, tracker) <- txFailureMapByMessage) {
       builder.append(s"[$message] count = ${tracker.count}\n")
       builder.append("------------------------------------\n")
-      builder.append(s"blockHash=${Hash(HashCalculator.blockHeaderHash(tracker.block.header))}\n")
+      builder.append(s"blockHash=${HashCalculator.blockHeaderHash(tracker.block.header)}\n")
 /*
       builder.append("------------------------------------\n")
       builder.append(s"block=${tracker.block}\n")
@@ -94,7 +94,7 @@ class BlockVerifier(block : Block) {
           //logger.warn(s"Transaction verification failed. transaction : ${transaction}, error : ${e.message}" )
           BlockVerifier.putTransactionVerificationFailure(e.message, block, transaction, mergedScriptOption)
 /*
-          if (block.header.hashPrevBlock == BlockHash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
+          if (block.header.hashPrevBlock == Hash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
             println(s"after block:\n$block\n")
             //      System.exit(-1)
           }

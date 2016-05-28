@@ -314,10 +314,10 @@ String Response : {
 
   def walletTx(transactionWithName : TransactionWithName, block : Option[Block], blockHeight : Long) = {
     WalletTransaction(
-      blockHash        = block.map( b => Hash( HashCalculator.blockHeaderHash(b.header)) ),
+      blockHash        = block.map( b => HashCalculator.blockHeaderHash(b.header)),
       blockIndex       = block.map( b => blockHeight ),
       blockTime        = block.map(_.header.timestamp),
-      transactionId    = Some(Hash(HashCalculator.transactionHash(transactionWithName.transaction))),
+      transactionId    = Some(HashCalculator.transactionHash(transactionWithName.transaction)),
       addedTime     = 1418695703,
       transactionIndex = Some(1),
       transaction = transactionWithName.transaction
@@ -330,7 +330,7 @@ String Response : {
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
-        TransactionHash(S.S1_AliceGenCoin_A50.outPoint.transactionHash.value),
+        S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
         UnlockingScript(Array[Byte]()),
         0L
@@ -365,7 +365,7 @@ String Response : {
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
-        TransactionHash(S.S1_AliceGenCoin_A50.outPoint.transactionHash.value),
+        S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
         UnlockingScript(Array[Byte]()),
         0L

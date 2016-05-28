@@ -56,7 +56,7 @@ object DumpChain {
         val serializedBlock = BlockCodec.serialize(block)
         val blockHeaderHash = HashCalculator.blockHeaderHash(block.header)
 
-        println(s"${hex(blockHeaderHash)} ${hex(serializedBlock)}")
+        println(s"${hex(blockHeaderHash.value)} ${hex(serializedBlock)}")
       }
     }
 
@@ -111,7 +111,7 @@ object DumpChain {
     blockStoragePath.mkdir()
     val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
     val chain = Blockchain.create(storage)
-    chain.putBlock( BlockHash(GenesisBlock.HASH.value), GenesisBlock.BLOCK )
+    chain.putBlock( GenesisBlock.HASH, GenesisBlock.BLOCK )
 
     var blockHeight = 0
     class BlockListener extends BlockReadListener {
@@ -243,7 +243,7 @@ object DumpChain {
         for (tx : Transaction <- block.transactions ) {
           //println( "tx:"+tx )
           // Step 2) For each transaction, calculate hash, and put it into the map.
-          val txHash = HashCalculator.transactionHash(tx)
+          val txHash = HashCalculator.transactionHash(tx).value
           txMap(txHash) = tx
 
           // Step 3) For each normal transaction input, check if the input transaction exists in the map.

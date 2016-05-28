@@ -54,15 +54,6 @@ object HashCodec extends MessagePartCodec[Hash] {
   }.as[Hash]
 }
 
-
-object BlockHashCodec extends MessagePartCodec[BlockHash]{
-  val codec : Codec[BlockHash] = {
-    ("block_hash" | FixedByteArray.reverseCodec(32))
-  }.as[BlockHash]
-}
-
-
-
 // No need to create a codec for CoinbaseData, as it is converted from/to UnlockingScript by TransactionInputCodec.
 /*
 object CoinbaseDataCodec extends MessagePartCodec[CoinbaseData] {
@@ -76,19 +67,6 @@ object LockingScriptCodec extends MessagePartCodec[LockingScript] {
   val codec : Codec[LockingScript] = {
     ("locking_script" | VarByteArray.codec)
   }.as[LockingScript]
-}
-
-object MerkleRootHashCodec extends MessagePartCodec[MerkleRootHash] {
-  val codec : Codec[MerkleRootHash] = {
-    ("merkle_root_hash" | FixedByteArray.reverseCodec(32))
-  }.as[MerkleRootHash]
-}
-
-
-object TransactionHashCodec extends MessagePartCodec[TransactionHash] {
-  val codec: Codec[TransactionHash] = {
-    ("transaction_hash" | FixedByteArray.reverseCodec(32))
-  }.as[TransactionHash]
 }
 
 object UnlockingScriptCodec extends MessagePartCodec[UnlockingScript] {
@@ -123,7 +101,7 @@ object UnlockingScriptCodec extends MessagePartCodec[UnlockingScript] {
   */
 object NormalTransactionInputCodec extends MessagePartCodec[NormalTransactionInput] {
   val codec : Codec[NormalTransactionInput] = {
-    ( "outpoint_transaction_hash"  | TransactionHashCodec.codec ) ::
+    ( "outpoint_transaction_hash"  | HashCodec.codec            ) ::
     ( "outpoint_transaction_index" | uint32L                    ) ::
     ( "unlocking_script"           | UnlockingScriptCodec.codec ) ::
     ( "sequence_number"            | uint32L                    )
@@ -251,8 +229,8 @@ object TransactionOutputCodec extends MessagePartCodec[TransactionOutput] {
 object BlockHeaderCodec extends MessagePartCodec[BlockHeader]{
   val codec : Codec[BlockHeader] = {
     ("version"               | int32L                                 ) ::
-    ("previous_block_hash"   | BlockHashCodec.codec                   ) ::
-    ("merkle_root_hash"      | MerkleRootHashCodec.codec              ) ::
+    ("previous_block_hash"   | HashCodec.codec                        ) ::
+    ("merkle_root_hash"      | HashCodec.codec                        ) ::
     ("timestamp"             | uint32L                                ) ::
     ("diffculty_target_bits" | uint32L                                ) ::
     ("nonce"                 | uint32L                                )

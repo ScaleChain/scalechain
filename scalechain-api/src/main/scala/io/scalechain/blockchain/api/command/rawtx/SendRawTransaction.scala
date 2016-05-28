@@ -72,7 +72,7 @@ object SendRawTransaction extends RpcCommand {
       new TransactionVerifier(transaction).verify(Blockchain.get)
 
       // Step 2 : Check if the transaction already exists.
-      val txHash = Hash( HashCalculator.transactionHash(transaction))
+      val txHash = HashCalculator.transactionHash(transaction)
       val transactionOption = RpcSubSystem.get.getTransaction(txHash)
 
       if (transactionOption.isDefined) {

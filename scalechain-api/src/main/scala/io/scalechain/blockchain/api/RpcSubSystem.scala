@@ -90,12 +90,12 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     */
   def submitBlock(block : Block, parameters : JsObject) : Option[SubmitBlockResult.Value] = {
     // TODO : BUGBUG : parameters is not used.
-    val blockHash = Hash( HashCalculator.blockHeaderHash((block.header)))
+    val blockHash = HashCalculator.blockHeaderHash((block.header))
     if (chain.hasBlock(blockHash)) {
       Some(SubmitBlockResult.DUPLICATE)
     } else {
       peerCommunicator.propagateBlock(block)
-      chain.putBlock(BlockHash( blockHash.value) , block)
+      chain.putBlock(Hash( blockHash.value) , block)
       None
     }
   }

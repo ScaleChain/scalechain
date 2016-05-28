@@ -689,7 +689,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
 
       // Step 1 : Calulate the transaction hash.
-      val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+      val transactionHash = HashCalculator.transactionHash(transaction)
 
       val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
@@ -764,7 +764,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       // Step 5 : Add a transaction.
       if (isTransactionRelated) {
         val walletTransaction = WalletTransaction(
-          blockHash         = chainBlock.map{ b => Hash(HashCalculator.blockHeaderHash(b.block.header) ) },
+          blockHash         = chainBlock.map{ b => HashCalculator.blockHeaderHash(b.block.header) },
           blockIndex        = chainBlock.map( _.height ),
           blockTime         = chainBlock.map( _.block.header.timestamp ) ,
           transactionId     = Some(transactionHash),
@@ -792,7 +792,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       val currentTime = System.currentTimeMillis()
 
       // Step 1 : Calulate the transaction hash.
-      val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+      val transactionHash = HashCalculator.transactionHash(transaction)
 
       // If the transaction is related to the output
       var isTransactionRelated = false

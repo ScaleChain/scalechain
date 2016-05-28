@@ -46,7 +46,7 @@ object BlockPrinterSetter {
     Transaction.printer =
       new TransactionPrinter {
         override def toString(transaction : Transaction) : String = {
-          s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${scalaHex(HashCalculator.transactionHash(transaction))} */)"
+          s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${HashCalculator.transactionHash(transaction)} */)"
         }
       }
   }

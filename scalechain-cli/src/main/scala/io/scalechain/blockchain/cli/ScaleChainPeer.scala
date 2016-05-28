@@ -173,7 +173,7 @@ object ScaleChainPeer extends JsonRpc {
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
-      chain.putBlock(BlockHash(env.GenesisBlockHash.value), env.GenesisBlock)
+      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
     }
 
     assert( chain.getBestBlockHash().isDefined )

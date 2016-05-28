@@ -90,7 +90,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     intercept[AssertionError] {
       db.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
-          hashPrevBlock = BlockHash(DUMMY_HASH.value)
+          hashPrevBlock = Hash(DUMMY_HASH.value)
         )
       ))
     }
@@ -98,7 +98,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     intercept[AssertionError] {
       db.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
-          hashMerkleRoot = MerkleRootHash(DUMMY_HASH.value)
+          hashMerkleRoot = Hash(DUMMY_HASH.value)
         )
       ))
     }

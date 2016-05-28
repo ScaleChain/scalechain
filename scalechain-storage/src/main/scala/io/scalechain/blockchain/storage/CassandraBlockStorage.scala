@@ -101,7 +101,7 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     for (transaction <- block.transactions) {
       // case 1.1 and case 2.1 has newly stored transactions.
       transactionsTable.put(
-        HashCalculator.transactionHash(transaction),
+        HashCalculator.transactionHash(transaction).value,
         TransactionCodec.serialize(transaction))
     }
 

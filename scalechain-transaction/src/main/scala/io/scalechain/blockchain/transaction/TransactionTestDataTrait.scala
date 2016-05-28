@@ -72,9 +72,9 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     TransactionOutput( value, pubKeyScript.lockingScript )
   }
 
-  val TXHASH1 = Hash( HashCalculator.transactionHash(transaction1) )
-  val TXHASH2 = Hash( HashCalculator.transactionHash(transaction2) )
-  val TXHASH3 = Hash( HashCalculator.transactionHash(transaction3) )
+  val TXHASH1 = HashCalculator.transactionHash(transaction1)
+  val TXHASH2 = HashCalculator.transactionHash(transaction2)
+  val TXHASH3 = HashCalculator.transactionHash(transaction3)
 /*
   val DUMMY_TXHASH1 = Hash
   val DUMMY_TXHASH2 =

@@ -47,7 +47,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
   "putTransactions" should "successfully put transactions onto database" in {
     // At first, we should not have any tranasctions on the database.
     for( transaction <- TestData.block.transactions) {
-      val txHash = Hash (HashCalculator.transactionHash(transaction))
+      val txHash = HashCalculator.transactionHash(transaction)
       db.getTransactionLocator(txHash) shouldBe None
     }
 
@@ -56,7 +56,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
     // Create (transaction hash, transaction locator pair )
     val txLocators = for(
       transaction <- TestData.block.transactions;
-      txHash = Hash (HashCalculator.transactionHash(transaction));
+      txHash = HashCalculator.transactionHash(transaction);
       txLocator = BLOCK_LOCATOR.copy(recordLocator = BLOCK_LOCATOR.recordLocator.copy(offset = BLOCK_LOCATOR.recordLocator.offset + i * 100))
     ) yield {
       i += 1
@@ -67,7 +67,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // Now, we have transactions on the database.
     for( transaction <- TestData.block.transactions) {
-      val txHash = Hash (HashCalculator.transactionHash(transaction))
+      val txHash = HashCalculator.transactionHash(transaction)
       val txLocator = db.getTransactionLocator(txHash)
 
       assert(txLocator.isDefined)

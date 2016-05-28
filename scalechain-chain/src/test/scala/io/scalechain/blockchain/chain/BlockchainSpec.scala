@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
-import io.scalechain.blockchain.proto.{BlockHash, Hash}
+import io.scalechain.blockchain.proto.{ Hash}
 import io.scalechain.blockchain.storage.{BlockStorage, DiskBlockStorage, Storage}
 import io.scalechain.crypto.HashFunctions
 import org.apache.commons.io.FileUtils
@@ -28,7 +28,7 @@ class BlockchainSpec extends BlockchainTestTrait with ChainTestDataTrait with Sh
   }
 
   "putBlock" should "put the genesis block" in {
-    chain.putBlock(BlockHash( env.GenesisBlockHash.value) , env.GenesisBlock)
+    chain.putBlock(Hash( env.GenesisBlockHash.value) , env.GenesisBlock)
     val Some((blockInfo, block)) = chain.getBlock(env.GenesisBlockHash)
     blockInfo.height shouldBe 0
     blockInfo.blockHeader shouldBe env.GenesisBlock.header

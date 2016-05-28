@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{BlockHash, Hash}
+import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 import scala.collection.mutable.ListBuffer

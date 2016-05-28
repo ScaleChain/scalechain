@@ -24,10 +24,10 @@ class PeerCommunicator(peerSet : PeerSet) {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
       val messageString = message match {
         case m : Block => {
-          s"Block. Hash : ${HexUtil.hex(HashCalculator.blockHeaderHash(m.header))}"
+          s"Block. Hash : ${HashCalculator.blockHeaderHash(m.header)}"
         }
         case m : Transaction => {
-          s"Transaction. Hash : ${HexUtil.hex(HashCalculator.transactionHash(m))}"
+          s"Transaction. Hash : ${HashCalculator.transactionHash(m)}"
         }
         case m => {
           StringUtil.getBrief(m.toString, 256)

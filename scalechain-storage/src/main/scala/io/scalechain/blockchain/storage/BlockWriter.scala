@@ -74,7 +74,7 @@ class BlockWriter(storage : BlockRecordStorage) {
     // Step 3 : Write each transaction
     val txLocators =
       for( transaction <- block.transactions;
-           txHash = Hash( HashCalculator.transactionHash(transaction) );
+           txHash = HashCalculator.transactionHash(transaction) ;
            txLocator = storage.appendRecord(transaction)(TransactionCodec)
       ) yield {
         // Step 31 : Check if a new file was created during step 2 or step 3.

@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{Hash, Transaction, Block, BlockHash}
+import io.scalechain.blockchain.proto.{Hash, Transaction, Block}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -84,7 +84,7 @@ class Orphanage[D,I] { // D : Dependency, I : Item
 /** The orphan blocks.
   *
   */
-class OrphanBlocks extends Orphanage[BlockHash,Block]
+class OrphanBlocks extends Orphanage[Hash,Block]
 
 /** The orphan transactions.
   *

@@ -10,13 +10,13 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 class TestBlockIndex extends BlockIndex {
-  var bestBlockHash : BlockHash = null
+  var bestBlockHash : Hash = null
   var bestBlockHeight = -1
-  val transactions = new mutable.HashMap[TransactionHash, Transaction]
-  val blocks = new mutable.HashMap[BlockHash, (BlockInfo,Block)]
+  val transactions = new mutable.HashMap[Hash, Transaction]
+  val blocks = new mutable.HashMap[Hash, (BlockInfo,Block)]
 
   def addBlock(block : Block, height : Int) : Unit = {
-    val blockHash : BlockHash = BlockHash( HashCalculator.blockHeaderHash(block.header) )
+    val blockHash : Hash = HashCalculator.blockHeaderHash(block.header)
     blocks.put(blockHash, (
       BlockInfo(
         height,
@@ -37,11 +37,11 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : BlockHash) : Option[(BlockInfo, Block)] = {
+  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
     blocks.get(blockHash)
   }
 
-  def addTransaction(transactionHash : TransactionHash, transaction : Transaction) : Unit = {
+  def addTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
     transactions.put(transactionHash, transaction)
   }
 
@@ -49,7 +49,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : TransactionHash) : Option[Transaction] = {
+  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     transactions.get(transactionHash)
   }
 }
@@ -113,12 +113,12 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     }
 
     def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-      blockIndex.getTransaction(TransactionHash(transactionHash.value))
+      blockIndex.getTransaction( transactionHash )
     }
   }
 
-  def getTxHash(transactionWithName : TransactionWithName) = Hash( HashCalculator.transactionHash(transactionWithName.transaction))
-  def getBlockHash(block : Block) = Hash( HashCalculator.blockHeaderHash(block.header) )
+  def getTxHash(transactionWithName : TransactionWithName) = HashCalculator.transactionHash(transactionWithName.transaction)
+  def getBlockHash(block : Block) = HashCalculator.blockHeaderHash(block.header)
 
   /** Add all outputs in a transaction into an output set.
     *
@@ -134,7 +134,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
       outputSet.addTransactionOutput( OutPoint(transactionHash, outputIndex), output )
     }
 
-    blockIndex.addTransaction(TransactionHash(transactionHash.value), transactionWithName.transaction)
+    blockIndex.addTransaction( transactionHash, transactionWithName.transaction)
     chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
     //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
@@ -166,7 +166,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     * @return The transaction output with an out point.
     */
   def getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint = {
-    val transactionHash = Hash(HashCalculator.transactionHash(transactionWithName.transaction))
+    val transactionHash = HashCalculator.transactionHash(transactionWithName.transaction)
     OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
   }
 

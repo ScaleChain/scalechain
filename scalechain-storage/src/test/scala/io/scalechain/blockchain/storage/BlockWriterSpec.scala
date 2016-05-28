@@ -58,7 +58,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     // Step 4 : Read each transaction on each transaction locator.
     for (transaction <- block1.transactions) {
       // Step 4.1 : Calculate transaction hash.
-      val txHash = Hash( HashCalculator.transactionHash(transaction) )
+      val txHash = HashCalculator.transactionHash(transaction)
       // Step 4.2 : Get the transaction locator.
       val txLocatorOptin = txLocatorByHash.get(txHash)
 
@@ -69,7 +69,7 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
       readTransaction shouldBe transaction
 
       // Step 4.5 : Make sure the transaction hash matches.
-      Hash( HashCalculator.transactionHash(readTransaction)) shouldBe txHash
+      HashCalculator.transactionHash(readTransaction) shouldBe txHash
     }
   }
 

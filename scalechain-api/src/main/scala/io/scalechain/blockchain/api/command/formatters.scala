@@ -19,10 +19,10 @@ object BlockFormatter {
   def getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult = {
     val serializedBlock = BlockCodec.serialize(block)
 
-    val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+    val blockHash = HashCalculator.blockHeaderHash(block.header)
 
     val txHashes = block.transactions.map { tx =>
-      Hash( HashCalculator.transactionHash(tx) )
+      HashCalculator.transactionHash(tx)
     }
 
     GetBlockResult(
@@ -158,7 +158,7 @@ object TransactionFormatter {
     * @return The converted RawTransaction instance.
     */
   def getRawTransaction(transaction : Transaction) : RawTransaction = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
+    val txHash = HashCalculator.transactionHash(transaction)
     val serializedTransaction = getSerializedTranasction(transaction)
 
     RawTransaction(
@@ -179,7 +179,7 @@ object TransactionFormatter {
     * @return The converted DecodedRawTransaction instance.
     */
   def getDecodedRawTransaction(transaction : Transaction) : DecodedRawTransaction = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
+    val txHash = HashCalculator.transactionHash(transaction)
 
     DecodedRawTransaction(
       txid     = txHash,
