@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import io.scalechain.blockchain.proto.{Hash, BlockHash}
+import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.apache.commons.io.FileUtils
@@ -11,23 +12,14 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/28/16.
   */
-@Ignore
-class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with ShouldMatchers {
+class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockLocatorSpec/")
   var locator : BlockLocator = null
 
-  def putBlocks(blockCount : Int) = {
-    for (blockHeight <- 1 to blockCount) {
-      val blockHash = numberToHash(blockHeight)
-      // put a block using genesis block, as we don't check if the block hash matches in the putBlock method.
-      chain.putBlock(blockHash, env.GenesisBlock)
-    }
-  }
-
   override def beforeEach() {
-    // initialize a test.
+    super.beforeEach()
 
     locator = new BlockLocator(chain) {
       // For testing, override the MAX_HASH_COUNT to 5 so that we get only 5 hashes if the hashStop is all zero.
@@ -35,50 +27,50 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
     }
 
     // put hashes into chain.
-    chain.putBlock(BlockHash(env.GenesisBlockHash.value), env.GenesisBlock)
+    chain.putBlock(
+      BlockHash(env.GenesisBlockHash.value),
+      env.GenesisBlock
+    )
 
-    super.beforeEach()
   }
 
   override def afterEach() {
-    super.afterEach()
-
     locator = null
-    // finalize a test.
-    storage.close()
 
-    FileUtils.deleteDirectory(testPath)
+    super.afterEach()
   }
 
+  //def numberToHash(num : Int) = BlockHash( numberToHash(num).value )
+
   "getLocatorHashes" should "return only genesis block hash if there is only the genesis block." in {
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return all hashes and genesis block if the best block height is 1" in {
     putBlocks(1)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
       numberToHash(1),
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return all hashes and genesis block if the best block height is 2" in {
     putBlocks(2)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
       numberToHash(2),
       numberToHash(1),
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return all hashes and genesis block if the best block height is 10" in {
     putBlocks(10)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
       numberToHash(10), // Add 10 hashes
       numberToHash(9),
       numberToHash(8),
@@ -92,13 +84,13 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
       numberToHash(1),
 
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return the first 10 hashes and genesis block if the best block height is 11" in {
     putBlocks(11)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(11), // Add the first 10 hashes
       numberToHash(10),
       numberToHash(9),
@@ -112,14 +104,14 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
       numberToHash(2), // Jump two steps
 
       env.GenesisBlockHash
-    )
+    ))
 
   }
 
   "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 12" in {
     putBlocks(12)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(12), // Add the first 10 hashes
       numberToHash(11),
       numberToHash(10),
@@ -134,13 +126,13 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
 
       numberToHash(1),
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 13" in {
     putBlocks(13)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(13), // Add the first 10 hashes
       numberToHash(12),
       numberToHash(11),
@@ -155,13 +147,13 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
 
       numberToHash(2),
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 15" in {
     putBlocks(15)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(15), // Add the first 10 hashes
       numberToHash(14),
       numberToHash(13),
@@ -177,14 +169,14 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
       numberToHash(4), // Jump 4 steps : 4-> genesis
 
       env.GenesisBlockHash
-    )
+    ))
   }
 
 
   "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 16" in {
     putBlocks(16)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(16), // Add the first 10 hashes
       numberToHash(15),
       numberToHash(14),
@@ -201,14 +193,14 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
 
       numberToHash(1),
       env.GenesisBlockHash
-    )
+    ))
   }
 
 
   "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 17" in {
     putBlocks(17)
 
-    locator.getLocatorHashes() shouldBe List (
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
       numberToHash(17), // Add the first 10 hashes
       numberToHash(16),
       numberToHash(15),
@@ -226,7 +218,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
       numberToHash(2),
 
       env.GenesisBlockHash
-    )
+    ))
   }
 
   "getHashes" should "return the genesis block if the genesis block is the only hash it matches" in {
@@ -246,7 +238,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
     putBlocks(32)
     locator.getHashes(
       BlockLocatorHashes( List(
-        Hash( numberToHash(100).value ) // No block matches.
+        SampleData.S2_BlockHash // No block matches.
       )
       ),
       env.GenesisBlockHash
@@ -259,7 +251,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
     putBlocks(32)
     locator.getHashes(
       BlockLocatorHashes( List(
-        Hash( numberToHash(100).value ) // No block matches.
+        SampleData.S2_BlockHash // No block matches. Ignored
       )
       ),
       ALL_ZERO_HASH // hashStop is all zero : Get 5 hashes.
@@ -276,7 +268,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
     putBlocks(32)
     locator.getHashes(
       BlockLocatorHashes( List(
-        Hash( numberToHash(100).value ) // No block matches.
+        SampleData.S2_BlockHash // No block matches.
       )
       ),
       Hash( numberToHash(3).value) // hashStop 3
@@ -308,7 +300,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with 
 
     locator.getHashes(
       BlockLocatorHashes( List(
-        Hash( numberToHash(1000).value ), // No block matches. Ignored.
+        SampleData.S2_BlockHash, // No block matches. Ignored
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),

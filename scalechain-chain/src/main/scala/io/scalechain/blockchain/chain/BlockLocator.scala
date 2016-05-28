@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{BlockHash, Hash}
+import io.scalechain.blockchain.transaction.ChainEnvironment
+
+import scala.collection.mutable.ListBuffer
 
 
 case class BlockLocatorHashes(hashes : List[Hash])
@@ -10,11 +13,9 @@ case class BlockLocatorHashes(hashes : List[Hash])
   * Another node first sends the list of locator hashes by using getLocatorHashes,
   * and constructs GetBlocks message to get inventories of the missing block hashes.
   *
-  * The receiver node finds out common hash and produces a list of hashes it needs
-  * finds the common block between another node's blockchain and my blockchain.
+  * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
-class BlockLocator(blockchain : Blockchain) {
-
+class BlockLocator(chain : Blockchain) {
   // getHashes returns MAX_HASH_COUNT is the stop hash is all zero.
   val MAX_HASH_COUNT = 500
 
@@ -24,15 +25,33 @@ class BlockLocator(blockchain : Blockchain) {
     * @return The list of locator hashes summarizing the blockchain.
     */
   def getLocatorHashes() : BlockLocatorHashes = {
-    // Step 1 : Add 10 recent block hashes on the best blockchain.
+    val env = ChainEnvironment.get
 
-    // Step 2 : Exponentially move backwards to get a summarizing list of block hashes.
+    val listBuf = ListBuffer[Hash]()
+    chain.synchronized {
+      var blockHeight = chain.getBestBlockHeight() // The height of the block we are processing.
+      var addedHashes = 0 // The number of hashes added to the list.
+      var heightSteps = 1 // For each loop, how may heights do we jump?
+println(s"blockHeight=${blockHeight}")
+      while( blockHeight > 0 ) {
+        // Step 1 : Add 10 recent block hashes on the best blockchain.
+        listBuf.append( chain.getBlockHash(blockHeight) )
+        addedHashes += 1
 
-    // Step 3 : Add the genesis block hash.
+        // Step 2 : Exponentially move backwards to get a summarizing list of block hashes.
+        if (addedHashes >= 10) {
+          // Multiply heightSteps.
+          heightSteps = heightSteps << 1
+        }
+println(s"heightSteps=${heightSteps}")
 
-    // TODO : Implement
-    assert(false)
-    null
+        blockHeight -= heightSteps
+      }
+
+      // Step 3 : Add the genesis block hash.
+      listBuf.append( env.GenesisBlockHash )
+      BlockLocatorHashes(listBuf.toList)
+    }
   }
 
   /** Get a list of hashes from the hash that matches one in locatorHashes.
@@ -46,12 +65,44 @@ class BlockLocator(blockchain : Blockchain) {
     * @param hashStop While constructing the list of hashes, stop at this hash if the hash matches.
     */
   def getHashes(locatorHashes : BlockLocatorHashes, hashStop : Hash) : List[Hash] = {
-    // Step 1 : Find any matching hash from the list of locator hashes
+    val env = ChainEnvironment.get
+    val listBuf = new ListBuffer[Hash]()
 
-    // Step 2 : Construct a list of hashes from the matching hash until the hashStop matches, or 500 hashes are constructed.
+    chain.synchronized {
+      // Step 1 : Find any matching hash from the list of locator hashes
+      // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.
+      //
+      // scala> List(1,2,3)
+      // res0: List[Int] = List(1, 2, 3)
+      //
+      // scala> (res0.view.map{ i=> println(s"$i"); i *2 }).head
+      // 1
+      // res9: Int = 2
 
-    // TODO : Implement
-    assert(false)
-    null
+      val matchedHashOption : Option[Hash] = locatorHashes.hashes.view.filter { hash =>
+        chain.hasBlock( hash )
+      }.headOption
+
+      // Step 2 : Construct a list of hashes from the matching hash until the hashStop matches, or 500 hashes are constructed.
+      // If no hash matched, start from the genesis block.
+      val startingHash = matchedHashOption.getOrElse(env.GenesisBlockHash)
+
+      val Some((blockInfo, _)) = chain.getBlock(startingHash)
+
+      var blockHeight = blockInfo.height
+
+      var addedHashes = 0
+      var lastHash : Hash = null
+      val bestBlockHeight = chain.getBestBlockHeight()
+
+      do {
+        lastHash = chain.getBlockHash(blockHeight)
+        listBuf.append( lastHash )
+        addedHashes += 1
+        blockHeight += 1
+      } while( blockHeight < bestBlockHeight && addedHashes < MAX_HASH_COUNT && lastHash != hashStop )
+
+      listBuf.toList
+    }
   }
 }

@@ -167,7 +167,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
   /** The memory pool for transient transactions that are valid but not stored in any block.
     */
-  val mempool = new TransactionMempool(DiskBlockStorage.get())
+  val mempool = new TransactionMempool(storage)
 
   /** The in-memory index where we search blocks and transactions.
     */
@@ -235,8 +235,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
               orphans.map { blocks =>
                 orphanBlocks.remove(blockHash)
                 blocks.get foreach { orphanBlock =>
-                  val blockHash = BlockHash(HashCalculator.blockHeaderHash(block.header))
-
                   // Step 6 : Recursively call putBlock to put the orphans
                   putBlock(blockHash, orphanBlock)
                 }
@@ -440,6 +438,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     val foundBlockOption = chainIndex.findBlock(blockHeight)
     // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
     if (foundBlockOption.isEmpty) {
+
       throw new ChainException( ErrorCode.InvalidBlockHeight)
     }
     Hash( HashCalculator.blockHeaderHash(foundBlockOption.get.blockHeader) )
