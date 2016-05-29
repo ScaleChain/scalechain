@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.command.network._
 import io.scalechain.blockchain.api.command.rawtx._
 
 import io.scalechain.blockchain.api.domain._
+import io.scalechain.blockchain.api.http.ApiServer
 import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.util.StringUtil
@@ -234,53 +235,9 @@ object JsonRpcMicroservice extends JsonRpcMicroservice
 class JsonRpcMicroservice extends SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
   private lazy val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
 
-  import RpcParamsJsonFormat._
-
-  //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
-
-  import RpcResponseJsonFormat._
-
-/*
-  runService()
-
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-  // needed for the future map/flatmap in the end
-  implicit val executionContext = system.dispatcher
-*/
-  def handleRequest(requestString : String) : String = {
-  logger.info(s"String Request : ${requestString}")
-/*
-    val source1 = """{ "some": "JSON source" }"""
-    val jsonAst1 = source1.parseJson // or JsonParser(source)
-    println(s"jsonAst1=${jsonAst1}")
-
-    val source2 = """{"id":1463838854805,"method":"getaccountaddress","params":["B3BirN2BGeW9TMJao"]}"""
-    val jsonAst2 = source2.parseJson // or JsonParser(source)
-    println(s"jsonAst2=${jsonAst2}")
-*/
-    val parsedRequest = requestString.parseJson
-    assert( parsedRequest != null)
-
-    val id = parsedRequest.asJsObject.fields("id")
-    val method = parsedRequest.asJsObject.fields("method")
-    val params = parsedRequest.asJsObject.fields("params")
-
-    val request = RpcRequest(
-       jsonrpc = None,
-       id = id.convertTo[Long],
-       method = method.convertTo[String],
-       params = params.convertTo[RpcParams]
-    )
-
-    val serviceResponse : RpcResponse = dispatch(request)
-    val stringResponse = serviceResponse.toJson.prettyPrint
-    // Show the first 256 chars of the response.
-    logger.info(s"String Response : ${StringUtil.getBrief(stringResponse,1024)}")
-    stringResponse
-  }
-
   def runService(inboundPort : Int) = {
+    new ApiServer().listen(inboundPort)
+/*
     implicit val system = ActorSystem("api-layer")
     implicit val materializer = ActorMaterializer()
     implicit val e = system.dispatcher
@@ -316,11 +273,6 @@ class JsonRpcMicroservice extends SprayJsonSupport with DefaultJsonProtocol with
 
     val bindingFuture = Http().bindAndHandleSync(requestHandler, "0.0.0.0", inboundPort)
     logger.info(s"ScaleChain RPC service online at http://localhost:${inboundPort}.")
-/*
-    Console.readLine() // let it run until user presses return
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ ⇒ system.terminate()) // and shutdown when done
 */
   }
 }
