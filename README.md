@@ -11,7 +11,11 @@ Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 Why ScaleChain?
 ===============
 1. Easy to use, easy to integrate, easy to customize.
-2. Shard data across P2P nodes(Private blockchain only).
+2. Shard data across P2P nodes(Private blockchain only). 
+
+Getting Started
+===============
+[A guide on starting a ScaleChain peer to peer network.](https://github.com/ScaleChain/scalechain/wiki/How-to-start-a-ScaleChain-peer)
 
 A pitch deck
 ============
