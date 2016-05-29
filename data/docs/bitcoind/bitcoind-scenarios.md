@@ -369,6 +369,15 @@ else if (strCommand == "headers") {
     // Step 1 : read block headers
     // Step 2 : Accept block headers.
     AcceptBlockHeader(header, state, &pindexLast)
+        - Step 1 : Check if the block header already exists, return the block index of it if it already exists.
+        - Step 2 : Check the proof of work and block timestamp.
+        CheckBlockHeader(block, state)
+        - Step 3 : Get the block index of the previous block.
+        - Step 4 : Check proof of work, block timestamp, block checkpoint, block version based on majority of recent block versions.
+        ContextualCheckBlockHeader(block, state, pindexPrev)
+        - Step 5 : Add the new block as a block index.
+        AddToBlockIndex(block)
+        
     // Step 3 : Request next block headers using "getheaders" message
     //    TODO : Continue Investigation
 }
