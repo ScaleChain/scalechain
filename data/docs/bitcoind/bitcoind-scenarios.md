@@ -2,7 +2,16 @@
 Analyze how bitcoind works in different events such as finding out an orphan block, 
 finding out an orphan transaction, reorganizing blocks upon a longer chain than the node has. 
 
-# Treating orphan transactions
+# Overall flow of message
+## (req) Version -> (rsp) Verack
+
+## (req) Ping -> (rsp) Pong
+
+## (req) GetHeaders -> (rsp) Headers
+ 
+## (req) GetBlocks, Mempool -> (rsp) Inv -> (req) getdata -> (rsp) tx, block, merkleblock, notfound 
+
+# Upon the arrival of "tx" message (in reply to "getdata")
 ## Data structure
 ```
 // The mempool where transactions are stored in memory, searchable by the hash of it.
@@ -17,7 +26,7 @@ map<uint256, CDataStream*> mapOrphanTransactions;
 // kangmo : comment - orphan transactions by the transaction hash in an outpoint of it. Because multiple orphan transactions may exists for the same transaction hash of an outpoint, we need to use multimap.
 multimap<uint256, CDataStream*> mapOrphanTransactionsByPrev;
 ```
-## start point : ProcessMessage in main.cpp
+## strCommand == "tx" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "tx") {
     // Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
@@ -93,7 +102,7 @@ else if (strCommand == "tx") {
 ```
 
 
-# Treating orphan blocks
+# Upon the arriaval of the "block" message (in reply to "getdata" or block submission by a miner)
 ## Data structure
 ```
 // kangmo : comment - The in-memory structure of the double linked blocks, searchable by the block hash.
@@ -106,7 +115,7 @@ map<uint256, CBlock*> mapOrphanBlocks;
 multimap<uint256, CBlock*> mapOrphanBlocksByPrev;
 ```
 
-## start point : ProcessMessage in main.cpp
+## strCommand == "block" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "block") {
     // Step 1 : Add the block as a known inventory of the node that sent it. 
@@ -153,8 +162,24 @@ else if (strCommand == "block") {
 }
 ```
 
-# Treating a longer chain
-## start point : ProcessMessage in main.cpp
+# Block Reorganization (while processing "block" message)
+## Data structure
+```
+// check if a transaction output is spent
+class CTxIndex
+{
+public:
+    CDiskTxPos pos; // the disk location of a transaction
+    std::vector<CDiskTxPos> vSpent; // the locations of transactions that spend its outputs
+    ...
+}
+
+// uint256 : The hash of the transaction to track whether the outputs are spent.
+// CTxIndex : keeps the transaction location on disk and transaction locations that spends the outputs.
+map<uint256, CTxIndex> mapQueuedChanges;
+
+```
+## start point : CBlock::AddToBlockIndex
 ```
 bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
 	// Step 1 : Check if the block already exists in the in-memory block index, mapBlockIndex
@@ -180,30 +205,57 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
             
                 // Step 4 : Reorder blocks so that the blocks with lower height come first.
             
-                // Step 5 : Disconnect blocks from the current (shorter) blockchain.
+                // Step 5 : Disconnect blocks from the current (shorter) blockchain. (order : newest to oldest)
                 LOOP block := For each block to disconnect
                     // Step 5.1 : Read each block, and disconnect each block.
                     block.ReadFromDisk(pindex)
                     block.DisconnectBlock(txdb, pindex)
-                    - TODO : Analyze
+                        1. Mark all outputs spent by all inputs of all transactions in the block as unspent.
+                        LOOP tx := For each transaction in the block
+                            1.1. Mark outputs pointed by the inputs of the transaction unspent.
+                            tx.DisconnectInputs
+                                - LOOP input := For each input in the transaction
+                                    - Get the transaction pointed by the input
+                                    - On disk, Mark the output point by the input as spent                                    
+                        2. On disk, disconnect from the previous block   
+                            (previous block.next = null)
             
                     // Step 5.2 : Prepare transactions to add back to the mempool.
                 }
             
-                // Step 6 : Connect blocks from the longer blockchain to the current blockchain.
+                // Step 6 : Connect blocks from the longer blockchain to the current blockchain. (order : oldest to newest)
                 LOOP block := For each block to connect
                     // kangmo : comment - Step 6.1 : Read block, connect the block to the current blockchain, which does not have the disconnected blocks.
                     block.ReadFromDisk(pindex)
                     block.ConnectBlock(txdb, pindex)
-                    - TODO : Analyze
-            
+                        - 1. Do preliminary checks for a block
+                        pblock->CheckBlock()
+                        
+                        - 2. Prepare a queue for database changes marking outputs spent by all inputs of all transactions in the block. 
+                        map<uint256, CTxIndex> mapQueuedChanges;
+                        
+                        - 3. Populate mapQueuedChanges with transaction outputs marking which transactions are spending each of the outputs.
+                        LOOP tx := For each transaction in the block
+                            - 3.1 Mark transaction outputs pointed by inputs of this transaction spent.
+                            CTransaction::ConnectInputs( .. & mapQueuedChanges .. )
+                                LOOP input := for each input in the transaction
+
+                        - 4. For each items in mapQueuedChanges, write to disk.
+                        - 5. Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+                        - 6. On disk, connect the block from the previous block. (previous block.next = this block)
+                    
+                        - 7. For each transaction, sync with wallet.
+                        LOOP tx := For each transaction in the block
+                            SyncWithWallets
+                                - For each registered wallet
+                                     pwallet->AddToWalletIfInvolvingMe
                     // Step 6.2 : Prepare transactions to remove from the mempool
                 }
             
                 // Step 7 : Write the hash of the tip block on the best blockchain, commit the db transaction.
-            
-            
+                        
                 // Step 8 : Set the next block pointer for each connected block. Also, set next block pointer to null for each disconnected block.
+                // Note : next pointers of in-memory block index nodes are modified after the on-disk transaction commits the on-disk version of the next pointers. 
             
                 // Step 9 : add transactions in the disconnected blocks to the mempool.
             
@@ -215,7 +267,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
 }
 ```
 
-# Treating an incoming inventory
+# Upon the arrival of "inv" message ( in reply to "getblocks" or "mempool"  )
 ```
 else if (strCommand == "inv") {
     // Step 1 : Return an error if the number of inventories is more than 50,000
@@ -246,3 +298,124 @@ else if (strCommand == "inv") {
 }
 
 ```
+
+# Upon the arrival of "getdata" message
+## Data structure
+```
+// In net.cpp ; a message to relay for an inventory.
+map<CInv, CDataStream> mapRelay;
+// In net.cpp ; to keep when an Inv first relayed. Bitcoind keeps them only for 15 minutes in mapRelay.
+deque<pair<int64, CInv> > vRelayExpiration;
+```
+## strCommand == "getdata" in ProcessMessage in main.cpp
+```
+else if (strCommand == "getdata") {
+    // Step 1 : Return an error if the number of inventories should is greater than 50,000.
+    // Step 2 : For each inventory, send data for it.
+    LOOP inv := For each inventory in the "getdata" message 
+        // 1. For a block hash : 
+            1.1 read the block from disk to send the block message.
+            1.2 Using hashContinue set by 'getblocks' when it reached at the count limit, let the peer learn about our best block hash if it requested the hashConitnue block hash.
+        // 2. For a transaction hash : 
+            send tx message only if it is in the relay memory. A 'tx' is put into the relay memory by sendfrom, sendtoaddress, sendmany RPC.        
+            
+}
+```
+
+# Upon the arrival of "getblocks" message
+## Data structure
+```
+```
+## strCommand == "getblocks" in ProcessMessage in main.cpp
+```
+else if (strCommand == "getblocks") {
+    // Step 1 : Get the latest common block with the caller in the best blockchain.
+    // Step 2 : Skip the common block, start sending Inv from the next block of the common block.
+    // Step 3 : Send Inv until we hit the hashStop. The hashStop is not sent as an Inv.
+    //          Stop sending Inv if we hit the count limit. 
+    //          Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
+
+}
+```
+
+# Upon the arrival of "getheaders" message
+"getheaders" is nearly identical to "getblocks", but it is different in three ways.
+1. getheaders sends up to 2000 headers, whereas getblocks sends up to 500 invs
+2. getheaders responds with "headers" message, whereas getblocks responds with "inv" message.
+3. The "headers" message contains a list of (block header and a byte zero indicating 0 transactions), whereas "inv" message has the hash of the block header.
+4. getheaders sends the hashStop, whereas getblocks does not send the hashStop.
+
+## Data structure
+```
+```
+## strCommand == "getheaders" in ProcessMessage in main.cpp
+```
+else if (strCommand == "getheaders") {
+    // Step 1 : If no common block was found, send the hashStop
+    // Step 2 : If any common block was found, send up to 2000 headers including the hashStop.
+    //          Investigate : Need to understand : GetDistanceBack  
+}
+```
+
+
+# Upon the arrival of "headers" message ( in reply to "getheaders" )
+## Data structure
+```
+```
+## strCommand == "headers" in ProcessMessage in main.cpp
+```
+// Bitcoin 0.5 did not have the handler of the "headers" message, but 0.10 had.
+else if (strCommand == "headers") {
+    // Step 1 : read block headers
+    // Step 2 : Accept block headers.
+    AcceptBlockHeader(header, state, &pindexLast)
+    // Step 3 : Request next block headers using "getheaders" message
+    //    TODO : Continue Investigation
+}
+```
+
+
+
+# Upon the arrival of "version" message
+## Data structure
+```
+```
+## strCommand == "version" in ProcessMessage in main.cpp
+```
+else if (strCommand == "version") {
+}
+```
+
+# Upon the arrival of "verack" message
+## Data structure
+```
+```
+## strCommand == "verack" in ProcessMessage in main.cpp
+```
+else if (strCommand == "verack") {
+}
+```
+
+
+# Upon the arrival of "ping" message
+## Data structure
+```
+```
+## strCommand == "ping" in ProcessMessage in main.cpp
+```
+else if (strCommand == "ping") {
+}
+```
+
+
+
+# Upon the arrival of "pong" message
+## Data structure
+```
+```
+## strCommand == "pong" in ProcessMessage in main.cpp
+```
+else if (strCommand == "pong") {
+}
+```
+
