@@ -4,12 +4,6 @@ import java.io.File
 import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
 import java.util
 
-import akka.actor.{ActorSystem, Props}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.server.directives.{LoggingMagnet, DebuggingDirectives}
-import akka.stream.ActorMaterializer
-import akka.util
 import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}

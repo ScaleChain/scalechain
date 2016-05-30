@@ -1,10 +1,5 @@
 package io.scalechain.blockchain.api
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.server.directives.{LogEntry, LoggingMagnet, DebuggingDirectives}
 import com.typesafe.config.ConfigFactory
 import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
 import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
@@ -24,11 +19,6 @@ import org.apache.http.protocol.ExecutionContext
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
 
 import scala.concurrent.ExecutionContextExecutor
 
