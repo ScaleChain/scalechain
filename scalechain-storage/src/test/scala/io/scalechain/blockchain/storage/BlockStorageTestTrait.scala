@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.proto.{BlockHash, Hash, TransactionHash}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.test.TestData
 import TestData._
 import org.scalatest._
@@ -156,8 +156,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
 
   "getTransaction" should "return None if the transaction is not found." in {
     for (transaction <- block1.transactions) {
-      val txHash = TransactionHash( HashCalculator.transactionHash(transaction))
-      storage.getTransaction(txHash) shouldBe None
+      storage.getTransaction(transaction.hash) shouldBe None
     }
   }
 
@@ -166,8 +165,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
 
     // Step 3 : After putting a block, the transaction not exist.
     for (transaction <- block1.transactions) {
-      val txHash = Hash( HashCalculator.transactionHash(transaction) )
-      storage.getTransaction(txHash) shouldBe Some(transaction)
+      storage.getTransaction(transaction.hash) shouldBe Some(transaction)
     }
   }
 
@@ -241,20 +239,19 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
   }
 
   // This method is a wrapper of the getBlock(Hash). Just do a sanity test.
-  "getBlock(BlockHash)" should "get a block" in {
+  "getBlock(Hash)" should "get a block" in {
     storage.putBlock(block1) shouldBe true
     storage.putBlock(block2) shouldBe true
 
-    storage.getBlock(BlockHash(blockHash1.value)).map(_._2) shouldBe Some(block1)
-    storage.getBlock(BlockHash(blockHash2.value)).map(_._2) shouldBe Some(block2)
+    storage.getBlock(Hash(blockHash1.value)).map(_._2) shouldBe Some(block1)
+    storage.getBlock(Hash(blockHash2.value)).map(_._2) shouldBe Some(block2)
   }
 
   // This method is a wrapper of the getTransaction(Hash). Just do a sanity test.
-  "getTransaction(TransactionHash)" should "get a transaction" in {
+  "getTransaction(transactionHash)" should "get a transaction" in {
     // Step 1 : Before putting a block, the transaction does not exist.
     for (transaction <- block1.transactions) {
-      val txHash = TransactionHash( HashCalculator.transactionHash(transaction))
-      storage.getTransaction(txHash) shouldBe None
+      storage.getTransaction(transaction.hash) shouldBe None
     }
 
     // Step 2 : Put a block.
@@ -262,26 +259,23 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
 
     // Step 3 : After putting a block, the transaction not exist.
     for (transaction <- block1.transactions) {
-      val txHash = TransactionHash( HashCalculator.transactionHash(transaction))
-      storage.getTransaction(txHash) shouldBe Some(transaction)
+      storage.getTransaction(transaction.hash) shouldBe Some(transaction)
     }
   }
 
   val blockCount = 8
   "getBlock" should "read many blocks correctly" in {
     storage.putBlock(block1)
-    var prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(block1.header))
     var blocksStored = 0
     while( blocksStored < blockCount) {
       val newBlock = block1.copy(
         header = block1.header.copy(
-          hashPrevBlock = prevBlockHash
+          hashPrevBlock = block1.header.hash
         )
       )
       storage.putBlock(newBlock)
-      prevBlockHash = BlockHash( HashCalculator.blockHeaderHash(newBlock.header))
 
-      storage.getBlock(prevBlockHash).map(_._2) shouldBe Some(newBlock)
+      storage.getBlock(newBlock.header.hash).map(_._2) shouldBe Some(newBlock)
 
       blocksStored += 1
     }

@@ -18,7 +18,7 @@ object NodeClient {
   val HOST = System.getProperty("host", "127.0.0.1")
   val PORT = Integer.parseInt(System.getProperty("port", "8992"))
 
-  def main(args:Array[String]) = {
+  def main(args:Array[String]) : Unit = {
     new NodeClient().connect(HOST, PORT)
   }
 }

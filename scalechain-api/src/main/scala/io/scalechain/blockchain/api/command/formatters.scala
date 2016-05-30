@@ -4,7 +4,7 @@ import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
 import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{ByteArray, HexUtil}
 
 
@@ -19,11 +19,9 @@ object BlockFormatter {
   def getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult = {
     val serializedBlock = BlockCodec.serialize(block)
 
-    val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+    val blockHash = block.header.hash
 
-    val txHashes = block.transactions.map { tx =>
-      Hash( HashCalculator.transactionHash(tx) )
-    }
+    val txHashes = block.transactions.map { tx => tx.hash }
 
     GetBlockResult(
       hash = blockHash,
@@ -158,12 +156,11 @@ object TransactionFormatter {
     * @return The converted RawTransaction instance.
     */
   def getRawTransaction(transaction : Transaction) : RawTransaction = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
     val serializedTransaction = getSerializedTranasction(transaction)
 
     RawTransaction(
       hex      = serializedTransaction,
-      txid     = txHash,
+      txid     = transaction.hash,
       version  = transaction.version,
       locktime = transaction.lockTime,
       vin      = convertTransactionInputs(transaction.inputs),
@@ -179,10 +176,8 @@ object TransactionFormatter {
     * @return The converted DecodedRawTransaction instance.
     */
   def getDecodedRawTransaction(transaction : Transaction) : DecodedRawTransaction = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
-
     DecodedRawTransaction(
-      txid     = txHash,
+      txid     = transaction.hash,
       version  = transaction.version,
       locktime = transaction.lockTime,
       vin      = convertTransactionInputs(transaction.inputs),

@@ -24,8 +24,8 @@ Block
   BlockHeader
   (
     version:1, 
-    BlockHash(size:32, 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00), 
-    MerkleRootHash(size:32, 3b a3 ed fd 7a 7b 12 b2 7a c7 2c 3e 67 76 8f 61 7f c8 1b c3 88 8a 51 32 3a 9f b8 aa 4b 1e 5e 4a), 
+    hashPrevBlock=Hash(size:32, 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00), 
+    merkleRootHash=Hash(size:32, 3b a3 ed fd 7a 7b 12 b2 7a c7 2c 3e 67 76 8f 61 7f c8 1b c3 88 8a 51 32 3a 9f b8 aa 4b 1e 5e 4a), 
     Timestamp(1231006505), 
     target:486604799, 
     nonce:2083236893
@@ -73,7 +73,7 @@ Tried to compress 10 files from blk00350.dat to blk00359.dat.
 - GenerationTransactionInput.transactionHash( all bits are zero )
 - GenerationTransactionInput.outputIndex( all bits are one )
 - GenerationTransactionInput.sequenceNumber( all bits are one )
-- BlockHeader.MerkleRootHash ( We can calculate the hash by using list of transactions in the block. )
+- BlockHeader.merkleRootHash ( We can calculate the hash by using list of transactions in the block. )
 
 ### Data that can be compressed by writing in a columnar layout.
 - BlockHeader.version ( delta encoding; Does not change for a long time with lots of blocks. )

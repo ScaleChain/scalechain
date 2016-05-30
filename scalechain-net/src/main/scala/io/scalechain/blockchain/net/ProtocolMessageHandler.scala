@@ -2,7 +2,7 @@ package io.scalechain.blockchain.net
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import org.slf4j.LoggerFactory
 
 
@@ -50,7 +50,7 @@ class ProtocolMessageHandler  {
         None
       }
       case transaction: Transaction => {
-        val transactionHash = Hash( HashCalculator.transactionHash(transaction) )
+        val transactionHash = transaction.hash
         if (chain.getTransaction(transactionHash).isEmpty) { // Process the transaction only if we don't have it yet.
           logger.info(s"[P2P] Received a transaction. Hash : ${transactionHash}")
           chain.putTransaction(transaction)
@@ -61,10 +61,10 @@ class ProtocolMessageHandler  {
         None
       }
       case block: Block => {
-        val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
+        val blockHash = block.header.hash
         if (chain.getBlock(blockHash).isEmpty) { // Process the transaction only if we don't have it yet.
           logger.info(s"[P2P] Received a block. Hash : ${blockHash}")
-          chain.putBlock(BlockHash(blockHash.value), block)
+          chain.putBlock(blockHash, block)
 
           // Propagate the block only if the block was not found.
           //peerCommunication.sendToAll(block)

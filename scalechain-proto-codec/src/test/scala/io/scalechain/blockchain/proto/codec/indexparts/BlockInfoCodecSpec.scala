@@ -24,8 +24,8 @@ class BlockInfoCodecSpec extends PayloadTestSuite[BlockInfo]  {
     status = 0,
     blockHeader = BlockHeader(
       version = 4,
-      hashPrevBlock = BlockHash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
-      hashMerkleRoot = MerkleRootHash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
+      hashPrevBlock = Hash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
+      hashMerkleRoot = Hash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
       timestamp = 1234567890L,
       target = 1000000L,
       nonce = 1234L
@@ -56,8 +56,8 @@ class BlockInfoCodecSpecWithBlockLocator extends PayloadTestSuite[BlockInfo]  {
     status = 0,
     blockHeader = BlockHeader(
       version = 4,
-      hashPrevBlock = BlockHash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
-      hashMerkleRoot = MerkleRootHash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
+      hashPrevBlock = Hash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
+      hashMerkleRoot = Hash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
       timestamp = 1234567890L,
       target = 1000000L,
       nonce = 1234L

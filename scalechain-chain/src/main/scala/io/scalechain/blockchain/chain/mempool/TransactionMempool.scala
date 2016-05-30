@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain.mempool
 
 import io.scalechain.blockchain.chain.OrphanTransactions
 import io.scalechain.blockchain.proto.{Hash, Transaction}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockStorage
 
 /**
@@ -54,10 +54,8 @@ class TransactionMempool(blockStorage : BlockStorage) {
     * @param transaction The transaction to put into the mempool.
     */
   def put(transaction : Transaction): Unit = {
-    val txHash = Hash( HashCalculator.transactionHash(transaction) )
-
     // TODO : check if the transaction inputs are connected and points to unspent outputs.
-    completeTransactions.put(txHash, transaction)
+    completeTransactions.put(transaction.hash, transaction)
   }
 
   /** Remove a transaction.

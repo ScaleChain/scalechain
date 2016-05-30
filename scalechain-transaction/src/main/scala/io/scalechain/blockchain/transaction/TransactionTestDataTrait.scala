@@ -3,7 +3,8 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Hash}
 import io.scalechain.blockchain.script.ops._
-import io.scalechain.blockchain.script.{ScriptOpList, HashCalculator}
+import io.scalechain.blockchain.script.{ScriptOpList}
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.HexUtil
 
 /**
@@ -72,9 +73,9 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     TransactionOutput( value, pubKeyScript.lockingScript )
   }
 
-  val TXHASH1 = Hash( HashCalculator.transactionHash(transaction1) )
-  val TXHASH2 = Hash( HashCalculator.transactionHash(transaction2) )
-  val TXHASH3 = Hash( HashCalculator.transactionHash(transaction3) )
+  val TXHASH1 = transaction1.hash
+  val TXHASH2 = transaction2.hash
+  val TXHASH3 = transaction3.hash
 /*
   val DUMMY_TXHASH1 = Hash
   val DUMMY_TXHASH2 =

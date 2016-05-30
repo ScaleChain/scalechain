@@ -2,7 +2,7 @@ package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.BlockDatabase
 import org.slf4j.LoggerFactory
 
@@ -27,15 +27,11 @@ trait BlockStorage extends BlockIndex {
   protected[storage] def blockDatabase() : BlockDatabase
 
   def putBlock(block : Block) : Boolean = {
-    val blockHash = Hash( HashCalculator.blockHeaderHash(block.header) )
-
-    putBlock(blockHash, block)
+    putBlock(block.header.hash, block)
   }
 
   def putBlockHeader(blockHeader : BlockHeader) : Unit = {
-    val blockHash = Hash(HashCalculator.blockHeaderHash(blockHeader))
-
-    putBlockHeader(blockHash, blockHeader)
+    putBlockHeader(blockHeader.hash, blockHeader)
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
@@ -50,15 +46,6 @@ trait BlockStorage extends BlockIndex {
 
   def hasBlockHeader(blockHash : Hash) : Boolean = {
     getBlockHeader(blockHash).isDefined
-  }
-
-  // Methods that are extended from BlockIndex.
-  def getBlock(blockHash : BlockHash) : Option[(BlockInfo, Block)] = {
-    getBlock(Hash(blockHash.value))
-  }
-
-  def getTransaction(transactionHash : TransactionHash) : Option[Transaction] = {
-    getTransaction(Hash(transactionHash.value))
   }
 
   protected[storage] var bestBlockHeightOption : Option[Int] = None

@@ -45,7 +45,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     */
   def addGenerationInput(coinbaseData : CoinbaseData, sequenceNumber : Long = 0) : TransactionBuilder = {
     // TODO : Need to move to a singleton to avoid writing the same code over and over.
-    val allZeroHash = TransactionHash( HexUtil.bytes("0"*64) )
+    val allZeroHash = Hash( HexUtil.bytes("0"*64) )
     // TODO : Need to make sure that the output index is serialized correctly for the generation transaction
     val outputIndex : Long = 0xFFFFFF
 
@@ -68,7 +68,7 @@ class TransactionBuilder(coinsView : CoinsView) {
   def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None) : TransactionBuilder = {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
-      TransactionHash(outPoint.transactionHash.value),
+      Hash(outPoint.transactionHash.value),
       outPoint.outputIndex,
       unlockingScriptOption.getOrElse(UnlockingScript(Array[Byte]())),
       sequenceNumberOption.getOrElse(0L) )

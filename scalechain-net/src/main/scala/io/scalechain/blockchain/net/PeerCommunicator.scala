@@ -3,7 +3,7 @@ package io.scalechain.blockchain.net
 import java.net.{InetAddress, InetSocketAddress}
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{HexUtil, StringUtil}
 import org.slf4j.LoggerFactory
 
@@ -24,10 +24,10 @@ class PeerCommunicator(peerSet : PeerSet) {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
       val messageString = message match {
         case m : Block => {
-          s"Block. Hash : ${HexUtil.hex(HashCalculator.blockHeaderHash(m.header))}"
+          s"Block. Hash : ${m.header.hash}"
         }
         case m : Transaction => {
-          s"Transaction. Hash : ${HexUtil.hex(HashCalculator.transactionHash(m))}"
+          s"Transaction. Hash : ${m.hash}"
         }
         case m => {
           StringUtil.getBrief(m.toString, 256)

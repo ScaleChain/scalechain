@@ -42,7 +42,7 @@ class NormalTransactionInputSpec extends PayloadTestSuite[NormalTransactionInput
       ffffffff                            
     """)
 
-  val message = NormalTransactionInput(outputTransactionHash=TransactionHash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")), outputIndex=0L, unlockingScript=UnlockingScript(bytes("4830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01")), sequenceNumber=4294967295L)
+  val message = NormalTransactionInput(outputTransactionHash=Hash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")), outputIndex=0L, unlockingScript=UnlockingScript(bytes("4830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01")), sequenceNumber=4294967295L)
 
 
 }

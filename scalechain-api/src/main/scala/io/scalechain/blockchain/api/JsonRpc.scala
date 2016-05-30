@@ -1,10 +1,5 @@
 package io.scalechain.blockchain.api
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.server.directives.{LogEntry, LoggingMagnet, DebuggingDirectives}
 import com.typesafe.config.ConfigFactory
 import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
 import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
@@ -14,6 +9,7 @@ import io.scalechain.blockchain.api.command.network._
 import io.scalechain.blockchain.api.command.rawtx._
 
 import io.scalechain.blockchain.api.domain._
+import io.scalechain.blockchain.api.http.ApiServer
 import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.util.StringUtil
@@ -23,11 +19,6 @@ import org.apache.http.protocol.ExecutionContext
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -128,200 +119,11 @@ object RpcResponseJsonFormat {
   }
 }
 
-
-// use it wherever json (un)marshalling is needed
-trait JsonRpc extends Directives with SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher {
-  /*
-  implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
-    def write(value : AnyRef) = value.toJson
-    def read(value :JsValue) = ""
-  }
-*/
-
-  import RpcResultJsonFormat._
-
-
-
-  /*
-  implicit object AnyJsonFormat extends RootJsonFormat[Any] {
-    def write( any : Any ) = {
-      // Not used.
-      assert(false);
-      "".toJson
-    }
-
-    def read( value: JsValue ) : Any = {
-      value match {
-        case v : JsString => v.convertTo[String]
-        case v : JsNumber => v.convertTo[scala.math.BigDecimal]
-        case v : JsBoolean => v.convertTo[Boolean]
-        case _ => assert(false)
-      }
-    }
-  }
-  */
-
-  import RpcParamsJsonFormat._
-
-  implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
-
-  import RpcResponseJsonFormat._
-
-  // format: OFF
-  val routes = {
-    pathPrefix("") {
-
-      (post & entity(as[RpcRequest])) { request =>
-        complete {
-          val serviceResponse = dispatch(request)
-          serviceResponse
-        }
-      }
-    }
-  }
-}
-
-/*
-// BUGBUG :
-// Currently, only the following is accepted for the content-type HTTP header.
-//   Content-Type: application/json
-// followings should be accepted :
-//   Content-Type: application/json;
-//   Content-Type: plain/text
-//   Content-Type: plain/text;
-object JsonRpcMicroservice extends App with JsonRpc {
-  runService()
-
-  def runService() = {
-    implicit val system = ActorSystem("my-system")
-    implicit val materializer = ActorMaterializer()
-    implicit val ec = system.dispatcher
-/*
-    import akka.http.scaladsl.server.directives.DebuggingDirectives
-    val clientRouteLogged = DebuggingDirectives.logRequestResult("scalechain-access.log", Logging.InfoLevel)(routes)
-*/
-
-/*
-    def printRequestMethod(req: HttpRequest): Unit = {
-      println(s"request : ${req}")
-    }
-    val logRequestPrintln = DebuggingDirectives.logRequest(LoggingMagnet(_ => printRequestMethod))
-*/
-/*
-    def requestMethodAsInfo(req: HttpRequest): LogEntry = {
-      println(s"request : ${req}")
-      LogEntry(req.method.toString, Logging.WarningLevel)
-    }
-    val logRequest = DebuggingDirectives.logRequest(requestMethodAsInfo _)
-*/
-
-    val port = Config.scalechain.getInt("scalechain.api.port")
-//    val bindingFuture = Http().bindAndHandle(logRequestPrintln(routes), "localhost", port)
-//    val bindingFuture = Http().bindAndHandle(logRequest(routes), "localhost", port)
-    val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
-
-    println(s"Server online at http://localhost:$port/\nPress RETURN to stop...")
-    Console.readLine() // for the future transformations
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ ⇒ system.shutdown()) // and shutdown when done
-  }
-}
-*/
-
 object JsonRpcMicroservice extends JsonRpcMicroservice
 
-class JsonRpcMicroservice extends SprayJsonSupport with DefaultJsonProtocol with ServiceDispatcher{
-  private lazy val logger = LoggerFactory.getLogger(classOf[JsonRpcMicroservice])
-
-  import RpcParamsJsonFormat._
-
-  //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
-
-  import RpcResponseJsonFormat._
-
-/*
-  runService()
-
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-  // needed for the future map/flatmap in the end
-  implicit val executionContext = system.dispatcher
-*/
-  def handleRequest(requestString : String) : String = {
-  logger.info(s"String Request : ${requestString}")
-/*
-    val source1 = """{ "some": "JSON source" }"""
-    val jsonAst1 = source1.parseJson // or JsonParser(source)
-    println(s"jsonAst1=${jsonAst1}")
-
-    val source2 = """{"id":1463838854805,"method":"getaccountaddress","params":["B3BirN2BGeW9TMJao"]}"""
-    val jsonAst2 = source2.parseJson // or JsonParser(source)
-    println(s"jsonAst2=${jsonAst2}")
-*/
-    val parsedRequest = requestString.parseJson
-    assert( parsedRequest != null)
-
-    val id = parsedRequest.asJsObject.fields("id")
-    val method = parsedRequest.asJsObject.fields("method")
-    val params = parsedRequest.asJsObject.fields("params")
-
-    val request = RpcRequest(
-       jsonrpc = None,
-       id = id.convertTo[Long],
-       method = method.convertTo[String],
-       params = params.convertTo[RpcParams]
-    )
-
-    val serviceResponse : RpcResponse = dispatch(request)
-    val stringResponse = serviceResponse.toJson.prettyPrint
-    // Show the first 256 chars of the response.
-    logger.info(s"String Response : ${StringUtil.getBrief(stringResponse,1024)}")
-    stringResponse
-  }
-
+class JsonRpcMicroservice {
   def runService(inboundPort : Int) = {
-    implicit val system = ActorSystem("api-layer")
-    implicit val materializer = ActorMaterializer()
-    implicit val e = system.dispatcher
-
-    val requestHandler: HttpRequest => HttpResponse = {
-      case req @ HttpRequest(POST, Uri.Path("/"), headers, requestEntity, protocol) =>
-        //println(s"POST / => ${req}")
-
-//        val requestEntity : RequestEntity = incomingEntity.withContentType(ContentTypes.`application/json`)
-
-        requestEntity match {
-          case strict : HttpEntity.Strict => {
-
-            //println(s"request data => ${strict.data.toString}")
-
-            val responseString = handleRequest(strict.data.utf8String)
-
-            HttpResponse(entity = HttpEntity(ContentTypes.`application/json`,
-              responseString))
-          }
-          case other => {
-            logger.warn(s"Other than strict entity => ${other}")
-            HttpResponse(404, entity = "Unknown resource entity!")
-          }
-        }
-
-      case req: HttpRequest => {
-        logger.warn(s"Unknown request => ${req}")
-
-        HttpResponse(404, entity = "Unknown resource!")
-      }
-    }
-
-    val bindingFuture = Http().bindAndHandleSync(requestHandler, "0.0.0.0", inboundPort)
-    logger.info(s"ScaleChain RPC service online at http://localhost:${inboundPort}.")
-/*
-    Console.readLine() // let it run until user presses return
-    bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
-      .onComplete(_ ⇒ system.terminate()) // and shutdown when done
-*/
+    new ApiServer().listen(inboundPort)
   }
 }
 

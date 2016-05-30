@@ -10,11 +10,11 @@ trait BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : BlockHash) : Option[(BlockInfo, Block)]
+  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
   /** Get a transaction by its hash.
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : TransactionHash) : Option[Transaction]
+  def getTransaction(transactionHash : Hash) : Option[Transaction]
 }

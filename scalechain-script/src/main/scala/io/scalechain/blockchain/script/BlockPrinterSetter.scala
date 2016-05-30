@@ -3,6 +3,7 @@ package io.scalechain.blockchain.script
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.script.HashSupported._
 
 /** Sets printer objects for case classes that require access to script layer.
   * BUGBUG : Need to call a method in this object to activate the printing methods.
@@ -46,7 +47,7 @@ object BlockPrinterSetter {
     Transaction.printer =
       new TransactionPrinter {
         override def toString(transaction : Transaction) : String = {
-          s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${scalaHex(HashCalculator.transactionHash(transaction))} */)"
+          s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash} */)"
         }
       }
   }

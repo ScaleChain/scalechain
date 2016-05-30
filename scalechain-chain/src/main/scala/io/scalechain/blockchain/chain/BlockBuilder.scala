@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto
-import io.scalechain.blockchain.proto.{BlockHash, Transaction, Block, BlockHeader}
+import io.scalechain.blockchain.proto.{Hash, Transaction, Block, BlockHeader}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 import scala.collection.mutable.ListBuffer
@@ -47,14 +47,14 @@ class BlockBuilder {
     * @param nonce The nonce value.
     * @return The built block.
     */
-  def build(hashPrevBlock : BlockHash,
+  def build(hashPrevBlock : Hash,
             timestamp : Long,
             version : Int = ChainEnvironment.get.DefaultBlockVersion,
             target : Long = 0, /* TODO : Set The default target */
             nonce : Long = 0) : Block = {
     val transactions = transactionsBuffer.toList
     val merkleRootHash = MerkleRootCalculator.calculate(transactions)
-    val blockHeader = BlockHeader(version, hashPrevBlock, proto.MerkleRootHash(merkleRootHash.value), timestamp, target, nonce)
+    val blockHeader = BlockHeader(version, hashPrevBlock, merkleRootHash, timestamp, target, nonce)
     val block = Block(
       blockHeader,
       transactions

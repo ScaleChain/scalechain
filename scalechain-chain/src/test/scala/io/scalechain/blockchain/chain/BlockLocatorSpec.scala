@@ -2,8 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
-import io.scalechain.blockchain.proto.{Hash, BlockHash}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.apache.commons.io.FileUtils
@@ -28,7 +27,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
 
     // put hashes into chain.
     chain.putBlock(
-      BlockHash(env.GenesisBlockHash.value),
+      env.GenesisBlockHash,
       env.GenesisBlock
     )
 
@@ -39,8 +38,6 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
 
     super.afterEach()
   }
-
-  //def numberToHash(num : Int) = BlockHash( numberToHash(num).value )
 
   "getLocatorHashes" should "return only genesis block hash if there is only the genesis block." in {
     locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (

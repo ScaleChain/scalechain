@@ -1,7 +1,7 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.{Hash, Transaction, WalletTransaction, WalletOutput}
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.transaction.{OutputOwnership, TransactionTestDataTrait}
 import org.scalatest.ShouldMatchers
 
@@ -27,7 +27,7 @@ trait WalletStoreTestDataTrait extends TransactionTestDataTrait with ShouldMatch
       blockHash        = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
       blockIndex       = Some(11),
       blockTime        = Some(1411051649),
-      transactionId    = Some(Hash(HashCalculator.transactionHash(transaction))),
+      transactionId    = Some(transaction.hash),
       addedTime     = 1418695703,
       transactionIndex = Some(1),
       transaction = transaction

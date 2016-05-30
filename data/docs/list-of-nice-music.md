@@ -14,3 +14,6 @@ https://www.youtube.com/watch?v=k46fdX_3xDM
 
 Rubinstein-Chopin-Piano Concerto No.2 (HD)
 https://www.youtube.com/watch?v=T_GecdMywPw
+
+Rachmaninoff Piano Concerto No. 3 (Olga Kern)
+https://www.youtube.com/watch?v=9AmxZnlRa6Q

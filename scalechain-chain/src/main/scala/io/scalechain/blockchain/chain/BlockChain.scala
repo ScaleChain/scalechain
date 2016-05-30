@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
 
 import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
@@ -43,7 +43,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
     *
     */
   @tailrec
-  final protected[chain] def getBlockHashList(currentBlockHash : BlockHash, blockHashList : List[BlockHash]): List[BlockHash] = {
+  final protected[chain] def getBlockHashList(currentBlockHash : Hash, blockHashList : List[Hash]): List[Hash] = {
     val env = ChainEnvironment.get
     if ( currentBlockHash.value == env.GenesisBlockHash.value ) { // The base case. We reached from the best block to the genesis block.
       currentBlockHash :: blockHashList
@@ -59,7 +59,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
     val bestBlockHashOption = storage.getBestBlockHash()
     if (bestBlockHashOption.isDefined) {
       // A list of block hashes from the genesis block to the
-      val blockHashes = getBlockHashList( BlockHash(bestBlockHashOption.get.value), Nil )
+      val blockHashes = getBlockHashList( Hash(bestBlockHashOption.get.value), Nil )
 
       var height = -1L
       var previousBlockDesc : BlockDescriptor = null
@@ -187,9 +187,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * @param block The block to put into the blockchain.
     */
-  def putBlock(blockHash : BlockHash, block:Block) : Unit = {
+  def putBlock(blockHash : Hash, block:Block) : Unit = {
     synchronized {
-      if (storage.hasBlock(Hash(blockHash.value))) {
+      if (storage.hasBlock(blockHash)) {
         logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
       } else {
 
@@ -226,8 +226,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
               // Step 3.A.2 : Remove transactions in the block from the mempool.
               block.transactions.foreach { transaction =>
-                val transactionHash = Hash(HashCalculator.transactionHash(transaction))
-                mempool.del(transactionHash)
+                mempool.del(transaction.hash)
               }
 
               // Step 3.A.3 : Check if the new block is a parent of an orphan block.
@@ -272,7 +271,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
-      val txHash = Hash(HashCalculator.transactionHash( transaction ))
+      val txHash = transaction.hash
       if ( mempool.exists(txHash)) {
         logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
       } else {
@@ -441,7 +440,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
       throw new ChainException( ErrorCode.InvalidBlockHeight)
     }
-    Hash( HashCalculator.blockHeaderHash(foundBlockOption.get.blockHeader) )
+    foundBlockOption.get.blockHeader.hash
   }
 
   /** See if a block exists on the blockchain.
@@ -478,7 +477,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     val mempoolTransactionOption = mempool.get(transactionHash)
 
     // Step 2 : Search block database.
-    val dbTransactionOption = storage.getTransaction(TransactionHash( transactionHash.value ))
+    val dbTransactionOption = storage.getTransaction( transactionHash )
 
     // Step 3 : TODO : Run validation.
 
@@ -547,7 +546,7 @@ object BlockDescriptor {
     * @param blockHash The block header hash to calculate the estimated number of hash calculations for creating the block.
     * @return The estimated number of hash calculations for the given block.
     */
-  protected[chain] def getHashCalculations(blockHash : BlockHash) : Long = {
+  protected[chain] def getHashCalculations(blockHash : Hash) : Long = {
     // Step 2 : Calculate the (estimated) number of hash calculations based on the hash value.
     val hashValue = Utils.bytesToBigInteger(blockHash.value)
     val totalBits = 8 * 32
@@ -563,7 +562,7 @@ object BlockDescriptor {
     * @param transactionCount the number of transactions in the block.
     * @return The created block descriptor.
     */
-  def create(previousBlock : BlockDescriptor, blockHash : BlockHash, blockHeader : BlockHeader, transactionCount : Int) : BlockDescriptor = {
+  def create(previousBlock : BlockDescriptor, blockHash : Hash, blockHeader : BlockHeader, transactionCount : Int) : BlockDescriptor = {
     BlockDescriptor(previousBlock, blockHeader, blockHash, transactionCount)
   }
 }
@@ -580,7 +579,7 @@ object BlockDescriptor {
   * @param blockHeader The header of the block.
   * @param transactionCount The number of transactions that the block has.
   */
-case class BlockDescriptor(previousBlock : BlockDescriptor, blockHeader : BlockHeader, blockHash : BlockHash, transactionCount : Long) {
+case class BlockDescriptor(previousBlock : BlockDescriptor, blockHeader : BlockHeader, blockHash : Hash, transactionCount : Long) {
   /** The total number of hash calculations from the genesis block.
     */
   val chainWork : Long =

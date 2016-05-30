@@ -10,8 +10,12 @@ import BigIntUtil._
 import spray.json.{JsValue, JsString, RootJsonFormat}
 
 
-abstract class AbstractHash(private val value : ByteArray) extends ProtocolMessage
-{
+/** A hash case class that can represent transaction hash or block hash.
+  * Used by an inventory vector, InvVector.
+  *
+  * @param value
+  */
+case class Hash(value : ByteArray) extends ProtocolMessage {
   def isAllZero() = {
     (0 until value.length).forall { i =>
       value(i) == 0
@@ -19,14 +23,7 @@ abstract class AbstractHash(private val value : ByteArray) extends ProtocolMessa
   }
 
   def toHex() : String = value.toString
-}
 
-/** A hash case class that can represent transaction hash or block hash.
-  * Used by an inventory vector, InvVector.
-  *
-  * @param value
-  */
-case class Hash(value : ByteArray) extends AbstractHash(value) {
   override def toString() = s"Hash($value)"
 }
 object HashFormat {
@@ -43,17 +40,6 @@ object HashFormat {
 }
 
 
-case class BlockHash(value : ByteArray) extends AbstractHash(value) {
-  override def toString() = s"BlockHash($value)"
-}
-case class MerkleRootHash(value : ByteArray) extends AbstractHash(value) {
-  override def toString() = s"MerkleRootHash($value)"
-}
-
-case class TransactionHash(value : ByteArray) extends AbstractHash(value) {
-  override def toString() = s"TransactionHash($value)"
-}
-
 object BlockHeader {
   /** Get the encoded difficulty bits to put into the block header from the minimum block hash.
     *
@@ -63,7 +49,7 @@ object BlockHeader {
     * @param minBlockHash The minimum block hash.
     * @return The encoded difficulty. ( 4 byte integer )
     */
-  def encodeDifficulty(minBlockHash : BlockHash) : Long = {
+  def encodeDifficulty(minBlockHash : Hash) : Long = {
     // TODO : Implement
     assert(false)
     -1L
@@ -76,14 +62,14 @@ object BlockHeader {
     * @param target
     * @return
     */
-  def decodeDifficulty(target : Long) : BlockHash = {
+  def decodeDifficulty(target : Long) : Hash = {
     // TODO : Implement
     assert(false)
     null
   }
 }
 
-case class BlockHeader(version : Int, hashPrevBlock : BlockHash, hashMerkleRoot : MerkleRootHash, timestamp : Long, target : Long, nonce : Long)  extends ProtocolMessage {
+case class BlockHeader(version : Int, hashPrevBlock : Hash, hashMerkleRoot : Hash, timestamp : Long, target : Long, nonce : Long)  extends ProtocolMessage {
   override def toString() : String = {
     s"BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, timestamp=${timestamp}L, target=${target}L, nonce=${nonce}L)"
   }
@@ -96,11 +82,11 @@ case class CoinbaseData(data: ByteArray) extends ProtocolMessage {
 }
 
 trait TransactionInput extends ProtocolMessage {
-  val outputTransactionHash : TransactionHash
+  val outputTransactionHash : Hash
   val outputIndex : Long
 
   def getOutPoint() = OutPoint(
-    Hash( outputTransactionHash.value ),
+    outputTransactionHash,
     outputIndex.toInt
   )
 
@@ -109,7 +95,7 @@ trait TransactionInput extends ProtocolMessage {
   }
 }
 
-case class NormalTransactionInput(override val outputTransactionHash : TransactionHash,
+case class NormalTransactionInput(override val outputTransactionHash : Hash,
                                   override val outputIndex : Long,
                                   val unlockingScript : UnlockingScript,
                                   val sequenceNumber : Long) extends TransactionInput {
@@ -118,7 +104,7 @@ case class NormalTransactionInput(override val outputTransactionHash : Transacti
   }
 }
 
-case class GenerationTransactionInput(override val outputTransactionHash : TransactionHash,
+case class GenerationTransactionInput(override val outputTransactionHash : Hash,
                                       // BUGBUG : Change to Int
                                       override val outputIndex : Long,
                                       val coinbaseData : CoinbaseData,

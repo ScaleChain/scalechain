@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.BlockHash
+import io.scalechain.blockchain.proto.Hash
 
 import scala.collection.mutable
 
@@ -9,7 +9,7 @@ import scala.collection.mutable
 class BlockchainIndex {
   /** A map from the block hash to a block descriptor.
     */
-  private val blockByHash   = mutable.HashMap[BlockHash, BlockDescriptor]()
+  private val blockByHash   = mutable.HashMap[Hash, BlockDescriptor]()
   private val blockByHeight = mutable.HashMap[Long,      BlockDescriptor]()
 
   /** Find a block descriptor by a block hash.
@@ -17,7 +17,7 @@ class BlockchainIndex {
     * @param blockHash The hash of the block to find.
     * @return The found block descriptor.
     */
-  def findBlock(blockHash : BlockHash) : Option[BlockDescriptor] = {
+  def findBlock(blockHash : Hash) : Option[BlockDescriptor] = {
     blockByHash.get(blockHash)
   }
 
@@ -36,7 +36,7 @@ class BlockchainIndex {
     * @param blockHash The hash of the block.
     * @param blockDescriptor The block descriptor.
     */
-  def putBlock(blockHash : BlockHash, blockDescriptor : BlockDescriptor) : Unit = {
+  def putBlock(blockHash : Hash, blockDescriptor : BlockDescriptor) : Unit = {
     blockByHash.put(blockHash, blockDescriptor)
     blockByHeight.put(blockDescriptor.height, blockDescriptor)
   }

@@ -4,19 +4,13 @@ import java.io.File
 import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
 import java.util
 
-import akka.actor.{ActorSystem, Props}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.server.directives.{LoggingMagnet, DebuggingDirectives}
-import akka.stream.ActorMaterializer
-import akka.util
 import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.script.{HashCalculator, BlockPrinterSetter}
+import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage.{GenesisBlock, BlockStorage, DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{HexUtil, Config}
@@ -24,13 +18,13 @@ import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
 import scala.collection.JavaConverters._
-import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice, JsonRpc}
+import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice}
 
 import scala.collection.mutable.ArrayBuffer
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
-object ScaleChainPeer extends JsonRpc {
+object ScaleChainPeer {
 
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
@@ -173,7 +167,7 @@ object ScaleChainPeer extends JsonRpc {
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
-      chain.putBlock(BlockHash(env.GenesisBlockHash.value), env.GenesisBlock)
+      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
     }
 
     assert( chain.getBestBlockHash().isDefined )

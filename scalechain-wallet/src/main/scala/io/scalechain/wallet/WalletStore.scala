@@ -39,7 +39,7 @@ import io.scalechain.util.Using._
 // Output Ownership -> Transactions
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. ( OutputOwnership + '\0' + TransactionHash ) => For Search 1,2
+// A. ( OutputOwnership + '\0' + (transaction)Hash ) => For Search 1,2
 //
 // Modifications :
 // 1. Put a transaction into the output ownership.
@@ -73,10 +73,10 @@ import io.scalechain.util.Using._
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// TransactionHash -> Transaction
+// (transaction)Hash -> Transaction
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Keys and Values (K, V) :
-// A. (TransactionHash, WalletTransaction)
+// A. ((transaction)Hash, WalletTransaction)
 //
 // Modifications :
 // 1. Add a transaction.
@@ -124,7 +124,7 @@ object WalletStore {
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Output Ownership -> Transactions
     /////////////////////////////////////////////////////////////////////////////////////////////////
-    // A. ( OutputOwnership + '\0' + TransactionHash )
+    // A. ( OutputOwnership + '\0' + (transaction)Hash )
     val TXHASHES : Byte = 'H'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,10 +134,10 @@ object WalletStore {
     val OUTPOINTS : Byte = 'P'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
-    // TransactionHash -> Transaction
+    // (transaction)Hash -> Transaction
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // Keys and Values (K, V) :
-    // A. (TransactionHash, WalletTransaction)
+    // A. ((transaction)Hash, WalletTransaction)
     val WALLETTX : Byte = 'T'
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,12 +420,12 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
   }
 
   /*******************************************************************************************************
-   * Category : [TransactionHash -> Transaction]
+   * Category : [(transaction)Hash -> Transaction]
    *******************************************************************************************************/
 
   /** Add a transaction.
     *
-    * Category : [TransactionHash -> Transaction] - Modification
+    * Category : [(transaction)Hash -> Transaction] - Modification
     *
     */
   def putWalletTransaction(transactionHash : Hash, transaction : WalletTransaction) : Unit = {
@@ -434,7 +434,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
 
   /** Remove a transaction.
     *
-    * Category : [TransactionHash -> Transaction] - Modification
+    * Category : [(transaction)Hash -> Transaction] - Modification
     */
   def delWalletTransaction(transactionHash : Hash) : Unit = {
     db.delObject(WALLETTX, transactionHash)
@@ -442,7 +442,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
 
   /** Search a transaction by the hash.
     *
-    * Category : [TransactionHash -> Transaction] - Search
+    * Category : [(transaction)Hash -> Transaction] - Search
     */
   def getWalletTransaction(transactionHash : Hash) : Option[WalletTransaction] = {
     db.getObject(WALLETTX, transactionHash)(HashCodec, WalletTransactionCodec)

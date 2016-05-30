@@ -1,13 +1,8 @@
 package io.scalechain.blockchain.api.command.mining
 
-import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.script.HashCalculator
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, RpcException}
-import io.scalechain.blockchain.api.command.{BlockDecoder, RpcCommand}
-import io.scalechain.blockchain.api.command.rawtx.DecodeRawTransaction._
-import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.util.HexUtil
+import io.scalechain.blockchain.api.command.{RpcCommand}
+import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 

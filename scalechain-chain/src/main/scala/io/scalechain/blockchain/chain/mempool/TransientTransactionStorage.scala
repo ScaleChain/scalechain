@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.chain.mempool
 
 import io.scalechain.blockchain.proto.{Transaction, Hash}
-import io.scalechain.blockchain.script.HashCalculator
 
 import scala.collection.mutable
 

@@ -2,18 +2,17 @@ package io.scalechain.blockchain.cli.api
 
 import java.io.IOException
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import io.scalechain.blockchain.{HttpRequestException, ErrorCode}
 import io.scalechain.util.HttpRequester
+
+//import io.scalechain.util.HttpRequester
 import spray.json._
 
 
 // BUGBUG : We need to be able to pass Int, scala.math.BigDecimal, a json object to params array.
 case class RpcRequest(jsonrpc:String, id:String, method:String, params:Array[String])
 
-object RpcInvoker extends SprayJsonSupport with DefaultJsonProtocol {
+object RpcInvoker extends DefaultJsonProtocol {
   // BUGBUG : This code is too dirty. Make it cleaner.
   def invoke(method : String, args : Array[String], host : String, port : Int, user : String, password : String) : String = {
 

@@ -2,8 +2,6 @@ package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import io.netty.channel.ChannelFuture
 import io.scalechain.blockchain.net.p2p.RetryingConnector
 import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}

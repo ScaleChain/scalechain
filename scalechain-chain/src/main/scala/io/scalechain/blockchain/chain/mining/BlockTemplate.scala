@@ -24,9 +24,9 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     * @param prevBlockHash the hash of the previous block header.
     * @return The block header created from this template.
     */
-  def getBlockHeader(prevBlockHash : BlockHash) : BlockHeader = {
+  def getBlockHeader(prevBlockHash : Hash) : BlockHeader = {
     // Step 1 : Calculate the merkle root hash.
-    val merkleRootHash = MerkleRootHash( MerkleRootCalculator.calculate(sortedTransactions).value )
+    val merkleRootHash = MerkleRootCalculator.calculate(sortedTransactions)
 
     val env = ChainEnvironment.get
 
