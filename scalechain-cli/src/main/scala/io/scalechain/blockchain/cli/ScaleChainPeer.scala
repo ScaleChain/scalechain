@@ -24,13 +24,13 @@ import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
 import scala.collection.JavaConverters._
-import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice, JsonRpc}
+import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice}
 
 import scala.collection.mutable.ArrayBuffer
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
-object ScaleChainPeer extends JsonRpc {
+object ScaleChainPeer {
 
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
