@@ -96,7 +96,7 @@ RocksDB seems to perform better according to RocksDB site -;, so we use RocksDB 
 
 ## Block 
 ### Key
-- Block hash (32 bytes)
+- the block hash (32 bytes)
 
 ### Value
 - Record locator : to read the raw block data from the record storage.
@@ -106,16 +106,48 @@ RocksDB seems to perform better according to RocksDB site -;, so we use RocksDB 
 - Next block hash : the next block of the block. Only blocks in the best blockchain have the next block hash set. Blocks in a fork have the next block hash as null.
 - Transaction count : The number of transactions. ( Need investigation : When is this field used? )
 
+## Block by height
+Used by getblockhash RPC.
+### Key
+- the height of the block in the best blockchain ( 8 bytes )
+### Value
+- the block hash (32 bytes)
+
 ## Transaction
 ### Key
-- transaction hash (32 bytes)
+- the transaction hash (32 bytes)
 
 ### Value
-- record locator : to read the raw transaction data from the record storage.
-- spending transactions of each output : Array of (record locator for the spending transaction, input index of the transaction). Could be None if the output was not spent yet.
+- (optional) record locator : (used if the transaction is stored in a block) to read the raw transaction data from the record storage.
+- (optional) serialized transaction : (used if the transaction is not stored in a block) the serialized data of the transaction. Instead of using mempool like Bitcoin core, ScaleChain keeps transactions that are not stored in a block on disk.
+- spending transactions of each output : Array of (transaction hash of the spending transaction, input index of the transaction). Could be None if the output was not spent yet.
 
-## Orphan blocks
+## Orphan block
+### Key
+- the block hash of the orphan block(32 bytes)
+
+### Value
+- Record locator 
+- Block header : The header of the block. Contains the hash of the previous block. Every block except the genesis block has the previous block hash.
+- Transaction count : The number of transactions. ( Need investigation : When is this field used? )
+
+## Orphan block by dependency
+### Key
+- the block hash of the missing parent block of the orphan block (32 bytes)
+
+### (Multiple) Value  
+- the block hash of the orphan block.
 
 ## Orphan transactions
+### Key
+- the transaction hash of the orphan transaction(32 bytes)
 
+### Value
+- serialized transaction.
 
+## Orphan transactions by dependency
+### Key
+- the transaction hash of the missing input transaction.
+
+### (Multiple) Value  
+- the transaction hash of the orphan transaction.
