@@ -18,6 +18,9 @@ case class BlockFileInfo(
 
 case class BlockInfo(
   height : Int,
+  // The total (estimated) number of hash calculations from the genesis block.
+  chainWork : Long, // TODO : BUGBUG : Make sure that the 64 bit integer value is enough for the chainwork.
+  nextBlockHash : Option[Hash],
   transactionCount : Int,
   status : Int,
   blockHeader : BlockHeader,

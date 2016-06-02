@@ -20,6 +20,8 @@ class TestBlockIndex extends BlockIndex {
     blocks.put(blockHash, (
       BlockInfo(
         height,
+        0,    // chain work
+        None, // next block hash.
         block.transactions.length,
         0,
         block.header,

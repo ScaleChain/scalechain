@@ -24,6 +24,8 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
 
     val blockInfo = BlockInfo(
       height = 1,
+      chainWork = 100000L,
+      nextBlockHash = Some(Hash("2f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
       transactionCount = 0,
       status = 0,
       blockHeader = TestData.block.header,
@@ -50,6 +52,8 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
 
     val blockInfo = BlockInfo(
       height = 1,
+      chainWork = 100000L,
+      nextBlockHash = Some(Hash("2f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
       transactionCount = 0,
       status = 0,
       blockHeader = TestData.block.header,

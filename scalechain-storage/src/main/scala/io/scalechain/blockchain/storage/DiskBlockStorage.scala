@@ -6,6 +6,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
+import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 
@@ -48,9 +49,9 @@ object DiskBlockStorage {
     theBlockStorage = new CassandraBlockStorage(storagePath)
 
     // See if we have genesis block. If not, put one.
-    if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
-      theBlockStorage.putBlock(GenesisBlock.BLOCK)
-    }
+    //if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
+    //  theBlockStorage.putBlock(GenesisBlock.BLOCK)
+    //}
 
     theBlockStorage
   }
@@ -157,7 +158,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     *
     * @param blockHash the hash of the header of the block to store.
     * @param block the block to store.
-    *
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
@@ -195,24 +195,26 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
           }
         } else {
           // case 2 : no block info was found.
-          // get the height of the previous block, to calculate the height of the given block.
-          val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(block.header.hashPrevBlock.value))
+          // get the info of the previous block, to calculate the height and chain-work of the given block.
+          val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
 
-          if (prevBlockHeightOption.isDefined) {
+          // Either the previous block should exist or the block should be the genesis block.
+          if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
             // case 2.1 : no block info was found, previous block header exists.
             val appendResult = blockWriter.appendBlock(block)
 
-            val blockHeight = prevBlockHeightOption.get + 1
-            val blockInfo = BlockInfo(
-              height = blockHeight,
-              transactionCount = block.transactions.size,
-              // BUGBUG : Need to use enumeration
-              status = 0,
-              blockHeader = block.header,
-              Some(appendResult.blockLocator)
+            val blockInfo = BlockInfoFactory.create(
+              // For the genesis block, the prevBlockInfoOption is None.
+              prevBlockInfoOption,
+              block.header,
+              blockHash,
+              block.transactions.length, // transaction count
+              Some(appendResult.blockLocator) // block locator
             )
+
             blockIndex.putBlockInfo(blockHash, blockInfo)
 
+            val blockHeight = blockInfo.height
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
             checkBestBlockHash(blockHash, blockHeight)

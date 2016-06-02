@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain.mining
 
-import io.scalechain.blockchain.chain.{BlockBuilder, MerkleRootCalculator, BlockDescriptor}
+import io.scalechain.blockchain.chain.{BlockBuilder, MerkleRootCalculator}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.ChainEnvironment
 

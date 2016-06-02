@@ -33,6 +33,8 @@ object BlockFileInfoCodec extends MessagePartCodec[BlockFileInfo]{
 object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
   val codec : Codec[BlockInfo] = {
     ("height" | int32L) ::
+    ("chainWork" | int64L) ::
+    ("nextBlockHash" | optional(bool(8), HashCodec.codec)) ::
     ("transactionCount" | int32L) ::
     ("status" | int32L) ::
     ("blockHeader" | BlockHeaderCodec.codec) ::

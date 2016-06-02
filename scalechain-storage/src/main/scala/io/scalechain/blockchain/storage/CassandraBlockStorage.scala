@@ -6,6 +6,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.{BlockDatabase, CassandraDatabase}
+import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 
@@ -38,7 +39,6 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     *
     * @param blockHash the hash of the header of the block to store.
     * @param block the block to store.
-    *
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
@@ -64,25 +64,25 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
       } else {
         // case 2 : no block info was found.
         // get the height of the previous block, to calculate the height of the given block.
-        val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(block.header.hashPrevBlock.value))
+        val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
 
-        if (prevBlockHeightOption.isDefined) {
+        // Either the previous block should exist or the block should be the genesis block.
+        if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
           // case 2.1 : no block info was found, previous block header exists.
 
-          val blockHeight = prevBlockHeightOption.get + 1
-          val blockInfo = BlockInfo(
-            height = blockHeight,
-            transactionCount = block.transactions.size,
-            // BUGBUG : Need to use enumeration
-            status = 0,
-            blockHeader = block.header,
-            None
+          val blockInfo = BlockInfoFactory.create(
+            prevBlockInfoOption,
+            block.header,
+            blockHash,
+            0, // transaction count
+            None // block locator
           )
 
           blockDatabase.putBlockInfo(blockHash, blockInfo)
 
           putBlockToCassandra(blockHash, block)
 
+          val blockHeight = blockInfo.height
           checkBestBlockHash(blockHash, blockHeight)
 
           isNewBlock = true

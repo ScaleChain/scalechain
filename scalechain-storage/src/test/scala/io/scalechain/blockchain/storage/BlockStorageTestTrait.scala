@@ -30,7 +30,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
 
 
   "getBlockHeight" should "return -1 for the hash with all zero values" in {
-    storage.getBlockHeight(ALL_ZERO_HASH) shouldBe Some(-1)
+    storage.getBlockHeight(ALL_ZERO_HASH) shouldBe None
   }
 
   "getBlockHeight" should "return the height of the block" in {

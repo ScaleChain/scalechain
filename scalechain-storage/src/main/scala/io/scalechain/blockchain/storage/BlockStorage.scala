@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.BlockDatabase
+import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 /**
@@ -15,6 +16,12 @@ trait BlockStorage extends BlockIndex {
   def putBlock(blockHash : Hash, block : Block) : Boolean
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
+
+  def getBlockHash(blockHeight : Long) : Option[Hash] = {
+    // TODO : Implement
+    assert(false)
+    return null
+  }
 
   /** Remove a transaction from the block storage.
     *
@@ -65,14 +72,7 @@ trait BlockStorage extends BlockIndex {
 
   protected[storage] def getBlockHeight(blockHash : Hash) : Option[Int] = {
     this.synchronized {
-      if (blockHash.isAllZero()) {
-        // case 1 : The previous block of Genesis block
-        // Because genesis block's height is 0, we need to return -1.
-        Some(-1)
-      } else {
-        // case 2 : Non-genesis block.
-        blockDatabase.getBlockHeight(blockHash)
-      }
+      blockDatabase.getBlockHeight(blockHash)
     }
   }
 
@@ -118,26 +118,25 @@ trait BlockStorage extends BlockIndex {
 
   def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader) : Unit = {
     this.synchronized {
-      // get the height of the previous block, to calculate the height of the given block.
-      val prevBlockHeightOption: Option[Int] = getBlockHeight(Hash(blockHeader.hashPrevBlock.value))
+      // get the info of the previous block, to calculate the height of the given block and chain-work.
+      val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(blockHeader.hashPrevBlock.value))
 
-      if (prevBlockHeightOption.isDefined) {
-        // case 1 : the previous block header was found.
-        val blockHeight = prevBlockHeightOption.get + 1
-
-        assert(blockHeight >= 0)
+      // Either the previous block should exist or the block should be the genesis block.
+      if (prevBlockInfoOption.isDefined || blockHeader.hashPrevBlock.isAllZero()) {
 
         val blockInfo: Option[BlockInfo] = blockDatabase.getBlockInfo(blockHash)
         if (blockInfo.isEmpty) {
+
           // case 1.1 : the header does not exist yet.
-          val blockInfo = BlockInfo(
-            height = blockHeight,
-            transactionCount = 0,
-            // BUGBUG : Need to use enumeration
-            status = 0,
-            blockHeader = blockHeader,
-            None
+          val blockInfo = BlockInfoFactory.create(
+            // Pass None for the genesis block.
+            prevBlockInfoOption,
+            blockHeader,
+            blockHash,
+            0, // transaction count
+            None // block locator
           )
+
           blockDatabase.putBlockInfo(blockHash, blockInfo)
           // We are not checking if the block is the best block, because we received a header only.
           // We put a block as a best block only if we have the block data as long as the header.
