@@ -46,23 +46,23 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
 
   "updateFileInfo" should "pass case 1 : a new record file was created." in {
     val FILE_NUMBER = 1
-    diskBlockStorage.blockIndex.getLastBlockFile() shouldBe None
+    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(offset=0, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
-    diskBlockStorage.blockIndex.getLastBlockFile() shouldBe Some(FileNumber(FILE_NUMBER))
+    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe Some(FileNumber(FILE_NUMBER))
   }
 
   "updateFileInfo" should "pass case 2 : the block was written on the existing record file." in {
     val FILE_NUMBER = 1
-    diskBlockStorage.blockIndex.getLastBlockFile() shouldBe None
+    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(offset=100, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
-    diskBlockStorage.blockIndex.getLastBlockFile() shouldBe None
+    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
   }
 
   "updateFileInfo" should "overwrite the file info if called twice" in {
     val FILE_NUMBER = 1
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(0, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
 
-    diskBlockStorage.blockIndex.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
+    diskBlockStorage.blockDatabase.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
       Some( BlockFileInfo (
         blockCount = 1,
         fileSize = 10L,
@@ -75,7 +75,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     // update once more with the next block.
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(100, 80)), fileSize = 20L, blockHeight = 2, blockTimestamp = 2000L)
 
-    diskBlockStorage.blockIndex.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
+    diskBlockStorage.blockDatabase.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
       Some( BlockFileInfo (
         blockCount = 2,
         fileSize = 20L,

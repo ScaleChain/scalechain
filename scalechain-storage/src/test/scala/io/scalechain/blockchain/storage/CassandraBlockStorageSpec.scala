@@ -11,7 +11,7 @@ import org.scalatest.{Ignore, BeforeAndAfterAll, Suite, BeforeAndAfterEach}
 // For Unit tests.
 class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath) {
   protected[storage] def truncateTables(): Unit = {
-    blockMetadataTable.truncateTable
+    keyValueDB.truncateTable
     blocksTable.truncateTable
     transactionsTable.truncateTable
   }

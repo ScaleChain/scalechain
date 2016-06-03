@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.index.{CassandraDatabase, BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
@@ -109,13 +109,14 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
 
   directoryPath.mkdir()
 
-  protected[storage] val blockIndex = new BlockDatabaseForRecordStorage( new RocksDatabase( directoryPath ) )
+  // Implemenent the KeyValueDatabase declared in BlockStorage trait.
+  protected[storage] val keyValueDB = new RocksDatabase( directoryPath )
+
+  // Implemenent the BlockDatabase declared in BlockStorage trait.
+  protected[storage] val blockDatabase = new BlockDatabaseForRecordStorage( keyValueDB )
+
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath, maxFileSize)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
-
-  protected[storage] def blockDatabase() : BlockDatabase = {
-    blockIndex
-  }
 
   protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Int, blockTimestamp : Long): Unit = {
     val lastFileNumber = FileNumber(headerLocator.fileIndex)
@@ -124,13 +125,13 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // If yes, we need to update the last block file, because it means we created a file now.
 
     if (headerLocator.recordLocator.offset == 0) { // case 1 : a new record file was created.
-      blockIndex.putLastBlockFile(lastFileNumber)
+      blockDatabase.putLastBlockFile(lastFileNumber)
     } else { // case 2 : the block was written on the existing record file.
       // do nothing.
     }
 
     // Update the block info.
-    val blockFileInfo = blockIndex.getBlockFileInfo(lastFileNumber).getOrElse(
+    val blockFileInfo = blockDatabase.getBlockFileInfo(lastFileNumber).getOrElse(
       BlockFileInfo(
         blockCount = 0,
         fileSize = 0L,
@@ -143,7 +144,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
 
     // TODO : Need to make sure if it is ok even though a non-best block decreases the lastBlockHeight.
     // Is the lastBlockHeight actually meaning maximum block height?
-    blockIndex.putBlockFileInfo(
+    blockDatabase.putBlockFileInfo(
       lastFileNumber,
       blockFileInfo.copy(
         blockCount = blockFileInfo.blockCount + 1,
@@ -166,7 +167,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
 
-      val blockInfo: Option[BlockInfo] = blockIndex.getBlockInfo(blockHash)
+      val blockInfo: Option[BlockInfo] = blockDatabase.getBlockInfo(blockHash)
       var isNewBlock = false
 
       val txLocators: List[TransactionLocator] =
@@ -179,7 +180,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
               transactionCount = block.transactions.size,
               blockLocatorOption = Some(appendResult.blockLocator)
             )
-            blockIndex.putBlockInfo(blockHash, newBlockInfo)
+            blockDatabase.putBlockInfo(blockHash, newBlockInfo)
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
             checkBestBlockHash(blockHash, newBlockInfo.height)
@@ -212,7 +213,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
               Some(appendResult.blockLocator) // block locator
             )
 
-            blockIndex.putBlockInfo(blockHash, blockInfo)
+            blockDatabase.putBlockInfo(blockHash, blockInfo)
 
             val blockHeight = blockInfo.height
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
@@ -233,7 +234,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
 
       if (!txLocators.isEmpty) {
         // case 1.1 and case 2.1 has newly stored transactions.
-        blockIndex.putTransactions(txLocators)
+        blockDatabase.putTransactions(txLocators)
       }
 
       isNewBlock
@@ -244,7 +245,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      val txLocatorOption = blockIndex.getTransactionLocator(transactionHash)
+      val txLocatorOption = blockDatabase.getTransactionLocator(transactionHash)
       txLocatorOption.map(blockRecordStorage.readRecord(_)(TransactionCodec))
     }
   }
@@ -258,7 +259,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
   def removeTransaction(transactionHash : Hash) : Unit = {
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      blockIndex.delTransaction(transactionHash)
+      blockDatabase.delTransaction(transactionHash)
     }
   }
 
@@ -273,7 +274,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      val blockInfoOption = blockIndex.getBlockInfo(blockHash)
+      val blockInfoOption = blockDatabase.getBlockInfo(blockHash)
       if (blockInfoOption.isDefined) {
         // case 1 : The block info was found.
         if (blockInfoOption.get.blockLocatorOption.isDefined) {
@@ -298,7 +299,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
       blockRecordStorage.close()
-      blockIndex.close()
+      blockDatabase.close()
     }
   }
 }

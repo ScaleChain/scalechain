@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index.BlockDatabase
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase, BlockDatabase}
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory
   */
 trait BlockStorage extends BlockIndex {
   private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
+  protected[storage] val keyValueDB : KeyValueDatabase
+  protected[storage] val blockDatabase : BlockDatabase
 
   def putBlock(blockHash : Hash, block : Block) : Boolean
   def getTransaction(transactionHash : Hash) : Option[Transaction]
@@ -30,8 +32,6 @@ trait BlockStorage extends BlockIndex {
     * @param transactionHash The hash of the transaction to remove from the blockchain.
     */
   def removeTransaction(transactionHash : Hash) : Unit
-
-  protected[storage] def blockDatabase() : BlockDatabase
 
   def putBlock(block : Block) : Boolean = {
     putBlock(block.header.hash, block)

@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index.{BlockDatabase, CassandraDatabase}
+import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, RocksDatabase, BlockDatabase, CassandraDatabase}
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
@@ -15,10 +15,13 @@ import org.slf4j.LoggerFactory
 class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
   private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
 
-  protected[storage] val blockMetadataTable = new CassandraDatabase(directoryPath, "block_metadata")
+  // Implemenent the KeyValueDatabase declared in BlockStorage trait.
+  protected[storage] val keyValueDB = new CassandraDatabase(directoryPath, "block_metadata")
 
+  // Implemenent the BlockDatabase declared in BlockStorage trait.
   // Block info including block header,
-  protected[storage] val blockMetadata = new BlockDatabase( blockMetadataTable )
+  protected[storage] val blockDatabase = new BlockDatabase( keyValueDB )
+
 
   // The serialized blocks are stored on this table.
   // Key : Block header hash
@@ -30,10 +33,6 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
   // Value : Serialized transaction
   protected[storage] val transactionsTable = new CassandraDatabase(directoryPath, "transactions")
 
-
-  protected[storage] def blockDatabase() = {
-    blockMetadata
-  }
 
   /** Store a block.
     *
@@ -155,7 +154,7 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
 
 
   def close() : Unit = {
-    blockMetadata.close
+    blockDatabase.close
     blocksTable.close
     transactionsTable.close
   }
