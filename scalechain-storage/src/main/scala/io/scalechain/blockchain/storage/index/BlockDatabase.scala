@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.storage.TransactionLocator
 import org.slf4j.LoggerFactory
+import io.scalechain.blockchain.script.HashSupported._
 
 object BlockDatabase {
   val BLOCK_INFO : Byte = 'b'
@@ -113,14 +114,21 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
     * @param transactions
     * @return
     */
-  def putTransactions(transactions : List[TransactionLocator]) = {
-    for ( tx <- transactions) {
-      db.putObject(TRANSACTION, tx.txHash, tx.txLocator)(HashCodec, FileRecordLocatorCodec)
+  def putTransactions(transactions : List[(Transaction, TransactionLocator)]) = {
+    for ( (transaction, txLocatorDesc) <- transactions) {
+      val txDesc =
+        TransactionDescriptor(
+          Left(txLocatorDesc.txLocator),
+          List.fill(transaction.outputs.length)(None) )
+
+      db.putObject(TRANSACTION, txLocatorDesc.txHash, txDesc)(HashCodec, TransactionDescriptorCodec)
+
+      assert( txLocatorDesc.txHash == transaction.hash )
     }
   }
 
-  def getTransactionLocator(txHash : Hash) : Option[FileRecordLocator] = {
-    db.getObject(TRANSACTION, txHash)(HashCodec, FileRecordLocatorCodec)
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
   }
 
   /** Remove a transaction from the transaction index.

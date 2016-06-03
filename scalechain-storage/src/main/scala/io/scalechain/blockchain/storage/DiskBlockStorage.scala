@@ -234,7 +234,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
 
       if (!txLocators.isEmpty) {
         // case 1.1 and case 2.1 has newly stored transactions.
-        blockDatabase.putTransactions(txLocators)
+        blockDatabase.putTransactions(block.transactions zip txLocators)
       }
 
       isNewBlock
@@ -245,8 +245,13 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      val txLocatorOption = blockDatabase.getTransactionLocator(transactionHash)
-      txLocatorOption.map(blockRecordStorage.readRecord(_)(TransactionCodec))
+      val txDescriptorOption = blockDatabase.getTransactionDescriptor(transactionHash)
+      txDescriptorOption.map { txDesc: TransactionDescriptor =>
+        txDesc.transaction match {
+          case Left(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
+          case Right(transaction) => transaction
+        }
+      }
     }
   }
 

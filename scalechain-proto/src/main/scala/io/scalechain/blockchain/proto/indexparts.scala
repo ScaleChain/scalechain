@@ -51,3 +51,15 @@ case class TransactionCount( count : Int) extends ProtocolMessage
   * @param height The height of a block.
   */
 case class BlockHeight( height : Long ) extends ProtocolMessage
+
+/** The transaction descriptor kept for each transaction.
+  * ScaleChain does not use mempool, but keeps transactions on rocksdb.
+  * So, if a transaction was put input a block on the best blockchain, we keep the file record locator of the transaction stored on disk.
+  * If a transaction was not put into a block on the best blockchain, we keep the serialized transaction as part of a value in rocksdb.
+  *
+  * @param transaction Either a file record locator pointing to an on-disk serialized transaction in a block,
+  *                    or a serialized transaction itself if the transaction is not in a block in the best blockchain yet.
+  * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
+  *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
+  */
+case class TransactionDescriptor( transaction : Either[FileRecordLocator, Transaction], outputsSpentBy : List[Option[InPoint]] ) extends ProtocolMessage

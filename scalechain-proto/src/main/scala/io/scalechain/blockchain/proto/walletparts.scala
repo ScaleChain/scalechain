@@ -22,6 +22,15 @@ case class Account(name : String) extends ProtocolMessage
   */
 case class OutPoint(transactionHash : Hash, outputIndex : Int) extends ProtocolMessage
 
+
+/** An in point points to an input in a transaction.
+  *
+  * @param transactionHash The hash of the transaction that has the output.
+  * @param inputIndex The index of the input. The index starts from 0. Ex> The first input of a transaction has index 0.
+  */
+case class InPoint(transactionHash : Hash, inputIndex : Int) extends ProtocolMessage
+
+
 /**
  *  Wallet Transaction Attribute ; Set to one of the following values:
  *  • send if sending payment

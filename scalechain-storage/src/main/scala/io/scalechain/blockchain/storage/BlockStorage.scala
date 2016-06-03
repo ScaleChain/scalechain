@@ -25,6 +25,7 @@ trait BlockStorage extends BlockIndex {
     * @return The hash of the block at the height on the best blockchain.
     */
   def getBlockHashByHeight(height : Long) : Option[Hash] = {
+    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.getBlockHashByHeight(height)
   }
 
@@ -34,6 +35,7 @@ trait BlockStorage extends BlockIndex {
     * @param hash The hash of the block.
     */
   def putBlockHashByHeight(height : Long, hash : Hash) : Unit = {
+    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.putBlockHashByHeight(height, hash)
   }
 
@@ -43,6 +45,7 @@ trait BlockStorage extends BlockIndex {
     * @param nextBlockHash Some(nextBlockHash) if the block is on the best blockchain, None otherwise.
     */
   def updateNextBlockHash(hash : Hash, nextBlockHash : Option[Hash]) = {
+    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.updateNextBlockHash(hash, nextBlockHash)
   }
 
@@ -52,6 +55,7 @@ trait BlockStorage extends BlockIndex {
     * @return Some(hash) if the given block hash is for a block on the best blockchain and not the best block. None otherwise.
     */
   def getNextBlockHash(hash : Hash) : Option[Hash] = {
+    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.getBlockInfo(hash).get.nextBlockHash
   }
 

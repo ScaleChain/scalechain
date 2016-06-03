@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{FixedByteArray, VarInt}
+import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray, VarInt}
 import scodec.Codec
 import scodec.codecs._
 
@@ -69,4 +69,11 @@ object BlockHeightCodec extends MessagePartCodec[BlockHeight] {
   val codec : Codec[BlockHeight] = {
     ("blockHeight" | int64)
   }.as[BlockHeight]
+}
+
+object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor] {
+  val codec : Codec[TransactionDescriptor] = {
+    ("transaction"    | either(bool(8), FileRecordLocatorCodec.codec, TransactionCodec.codec)) ::
+    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
+  }.as[TransactionDescriptor]
 }
