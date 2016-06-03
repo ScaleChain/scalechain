@@ -65,3 +65,8 @@ object TransactionCountCodec extends MessagePartCodec[TransactionCount] {
   }.as[TransactionCount]
 }
 
+object BlockHeightCodec extends MessagePartCodec[BlockHeight] {
+  val codec : Codec[BlockHeight] = {
+    ("blockHeight" | int64)
+  }.as[BlockHeight]
+}

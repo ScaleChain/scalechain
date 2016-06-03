@@ -12,7 +12,6 @@ import org.scalatest._
   * Created by kangmo on 5/28/16.
   */
 // Remove the ignore annotation after creating the "by block height" index
-@Ignore
 class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
   this: Suite =>
 

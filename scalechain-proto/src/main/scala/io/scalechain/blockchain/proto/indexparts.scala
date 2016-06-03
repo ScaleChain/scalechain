@@ -46,3 +46,8 @@ case class OneByte( value : Byte ) extends ProtocolMessage
   */
 case class TransactionCount( count : Int) extends ProtocolMessage
 
+/** To search a block on the best blockchain by height, we need the BlockHeight case class.
+  *
+  * @param height The height of a block.
+  */
+case class BlockHeight( height : Long ) extends ProtocolMessage

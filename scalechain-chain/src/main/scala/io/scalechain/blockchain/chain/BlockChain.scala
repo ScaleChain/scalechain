@@ -167,6 +167,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
         if (block.header.hashPrevBlock.isAllZero()) {
           assert(theBestBlock == null)
           storage.putBlock(block)
+          storage.putBlockHashByHeight(0, blockHash)
           theBestBlock = storage.getBlockInfo(blockHash).get
           chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
         } else {
@@ -188,6 +189,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
               // Step 3.A.1 : Update the best block
               storage.putBlock(block)
               val blockInfo = storage.getBlockInfo(blockHash).get
+              storage.putBlockHashByHeight(blockInfo.height, blockHash)
+
               theBestBlock = blockInfo
 
 
@@ -405,7 +408,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return The hash of the block header.
     */
   def getBlockHash(blockHeight : Long) : Hash = {
-    val blockHashOption = storage.getBlockHash(blockHeight)
+    val blockHashOption = storage.getBlockHashByHeight(blockHeight)
     // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
     if (blockHashOption.isEmpty) {
 

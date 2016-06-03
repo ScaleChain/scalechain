@@ -11,6 +11,7 @@ object BlockDatabase {
   val BLOCK_FILE_INFO : Byte = 'f'
   val LAST_BLOCK_FILE : Byte = 'l'
   val BEST_BLOCK_HASH : Byte = 'B'
+  val BLOCK_HEIGHT : Byte = 'h'
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.
@@ -26,6 +27,39 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
   }
 
+  /** Get the block hash at the given height on the best blockchain.
+    *
+    * @param height The height of the block.
+    * @return The hash of the block at the height on the best blockchain.
+    */
+  def getBlockHashByHeight(height : Long) : Option[Hash] = {
+    db.getObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec, HashCodec)
+  }
+
+  /** Put the block hash searchable by height.
+    *
+    * @param height The height of the block hash. The block should be on the best blockchain.
+    * @param hash The hash of the block.
+    */
+  def putBlockHashByHeight(height : Long, hash : Hash) : Unit = {
+    db.putObject(BLOCK_HEIGHT, BlockHeight(height), hash)(BlockHeightCodec, HashCodec)
+  }
+
+  /** Update the hash of the next block.
+    *
+    * @param hash The block to update the next block hash.
+    * @param nextBlockHash Some(nextBlockHash) if the block is on the best blockchain, None otherwise.
+    */
+  def updateNextBlockHash(hash : Hash, nextBlockHash : Option[Hash]) = {
+    val blockInfoOption : Option[BlockInfo] = getBlockInfo(hash)
+
+    assert(blockInfoOption.isDefined)
+
+    putBlockInfo(hash, blockInfoOption.get.copy(
+      nextBlockHash = nextBlockHash
+    ))
+  }
+
   def getBlockHeight(hash : Hash) : Option[Int] = {
     getBlockInfo(hash).map(_.height)
   }
@@ -37,9 +71,11 @@ class BlockDatabase(db : KeyValueDatabase) {
       // hit an assertion : put a block info with different height
       assert(currentBlockInfo.height == info.height)
 
-      // hit an assertion : put a block info with a block locator, even though the block info has some locator.
+      // hit an assertion : put a block info with a different block locator.
       if (info.blockLocatorOption.isDefined) {
-        assert(currentBlockInfo.blockLocatorOption.isEmpty)
+        if ( currentBlockInfo.blockLocatorOption.isDefined ) {
+          assert( currentBlockInfo.blockLocatorOption.get == info.blockLocatorOption.get )
+        }
       }
 
       // hit an assertion : change any field on the block header

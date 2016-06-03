@@ -19,10 +19,40 @@ trait BlockStorage extends BlockIndex {
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
-  def getBlockHash(blockHeight : Long) : Option[Hash] = {
-    // TODO : Implement
-    assert(false)
-    return null
+  /** Get the block hash at the given height on the best blockchain.
+    *
+    * @param height The height of the block.
+    * @return The hash of the block at the height on the best blockchain.
+    */
+  def getBlockHashByHeight(height : Long) : Option[Hash] = {
+    blockDatabase.getBlockHashByHeight(height)
+  }
+
+  /** Put the block hash searchable by height.
+    *
+    * @param height The height of the block hash. The block should be on the best blockchain.
+    * @param hash The hash of the block.
+    */
+  def putBlockHashByHeight(height : Long, hash : Hash) : Unit = {
+    blockDatabase.putBlockHashByHeight(height, hash)
+  }
+
+  /** Update the hash of the next block.
+    *
+    * @param hash The block to update the next block hash.
+    * @param nextBlockHash Some(nextBlockHash) if the block is on the best blockchain, None otherwise.
+    */
+  def updateNextBlockHash(hash : Hash, nextBlockHash : Option[Hash]) = {
+    blockDatabase.updateNextBlockHash(hash, nextBlockHash)
+  }
+
+  /** Get the hash of the next block.
+    *
+    * @param hash The hash of the block to get the next block of it. The block should exist on the block database.
+    * @return Some(hash) if the given block hash is for a block on the best blockchain and not the best block. None otherwise.
+    */
+  def getNextBlockHash(hash : Hash) : Option[Hash] = {
+    blockDatabase.getBlockInfo(hash).get.nextBlockHash
   }
 
   /** Remove a transaction from the block storage.
