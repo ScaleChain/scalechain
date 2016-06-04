@@ -365,8 +365,9 @@ else if (strCommand == "getblocks") {
 ## strCommand == "getheaders" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "getheaders") {
-    // Step 1 : If no common block was found, send the hashStop
-    // Step 2 : If any common block was found, send up to 2000 headers including the hashStop.
+    // Step 1 : Get the latest common block with the caller in the best blockchain.
+    // Step 2 : If no common block was found, send the hashStop
+    // Step 3 : If any common block was found, send up to 2000 headers including the hashStop.
     //          Investigate : Need to understand : GetDistanceBack  
 }
 ```

@@ -43,6 +43,12 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
       case headers: Headers => {
         HeadersMessageHandler.handle(context, headers)
       }
+      case getData : GetData => {
+        GetDataMessageHandler.handle(context, getData)
+      }
+      case getBlocks : GetBlocks => {
+        GetBlocksMessageHandler.handle(context, getBlocks)
+      }
       case getHeaders: GetHeaders => {
         GetHeadersMessageHandler.handle(context, getHeaders)
       }

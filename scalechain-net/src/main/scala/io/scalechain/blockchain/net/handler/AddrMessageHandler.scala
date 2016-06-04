@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 object AddrMessageHandler {
   private lazy val logger = LoggerFactory.getLogger(AddrMessageHandler.getClass)
 
-  /** Handle  message.
+  /** Handle Addr message.
     *
     * @param context The context where handlers handling different messages for a peer can use to store state data.
     * @param addr The Addr message to handle.
