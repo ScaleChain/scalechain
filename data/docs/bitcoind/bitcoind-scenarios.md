@@ -56,7 +56,7 @@ else if (strCommand == "tx") {
     {                
         // Add the transaction as an orphan transaction.
         AddOrphanTx(vMsg);
-        - ADd the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
+        - Add the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
     }
 }
 ```
@@ -152,10 +152,12 @@ else if (strCommand == "block") {
             - 8. relay the new block to peers as an inventory if it is the tip of the longest block chain.
         
         - Step 5 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
-        LOOP newBlock := For each newly added block
+        newly_added_blocks = List(block hash)
+        LOOP newBlock := For each newly_added_blocks
             LOOP orphanBlock := For each orphan block which depends on the new Block as the parent of it
                 // Store the block into the blockchain database.
-                orphanBlock->AcceptBlock()
+                if (orphanBlock->AcceptBlock()) 
+                    newly_added_blocks += orphanBlock.hash              
                 remove the orphanBlock from mapOrphanBlocks
             remove all orphan blocks depending on newBlock from mapOrphanBlocksByPrev
 }

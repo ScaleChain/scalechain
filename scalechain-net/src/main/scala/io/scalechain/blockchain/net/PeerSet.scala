@@ -4,6 +4,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
 import io.netty.channel.Channel
+import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.CollectionUtil
 import org.slf4j.LoggerFactory
@@ -54,14 +55,18 @@ class PeerSet {
     * @param channel The connected channel.
     * @return
     */
-  def add(channel : Channel) = {
+  def add(channel : Channel) : Peer = {
     synchronized {
       channel.remoteAddress() match {
         case inetAddress : InetSocketAddress => {
-          peerByAddress.put(inetAddress, Peer(channel) )
+          val peer = Peer(channel)
+          peerByAddress.put(inetAddress, peer )
+          peer
         }
         case _ => {
-          logger.error(s"The remove address of the channel was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}")
+          val message = s"The remote address of the channel was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}"
+          logger.error(message)
+          throw new ChainException(ErrorCode.InternalError, message )
         }
       }
     }

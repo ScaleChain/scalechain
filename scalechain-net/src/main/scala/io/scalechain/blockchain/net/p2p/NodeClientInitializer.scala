@@ -13,7 +13,7 @@ import io.scalechain.blockchain.net.p2p.{BitcoinProtocolEncoder, BitcoinProtocol
 /**
   * Creates a newly configured {@link ChannelPipeline} for a new channel.
   */
-class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int) extends ChannelInitializer[SocketChannel]{
+class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int, peerSet : PeerSet) extends ChannelInitializer[SocketChannel]{
 
   override def initChannel(ch : SocketChannel) : Unit = {
     val pipeline : ChannelPipeline = ch.pipeline()
@@ -29,6 +29,6 @@ class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int) e
     pipeline.addLast(new BitcoinProtocolEncoder())
 
     // and then business logic.
-    pipeline.addLast(new NodeClientHandler())
+    pipeline.addLast(new NodeClientHandler(peerSet))
   }
 }

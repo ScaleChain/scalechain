@@ -1,6 +1,7 @@
 package io.scalechain.blockchain
 
 object ErrorCode {
+  val InternalError = ErrorCode("internal_error")
   val UnsupportedFeature = ErrorCode("unsupported_feature")
 
   val InvalidBlockMagic = ErrorCode("invalid_block_magic")

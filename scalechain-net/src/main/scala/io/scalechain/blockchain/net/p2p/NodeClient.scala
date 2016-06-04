@@ -14,18 +14,10 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
-object NodeClient {
-  val HOST = System.getProperty("host", "127.0.0.1")
-  val PORT = Integer.parseInt(System.getProperty("port", "8992"))
-
-  def main(args:Array[String]) : Unit = {
-    new NodeClient().connect(HOST, PORT)
-  }
-}
 /**
   * Simple SSL chat client.
   */
-class NodeClient extends AutoCloseable {
+class NodeClient(peerSet : PeerSet) extends AutoCloseable {
   protected[net] val group : EventLoopGroup = new NioEventLoopGroup()
 
   def connect(address : String, port : Int) : ChannelFuture = {
@@ -39,7 +31,7 @@ class NodeClient extends AutoCloseable {
     val b : Bootstrap = new Bootstrap()
        b.group(group)
       .channel(classOf[NioSocketChannel])
-      .handler(new NodeClientInitializer(sslCtx, address, port))
+      .handler(new NodeClientInitializer(sslCtx, address, port, peerSet))
 
     // Start the connection attempt.
     //val channel : Channel = b.connect(address, port).sync().channel()
