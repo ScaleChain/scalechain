@@ -3,16 +3,15 @@ package io.scalechain.blockchain.storage
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase, BlockDatabase}
+import io.scalechain.blockchain.storage.index._
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorage extends BlockIndex {
+trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with OrphanBlockIndex with OrphanTransactionIndex {
   private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
-  protected[storage] val keyValueDB : KeyValueDatabase
   protected[storage] val blockDatabase : BlockDatabase
 
   def putBlock(blockHash : Hash, block : Block) : Boolean

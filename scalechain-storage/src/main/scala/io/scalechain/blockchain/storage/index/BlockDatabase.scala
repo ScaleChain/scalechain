@@ -6,13 +6,18 @@ import io.scalechain.blockchain.storage.TransactionLocator
 import org.slf4j.LoggerFactory
 import io.scalechain.blockchain.script.HashSupported._
 
-object BlockDatabase {
+object DatabaseTablePrefixes {
   val BLOCK_INFO : Byte = 'b'
   val TRANSACTION : Byte = 't'
   val BLOCK_FILE_INFO : Byte = 'f'
   val LAST_BLOCK_FILE : Byte = 'l'
   val BEST_BLOCK_HASH : Byte = 'B'
   val BLOCK_HEIGHT : Byte = 'h'
+
+  val ORPHAN_BLOCK : Byte = '1'
+  val ORPHAN_TRANSACTION : Byte = '2'
+  val ORPHAN_BLOCKS_BY_PARENT : Byte = '3'
+  val ORPHAN_TRANSACTIONS_BY_DEPENDENCY : Byte = '4'
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.
@@ -20,9 +25,9 @@ object BlockDatabase {
   * This class is used by CassandraBlockStorage.
   */
 class BlockDatabase(db : KeyValueDatabase) {
-  val logger = LoggerFactory.getLogger(BlockDatabase.getClass)
+  val logger = LoggerFactory.getLogger(classOf[BlockDatabase])
 
-  import BlockDatabase._
+  import DatabaseTablePrefixes._
 
   def getBlockInfo(hash : Hash) : Option[BlockInfo] = {
     db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
@@ -105,7 +110,7 @@ class BlockDatabase(db : KeyValueDatabase) {
   * We also should have a locator of each transactions keyed by the transaction hash.
   */
 class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase(db){
-  import BlockDatabase._
+  import DatabaseTablePrefixes._
 
   /** Put transactions into the transaction index.
     * Key : transaction hash

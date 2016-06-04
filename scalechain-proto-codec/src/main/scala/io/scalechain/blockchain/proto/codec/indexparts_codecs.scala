@@ -77,3 +77,25 @@ object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor
     ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
   }.as[TransactionDescriptor]
 }
+
+object OrphanBlockDescriptorCodec extends MessagePartCodec[OrphanBlockDescriptor] {
+  val codec : Codec[OrphanBlockDescriptor] = {
+    ("blockHeader" | BlockHeaderCodec.codec) ::
+    ("transactionCount" | int32L) ::
+    ("blockLocatorOption" | FileRecordLocatorCodec.codec )
+  }.as[OrphanBlockDescriptor]
+}
+
+object OrphanTransactionDescriptorCodec extends MessagePartCodec[OrphanTransactionDescriptor] {
+  val codec : Codec[OrphanTransactionDescriptor] = {
+    ("transaction" | TransactionCodec.codec )
+  }.as[OrphanTransactionDescriptor]
+}
+
+/*
+object ABCCodec extends MessagePartCodec[ABC] {
+  val codec : Codec[ABC] = {
+    ("field" |   ... ) ::
+  }.as[ABC]
+}
+*/
