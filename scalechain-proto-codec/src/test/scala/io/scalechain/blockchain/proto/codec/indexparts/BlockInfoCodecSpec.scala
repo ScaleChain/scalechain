@@ -9,17 +9,13 @@ class BlockInfoCodecSpec extends PayloadTestSuite[BlockInfo]  {
   val codec = BlockInfoCodec.codec
 
   val payload = bytes(
-    """
-      64 00 00 00 ec 03 00 00  00 00 00 00 04 00 00 00
-      7b 1e ab e0 20 9b 1f e7  94 12 45 75 ef 80 70 57
-      c7 7a da 21 38 ae 4f a8  d6 c4 de 03 98 a1 4f 3f
-      70 1e ab e0 20 9b 1f e7  94 12 45 75 ef 80 70 57
-      c7 7a da 21 38 ae 4f a8  d6 c4 de 03 98 a1 4f 4f
-      d2 02 96 49 40 42 0f 00  d2 04 00 00 00
+    """64000000a086010000000000ff701eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f2fec03000000000000040000007b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f701eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f4fd202964940420f00d204000000
     """)
 
   val message = BlockInfo(
     height = 100,
+    chainWork = 100000L,
+    nextBlockHash = Some(Hash("2f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
     transactionCount = 1004,
     status = 0,
     blockHeader = BlockHeader(
@@ -39,19 +35,13 @@ class BlockInfoCodecSpecWithBlockLocator extends PayloadTestSuite[BlockInfo]  {
   val codec = BlockInfoCodec.codec
 
   val payload = bytes(
-    """
-      64 00 00 00 ec 03 00 00  00 00 00 00 04 00 00 00
-      7b 1e ab e0 20 9b 1f e7  94 12 45 75 ef 80 70 57
-      c7 7a da 21 38 ae 4f a8  d6 c4 de 03 98 a1 4f 3f
-      70 1e ab e0 20 9b 1f e7  94 12 45 75 ef 80 70 57
-      c7 7a da 21 38 ae 4f a8  d6 c4 de 03 98 a1 4f 4f
-      d2 02 96 49 40 42 0f 00  d2 04 00 00 ff 01 00 00
-      00 0a 00 00 00 00 00 00  00 c8 00 00 00)
-
-    """)
+    """64000000a08601000000000000ec03000000000000040000007b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f701eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f4fd202964940420f00d2040000ff010000000a00000000000000c8000000
+    """.stripMargin)
 
   val message = BlockInfo(
     height = 100,
+    chainWork = 100000L,
+    nextBlockHash = None,
     transactionCount = 1004,
     status = 0,
     blockHeader = BlockHeader(

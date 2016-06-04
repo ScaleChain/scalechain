@@ -46,7 +46,6 @@ else if (strCommand == "tx") {
           Loop orphanTx := for each transaction that depends on the newTx
             if (orphanTx.AcceptToMemoryPool(true)) { // Not an orphan anymore
               add the tx to the newly added transactions list.
-            }
         
         // Step 4 : For each orphan transaction that has all inputs connected, remove from the orphan transaction.
         Loop newTx := each transaction newly added 
@@ -54,10 +53,10 @@ else if (strCommand == "tx") {
             - Remove the orphan transaction both from mapOrphanTransactions and mapOrphanTransactionsByPrev.
     }
     else if (fMissingInputs) // An orphan
-    {
+    {                
         // Add the transaction as an orphan transaction.
         AddOrphanTx(vMsg);
-        - ADd the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
+        - Add the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
     }
 }
 ```
@@ -102,7 +101,7 @@ else if (strCommand == "tx") {
 ```
 
 
-# Upon the arriaval of the "block" message (in reply to "getdata" or block submission by a miner)
+# Upon the arrival of the "block" message (in reply to "getdata" or block submission by a miner)
 ## Data structure
 ```
 // kangmo : comment - The in-memory structure of the double linked blocks, searchable by the block hash.
@@ -153,10 +152,12 @@ else if (strCommand == "block") {
             - 8. relay the new block to peers as an inventory if it is the tip of the longest block chain.
         
         - Step 5 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
-        LOOP newBlock := For each newly added block
+        newly_added_blocks = List(block hash)
+        LOOP newBlock := For each newly_added_blocks
             LOOP orphanBlock := For each orphan block which depends on the new Block as the parent of it
                 // Store the block into the blockchain database.
-                orphanBlock->AcceptBlock()
+                if (orphanBlock->AcceptBlock()) 
+                    newly_added_blocks += orphanBlock.hash              
                 remove the orphanBlock from mapOrphanBlocks
             remove all orphan blocks depending on newBlock from mapOrphanBlocksByPrev
 }
@@ -188,7 +189,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
 
 	// Step 3 : Set the height and chain work of the new block
 
-	// Step 4 : Put the block in-memory block index into disk. 
+	// Step 4 : Put the in-memory block index into disk. 
 
     // Step 5 : based on the chain work, set the best blockchain. Reorganize blocks if necessary.
     if (pindexNew->bnChainWork > bnBestChainWork)
@@ -203,7 +204,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
             
                 // Step 3 : Get the list of blocks to connect from the common block to the longer blockchain.
             
-                // Step 4 : Reorder blocks so that the blocks with lower height come first.
+                // Step 4 : Reorder the list of blocks to connect so that the blocks with lower height come first.
             
                 // Step 5 : Disconnect blocks from the current (shorter) blockchain. (order : newest to oldest)
                 LOOP block := For each block to disconnect
@@ -237,8 +238,22 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
                         - 3. Populate mapQueuedChanges with transaction outputs marking which transactions are spending each of the outputs.
                         LOOP tx := For each transaction in the block
                             - 3.1 Mark transaction outputs pointed by inputs of this transaction spent.
-                            CTransaction::ConnectInputs( .. & mapQueuedChanges .. )
-                                LOOP input := for each input in the transaction
+                            IF not coinbase transaction
+                                CTransaction::ConnectInputs( .. & mapQueuedChanges .. )
+                                    LOOP input := for each input in the transaction
+                                        // 1. read CTxIndex from disk if not read yet.
+                                        // 2. read the transaction that the outpoint points from disk if not read yet.
+                                        // 3. Increase DoS score if an invalid output index was found in a transaction input.
+                                        // 4. check coinbase maturity for outpoints spent by a transaction.
+                                        // 5. Skip ECDSA signature verification when connecting blocks (fBlock=true) during initial download
+                                        // 6. check double spends for each OutPoint of each transaction input in a transaction.
+                                        // 7. check value range of each input and sum of inputs.
+                                        // 8. for the transaction output pointed by the input, mark this transaction as the spending transaction of the output.
+
+                                    // check if the sum of input values is greater than or equal to the sum of outputs.
+                                    // make sure if the fee is not negative.
+                                    // check the minimum transaction fee for each transaction.
+                            // Add UTXO : set all outputs are unspent for the newly connected transaction.
 
                         - 4. For each items in mapQueuedChanges, write to disk.
                         - 5. Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
@@ -261,9 +276,8 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
             
                 // Step 10 : Remove transactions in the connected blocks from the mempool.
                
-            // 4. set the best block in the wallet, (to detect restored wallets?)
-            // 5. Update best block in wallet (so we can detect restored wallets)
-            // 6. set the block as the tip of the best chain.
+            // 4. Update best block in wallet (so we can detect restored wallets)
+            // 5. set the block as the tip of the best chain.
 }
 ```
 
@@ -351,8 +365,9 @@ else if (strCommand == "getblocks") {
 ## strCommand == "getheaders" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "getheaders") {
-    // Step 1 : If no common block was found, send the hashStop
-    // Step 2 : If any common block was found, send up to 2000 headers including the hashStop.
+    // Step 1 : Get the latest common block with the caller in the best blockchain.
+    // Step 2 : If no common block was found, send the hashStop
+    // Step 3 : If any common block was found, send up to 2000 headers including the hashStop.
     //          Investigate : Need to understand : GetDistanceBack  
 }
 ```

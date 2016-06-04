@@ -47,7 +47,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
   "putTransactions" should "successfully put transactions onto database" in {
     // At first, we should not have any tranasctions on the database.
     for( transaction <- TestData.block.transactions) {
-      db.getTransactionLocator(transaction.hash) shouldBe None
+      db.getTransactionDescriptor(transaction.hash) shouldBe None
     }
 
     var i = 1
@@ -61,17 +61,17 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       TransactionLocator(transaction.hash,txLocator)
     }
 
-    db.putTransactions(txLocators)
+    db.putTransactions(TestData.block.transactions zip txLocators)
 
     // Now, we have transactions on the database.
     for( transaction <- TestData.block.transactions) {
-      val txLocator = db.getTransactionLocator(transaction.hash)
+      val txDesc = db.getTransactionDescriptor(transaction.hash)
 
-      assert(txLocator.isDefined)
+      assert(txDesc.isDefined)
       // The block file number should be same for the transaction locator and block locator, as the transaction is in the block.
-      txLocator.get.fileIndex shouldBe BLOCK_LOCATOR.fileIndex
+      txDesc.get.transaction.left.get.fileIndex shouldBe BLOCK_LOCATOR.fileIndex
       // The transaction comes after the block header on the block file.
-      txLocator.get.recordLocator.offset should be > BLOCK_LOCATOR.recordLocator.offset
+      txDesc.get.transaction.left.get.recordLocator.offset should be > BLOCK_LOCATOR.recordLocator.offset
     }
   }
 

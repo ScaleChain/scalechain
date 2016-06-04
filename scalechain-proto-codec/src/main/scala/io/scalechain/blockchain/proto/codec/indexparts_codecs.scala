@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{FixedByteArray, VarInt}
+import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray, VarInt}
 import scodec.Codec
 import scodec.codecs._
 
@@ -33,6 +33,8 @@ object BlockFileInfoCodec extends MessagePartCodec[BlockFileInfo]{
 object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
   val codec : Codec[BlockInfo] = {
     ("height" | int32L) ::
+    ("chainWork" | int64L) ::
+    ("nextBlockHash" | optional(bool(8), HashCodec.codec)) ::
     ("transactionCount" | int32L) ::
     ("status" | int32L) ::
     ("blockHeader" | BlockHeaderCodec.codec) ::
@@ -63,3 +65,37 @@ object TransactionCountCodec extends MessagePartCodec[TransactionCount] {
   }.as[TransactionCount]
 }
 
+object BlockHeightCodec extends MessagePartCodec[BlockHeight] {
+  val codec : Codec[BlockHeight] = {
+    ("blockHeight" | int64)
+  }.as[BlockHeight]
+}
+
+object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor] {
+  val codec : Codec[TransactionDescriptor] = {
+    ("transaction"    | either(bool(8), FileRecordLocatorCodec.codec, TransactionCodec.codec)) ::
+    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
+  }.as[TransactionDescriptor]
+}
+
+object OrphanBlockDescriptorCodec extends MessagePartCodec[OrphanBlockDescriptor] {
+  val codec : Codec[OrphanBlockDescriptor] = {
+    ("blockHeader" | BlockHeaderCodec.codec) ::
+    ("transactionCount" | int32L) ::
+    ("blockLocatorOption" | FileRecordLocatorCodec.codec )
+  }.as[OrphanBlockDescriptor]
+}
+
+object OrphanTransactionDescriptorCodec extends MessagePartCodec[OrphanTransactionDescriptor] {
+  val codec : Codec[OrphanTransactionDescriptor] = {
+    ("transaction" | TransactionCodec.codec )
+  }.as[OrphanTransactionDescriptor]
+}
+
+/*
+object ABCCodec extends MessagePartCodec[ABC] {
+  val codec : Codec[ABC] = {
+    ("field" |   ... ) ::
+  }.as[ABC]
+}
+*/

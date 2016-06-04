@@ -17,7 +17,9 @@ object PeerToPeerNetworking {
     // The peer set that keeps multiple PeerNode(s).
     val peerSet = PeerSet.create
 
-    val bindChannelFuture : ChannelFuture = new NodeServer(peerSet).listen(inboundPort)
+    // TODO : BUGBUG : Need to call nodeServer.shutdown before the process finishes ?
+    val nodeServer = new NodeServer(peerSet)
+    val bindChannelFuture : ChannelFuture = nodeServer.listen(inboundPort)
     // Wait until the inbound port is bound.
     bindChannelFuture.sync()
 

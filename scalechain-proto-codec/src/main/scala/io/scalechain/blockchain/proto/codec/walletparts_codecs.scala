@@ -28,6 +28,16 @@ object OutPointCodec extends MessagePartCodec[OutPoint] {
   }.as[OutPoint]
 }
 
+object InPointCodec extends MessagePartCodec[InPoint] {
+  val codec : Codec[InPoint] = {
+    // Note that we are not using the reverseCodec here.
+    // InPointCodec is for writing keys and values on the wallet database, not for communicating with peers.
+    ("transactionHash" | HashCodec.codec ) ::
+    ("inputIndex" | int32L)
+  }.as[InPoint]
+}
+
+
 object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
   val codec: Codec[WalletTransaction] = {
     ("blockHash"         | optional(bool(8), HashCodec.codec) ) ::

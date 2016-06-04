@@ -28,7 +28,7 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
 
   import NodeServerHandler._
 
-  val messageHandler = new ProtocolMessageHandler()
+  var messageHandler : ProtocolMessageHandler = null
 
 
   override def channelActive(ctx : ChannelHandlerContext) : Unit = {
@@ -47,12 +47,16 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
             " cipher suite.\n")
           */
           channels.add(ctx.channel())
-          peerSet.add(ctx.channel())
         }
       })
   }
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
+    if (messageHandler == null ) {
+      val peer = peerSet.add(context.channel())
+      messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
+    }
+
     // Step 1 : Process the received message to get the response to send if any.
     val responseMessageOption = messageHandler.handle(message)
 

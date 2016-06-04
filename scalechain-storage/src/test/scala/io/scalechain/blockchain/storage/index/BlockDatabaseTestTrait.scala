@@ -17,18 +17,27 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     RecordLocator( 10, 15)
   )
 
-  val DUMMY_HASH = Hash(bytes("0"*64))
+  val BLOCK_LOCATOR2 = FileRecordLocator(
+    fileIndex = 2,
+    RecordLocator( 11, 16)
+  )
+
+  val TestBlockInfo = BlockInfo(
+    height = 1,
+    chainWork = 100000L,
+    nextBlockHash = None,
+    transactionCount = 0,
+    status = 0,
+    blockHeader = TestData.block.header,
+    blockLocatorOption = None
+  )
+  val DUMMY_HASH1 = Hash(bytes("1"*64))
+  val DUMMY_HASH2 = Hash(bytes("2"*64))
 
   "putBlockInfo/getBlockInfo" should "successfully put/get data" in {
     db.getBlockInfo(TestData.blockHash) shouldBe None
 
-    val blockInfo = BlockInfo(
-      height = 1,
-      transactionCount = 0,
-      status = 0,
-      blockHeader = TestData.block.header,
-      blockLocatorOption = None
-    )
+    val blockInfo = TestBlockInfo
 
     db.putBlockInfo(TestData.blockHash, blockInfo)
     db.getBlockInfo(TestData.blockHash) shouldBe Some(blockInfo)
@@ -48,11 +57,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
   "putBlockInfo" should "hit an assertion if the new block info is incorrect." in {
     db.getBlockInfo(TestData.blockHash) shouldBe None
 
-    val blockInfo = BlockInfo(
-      height = 1,
-      transactionCount = 0,
-      status = 0,
-      blockHeader = TestData.block.header,
+    val blockInfo = TestBlockInfo.copy(
       blockLocatorOption = Some(BLOCK_LOCATOR)
     )
 
@@ -71,10 +76,15 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
       ))
     }
 
-    // hit an assertion : put a block info with a block locator, even though the block info has some locator.
+    // Should not hit an assertion if the block locator does not change.
+    db.putBlockInfo(TestData.blockHash, blockInfo.copy(
+      blockLocatorOption = Some(BLOCK_LOCATOR)
+    ))
+
+    // hit an assertion : put a block info with a different block locator
     intercept[AssertionError] {
       db.putBlockInfo(TestData.blockHash, blockInfo.copy(
-        blockLocatorOption = Some(BLOCK_LOCATOR)
+        blockLocatorOption = Some(BLOCK_LOCATOR2)
       ))
     }
 
@@ -90,7 +100,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     intercept[AssertionError] {
       db.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
-          hashPrevBlock = Hash(DUMMY_HASH.value)
+          hashPrevBlock = Hash(DUMMY_HASH1.value)
         )
       ))
     }
@@ -98,7 +108,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     intercept[AssertionError] {
       db.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
-          hashMerkleRoot = Hash(DUMMY_HASH.value)
+          hashMerkleRoot = Hash(DUMMY_HASH1.value)
         )
       ))
     }
@@ -134,11 +144,37 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
   "putBestBlockHash/getBestBlockHash" should "successfully put/get data" in {
     db.getBestBlockHash() shouldBe None
 
-    db.putBestBlockHash(DUMMY_HASH)
-    db.getBestBlockHash() shouldBe Some(DUMMY_HASH)
+    db.putBestBlockHash(DUMMY_HASH1)
+    db.getBestBlockHash() shouldBe Some(DUMMY_HASH1)
 
     db.putBestBlockHash(TestData.blockHash)
     db.getBestBlockHash() shouldBe Some(TestData.blockHash)
   }
 
+  "putBlockHashByHeight/getBlockHashByHeight" should "successfully put/get data" in {
+    db.getBlockHashByHeight(0) shouldBe None
+    db.getBlockHashByHeight(1) shouldBe None
+
+    db.putBlockHashByHeight(0, DUMMY_HASH1)
+    db.putBlockHashByHeight(1, DUMMY_HASH2)
+
+    db.getBlockHashByHeight(0) shouldBe Some(DUMMY_HASH1)
+    db.getBlockHashByHeight(1) shouldBe Some(DUMMY_HASH2)
+  }
+
+  "updateNextBlockHash" should "successfully update the next block hash" in {
+    val blockInfo = TestBlockInfo
+
+    db.putBlockInfo(TestData.blockHash, blockInfo)
+    db.getBlockInfo(TestData.blockHash).get.nextBlockHash shouldBe None
+    db.updateNextBlockHash(TestData.blockHash, Some(DUMMY_HASH1))
+
+    db.getBlockInfo(TestData.blockHash).get.nextBlockHash shouldBe Some(DUMMY_HASH1)
+  }
+
+  "updateNextBlockHash" should "hit an assertion if the block hash does not exist" in {
+    intercept[AssertionError] {
+      db.updateNextBlockHash(DUMMY_HASH1, None)
+    }
+  }
 }

@@ -32,9 +32,8 @@ class ApiServer {
        .handler(new LoggingHandler(LogLevel.INFO))
        .childHandler(new ApiServerInitializer(sslCtx))
 
-      val ch: Channel = b.bind(port).sync.channel
+      b.bind(port)
       logger.info("ScaleChain API available at " + (if (useSSL) "https" else "http") + "://127.0.0.1:" + port + '/')
-      ch.closeFuture.sync
     } finally {
       bossGroup.shutdownGracefully
       workerGroup.shutdownGracefully

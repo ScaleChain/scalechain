@@ -17,7 +17,6 @@ class BlockDatabaseWithRocks extends BlockDatabaseTestTrait with BeforeAndAfterE
 
   var db : BlockDatabase = null
 
-
   override def beforeEach() {
 
     val testPath = new File("./target/unittests-BlockDatabaseWithRocks")

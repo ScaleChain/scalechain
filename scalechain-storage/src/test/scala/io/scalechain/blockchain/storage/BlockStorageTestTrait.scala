@@ -30,7 +30,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
 
 
   "getBlockHeight" should "return -1 for the hash with all zero values" in {
-    storage.getBlockHeight(ALL_ZERO_HASH) shouldBe Some(-1)
+    storage.getBlockHeight(ALL_ZERO_HASH) shouldBe None
   }
 
   "getBlockHeight" should "return the height of the block" in {
@@ -278,6 +278,32 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
       storage.getBlock(newBlock.header.hash).map(_._2) shouldBe Some(newBlock)
 
       blocksStored += 1
+    }
+  }
+
+  "putBlockHashByHeight/getBlockHashByHeight" should "successfully put/get data" in {
+    storage.getBlockHashByHeight(0) shouldBe None
+    storage.getBlockHashByHeight(1) shouldBe None
+
+    storage.putBlockHashByHeight(0, blockHash1)
+    storage.putBlockHashByHeight(1, blockHash2)
+
+    storage.getBlockHashByHeight(0) shouldBe Some(blockHash1)
+    storage.getBlockHashByHeight(1) shouldBe Some(blockHash2)
+  }
+
+  "updateNextBlockHash" should "successfully update the next block hash" in {
+    storage.putBlock(block1) shouldBe true
+
+    storage.getBlockInfo(blockHash1).get.nextBlockHash shouldBe None
+    storage.updateNextBlockHash(blockHash1, Some(blockHash2))
+
+    storage.getBlockInfo(blockHash1).get.nextBlockHash shouldBe Some(blockHash2)
+  }
+
+  "updateNextBlockHash" should "hit an assertion if the block hash does not exist" in {
+    intercept[AssertionError] {
+      storage.updateNextBlockHash(blockHash1, None)
     }
   }
 

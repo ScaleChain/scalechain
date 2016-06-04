@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 import io.scalechain.blockchain.proto._
+import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil._
 
 import org.scalatest.{FlatSpec, ShouldMatchers}
@@ -22,6 +23,7 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
     if (message != null) {
       val encodedBits = encode(message)
 
+      println(s"encodedBits=${HexUtil.hex(encodedBits.toByteArray)}")
       encodedBits shouldBe payloadBits
     }
   }

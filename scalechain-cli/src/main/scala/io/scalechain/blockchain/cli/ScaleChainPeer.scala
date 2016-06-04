@@ -173,7 +173,6 @@ object ScaleChainPeer {
     assert( chain.getBestBlockHash().isDefined )
 
 
-
     // Step 6 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
     val peerCommunicator: PeerCommunicator = initializeNetLayer(params)
@@ -188,8 +187,6 @@ object ScaleChainPeer {
     // TODO : Pass Wallet as a parameter.
     RpcSubSystem.create(chain, peerCommunicator)
     JsonRpcMicroservice.runService(params.apiInboundPort)
-
-
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS )
