@@ -19,7 +19,7 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
     * @param message The messages to handle.
     * @return The list of responses we created after handling each message in messages.
     */
-  def handle(message : ProtocolMessage): Option[ProtocolMessage] = {
+  def handle(message : ProtocolMessage): Unit = {
     // Return Some[ProtocolMessage] if we need to reply a message. Return None otherwise.
     message match {
       case version: Version => {

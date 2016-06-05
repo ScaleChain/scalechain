@@ -71,9 +71,8 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
 
 /** Maintains the best blockchain, whose chain work is the biggest one.
   *
-  * The blocks are kept in a tree data structure in memory.
-  * The actual block data is not kept in memory, but the link from the child block to a parent block, as well as
-  * summarizing information such as block hash and transaction count are kept.
+  * The block metadata is kept in a tree data structure on-disk.
+  * The actual block data is also kept on-disk.
   *
   * [ Overview ]
   *
@@ -96,9 +95,12 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   *           ↘ B2
   *
   * Only transactions in the best blockchain remain effective.
-  * Because B2 remains in a fork, all transactions in B2 are migrated to the mempool, except ones that are included in B3.
+  * Because B2 remains in a fork, all transactions in B2 are migrated to the disk-pool, except ones that are included in B3.
   *
-  * The mempool is where transactions that are not in any block of the best blockchain are stored.
+  * The disk-pool is where transactions that are not in any block of the best blockchain are stored.
+  * ( Bitcoin core stores transactions in memory using mempool, but ScaleChain stores transactions on-disk using disk-pool ;-). )
+  * TransactionDescriptor can either store record location of the transaction if the transaction was written as part of a block on disk.
+  * Otherwise, TransactionDescriptor can stores a serialized transaction, and TransactionDescriptor itself is stored as a value of RocksDB keyed by the transaction hash.
   *
   * Of course, block a reorganization can invalidate more than two blocks at once.
   *
@@ -113,7 +115,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   *   B0(10) → B1(30) → B2(45)
   *          ↘ B1'(35) -> B2'(55) : The best chain.
   *
-  * In this case all transactions in B1, B2 but not in B1' and B2' are moved to the mempool so that they can be added to
+  * In this case all transactions in B1, B2 but not in B1' and B2' are moved to the disk-pool so that they can be added to
   * the block chain later when a new block is created.
   *
   */
@@ -136,14 +138,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   var theBestBlock : BlockInfo = null
 
-  /** The blocks whose parents were not received yet.
-    */
-  val orphanBlocks = new OrphanBlocks()
-
-  /** The memory pool for transient transactions that are valid but not stored in any block.
-    */
-  val mempool = new TransactionMempool(storage)
-
   /** Put a block onto the blockchain.
     *
     * (1) During initialization, we call putBlock for each block we received until now.
@@ -163,75 +157,62 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
         logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
       } else {
 
-        // Step 0 : Check if the block is the genesis block
+        // Case 1. If it is the genesis block, set the genesis block as the current best block.
         if (block.header.hashPrevBlock.isAllZero()) {
           assert(theBestBlock == null)
           storage.putBlock(block)
           storage.putBlockHashByHeight(0, blockHash)
           theBestBlock = storage.getBlockInfo(blockHash).get
           chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
-        } else {
+        } else { // Case 2. Not a genesis block.
           assert(theBestBlock != null)
 
-          // Step 1 : Get the block descriptor of the previous block.
+          // Step 2.1 : Get the block descriptor of the previous block.
           val prevBlockDesc: Option[BlockInfo] = storage.getBlockInfo(block.header.hashPrevBlock)
+          // We already checked if the parent block exists.
+          assert(prevBlockDesc.isDefined)
 
-          // Step 2 : Create a new block descriptor for the given block.
-          if (prevBlockDesc.isEmpty) {
-            logger.warn("An orphan block was found.")
-            // The parent block was not received yet. Put it into an orphan block list.
-            orphanBlocks.put(blockHash, block)
+          // Case 2.A : The previous block of the new block is the current best block.
+          if (prevBlockDesc.get.blockHeader.hash.value == theBestBlock.blockHeader.hash.value) {
+            // Step 2.A.1 : Update the best block
+            storage.putBlock(block)
+            val blockInfo = storage.getBlockInfo(blockHash).get
+            storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
-            // BUGBUG : An attacker can fill up my memory with lots of orphan blocks.
-          } else {
-            // Step 3 : Check if the previous block of the new block is the current best block.
-            if (prevBlockDesc.get.blockHeader.hash.value == theBestBlock.blockHeader.hash.value) {
-              // Step 3.A.1 : Update the best block
-              storage.putBlock(block)
-              val blockInfo = storage.getBlockInfo(blockHash).get
-              storage.putBlockHashByHeight(blockInfo.height, blockHash)
+            theBestBlock = blockInfo
 
+            // TODO : Update best block in wallet (so we can detect restored wallets)
+
+            // Step 2.A.2 : Remove transactions in the block from the disk-pool.
+            // TODO : Implement.
+            assert(false)
+            /*
+            block.transactions.foreach { transaction =>
+              mempool.del(transaction.hash)
+            }
+            */
+
+            chainEventListener.map(_.onNewBlock(ChainBlock(height = blockInfo.height, block)))
+
+            logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
+
+          } else { // Case 2.B : The previous block of the new block is NOT the current best block.
+            storage.putBlock(block)
+            val blockInfo = storage.getBlockInfo(blockHash).get
+            theBestBlock = blockInfo
+
+            // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
+            if (blockInfo.chainWork > theBestBlock.chainWork) {
+              logger.warn("Block reorganization started.")
+
+              // Step 3.B.2 : Reorganize the blocks.
+              // transaction handling, orphan block handling is done in this method.
+              reorganize(originalBestBlock = theBestBlock, newBestBlock = blockInfo)
+
+              // Step 3.B.3 : Update the best block
               theBestBlock = blockInfo
 
-
-              // Step 3.A.2 : Remove transactions in the block from the mempool.
-              block.transactions.foreach { transaction =>
-                mempool.del(transaction.hash)
-              }
-
-              // Step 3.A.3 : Check if the new block is a parent of an orphan block.
-              val orphans = orphanBlocks.findByDependency(blockHash)
-              orphans.map { blocks =>
-                orphanBlocks.remove(blockHash)
-                blocks.get foreach { orphanBlock =>
-                  // Step 6 : Recursively call putBlock to put the orphans
-                  putBlock(blockHash, orphanBlock)
-                }
-              }
-
-              chainEventListener.map(_.onNewBlock(ChainBlock(height = blockInfo.height, block)))
-
-              logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
-
-            } else {
-              storage.putBlock(block)
-              val blockInfo = storage.getBlockInfo(blockHash).get
-              theBestBlock = blockInfo
-
-              if (blockInfo.chainWork > theBestBlock.chainWork) {
-                logger.warn("Block reorganization is required.")
-              }
-              /*
-              // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
-              if (blockDesc.chainWork > theBestBlock.chainWork) {
-                // Step 3.B.2 : Reorganize the blocks.
-                // transaction handling, orphan block handling is done in this method.
-                reorganize(originalBestBlock = theBestBlock, newBestBlock = blockDesc)
-
-                // Step 3.B.3 : Update the best block
-                theBestBlock = blockDesc
-              }
-              */
+              // TODO : Update best block in wallet (so we can detect restored wallets)
             }
           }
         }
@@ -246,6 +227,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
       val txHash = transaction.hash
+      // TODO : Implement using disk-pool, instead of mempool.
+      assert(false)
+      /*
       if ( mempool.exists(txHash)) {
         logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
       } else {
@@ -253,7 +237,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
         chainEventListener.map(_.onNewTransaction(transaction))
 
         logger.info(s"A new transaction was put into mempool. Hash : ${txHash}")
-      }
+      }&/
     }
   }
 
@@ -342,20 +326,88 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     // Step 1 : find the common ancestor of the two blockchains.
     val commonBlock : BlockInfo = findCommonBlock(originalBestBlock, newBestBlock)
 
-    // The transactions to add to the mempool. These are ones in the invalidated blocks but are not in the new blocks.
-    val transactionsToAddToMempool : Seq[Transaction] = null
-
     // TODO : Call chainEventListener : onNewBlock, onRemoveBlock
 
-    // Step 2 : TODO : transactionsToAddToMempool: add all transactions in (commonBlock, originalBestBlock] to transactions.
+    /*
 
-    // Step 3 : TODO : transactionsToAddToMempool: remove all transactions in (commonBlock, newBestBlock]
+      // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
 
-    // Step 4 : TODO : move transactionsToAddToMempool to mempool.
+      // Step 2 : Get the list of blocks to disconnect from the common block to the tip of the current blockchain
 
-    // Step 5 : TODO : update the best block in the storage layer.
+      // Step 3 : Get the list of blocks to connect from the common block to the longer blockchain.
 
+      // Step 4 : Reorder the list of blocks to connect so that the blocks with lower height come first.
 
+      // Step 5 : Disconnect blocks from the current (shorter) blockchain. (order : newest to oldest)
+      LOOP block := For each block to disconnect
+          // Step 5.1 : Read each block, and disconnect each block.
+          block.ReadFromDisk(pindex)
+          block.DisconnectBlock(txdb, pindex)
+              1. Mark all outputs spent by all inputs of all transactions in the block as unspent.
+              LOOP tx := For each transaction in the block
+                  1.1. Mark outputs pointed by the inputs of the transaction unspent.
+                  tx.DisconnectInputs
+                      - LOOP input := For each input in the transaction
+                          - Get the transaction pointed by the input
+                          - On disk, Mark the output point by the input as spent
+              2. On disk, disconnect from the previous block
+                  (previous block.next = null)
+
+          // Step 5.2 : Prepare transactions to add back to the mempool.
+      }
+
+      // Step 6 : Connect blocks from the longer blockchain to the current blockchain. (order : oldest to newest)
+      LOOP block := For each block to connect
+          // kangmo : comment - Step 6.1 : Read block, connect the block to the current blockchain, which does not have the disconnected blocks.
+          block.ReadFromDisk(pindex)
+          block.ConnectBlock(txdb, pindex)
+              - 1. Do preliminary checks for a block
+              pblock->CheckBlock()
+
+              - 2. Prepare a queue for database changes marking outputs spent by all inputs of all transactions in the block.
+              map<uint256, CTxIndex> mapQueuedChanges;
+
+              - 3. Populate mapQueuedChanges with transaction outputs marking which transactions are spending each of the outputs.
+              LOOP tx := For each transaction in the block
+                  - 3.1 Mark transaction outputs pointed by inputs of this transaction spent.
+                  IF not coinbase transaction
+                      CTransaction::ConnectInputs( .. & mapQueuedChanges .. )
+                          LOOP input := for each input in the transaction
+                              // 1. read CTxIndex from disk if not read yet.
+                              // 2. read the transaction that the outpoint points from disk if not read yet.
+                              // 3. Increase DoS score if an invalid output index was found in a transaction input.
+                              // 4. check coinbase maturity for outpoints spent by a transaction.
+                              // 5. Skip ECDSA signature verification when connecting blocks (fBlock=true) during initial download
+                              // 6. check double spends for each OutPoint of each transaction input in a transaction.
+                              // 7. check value range of each input and sum of inputs.
+                              // 8. for the transaction output pointed by the input, mark this transaction as the spending transaction of the output.
+
+                          // check if the sum of input values is greater than or equal to the sum of outputs.
+                          // make sure if the fee is not negative.
+                          // check the minimum transaction fee for each transaction.
+                  // Add UTXO : set all outputs are unspent for the newly connected transaction.
+
+              - 4. For each items in mapQueuedChanges, write to disk.
+              - 5. Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+              - 6. On disk, connect the block from the previous block. (previous block.next = this block)
+
+              - 7. For each transaction, sync with wallet.
+              LOOP tx := For each transaction in the block
+                  SyncWithWallets
+                      - For each registered wallet
+                           pwallet->AddToWalletIfInvolvingMe
+          // Step 6.2 : Prepare transactions to remove from the mempool
+      }
+
+      // Step 7 : Write the hash of the tip block on the best blockchain, commit the db transaction.
+
+      // Step 8 : Set the next block pointer for each connected block. Also, set next block pointer to null for each disconnected block.
+      // Note : next pointers of in-memory block index nodes are modified after the on-disk transaction commits the on-disk version of the next pointers.
+
+      // Step 9 : add transactions in the disconnected blocks to the mempool.
+
+      // Step 10 : Remove transactions in the connected blocks from the mempool.
+*/
   }
 
   /** Get the descriptor of the common ancestor of the two given blocks.
