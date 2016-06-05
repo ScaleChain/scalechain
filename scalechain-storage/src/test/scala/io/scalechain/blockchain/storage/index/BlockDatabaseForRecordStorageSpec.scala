@@ -69,9 +69,9 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
       assert(txDesc.isDefined)
       // The block file number should be same for the transaction locator and block locator, as the transaction is in the block.
-      txDesc.get.transaction.left.get.fileIndex shouldBe BLOCK_LOCATOR.fileIndex
+      txDesc.get.transactionLocatorOption.get.fileIndex shouldBe BLOCK_LOCATOR.fileIndex
       // The transaction comes after the block header on the block file.
-      txDesc.get.transaction.left.get.recordLocator.offset should be > BLOCK_LOCATOR.recordLocator.offset
+      txDesc.get.transactionLocatorOption.get.recordLocator.offset should be > BLOCK_LOCATOR.recordLocator.offset
     }
   }
 

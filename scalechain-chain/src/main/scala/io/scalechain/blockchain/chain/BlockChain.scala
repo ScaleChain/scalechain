@@ -10,7 +10,6 @@ import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockInfoFactory, BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
 import io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.chain.mempool.{TransactionMempool, TransientTransactionStorage}
 import io.scalechain.blockchain.transaction._
 import io.scalechain.util.Utils
 import org.slf4j.LoggerFactory
@@ -109,7 +108,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
   /** Set an event listener of the blockchain.
     *
-    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction mempool..
+    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
     */
   def setEventListener( listener : ChainEventListener ): Unit = {
     chainEventListener = Some(listener)
@@ -180,13 +179,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
             // TODO : Update best block in wallet (so we can detect restored wallets)
 
             // Step 2.A.2 : Remove transactions in the block from the disk-pool.
-            // TODO : BUGBUG : ASSERT : Implement.
-            //assert(false)
-            /*
             block.transactions.foreach { transaction =>
-              mempool.del(transaction.hash)
+              storage.delTransactionFromPool(transaction.hash)
             }
-            */
 
             chainEventListener.map(_.onAttachBlock(ChainBlock(height = blockInfo.height, block)))
 
@@ -216,24 +211,14 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     }
   }
 
-  /** Put a transaction we received from peers into the mempool.
+  /** Put a transaction we received from peers into the disk-pool.
     *
-    * @param transaction The transaction to put into the mempool.
+    * @param transaction The transaction to put into the disk-pool.
     */
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
       val txHash = transaction.hash
-      // TODO : Implement using disk-pool, instead of mempool.
-      assert(false)
-      /*
-      if ( mempool.exists(txHash)) {
-        logger.info(s"A duplicate transaction in the mempool was discarded. Hash : ${txHash}")
-      } else {
-        mempool.put(transaction)
-        chainEventListener.map(_.onNewTransaction(transaction))
-
-        logger.info(s"A new transaction was put into mempool. Hash : ${txHash}")
-      }*/
+      addTransactionToDiskPool(txHash, transaction)
     }
   }
 
@@ -268,9 +253,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     //val difficultyBits = getDifficulty()
     val difficultyBits = 10
 
-    // TODO : implement using disk-pool.
-    assert(false)
-    val validTransactions : Iterator[Transaction] = null //mempool.getValidTransactions()
+    val validTransactions : List[Transaction] = storage.getTransactionsFromPool().map {
+      case (txHash, transaction) => transaction
+    }
     // Select transactions by priority and fee. Also, sort them.
     val sortedTransactions = selectTransactions(validTransactions, Block.MAX_SIZE)
     val generationTranasction =
@@ -298,7 +283,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
-  protected def selectTransactions(transactions : Iterator[Transaction], maxBlockSize : Int) : List[Transaction] = {
+  protected def selectTransactions(transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
     // Step 1 : TODO : Select high priority transactions
 
 
@@ -412,31 +397,48 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * Assumption : The transaction was pointing to a transaction record location, which points to a transaction written while the block was put into disk.
     *
-    * @param transactionHash The hash of the transaction to add.
+    * @param txHash The hash of the transaction to add.
     * @param transaction The transaction to add to the disk-pool.
     */
 
-  protected[chain] def addTransactionToDiskPool(transactionHash : Hash, transaction : Transaction) : Unit = {
-    val Some(txDesc) = storage.getTransactionDescriptor(transactionHash)
-    // The transaction was from a block in the current best blockchain. It should have Left(transaction record locator on the block data file.)
-    assert(txDesc.transaction.isLeft)
-    storage.putTransactionDescriptor(
-      transactionHash,
-      txDesc.copy(
-        transaction = Right(transaction) // Keep the transaction itself instead of the transaction record locator.
-      )
-    )
+  protected[chain] def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
+    if ( storage.getTransactionFromPool(txHash).isDefined ) {
+      logger.info(s"A duplicate transaction in the pool was discarded. Hash : ${txHash}")
+    } else {
+      // TODO : Should we check if the transaction descriptor already exists?
+
+      // Step 1 : Add to the transaction pool.
+      storage.putTransactionToPool(txHash, transaction)
+
+      // Step 2 : See if the transaction descriptor already exists.
+      val txDescOption = storage.getTransactionDescriptor(txHash)
+
+      if ( txDescOption.isEmpty) {
+        // Step 3 : If the transaction descriptor does not exist yet, add the transaction descriptor without the transactionLocatorOption.
+        //          The transaction descriptor is necessary to mark the outputs of the transaction either spent or unspent.
+        val txDesc =
+          TransactionDescriptor(
+            transactionLocatorOption = None,
+            List.fill(transaction.outputs.length)(None) )
+
+        storage.putTransactionDescriptor(txHash, txDesc)
+      }
+
+      chainEventListener.map(_.onNewTransaction(transaction))
+
+      logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
+    }
   }
 
   /**
     * Remove a transaction from the disk pool.
     *
-    * @param transactionHash The hash of the transaction to remove.
-    * @param transaction The transaction to remove from the disk-pool.
+    * @param txHash The hash of the transaction to remove.
     */
-  protected[chain] def removeTransactionFromDiskPool(transactionHash : Hash, transaction : Transaction) : Unit = {
-    // TODO : Implement. We need to set the transaction record locator. Can we do it without writing the block once more?
-    assert(false)
+  protected[chain] def removeTransactionFromDiskPool(txHash : Hash) : Unit = {
+    // Note : We should not touch the TransactionDescriptor.
+    storage.delTransactionFromPool(txHash)
+
   }
 
   /**
@@ -542,7 +544,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     // TODO : Step 4 : check the minimum transaction fee for each transaction.
 
     // Step 5 : Remove the transaction from the disk pool.
-    removeTransactionFromDiskPool(transactionHash, transaction)
+    removeTransactionFromDiskPool(transactionHash)
   }
 
 
@@ -820,17 +822,19 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * Used by listtransaction RPC to get the
     *
-    * @param transactionHash The transaction hash to search.
+    * @param txHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-    // Step 1 : Search block database.
-    val dbTransactionOption = storage.getTransaction( transactionHash )
+  def getTransaction(txHash : Hash) : Option[Transaction] = {
+    // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
-    // Step 2 : TODO : Run validation.
+    // Step 1 : Search block database.
+    val dbTransactionOption = storage.getTransaction( txHash )
+
+    // Step 3 : TODO : Run validation.
 
     //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
-    //mempoolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+    //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
     //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
     dbTransactionOption

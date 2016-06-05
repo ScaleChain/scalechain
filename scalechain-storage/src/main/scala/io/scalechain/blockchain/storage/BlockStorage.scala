@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with OrphanBlockIndex with OrphanTransactionIndex {
+trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionPool with OrphanBlockIndex with OrphanTransactionIndex {
   private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
   protected[storage] val blockDatabase : BlockDatabase
 

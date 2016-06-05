@@ -124,10 +124,16 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
     */
   def putTransactions(transactions : List[(Transaction, TransactionLocator)]) = {
     for ( (transaction, txLocatorDesc) <- transactions) {
+
+      // We may already have a transaction descriptor for the transaction.
+      val txDescOption = getTransactionDescriptor(txLocatorDesc.txHash)
+      // Keep the outputs spent by if it already exists.
+      val outpusSpentBy = txDescOption.map( _.outputsSpentBy).getOrElse( List.fill(transaction.outputs.length)(None) )
       val txDesc =
         TransactionDescriptor(
-          Left(txLocatorDesc.txLocator),
-          List.fill(transaction.outputs.length)(None) )
+          Some(txLocatorDesc.txLocator),
+          outpusSpentBy
+        )
 
       putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
 

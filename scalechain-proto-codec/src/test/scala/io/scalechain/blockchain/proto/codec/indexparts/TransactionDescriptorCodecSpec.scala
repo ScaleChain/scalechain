@@ -13,12 +13,12 @@ class TransactionDescriptorCodecSpec extends CodecSuite with ProtoTestData {
   val DUMMY_HASH2 = Hash ( "2" * 64 )
 
   val txDesc1 = TransactionDescriptor(
-    transaction = Left( FileRecordLocator( 1, RecordLocator(2,3)) ),
+    transactionLocatorOption = Some( FileRecordLocator( 1, RecordLocator(2,3) ) ),
     outputsSpentBy = List( None, Some(InPoint(DUMMY_HASH1, 1)), None )
   )
 
   val txDesc2 = TransactionDescriptor(
-    transaction = Right( TransactionSpec.SampleTransaction ),
+    transactionLocatorOption = None,
     outputsSpentBy = List( None, None, Some(InPoint(DUMMY_HASH2, 2)) )
   )
 

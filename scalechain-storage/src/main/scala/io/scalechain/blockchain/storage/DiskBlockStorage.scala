@@ -255,15 +255,22 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
   }
 
 
+  /** Return a transaction that matches the given transaction hash.
+    *
+    * @param transactionHash
+    * @return
+    */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
       val txDescriptorOption = blockDatabase.getTransactionDescriptor(transactionHash)
       txDescriptorOption.map { txDesc: TransactionDescriptor =>
-        txDesc.transaction match {
-          case Left(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
-          case Right(transaction) => transaction
+        txDesc.transactionLocatorOption match {
+          // The transaction was written as part of a block.
+          case Some(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
+          // The transaction is in the pool.
+          case None => getTransactionFromPool(transactionHash).get
         }
       }
     }
