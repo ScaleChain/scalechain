@@ -203,7 +203,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   def addBlock(block: Block) : Unit = {
     val blockHeight = blockIndex.bestBlockHeight+1
     blockIndex.addBlock(block, blockHeight)
-    chainEventListener.map(_.onNewBlock(
+    chainEventListener.map(_.onAttachBlock(
       ChainBlock(blockHeight, block)
     ))
   }

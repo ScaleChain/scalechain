@@ -646,7 +646,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @param chainBlock The block added to the best blockchain.
     */
-  def onNewBlock(chainBlock:ChainBlock) : Unit = {
+  def onAttachBlock(chainBlock:ChainBlock) : Unit = {
     var transactionIndex = -1
     chainBlock.block.transactions foreach { transaction =>
       transactionIndex += 1
@@ -663,7 +663,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @param chainBlock The block to remove from the best blockchain.
     */
-  def onRemoveBlock(chainBlock:ChainBlock) : Unit = {
+  def onDetachBlock(chainBlock:ChainBlock) : Unit = {
     chainBlock.block.transactions foreach { transaction =>
       unregisterTransaction( store.getOutputOwnerships(None), transaction )
     }

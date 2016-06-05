@@ -159,7 +159,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
           setBestBlock(blockHash, storage.getBlockInfo(blockHash).get )
 
-          chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
+          chainEventListener.map(_.onAttachBlock(ChainBlock( height = 0, block)))
         } else { // Case 2. Not a genesis block.
           assert(theBestBlock != null)
 
@@ -188,7 +188,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
             }
             */
 
-            chainEventListener.map(_.onNewBlock(ChainBlock(height = blockInfo.height, block)))
+            chainEventListener.map(_.onAttachBlock(ChainBlock(height = blockInfo.height, block)))
 
             logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
 
@@ -473,7 +473,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     }
 
     // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onRemoveBlock( ChainBlock(blockInfo.height, block ) ) )
+    chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
   }
 
   /**
@@ -571,7 +571,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
 
     // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onNewBlock( ChainBlock(blockInfo.height, block ) ) )
+    chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )
   }
 
   /**

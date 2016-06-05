@@ -14,6 +14,9 @@ object DatabaseTablePrefixes {
   val BEST_BLOCK_HASH : Byte = 'B'
   val BLOCK_HEIGHT : Byte = 'h'
 
+  // The disk-pool, which keeps transactions on disk instead of mempool.
+  val TRANSACTION_POOL : Byte = 'd'
+
   val ORPHAN_BLOCK : Byte = '1'
   val ORPHAN_TRANSACTION : Byte = '2'
   val ORPHAN_BLOCKS_BY_PARENT : Byte = '3'
