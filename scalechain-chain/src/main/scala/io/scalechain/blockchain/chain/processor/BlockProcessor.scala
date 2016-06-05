@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{Hash, Block}
 
 /** Process a received block.
@@ -66,10 +67,11 @@ object BlockProcessor {
 
   /**
     * Validate a block.
+    *
     * @param block
     * @return
     */
-  def isValid(block : Block) : Boolean = {
+  def validateBlock(block : Block) : Unit = {
     // Step 1. check the serialized block size.
     // Step 2. check the proof of work - block hash vs target hash
     // Step 3. check the block timestamp.
@@ -78,15 +80,19 @@ object BlockProcessor {
     // Step 6. check the number of script operations on the locking/unlocking script.
     // Step 7. Calculate the merkle root hash, compare it with the one in the block header.
     // TODO : Implement
+/*
+    val message = s"The block is invalid(${outPoint})."
+    logger.warn(message)
+    throw new ChainException(ErrorCode.InvalidBlock, message)
+*/
     assert(false)
-    false
   }
 
   /**
     * Put the block into the blockchain. If a fork becomes the new best blockchain, do block reorganization.
+    *
     * @param blockHash The hash of the block to accept.
     * @param block The block to accept.
-    *
     * @return true if the newly accepted block became the new best block.
     */
   def acceptBlock(blockHash : Hash, block : Block) : Boolean = {
@@ -106,6 +112,7 @@ object BlockProcessor {
 
   /**
     * Remove the block from the orphan blocks.
+    *
     * @param block The block to delete from orphans.
     */
   protected[chain] def delOrphan(block : Block) : Unit = {

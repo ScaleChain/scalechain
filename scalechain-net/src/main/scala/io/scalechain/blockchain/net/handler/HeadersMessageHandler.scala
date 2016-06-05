@@ -15,9 +15,8 @@ object HeadersMessageHandler {
     * @param headers The Headers message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, headers : Headers ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, headers : Headers ) : Unit = {
     // TODO : Implement
-    None
 
 /*
     // Step 1 : read block headers

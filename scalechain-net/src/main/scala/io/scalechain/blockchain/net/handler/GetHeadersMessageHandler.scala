@@ -22,9 +22,8 @@ object GetHeadersMessageHandler {
     * @param getHeaders The GetHeaders message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit = {
     // TODO : Implement
-    None
 
 /*
     // Step 1 : Get the latest common block with the caller in the best blockchain.

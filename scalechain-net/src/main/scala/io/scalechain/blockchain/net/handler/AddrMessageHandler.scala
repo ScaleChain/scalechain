@@ -15,8 +15,7 @@ object AddrMessageHandler {
     * @param addr The Addr message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, addr : Addr ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, addr : Addr ) : Unit = {
     // TODO : Implement
-    None
   }
 }

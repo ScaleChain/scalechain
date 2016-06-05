@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
@@ -37,24 +38,6 @@ object Blockchain {
 
 
 class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
-
-  /** Starting from the best block, crawl up to the genesis block to create the list of block hashes.
-    * This is necessary, as we need to calculate chainwork from the genesis block to the best block,
-    * but the BlockStorage provides the backward link from a block to the previous block of it.
-    *
-    */
-  @tailrec
-  final protected[chain] def getBlockHashList(currentBlockHash : Hash, blockHashList : List[Hash]): List[Hash] = {
-    val env = ChainEnvironment.get
-    if ( currentBlockHash.value == env.GenesisBlockHash.value ) { // The base case. We reached from the best block to the genesis block.
-      currentBlockHash :: blockHashList
-    } else { // We have more blocks to back-track.
-      val blockInfo = storage.getBlockInfo(Hash( currentBlockHash.value) )
-      assert(blockInfo.isDefined)
-
-      getBlockHashList(blockInfo.get.blockHeader.hashPrevBlock, currentBlockHash :: blockHashList)
-    }
-  }
 
   def load() : Unit = {
     val bestBlockHashOption = storage.getBestBlockHash()
@@ -138,6 +121,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   var theBestBlock : BlockInfo = null
 
+  /**
+    * Put the best block hash into on-disk storage, as well as the in-memory best block info.
+    *
+    * @param blockHash
+    * @param blockInfo
+    */
+  protected[chain] def setBestBlock(blockHash : Hash, blockInfo : BlockInfo) : Unit = {
+    theBestBlock = blockInfo
+    storage.putBestBlockHash(blockHash)
+  }
+
   /** Put a block onto the blockchain.
     *
     * (1) During initialization, we call putBlock for each block we received until now.
@@ -162,7 +156,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
           assert(theBestBlock == null)
           storage.putBlock(block)
           storage.putBlockHashByHeight(0, blockHash)
-          theBestBlock = storage.getBlockInfo(blockHash).get
+
+          setBestBlock(blockHash, storage.getBlockInfo(blockHash).get )
+
           chainEventListener.map(_.onNewBlock(ChainBlock( height = 0, block)))
         } else { // Case 2. Not a genesis block.
           assert(theBestBlock != null)
@@ -179,13 +175,13 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
             val blockInfo = storage.getBlockInfo(blockHash).get
             storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
-            theBestBlock = blockInfo
+            setBestBlock( blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
 
             // Step 2.A.2 : Remove transactions in the block from the disk-pool.
-            // TODO : Implement.
-            assert(false)
+            // TODO : BUGBUG : ASSERT : Implement.
+            //assert(false)
             /*
             block.transactions.foreach { transaction =>
               mempool.del(transaction.hash)
@@ -210,7 +206,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
               reorganize(originalBestBlock = theBestBlock, newBestBlock = blockInfo)
 
               // Step 3.B.3 : Update the best block
-              theBestBlock = blockInfo
+              setBestBlock(blockHash, blockInfo)
 
               // TODO : Update best block in wallet (so we can detect restored wallets)
             }
@@ -237,7 +233,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
         chainEventListener.map(_.onNewTransaction(transaction))
 
         logger.info(s"A new transaction was put into mempool. Hash : ${txHash}")
-      }&/
+      }*/
     }
   }
 
@@ -272,7 +268,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     //val difficultyBits = getDifficulty()
     val difficultyBits = 10
 
-    val validTransactions = mempool.getValidTransactions()
+    // TODO : implement using disk-pool.
+    assert(false)
+    val validTransactions : Iterator[Transaction] = null //mempool.getValidTransactions()
     // Select transactions by priority and fee. Also, sort them.
     val sortedTransactions = selectTransactions(validTransactions, Block.MAX_SIZE)
     val generationTranasction =
@@ -314,23 +312,351 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     transactions.toList
   }
 
+  /**
+    * Mark an output spent by the given in-point.
+    *
+    * @param outPoint The out-point that points to the output to mark.
+    * @param inPoint The in-point that points to a transaction input that spends to output.
+    */
+  protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint): Unit = {
+    val Some(txDesc) = storage.getTransactionDescriptor(outPoint.transactionHash)
+    // TODO : BUGBUG : indexing into a list is slow. Optimize the code.
+    if ( outPoint.outputIndex < 0 || txDesc.outputsSpentBy.length <= outPoint.outputIndex ) {
+      // TODO : Add DoS score. The outpoint in a transaction input was invalid.
+      val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) has invalid transaction output index."
+      logger.warn(message)
+      throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
+    }
+
+    if( txDesc.outputsSpentBy(outPoint.outputIndex).isDefined ) { // The transaction output was already spent.
+      val message = s"An output pointed by an out-point(${outPoint}) has already been spent. The in-point(${inPoint}) tried to spend it again."
+      logger.warn(message)
+      throw new ChainException(ErrorCode.TransactionOutputAlreadySpent, message)
+    }
+
+    storage.putTransactionDescriptor(
+      outPoint.transactionHash,
+      txDesc.copy(
+        // Mark the output spent by the in-point.
+        outputsSpentBy = txDesc.outputsSpentBy.updated(outPoint.outputIndex, Some(inPoint))
+      )
+    )
+  }
+
+  /**
+    * Mark an output unspent. The output should have been marked as spent by the given in-point.
+    *
+    * @param outPoint The out-point that points to the output to mark.
+    * @param inPoint The in-point that points to a transaction input that should have spent the output.
+    */
+  protected[chain] def markOutputUnspent(outPoint : OutPoint, inPoint : InPoint): Unit = {
+    val Some(txDesc) = storage.getTransactionDescriptor(outPoint.transactionHash)
+    // TODO : BUGBUG : indexing into a list is slow. Optimize the code.
+    if ( outPoint.outputIndex < 0 || txDesc.outputsSpentBy.length <= outPoint.outputIndex ) {
+      // TODO : Add DoS score. The outpoint in a transaction input was invalid.
+      val message = s"An output pointed by an out-point(${outPoint}) has invalid transaction output index. The output should have been spent by ${inPoint}"
+      logger.warn(message)
+      throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
+    }
+
+    val SpendingInPointOption = txDesc.outputsSpentBy(outPoint.outputIndex)
+    // The output pointed by the out-point should have been spent by the transaction input poined by the given in-point.
+    assert( SpendingInPointOption.isDefined )
+
+    if( SpendingInPointOption.get != inPoint ) { // The transaction output was NOT spent by the transaction input poined by the given in-point.
+      val message = s"An output pointed by an out-point(${outPoint}) was not spent by the expected transaction input pointed by the in-point(${inPoint})."
+      logger.warn(message)
+      throw new ChainException(ErrorCode.TransactionOutputSpentByUnexpectedInput, message)
+    }
+
+    storage.putTransactionDescriptor(
+      outPoint.transactionHash,
+      txDesc.copy(
+        // Mark the output unspent.
+        outputsSpentBy = txDesc.outputsSpentBy.updated(outPoint.outputIndex, None)
+      )
+    )
+  }
+
+  /**
+    * Mark all outputs of the given transaction unspent.
+    * Called when a new transaction is attached to the best blockchain.
+    *
+    * @param txHash The hash of the transaction.
+    */
+  protected[chain] def markAllOutputsUnspent(txHash : Hash): Unit = {
+    val Some(txDesc) = storage.getTransactionDescriptor(txHash)
+    storage.putTransactionDescriptor(
+      txHash,
+      txDesc.copy(
+        // Mark all outputs unspent.
+        outputsSpentBy = List.fill(txDesc.outputsSpentBy.length)(None)
+      )
+    )
+  }
+
+
+  /**
+    * Detach the transaction input from the best blockchain.
+    * The output spent by the transaction input is marked as unspent.
+    *
+    * @param inPoint The in-point that points to the input to attach.
+    * @param transactionInput The transaction input to attach.
+    */
+  protected[chain] def detachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+    markOutputUnspent(transactionInput.getOutPoint(), inPoint)
+  }
+
+  /**
+    * Add a transaction to disk pool.
+    *
+    * Assumption : The transaction was pointing to a transaction record location, which points to a transaction written while the block was put into disk.
+    *
+    * @param transactionHash The hash of the transaction to add.
+    * @param transaction The transaction to add to the disk-pool.
+    */
+
+  protected[chain] def addTransactionToDiskPool(transactionHash : Hash, transaction : Transaction) : Unit = {
+    val Some(txDesc) = storage.getTransactionDescriptor(transactionHash)
+    // The transaction was from a block in the current best blockchain. It should have Left(transaction record locator on the block data file.)
+    assert(txDesc.transaction.isLeft)
+    storage.putTransactionDescriptor(
+      transactionHash,
+      txDesc.copy(
+        transaction = Right(transaction) // Keep the transaction itself instead of the transaction record locator.
+      )
+    )
+  }
+
+  /**
+    * Remove a transaction from the disk pool.
+    *
+    * @param transactionHash The hash of the transaction to remove.
+    * @param transaction The transaction to remove from the disk-pool.
+    */
+  protected[chain] def removeTransactionFromDiskPool(transactionHash : Hash, transaction : Transaction) : Unit = {
+    // TODO : Implement. We need to set the transaction record locator. Can we do it without writing the block once more?
+    assert(false)
+  }
+
+  /**
+    * Detach the transaction from the best blockchain.
+    *
+    * For outputs, all outputs spent by the transaction is marked as unspent.
+    *
+    * @param transaction The transaction to detach.
+    */
+  protected[chain] def detachTransaction(transaction : Transaction) : Unit = {
+    val transactionHash = transaction.hash
+    var inputIndex = -1
+    // Step 1 : Detach each transaction input
+    transaction.inputs foreach { transactionInput : TransactionInput =>
+      inputIndex += 1
+
+      detachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
+    }
+
+    // Step 2 : Move the transaction into disk-pool.
+    // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
+    addTransactionToDiskPool(transactionHash, transaction)
+  }
+
+  /**
+    * Detach a block from the best blockchain.
+    *
+    * @param blockInfo The BlockInfo of the block to detach.
+    * @param block The block to detach.
+    */
+  protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    block.transactions foreach { transaction : Transaction =>
+      detachTransaction(transaction)
+    }
+
+    // For each transaction in the block, sync with wallet.
+    chainEventListener.map( _.onRemoveBlock( ChainBlock(blockInfo.height, block ) ) )
+  }
+
+  /**
+    * Detach blocks from the best blockchain. Recent blocks are detached first. (Detach order : Newest -> Oldest )
+    *
+    * @param beforeFirst Blocks after this block are detached from the best blockchain.
+    * @param last The last block in the best blockchain.
+    */
+  @tailrec
+  protected[chain] final def detachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo, lastBlock : Block) : Unit = {
+    assert(beforeFirst.height <= last.height)
+
+    if (beforeFirst == last) {
+      // The base case. Just unlink the next block hash of the before the first block to detach.
+      storage.updateNextBlockHash(beforeFirst.blockHeader.hash, None)
+    } else {
+      detachBlock(last, lastBlock)
+      // Unlink the next block hash.
+      storage.updateNextBlockHash(last.blockHeader.hash, None)
+
+      // Get the block before the last one, continue iteration.
+      val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
+      detachBlocksAfter(beforeFirst, beforeLastInfo, beforeLastBlock)
+    }
+  }
+
+
+  /**
+    * The UTXO pointed by the transaction input is marked as spent by the in-point.
+    *
+    * @param inPoint The in-point that points to the input to attach.
+    * @param transactionInput The transaction input to attach.
+    */
+  protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+
+    // TODO : Step 1. read CTxIndex from disk if not read yet.
+    // TODO : Step 2. read the transaction that the outpoint points from disk if not read yet.
+    // TODO : Step 3. Increase DoS score if an invalid output index was found in a transaction input.
+    // TODO : Step 4. check coinbase maturity for outpoints spent by a transaction.
+    // TODO : Step 5. Skip ECDSA signature verification when connecting blocks (fBlock=true) during initial download
+    // TODO : Step 6. check value range of each input and sum of inputs.
+    // TODO : Step 7. for the transaction output pointed by the input, mark this transaction as the spending transaction of the output. check double spends.
+    markOutputSpent(transactionInput.getOutPoint(), inPoint)
+  }
+
+  /**
+    * Attach the transaction into the best blockchain.
+    *
+    * For UTXOs, all outputs spent by the transaction is marked as spent by this transaction.
+    *
+    * @param transaction The transaction to attach.
+    */
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
+    // Step 1 : Attach each transaction input
+    var inputIndex = -1
+    transaction.inputs foreach { transactionInput : TransactionInput =>
+      // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
+      assert(!transactionInput.isCoinBaseInput())
+      inputIndex += 1
+
+      attachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
+    }
+
+    // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.
+    // TODO : Step 3 : make sure if the fee is not negative.
+    // TODO : Step 4 : check the minimum transaction fee for each transaction.
+
+    // Step 5 : Remove the transaction from the disk pool.
+    removeTransactionFromDiskPool(transactionHash, transaction)
+  }
+
+
+  /**
+    * Attach a block to the best blockchain.
+    *
+    * @param block The block to attach
+    */
+  protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    // Check if the block is valid.
+    BlockProcessor.validateBlock(block)
+
+    block.transactions foreach { transaction : Transaction =>
+      val transactionHash = transaction.hash
+
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // The coin base input does not spend any previous output. Do nothing.
+      } else {
+        attachTransaction(transactionHash, transaction)
+      }
+
+      // Add UTXO : set all outputs are unspent for the newly attached transaction.
+      markAllOutputsUnspent(transactionHash)
+    }
+
+    // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+
+    // For each transaction in the block, sync with wallet.
+    chainEventListener.map( _.onNewBlock( ChainBlock(blockInfo.height, block ) ) )
+  }
+
+  /**
+    * collect BlockInfos from the last to the next block of the beforeFirst.
+    * The collected BlockInfos are kept in blockInfos List in ascending order. (Order : Oldest -> Newest)
+    *
+    * @param blockInfos The list buffer to keep the block info.
+    * @param beforeFirst Blocks after this block are collected.
+    * @param last The last block to collect.
+    */
+  @tailrec
+  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+    // TODO : Need to check if our memory is enough by checking the gap of the height between beforeFirst and last
+    if (beforeFirst == last) {
+      // The base case. Nothing to do.
+    } else {
+      // Note that we are constructing the blockInfos so that the order of the blocks in the blockInfos is from the oldest to the newest.
+      blockInfos.prepend(last)
+      val beforeLastOption : Option[BlockInfo] = storage.getBlockInfo(last.blockHeader.hashPrevBlock)
+      assert(beforeLastOption.isDefined)
+      collectBlockInfos(blockInfos, beforeFirst, beforeLastOption.get)
+    }
+  }
+
+  /**
+    * Attach blocks to the best blockchain. Oldest blocks are attached first. (Attach order : Oldest -> Newest )
+    *
+    * @param beforeFirst Blocks after this block are attached to the best blockchain.
+    * @param last The last block in the new best blockchain.
+    */
+  protected[chain] def attachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+    // Blocks NOT in the best blockchain does not have the BlockInfo.nextBlockHash.
+    // We need to track from the last back to beforeFirst, and reverse the list.
+    val blockInfos = ListBuffer[BlockInfo]()
+    collectBlockInfos(blockInfos, beforeFirst, last)
+
+    var prevBlockHash = beforeFirst.blockHeader.hash
+    // The previous block of the first block in the list buffer should be the beforeFirst block.
+    assert(prevBlockHash == blockInfos.head.blockHeader.hashPrevBlock)
+    // The last block info in the list buffer should match the last block info passed to this method.
+    assert(last == blockInfos.last)
+
+    blockInfos foreach { blockInfo : BlockInfo =>
+      val blockHash = blockInfo.blockHeader.hash
+      // Get the block
+      val Some((readBlockInfo, readBlock)) = storage.getBlock(blockHash)
+      assert(readBlockInfo == blockInfo)
+
+      attachBlock( readBlockInfo, readBlock )
+      // Link the next block hash.
+      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+
+      prevBlockHash = blockHash
+    }
+
+    // The last block should not have any next block.
+    assert( last.nextBlockHash.isEmpty )
+  }
+
+
   /** Reorganize blocks.
     * This method is called when the new best block is not based on the original best block.
     *
     * @param originalBestBlock The original best block before the new best one was found.
     * @param newBestBlock The new best block, which has greater chain work than the original best block.
     */
-  protected def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo) : Unit = {
+  protected[chain] def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo) : Unit = {
     assert( originalBestBlock.chainWork < newBestBlock.chainWork)
 
-    // Step 1 : find the common ancestor of the two blockchains.
+    // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
     val commonBlock : BlockInfo = findCommonBlock(originalBestBlock, newBestBlock)
 
     // TODO : Call chainEventListener : onNewBlock, onRemoveBlock
 
+    // Step 2 : Detach blocks after the common block to originalBestBlock, which is the tip of the current best blockchain.
+    val Some((bestBlockInfo, bestBlock )) = storage.getBlock(originalBestBlock.blockHeader.hash)
+    assert(bestBlockInfo == originalBestBlock)
+    detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock)
+
+
+    // Step 3 : Attach blocks after the common block to the newBestBlock.
+    attachBlocksAfter(commonBlock, newBestBlock)
     /*
 
-      // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
+
 
       // Step 2 : Get the list of blocks to disconnect from the common block to the tip of the current blockchain
 
@@ -498,27 +824,16 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-
-    // Step 1 : Search mempool.
-    val mempoolTransactionOption = mempool.get(transactionHash)
-
-    // Step 2 : Search block database.
+    // Step 1 : Search block database.
     val dbTransactionOption = storage.getTransaction( transactionHash )
 
-    // Step 3 : TODO : Run validation.
+    // Step 2 : TODO : Run validation.
 
     //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
     //mempoolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
     //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
-    if ( mempoolTransactionOption.isDefined ) {
-      assert(dbTransactionOption.isEmpty)
-      Some(mempoolTransactionOption.get)
-    } else if (dbTransactionOption.isDefined){
-      Some(dbTransactionOption.get)
-    } else {
-      None
-    }
+    dbTransactionOption
   }
 
   /** Return a transaction output specified by a give out point.

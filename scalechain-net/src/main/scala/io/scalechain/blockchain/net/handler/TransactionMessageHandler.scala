@@ -19,7 +19,7 @@ object TransactionMessageHandler {
     * @param transaction The Transaction message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, transaction : Transaction ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, transaction : Transaction ) : Unit = {
 
     val transactionHash = transaction.hash
     if (chain.getTransaction(transactionHash).isEmpty) { // Process the transaction only if we don't have it yet.
@@ -61,8 +61,6 @@ object TransactionMessageHandler {
         - Add the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
     }
  */
-
-    None
   }
 
 }

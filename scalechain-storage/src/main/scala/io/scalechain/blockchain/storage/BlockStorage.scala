@@ -18,6 +18,9 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with OrphanBlo
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor]
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor)
+
   /** Get the block hash at the given height on the best blockchain.
     *
     * @param height The height of the block.
@@ -88,21 +91,6 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with OrphanBlo
     getBlockHeader(blockHash).isDefined
   }
 
-  protected[storage] var bestBlockHeightOption : Option[Int] = None
-
-  protected[storage] def checkBestBlockHash(blockHash : Hash, height : Int): Unit = {
-    if (bestBlockHeightOption.isEmpty) {
-      bestBlockHeightOption = blockDatabase.getBestBlockHash().map(blockDatabase.getBlockHeight(_).get)
-    }
-
-    if (bestBlockHeightOption.isEmpty || bestBlockHeightOption.get < height) { // case 1 : the block height of the new block is greater than the highest one.
-      bestBlockHeightOption = Some(height)
-      blockDatabase.putBestBlockHash(blockHash)
-    } else { // case 2 : the block height of the new block is less than the highest one.
-      // do nothing
-    }
-  }
-
   protected[storage] def getBlockHeight(blockHash : Hash) : Option[Int] = {
     this.synchronized {
       blockDatabase.getBlockHeight(blockHash)
@@ -118,6 +106,16 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with OrphanBlo
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
       blockDatabase.getBestBlockHash()
+    }
+  }
+
+  /** Put the block header hash of the tip on the best blockchain.
+    *
+    * @param hash The best block hash
+    */
+  def putBestBlockHash(hash : Hash) : Unit = {
+    this.synchronized {
+      blockDatabase.putBestBlockHash(hash)
     }
   }
 

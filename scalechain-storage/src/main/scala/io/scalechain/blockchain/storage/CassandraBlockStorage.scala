@@ -52,8 +52,6 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
           // case 1.1 : The block was not found on the blocks table.
           putBlockToCassandra(blockHash, block)
 
-          checkBestBlockHash(blockHash, blockInfo.get.height)
-
           //logger.info("The block data was updated. block hash : {}", blockHash)
         } else {
           // case 1.2 block info with a block locator was found
@@ -82,7 +80,6 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
           putBlockToCassandra(blockHash, block)
 
           val blockHeight = blockInfo.height
-          checkBestBlockHash(blockHash, blockHeight)
 
           isNewBlock = true
           //logger.info("The new block was put. block hash : {}", blockHash)
@@ -107,6 +104,17 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     blocksTable.put( blockHash.value, BlockCodec.serialize(block))
   }
 
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    // TODO : Implement
+    assert(false)
+  }
 
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     this.synchronized {

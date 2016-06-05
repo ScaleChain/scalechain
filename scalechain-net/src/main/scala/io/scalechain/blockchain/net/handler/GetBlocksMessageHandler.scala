@@ -15,9 +15,8 @@ object GetBlocksMessageHandler {
     * @param getBlocks The GetBlocks message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle(context: MessageHandlerContext, getBlocks: GetBlocks): Option[ProtocolMessage] = {
+  def handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit = {
     // TODO : Implement
-    None
 
 /*
     // Step 1 : Get the latest common block with the caller in the best blockchain.

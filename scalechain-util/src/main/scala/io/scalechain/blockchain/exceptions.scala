@@ -89,6 +89,9 @@ object ErrorCode {
   val InvalidOutPoint                = ErrorCode("invalid_out_point")
   val InvalidBlockHeight             = ErrorCode("invalid_block_height")
   val InvalidBlockHeightOnDatabase   = ErrorCode("invalid_block_height_on_database")
+  val InvalidTransactionOutPoint     = ErrorCode("invalid_transaction_out_point")
+  val TransactionOutputAlreadySpent  = ErrorCode("transaction_output_already_spent")
+  val TransactionOutputSpentByUnexpectedInput  = ErrorCode("transaction_output_spent_by_unexpected_input")
 
 }
 

@@ -126,14 +126,20 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
           Left(txLocatorDesc.txLocator),
           List.fill(transaction.outputs.length)(None) )
 
-      db.putObject(TRANSACTION, txLocatorDesc.txHash, txDesc)(HashCodec, TransactionDescriptorCodec)
+      putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
 
       assert( txLocatorDesc.txHash == transaction.hash )
     }
   }
 
+  // TODO : Add test case
   def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
     db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
   }
 
   /** Remove a transaction from the transaction index.

@@ -15,9 +15,8 @@ object InvMessageHandler {
     * @param inv The Inv message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, inv : Inv ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, inv : Inv ) : Unit = {
     // TODO : Implement
-    None
 
 /*
     // Step 1 : Return an error if the number of inventories is more than 50,000

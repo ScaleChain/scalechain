@@ -12,23 +12,6 @@ import org.scalatest._
 trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
   var storage : BlockStorage
 
-  "checkBestBlockHash" should "pass case 1 : the block height of the new block is greater than the highest one." in {
-    storage.getBestBlockHash() shouldBe None
-    storage.checkBestBlockHash(blockHash1, 1)
-    storage.getBestBlockHash() shouldBe Some(blockHash1)
-    storage.checkBestBlockHash(blockHash2, 2)
-    storage.getBestBlockHash() shouldBe Some(blockHash2)
-  }
-
-  "checkBestBlockHash" should "pass case 2 : the block height of the new block is less than the highest one." in {
-    storage.getBestBlockHash() shouldBe None
-    storage.checkBestBlockHash(blockHash2, 2)
-    storage.getBestBlockHash() shouldBe Some(blockHash2)
-    storage.checkBestBlockHash(blockHash1, 1)
-    storage.getBestBlockHash() shouldBe Some(blockHash2)
-  }
-
-
   "getBlockHeight" should "return -1 for the hash with all zero values" in {
     storage.getBlockHeight(ALL_ZERO_HASH) shouldBe None
   }
@@ -197,12 +180,14 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
     storage.getBestBlockHash() shouldBe None
   }
 
-  "getBestBlockHash" should "return None if only the block header was put." in {
+  // The best block hash is not maintained by the storage layer any more. It is maintained by the chain layer.
+  /*
+  "getBestBlockHash" should "return None if only the block header was put." ignore {
     storage.putBlockHeader(block1.header)
     storage.getBestBlockHash() shouldBe None
   }
 
-  "getBestBlockHash" should "return the best block hash." in {
+  "getBestBlockHash" should "return the best block hash." ignore {
     storage.getBestBlockHash() shouldBe None
     storage.putBlockHeader(block1.header)
     storage.getBestBlockHash() shouldBe None
@@ -213,7 +198,7 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
     storage.putBlock(block2)
     storage.getBestBlockHash() shouldBe Some(blockHash2)
   }
-
+  */
 
   "hasBlock" should "return false if the block does not exist." in {
     storage.hasBlock(blockHash1) shouldBe false

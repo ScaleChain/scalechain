@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import java.io.File
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
+import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.storage.index.{CassandraDatabase, BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import io.scalechain.crypto.HashEstimation
@@ -183,7 +183,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             blockDatabase.putBlockInfo(blockHash, newBlockInfo)
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, newBlockInfo.height)
 
             //logger.info("The block locator was updated. block hash : {}", blockHash)
             appendResult.txLocators
@@ -218,7 +217,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             val blockHeight = blockInfo.height
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, blockHeight)
 
             isNewBlock = true
             //logger.info("The new block was put. block hash : {}", blockHash)
@@ -240,6 +238,22 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
       isNewBlock
     }
   }
+
+  // TODO : Add test case
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    // TODO : Rethink synchonization.
+    synchronized {
+      blockDatabase.getTransactionDescriptor(txHash)
+    }
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    synchronized {
+      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
+    }
+  }
+
 
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     // TODO : Refactor : Remove synchronized.
