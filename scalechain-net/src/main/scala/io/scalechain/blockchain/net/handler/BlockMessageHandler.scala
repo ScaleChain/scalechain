@@ -22,6 +22,8 @@ object BlockMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, block : Block ) : Unit = {
+    // TODO : BUGBUG : Need to think about RocksDB transactions.
+
     val blockHash = block.header.hash
 
 

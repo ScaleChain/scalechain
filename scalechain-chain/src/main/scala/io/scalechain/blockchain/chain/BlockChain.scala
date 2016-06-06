@@ -145,6 +145,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param block The block to put into the blockchain.
     */
   def putBlock(blockHash : Hash, block:Block) : Unit = {
+    // TODO : BUGBUG : Need to think about RocksDB transactions.
+
     synchronized {
       if (storage.hasBlock(blockHash)) {
         logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
@@ -217,8 +219,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   def putTransaction(transaction : Transaction) : Unit = {
     synchronized {
-      val txHash = transaction.hash
-      addTransactionToDiskPool(txHash, transaction)
+      // TODO : BUGBUG : Need to start a RocksDB transaction.
+      try {
+        val txHash = transaction.hash
+        addTransactionToDiskPool(txHash, transaction)
+        // TODO : BUGBUG : Need to commit the RocksDB transaction.
+      } finally {
+        // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.
+        // Only some of inputs might be connected. We need to revert the connection if any error happens.
+      }
     }
   }
 
@@ -304,7 +313,12 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param inPoint The in-point that points to a transaction input that spends to output.
     */
   protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint): Unit = {
-    val Some(txDesc) = storage.getTransactionDescriptor(outPoint.transactionHash)
+    val txDesc = storage.getTransactionDescriptor(outPoint.transactionHash).getOrElse {
+      val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist yet."
+      logger.warn(message)
+      throw new ChainException(ErrorCode.ParentTransactionNotFound, message)
+    }
+
     // TODO : BUGBUG : indexing into a list is slow. Optimize the code.
     if ( outPoint.outputIndex < 0 || txDesc.outputsSpentBy.length <= outPoint.outputIndex ) {
       // TODO : Add DoS score. The outpoint in a transaction input was invalid.
@@ -389,7 +403,28 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param transactionInput The transaction input to attach.
     */
   protected[chain] def detachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+    // Make sure that the transaction input is not a coinbase input. detachBlock already checked if the input was NOT coinbase.
+    assert(!transactionInput.isCoinBaseInput())
+
     markOutputUnspent(transactionInput.getOutPoint(), inPoint)
+  }
+
+  /**
+    * Detach each of transction inputs. Mark outputs spent by the transaction inputs unspent.
+    *
+    * @param transactionHash The hash of the tranasction that has the inputs.
+    * @param transaction The transaction that has the inputs.
+    */
+  protected[chain] def detachTransactionInputs(transactionHash : Hash, transaction : Transaction) : Unit = {
+    var inputIndex = -1
+    transaction.inputs foreach { transactionInput : TransactionInput =>
+      inputIndex += 1
+
+      // Make sure that the transaction input is not a coinbase input. detachBlock already checked if the input was NOT coinbase.
+      assert(!transactionInput.isCoinBaseInput())
+
+      detachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
+    }
   }
 
   /**
@@ -399,22 +434,39 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * @param txHash The hash of the transaction to add.
     * @param transaction The transaction to add to the disk-pool.
+    *
+    * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
 
-  protected[chain] def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
+  def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
+    // Step 01 : Check if the transaction exists in the disk-pool.
     if ( storage.getTransactionFromPool(txHash).isDefined ) {
       logger.info(s"A duplicate transaction in the pool was discarded. Hash : ${txHash}")
     } else {
-      // TODO : Should we check if the transaction descriptor already exists?
-
-      // Step 1 : Add to the transaction pool.
-      storage.putTransactionToPool(txHash, transaction)
-
-      // Step 2 : See if the transaction descriptor already exists.
+      // Step 02 : Check if the transaction exists in a block in the best blockchain.
       val txDescOption = storage.getTransactionDescriptor(txHash)
+      if (txDescOption.isDefined && txDescOption.get.transactionLocatorOption.isDefined ) {
+        logger.info(s"A duplicate transaction in on a block was discarded. Hash : ${txHash}")
+      } else {
+        // Step 03 : CheckTransaction - check values in the transaction.
 
-      if ( txDescOption.isEmpty) {
-        // Step 3 : If the transaction descriptor does not exist yet, add the transaction descriptor without the transactionLocatorOption.
+        // Step 04 : IsCoinBase - the transaction should not be a coinbase transaction. No coinbase transaction is put into the disk-pool.
+
+        // Step 05 : GetSerializeSize - Check the serialized size
+
+        // Step 06 : GetSigOpCount - Check the script operation count.
+
+        // Step 07 : IsStandard - Check if the transaction is a standard one.
+
+        // Step 08 : Check for double-spends with existing transactions,
+        attachTransactionInputs(txHash, transaction)
+
+        // Step 09 : Check the transaction fee.
+
+        // Step 10 : Add to the disk-pool
+        storage.putTransactionToPool(txHash, transaction)
+
+        // Step 11 : Add the transaction descriptor without the transactionLocatorOption.
         //          The transaction descriptor is necessary to mark the outputs of the transaction either spent or unspent.
         val txDesc =
           TransactionDescriptor(
@@ -422,11 +474,12 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
             List.fill(transaction.outputs.length)(None) )
 
         storage.putTransactionDescriptor(txHash, txDesc)
+
+        // Step 12 : Notify event listeners that a new transaction was added.
+        chainEventListener.map(_.onNewTransaction(transaction))
+
+        logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
       }
-
-      chainEventListener.map(_.onNewTransaction(transaction))
-
-      logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
     }
   }
 
@@ -441,6 +494,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
   }
 
+
   /**
     * Detach the transaction from the best blockchain.
     *
@@ -450,13 +504,10 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   protected[chain] def detachTransaction(transaction : Transaction) : Unit = {
     val transactionHash = transaction.hash
-    var inputIndex = -1
     // Step 1 : Detach each transaction input
-    transaction.inputs foreach { transactionInput : TransactionInput =>
-      inputIndex += 1
+    detachTransactionInputs(transactionHash, transaction)
 
-      detachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
-    }
+    // TODO : BUGBUG : P0 : Need to reset the transaction locator of the transaction descriptor.
 
     // Step 2 : Move the transaction into disk-pool.
     // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
@@ -471,7 +522,11 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
     block.transactions foreach { transaction : Transaction =>
-      detachTransaction(transaction)
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // The coin base input does not spend any previous output. Do nothing.
+      } else {
+        detachTransaction(transaction)
+      }
     }
 
     // For each transaction in the block, sync with wallet.
@@ -510,6 +565,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param transactionInput The transaction input to attach.
     */
   protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+    // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
+    assert(!transactionInput.isCoinBaseInput())
 
     // TODO : Step 1. read CTxIndex from disk if not read yet.
     // TODO : Step 2. read the transaction that the outpoint points from disk if not read yet.
@@ -521,6 +578,23 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     markOutputSpent(transactionInput.getOutPoint(), inPoint)
   }
 
+  /** Attach the transaction inputs to the outputs spent by them.
+    * Mark outputs spent by the transaction inputs.
+    *
+    * @param transactionHash The hash of the tranasction that has the inputs.
+    * @param transaction The transaction that has the inputs.
+    */
+  protected[chain] def attachTransactionInputs(transactionHash : Hash, transaction : Transaction) : Unit = {
+    var inputIndex = -1
+    transaction.inputs foreach { transactionInput : TransactionInput =>
+      // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
+      assert(!transactionInput.isCoinBaseInput())
+      inputIndex += 1
+
+      attachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
+    }
+  }
+
   /**
     * Attach the transaction into the best blockchain.
     *
@@ -530,14 +604,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     */
   protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
     // Step 1 : Attach each transaction input
-    var inputIndex = -1
-    transaction.inputs foreach { transactionInput : TransactionInput =>
-      // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
-      assert(!transactionInput.isCoinBaseInput())
-      inputIndex += 1
+    attachTransactionInputs(transactionHash, transaction)
 
-      attachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
-    }
+    // TODO : BUGBUG : P0 : Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
 
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.
     // TODO : Step 3 : make sure if the fee is not negative.
@@ -641,6 +710,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param newBestBlock The new best block, which has greater chain work than the original best block.
     */
   protected[chain] def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo) : Unit = {
+    // TODO : BUGBUG : Need to think about RocksDB transactions.
+
     assert( originalBestBlock.chainWork < newBestBlock.chainWork)
 
     // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.

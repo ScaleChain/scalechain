@@ -92,6 +92,7 @@ object ErrorCode {
   val InvalidTransactionOutPoint     = ErrorCode("invalid_transaction_out_point")
   val TransactionOutputAlreadySpent  = ErrorCode("transaction_output_already_spent")
   val TransactionOutputSpentByUnexpectedInput  = ErrorCode("transaction_output_spent_by_unexpected_input")
+  val ParentTransactionNotFound      = ErrorCode("parent_transaction_not_found")
 
 }
 

@@ -273,9 +273,11 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
                 // Note : next pointers of in-memory block index nodes are modified after the on-disk transaction commits the on-disk version of the next pointers. 
             
                 // Step 9 : add transactions in the disconnected blocks to the mempool.
+                tx.AcceptToMemoryPool(txdb, false);
             
                 // Step 10 : Remove transactions in the connected blocks from the mempool.
-               
+                tx.RemoveFromMemoryPool();
+                               
             // 4. Update best block in wallet (so we can detect restored wallets)
             // 5. set the block as the tip of the best chain.
 }

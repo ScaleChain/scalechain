@@ -53,7 +53,7 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
         GetHeadersMessageHandler.handle(context, getHeaders)
       }
       case transaction: Transaction => {
-        TransactionMessageHandler.handle(context, transaction)
+        TxMessageHandler.handle(context, transaction)
       }
       case block: Block => {
         BlockMessageHandler.handle(context, block)
