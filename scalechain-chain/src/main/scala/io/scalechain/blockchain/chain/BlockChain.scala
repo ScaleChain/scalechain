@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
@@ -283,21 +284,23 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * @return The block template which has a sorted list of transactions to include into a block.
     */
-  def getBlockTemplate(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : BlockTemplate = {
+  def getBlockTemplate(coinbaseData : CoinbaseData, minerAddress : CoinAddress, maxBlockSize : Int) : BlockTemplate = {
     // TODO : P1 - Use difficulty bits
     //val difficultyBits = getDifficulty()
     val difficultyBits = 10
 
     val validTransactions = mempool.getValidTransactions()
-    // Select transactions by priority and fee. Also, sort them.
-    val sortedTransactions = selectTransactions(validTransactions, Block.MAX_SIZE)
+
     val generationTranasction =
       TransactionBuilder.newBuilder(this)
-      .addGenerationInput(coinbaseData)
-      .addOutput(CoinAmount(50), minerAddress)
-      .build()
+        .addGenerationInput(coinbaseData)
+        .addOutput(CoinAmount(50), minerAddress)
+        .build()
 
-    new BlockTemplate(difficultyBits, generationTranasction :: sortedTransactions)
+    // Select transactions by priority and fee. Also, sort them.
+    val sortedTransactions = selectTransactions(generationTranasction, validTransactions, maxBlockSize)
+
+    new BlockTemplate(difficultyBits, sortedTransactions)
   }
 
 
@@ -316,9 +319,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
-  protected def selectTransactions(transactions : Iterator[Transaction], maxBlockSize : Int) : List[Transaction] = {
+  protected def selectTransactions(generationTransaction:Transaction, transactions : Iterator[Transaction], maxBlockSize : Int) : List[Transaction] = {
+    val selectedTransactions = new ListBuffer[Transaction]()
     // Step 1 : TODO : Select high priority transactions
-
 
     // Step 2 : TODO : Sort transactions by fee in descending order.
 
@@ -327,7 +330,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     // Step 4 : TODO : Sort transactions based on a criteria to store into a block.
 
     // TODO : Need to check the sort order of transactions in a block.
-    transactions.toList
+    // TODO : Need to calculate the size of the block header on the fly instead of using the hard coded value 80.
+    val BLOCK_HEADER_SIZE = 80
+    val MAX_TRANSACTION_LENGTH_SIZE = 9 // The max size of variable int encoding.
+    var serializedBlockSize = BLOCK_HEADER_SIZE + MAX_TRANSACTION_LENGTH_SIZE
+    serializedBlockSize += TransactionCodec.serialize(generationTransaction).length
+
+    transactions foreach { tx =>
+      serializedBlockSize += TransactionCodec.serialize(tx).length
+      if (serializedBlockSize <= maxBlockSize) {
+        selectedTransactions.append(tx)
+      }
+    }
+
+    selectedTransactions.toList
   }
 
   /** Reorganize blocks.
