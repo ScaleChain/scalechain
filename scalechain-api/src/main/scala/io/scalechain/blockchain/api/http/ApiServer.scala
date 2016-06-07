@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory
 
 class ApiServer {
   private val logger = LoggerFactory.getLogger(classOf[ApiServer])
+  private val bossGroup: EventLoopGroup = new NioEventLoopGroup(1)
+  private val workerGroup: EventLoopGroup = new NioEventLoopGroup
 
   @throws(classOf[Exception])
   def listen(port : Int, useSSL : Boolean = false) {
@@ -22,21 +24,20 @@ class ApiServer {
       else {
         null
       }
-    val bossGroup: EventLoopGroup = new NioEventLoopGroup(1)
-    val workerGroup: EventLoopGroup = new NioEventLoopGroup
-    try {
-      val b: ServerBootstrap = new ServerBootstrap
-      //b.option[Integer](ChannelOption.SO_BACKLOG, 1024)
-      b.group(bossGroup, workerGroup)
-       .channel(classOf[NioServerSocketChannel])
-       .handler(new LoggingHandler(LogLevel.INFO))
-       .childHandler(new ApiServerInitializer(sslCtx))
+    val b: ServerBootstrap = new ServerBootstrap
+    //b.option[Integer](ChannelOption.SO_BACKLOG, 1024)
+    b.group(bossGroup, workerGroup)
+     .channel(classOf[NioServerSocketChannel])
+     .handler(new LoggingHandler(LogLevel.INFO))
+     .childHandler(new ApiServerInitializer(sslCtx))
 
-      b.bind(port)
-      logger.info("ScaleChain API available at " + (if (useSSL) "https" else "http") + "://127.0.0.1:" + port + '/')
-    } finally {
-      bossGroup.shutdownGracefully
-      workerGroup.shutdownGracefully
-    }
+    b.bind(port)
+    logger.info("ScaleChain API available at " + (if (useSSL) "https" else "http") + "://127.0.0.1:" + port + '/')
   }
+
+  def shutdown() : Unit = {
+    bossGroup.shutdownGracefully()
+    workerGroup.shutdownGracefully()
+  }
+
 }
