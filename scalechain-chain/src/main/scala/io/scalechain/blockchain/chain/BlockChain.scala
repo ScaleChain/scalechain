@@ -334,7 +334,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     val BLOCK_HEADER_SIZE = 80
     val MAX_TRANSACTION_LENGTH_SIZE = 9 // The max size of variable int encoding.
     var serializedBlockSize = BLOCK_HEADER_SIZE + MAX_TRANSACTION_LENGTH_SIZE
+
     serializedBlockSize += TransactionCodec.serialize(generationTransaction).length
+    selectedTransactions.append(generationTransaction)
 
     transactions foreach { tx =>
       serializedBlockSize += TransactionCodec.serialize(tx).length
