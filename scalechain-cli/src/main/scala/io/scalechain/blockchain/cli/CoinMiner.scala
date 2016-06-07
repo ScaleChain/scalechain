@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Random
 
-case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int )
+case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
 /**
   * Created by kangmo on 3/15/16.
   */
@@ -84,7 +84,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
-          val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress)
+          val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
           val bestBlockHash = chain.getBestBlockHash()
           if (bestBlockHash.isDefined) {
             // Step 3 : Get block header
