@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.chain.processor
 
 import io.scalechain.blockchain.{ErrorCode, ChainException}
-import io.scalechain.blockchain.proto.{Hash, Block}
+import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 
 /** Process a received block.
   *
@@ -21,6 +21,28 @@ import io.scalechain.blockchain.proto.{Hash, Block}
   *
   */
 object BlockProcessor {
+  /** Get a block.
+    *
+    * @param blockHash The hash of the block to get.
+    * @return Some(block) if the block exists; None otherwise.
+    */
+  def getBlock(blockHash : Hash) : Option[Block] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+  /** Get a block header
+    *
+    * @param blockHash The hash of the block to get.
+    * @return Some(blockHeader) if the block header exists; None otherwise.
+    */
+  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
   /** Check if a block exists either as an orphan or non-orphan.
     *
     * @param blockHash The hash of the block to check.
@@ -32,10 +54,21 @@ object BlockProcessor {
     false
   }
 
+  /** Check if we have the given block as an orphan.
+    *
+    * @param blockHash The hash of the block to check.
+    * @return true if the block exists as an orphan; false otherwise.
+    */
+  def hasOrphan(blockHash : Hash) : Boolean = {
+    // TODO : Implement
+    assert(false)
+    false
+  }
+
   /** Check if the block exists as a non-orphan block.
     *
     * @param blockHash the hash of the block to check.
-    * @return
+    * @return true if the block exists as a non-orphan; false otherwise.
     */
   def hasNonOrphan(blockHash : Hash) : Boolean = {
     // TODO : Implement
@@ -139,5 +172,22 @@ object BlockProcessor {
     remove the orphanBlock from mapOrphanBlocks
     remove all orphan blocks depending on newBlock from mapOrphanBlocksByPrev
 */
+  }
+
+
+  /** Accept the block header to the blockchain.
+    *
+    * @param blockHeader The block header to accept.
+    */
+  def acceptBlockHeader(blockHeader :BlockHeader ) : Unit = {
+    // Step 1 : Check if the block header already exists, return the block index of it if it already exists.
+    // Step 2 : Check the proof of work and block timestamp.
+
+    // Step 3 : Get the block index of the previous block.
+    // Step 4 : Check proof of work, block timestamp, block checkpoint, block version based on majority of recent block versions.
+
+    // Step 5 : Add the new block as a block index.
+    // TODO : Implement
+    assert(false)
   }
 }

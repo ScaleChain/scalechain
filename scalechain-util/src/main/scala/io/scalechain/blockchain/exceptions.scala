@@ -94,6 +94,10 @@ object ErrorCode {
   val TransactionOutputSpentByUnexpectedInput  = ErrorCode("transaction_output_spent_by_unexpected_input")
   val ParentTransactionNotFound      = ErrorCode("parent_transaction_not_found")
 
+  // Net Layer
+  // HeadersMessageHandler
+  val NonContinuousBlockHeaders      = ErrorCode("non_continuous_block_headers")
+
 }
 
 
@@ -126,6 +130,8 @@ class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErr
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class ChainException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
+
+class NetException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class WalletException(val code : ErrorCode) extends ExceptionWithErrorCode
 

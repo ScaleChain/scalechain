@@ -9,7 +9,9 @@ import io.scalechain.util.BigIntUtil
 import BigIntUtil._
 import spray.json.{JsValue, JsString, RootJsonFormat}
 
-
+object Hash {
+  val ALL_ZERO = Hash("0" * 64)
+}
 /** A hash case class that can represent transaction hash or block hash.
   * Used by an inventory vector, InvVector.
   *

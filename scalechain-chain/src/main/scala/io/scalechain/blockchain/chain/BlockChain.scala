@@ -886,6 +886,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     blockHashOption.get
   }
 
+  /**
+    * Used by BlockLocator to get the info of the given block.
+    * @param blockHash The hash of the block to get the info of it.
+    * @return Some(blockInfo) if the block exists; None otherwise.
+    */
+  def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
+    storage.getBlockInfo(blockHash)
+  }
+
+
+
   /** See if a block exists on the blockchain.
     *
     * Used by : submitblock RPC to check if a block already exists.

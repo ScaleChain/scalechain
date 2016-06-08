@@ -326,7 +326,7 @@ deque<pair<int64, CInv> > vRelayExpiration;
 ## strCommand == "getdata" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "getdata") {
-    // Step 1 : Return an error if the number of inventories should is greater than 50,000.
+    // Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
     LOOP inv := For each inventory in the "getdata" message 
         // 1. For a block hash : 

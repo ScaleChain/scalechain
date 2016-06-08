@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.net.handler
 
-import io.scalechain.blockchain.proto.{GetHeaders, ProtocolMessage, Block}
+import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
+import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.net.message.{HeadersFactory, InvFactory}
+import io.scalechain.blockchain.proto._
 import org.slf4j.LoggerFactory
 
 /**
@@ -23,14 +26,37 @@ object GetHeadersMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit = {
-    // TODO : Implement
+    // TODO : Investigate : Need to understand : GetDistanceBack
 
-/*
-    // Step 1 : Get the latest common block with the caller in the best blockchain.
-    // Step 2 : If no common block was found, send the hashStop
-    // Step 3 : If any common block was found, send up to 2000 headers including the hashStop.
-    //          Investigate : Need to understand : GetDistanceBack
+    // Step 1 : Prepare the hashes of block headers to send.
+    val blockHashesToSend =
+      if (getHeaders.blockLocatorHashes.isEmpty) {
+        // Step 1.A : If no block locator hash was set, send the hash stop.
+        if (BlockProcessor.hasNonOrphan(getHeaders.hashStop)) {
+          List(getHeaders.hashStop)
+        } else {
+          List()
+        }
+      } else {
+        // Step 1.B.1 : Get the list of block hashes to send.
+        val locator = new BlockLocator(Blockchain.get)
+        // Step 1.B.2 : Skip the common block, start building the list of block hashes from the next block of the common block.
+        //              Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
+        //              Note : GetHeaders returns the hashStop. BlockLocator.getHashes also returns the hashStop. Nothing to do for the hashStop hash.
+        val blockHashes = locator.getHashes(BlockLocatorHashes(getHeaders.blockLocatorHashes), getHeaders.hashStop, maxHashCount = 2000)
+        blockHashes
+      }
 
-*/
+    // Step 2 : Pack the block hashes into an Inv message, and reply it to the requester.
+    if (blockHashesToSend.isEmpty) {
+      // Do nothing. Nothing to send.
+    } else {
+      val blockHeaders : List[BlockHeader] = blockHashesToSend.map { hash : Hash =>
+        // As we get the block header hashes from getHashes, we are sure that we have the block header.
+        BlockProcessor.getBlockHeader(hash).get
+      }
+      val headersMessage = HeadersFactory.create(blockHeaders)
+      context.peer.send(headersMessage)
+    }
   }
 }
