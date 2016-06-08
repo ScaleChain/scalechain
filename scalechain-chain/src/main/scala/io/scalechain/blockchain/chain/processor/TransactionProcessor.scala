@@ -7,15 +7,40 @@ import io.scalechain.blockchain.proto.{Transaction, Hash}
   *
   */
 object TransactionProcessor {
-  lazy val chain = Blockchain.get
+  val chain = Blockchain.get
+
+  /** See if a transaction exists. Checks orphan transactions as well.
+    *
+    * @param txHash The hash of the transaction to check the existence.
+    * @return true if the transaction was found; None otherwise.
+    */
+  def hasTransaction(txHash : Hash) : Boolean = {
+    // TODO : Implement
+    assert(false)
+    false
+  }
 
   /** Get a transaction either from a block or from the transaction disk-pool.
+    * getTransaction does not return orphan transactions.
     *
     * @param txHash The hash of the transaction to get.
     * @return Some(transaction) if the transaction was found; None otherwise.
     */
   def getTransaction(txHash : Hash) : Option[Transaction] = {
     chain.getTransaction(txHash)
+  }
+
+  /**
+    * Add a transaction to disk pool.
+    *
+    * Assumption : The transaction was pointing to a transaction record location, which points to a transaction written while the block was put into disk.
+    *
+    * @param txHash The hash of the transaction to add.
+    * @param transaction The transaction to add to the disk-pool.
+    * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
+    */
+  def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
+    chain.addTransactionToDiskPool(txHash, transaction)
   }
 
   /**

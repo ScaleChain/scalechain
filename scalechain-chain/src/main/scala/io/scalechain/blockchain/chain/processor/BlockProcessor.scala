@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 
@@ -21,6 +22,8 @@ import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
   *
   */
 object BlockProcessor {
+  val chain = Blockchain.get
+
   /** Get a block.
     *
     * @param blockHash The hash of the block to get.
@@ -49,9 +52,7 @@ object BlockProcessor {
     * @return true if the block exist; false otherwise.
     */
   def hasBlock(blockHash : Hash) : Boolean  = {
-    // TODO : Implement
-    assert(false)
-    false
+    return hasNonOrphan(blockHash) || hasOrphan(blockHash)
   }
 
   /** Check if we have the given block as an orphan.

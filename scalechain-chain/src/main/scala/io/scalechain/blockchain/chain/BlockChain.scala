@@ -455,7 +455,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     *
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-
   def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
     // Step 01 : Check if the transaction exists in the disk-pool.
     if ( storage.getTransactionFromPool(txHash).isDefined ) {
@@ -509,7 +508,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
   protected[chain] def removeTransactionFromDiskPool(txHash : Hash) : Unit = {
     // Note : We should not touch the TransactionDescriptor.
     storage.delTransactionFromPool(txHash)
-
   }
 
 
@@ -526,10 +524,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     detachTransactionInputs(transactionHash, transaction)
 
     // TODO : BUGBUG : P0 : Need to reset the transaction locator of the transaction descriptor.
-
-    // Step 2 : Move the transaction into disk-pool.
-    // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
-    addTransactionToDiskPool(transactionHash, transaction)
   }
 
   /**
@@ -558,20 +552,22 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
     * @param last The last block in the best blockchain.
     */
   @tailrec
-  protected[chain] final def detachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo, lastBlock : Block) : Unit = {
+  protected[chain] final def detachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
     assert(beforeFirst.height <= last.height)
 
     if (beforeFirst == last) {
       // The base case. Just unlink the next block hash of the before the first block to detach.
       storage.updateNextBlockHash(beforeFirst.blockHeader.hash, None)
     } else {
+      // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
+      detachedBlocks.prepend(lastBlock)
       detachBlock(last, lastBlock)
       // Unlink the next block hash.
       storage.updateNextBlockHash(last.blockHeader.hash, None)
 
       // Get the block before the last one, continue iteration.
       val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
-      detachBlocksAfter(beforeFirst, beforeLastInfo, beforeLastBlock)
+      detachBlocksAfter(beforeFirst, beforeLastInfo, beforeLastBlock, detachedBlocks)
     }
   }
 
@@ -732,15 +728,31 @@ class Blockchain(storage : BlockStorage) extends BlockchainView with ChainConstr
 
     assert( originalBestBlock.chainWork < newBestBlock.chainWork)
 
+    val detachedBlocks = new ListBuffer[Block]
+
     // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
     val commonBlock : BlockInfo = findCommonBlock(originalBestBlock, newBestBlock)
 
     // TODO : Call chainEventListener : onNewBlock, onRemoveBlock
 
     // Step 2 : Detach blocks after the common block to originalBestBlock, which is the tip of the current best blockchain.
+    // TODO : BUGBUG : First need to get the list of detached blocks first, and then add transactions in the detached blocks into the transaction pool.
     val Some((bestBlockInfo, bestBlock )) = storage.getBlock(originalBestBlock.blockHeader.hash)
     assert(bestBlockInfo == originalBestBlock)
-    detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock)
+    detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock, detachedBlocks)
+
+
+    // Step 2 : Move the transaction from the detached blocks into disk-pool.
+    // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
+    detachedBlocks foreach { block : Block =>
+      block.transactions foreach { transaction : Transaction =>
+        if (transaction.inputs(0).isCoinBaseInput()) {
+          // Do nothing
+        } else {
+          addTransactionToDiskPool(transaction.hash, transaction)
+        }
+      }
+    }
 
 
     // Step 3 : Attach blocks after the common block to the newBestBlock.
