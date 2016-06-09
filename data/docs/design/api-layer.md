@@ -1,29 +1,29 @@
 # Introduction
-The API layer opens up an http port to provide RPC(Remote Procedure Call) services, which accepts Json-RPC requests that queries and updates blockchain, and responds with Json-RPC responses.
+The API layer opens up an http port to provide RPC(Remote Procedure Call) services, which accept Json-RPC requests that query and update the blockchain, and respond with Json-RPC responses.
 
 
 # List of supported RPCs
-In data/scripts/jsonrpc folder, there are sample shell scripts calling RPCs. The followings are the list of supported RPCs.
+In data/scripts/jsonrpc folder, there are sample shell scripts calling RPCs. The following is the list of supported RPCs.
 ```
 GetBestBlockHash
-    GetBlock
-    GetBlockHash
-    Help
-    GetPeerInfo
-    DecodeRawTransaction
-    GetRawTransaction
-    SendRawTransaction
-    ImportAddress
-    GetAccount
-    GetAccountAddress
-    GetNewAddress
-    GetReceivedByAddress
-    ListTransactions
-    ListUnspent
-    SignRawTransaction
+GetBlock
+GetBlockHash
+Help
+GetPeerInfo
+DecodeRawTransaction
+GetRawTransaction
+SendRawTransaction
+ImportAddress
+GetAccount
+GetAccountAddress
+GetNewAddress
+GetReceivedByAddress
+ListTransactions
+ListUnspent
+SignRawTransaction
 ```
 
-# Json-RPC specifications
+# Json-RPC specification
 See the following link for the specification of each supported Json-RPC service.
 
 https://bitcoin.org/en/developer-reference#rpc-quick-reference

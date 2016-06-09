@@ -24,7 +24,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     *
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
+  def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
     // Step 01 : Check if the transaction exists in the disk-pool.
     if ( storage.getTransactionFromPool(txHash).isDefined ) {
       logger.info(s"A duplicate transaction in the pool was discarded. Hash : ${txHash}")
@@ -72,7 +72,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     *
     * @param txHash The hash of the transaction to remove.
     */
-  protected[chain] def removeTransactionFromDiskPool(txHash : Hash) : Unit = {
+  protected[chain] def removeTransactionFromPool(txHash : Hash) : Unit = {
     // Note : We should not touch the TransactionDescriptor.
     storage.delTransactionFromPool(txHash)
   }

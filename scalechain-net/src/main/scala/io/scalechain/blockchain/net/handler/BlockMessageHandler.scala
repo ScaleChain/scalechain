@@ -29,7 +29,7 @@ object BlockMessageHandler {
 
     logger.info(s"[P2P] Received a block. Hash : ${blockHash}")
 
-    if (BlockProcessor.hasBlock(blockHash)) {
+    if (BlockProcessor.exists(blockHash)) {
       logger.warn(s"[P2P] Duplicate block was received. Hash : ${blockHash}")
     } else {
       // TODO : Add the block as a known inventory of the node that sent it.
@@ -39,19 +39,10 @@ object BlockMessageHandler {
       // TODO : Make sure we do not hit any issue even though an exception is thrown by validateBlock.
 
       if (BlockProcessor.hasNonOrphan(block.header.hashPrevBlock)) { // Case 1 : Orphan block
-        // Step 1.1 : Put the orphan block
-        // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
-        BlockProcessor.putOrphan(block)
-
-        // Step 1.2 : Request the peer to send the root parent of the orphan block.
-        val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
-        val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
-        context.peer.send(getBlocksMessage)
-      } else { // Case 2 : Non-Orphan block.
-        // Step 2.1 : Store the block to the blockchain. Do block reorganization if necessary.
+        // Step 1.1 : Store the block to the blockchain. Do block reorganization if necessary.
         val acceptedAsNewBestBlock = BlockProcessor.acceptBlock(blockHash, block)
 
-        // Step 2.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
+        // Step 1.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
         val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(block)
 
         val newBlockHashes = if (acceptedAsNewBestBlock) {
@@ -59,9 +50,18 @@ object BlockMessageHandler {
         } else {
           newlyBestBlockHashes
         }
-        // Step 2.3 : Relay the newly added blocks to peers as an inventory if it was the tip of the longest block chain by the time the block was accepted.
+        // Step 1.3 : Relay the newly added blocks to peers as an inventory if it was the tip of the longest block chain by the time the block was accepted.
         val invMessage = InvFactory.createBlockInventories(newBlockHashes)
         context.communicator.sendToAll(invMessage)
+      } else { // Case 2 : Non-Orphan block.
+        // Step 2.1 : Put the orphan block
+        // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
+        BlockProcessor.putOrphan(block)
+
+        // Step 2.2 : Request the peer to send the root parent of the orphan block.
+        val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
+        val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
+        context.peer.send(getBlocksMessage)
       }
     }
   }

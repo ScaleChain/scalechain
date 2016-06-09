@@ -2,22 +2,24 @@ package io.scalechain.blockchain.chain.processor
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash}
+import org.slf4j.LoggerFactory
 
 /** Processes a received transaction.
   *
   */
 object TransactionProcessor {
+  private lazy val logger = LoggerFactory.getLogger(TransactionProcessor.getClass)
+
   val chain = Blockchain.get
 
   /** See if a transaction exists. Checks orphan transactions as well.
+    * naming rule : 'exists' checks orphan transactions as well, whereas hasNonOrphan does not.
     *
     * @param txHash The hash of the transaction to check the existence.
     * @return true if the transaction was found; None otherwise.
     */
-  def hasTransaction(txHash : Hash) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    false
+  def exists(txHash : Hash) : Boolean = {
+    chain.hasTransaction(txHash) || chain.txOrphange.hasOrphan(txHash)
   }
 
   /** Get a transaction either from a block or from the transaction disk-pool.
@@ -39,8 +41,8 @@ object TransactionProcessor {
     * @param transaction The transaction to add to the disk-pool.
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
-    chain.txPool.addTransactionToDiskPool(txHash, transaction)
+  def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
+    chain.txPool.addTransactionToPool(txHash, transaction)
   }
 
   /**
@@ -53,6 +55,7 @@ object TransactionProcessor {
     // TODO : Implement
     assert(false)
     null
+    // chain.txOrphange.removeDependencyOn
   }
 
   /**
@@ -60,9 +63,8 @@ object TransactionProcessor {
     *
     * @param orphanTransactions The list of hashes of the accepted orphan transactions to remove.
     */
-  def removeOrphanTransactions(orphanTransactions : List[Hash]) : Unit = {
-    // TODO : Implement
-    assert(false)
+  def delOrphans(orphanTransactions : List[Hash]) : Unit = {
+    chain.txOrphange.delOrphans(orphanTransactions)
   }
 
   /**
@@ -71,15 +73,7 @@ object TransactionProcessor {
     * @param txHash The hash of the orphan transaction
     * @param transaction The orphan transaction.
     */
-  def addOrphanTransaction(txHash : Hash, transaction : Transaction) : Unit = {
-    // TODO : Implement
-    assert(false)
-
-    // Step 1 : Add the orphan transaction itself.
-
-    // Step 2 : Find all inputs that depend on a missing parent transaction.
-
-    // Step 3 : Add the orphan transaction indexed by the missing parent transactions.
-
+  def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
+    chain.txOrphange.putOrphan(txHash, transaction)
   }
 }

@@ -89,7 +89,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       } else {
         txMagnet.attachTransaction(transactionHash, transaction)
         // Step 5 : Remove the transaction from the disk pool.
-        txPool.removeTransactionFromDiskPool(transactionHash)
+        txPool.removeTransactionFromPool(transactionHash)
       }
 
       // Add UTXO : set all outputs are unspent for the newly attached transaction.
@@ -192,7 +192,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
         if (transaction.inputs(0).isCoinBaseInput()) {
           // Do nothing
         } else {
-          txPool.addTransactionToDiskPool(transaction.hash, transaction)
+          txPool.addTransactionToPool(transaction.hash, transaction)
         }
       }
     }

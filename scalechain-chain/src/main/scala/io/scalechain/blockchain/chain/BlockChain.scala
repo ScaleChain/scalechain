@@ -232,7 +232,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       try {
         val txHash = transaction.hash
         // Step 1 : Add transaction to the transaction pool.
-        txPool.addTransactionToDiskPool(txHash, transaction)
+        txPool.addTransactionToPool(txHash, transaction)
         // TODO : BUGBUG : Need to commit the RocksDB transaction.
         // Step 2 : Notify event listeners that a new transaction was added.
         chainEventListener.map(_.onNewTransaction(transaction))
@@ -348,6 +348,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
     dbTransactionOption
+  }
+
+  /** Check if the transaction exists either in a block on the best blockchain or on the transaction pool.
+    *
+    * @param txHash The hash of the transaction to check the existence.
+    * @return true if we have the transaction; false otherwise.
+    */
+  def hasTransaction(txHash : Hash) : Boolean = {
+    storage.getTransactionDescriptor(txHash).isDefined
   }
 
   /** Return a transaction output specified by a give out point.

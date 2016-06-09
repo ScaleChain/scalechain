@@ -30,7 +30,7 @@ object TxMessageHandler {
 
     try {
       // Try to put the transaction into the disk-pool
-      TransactionProcessor.addTransactionToDiskPool(transactionHash, transaction)
+      TransactionProcessor.addTransactionToPool(transactionHash, transaction)
 
       // Yes! the transaction was put into the disk-pool.
       // Step 2 : Recursively check if any orphan transaction depends on this transaction.
@@ -42,13 +42,13 @@ object TxMessageHandler {
       context.communicator.sendToAll( invMessage )
 
       // Step 4 : For each orphan transaction that has all inputs connected, remove from the orphan transaction.
-      TransactionProcessor.removeOrphanTransactions(acceptedChildren)
+      TransactionProcessor.delOrphans(acceptedChildren)
 
     } catch {
       case e : ChainException => {
         if (e.code == ErrorCode.ParentTransactionNotFound) {
           // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
-          TransactionProcessor.addOrphanTransaction(transactionHash, transaction)
+          TransactionProcessor.putOrphan(transactionHash, transaction)
         }
       }
     }

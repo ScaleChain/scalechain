@@ -1,11 +1,12 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.{Block, Hash}
+import io.scalechain.blockchain.storage.BlockStorage
 
 /**
   * Created by kangmo on 6/9/16.
   */
-class BlockOrphange {
+class BlockOrphange(storage : BlockStorage) {
   /** Check if we have the given block as an orphan.
     *
     * @param blockHash The hash of the block to check.
@@ -46,6 +47,17 @@ class BlockOrphange {
     * @return The hash of the (missing) root parent.
     */
   def getOrphanRoot(blockHash : Hash) : Hash = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+
+  /** Get the list of orphan block hashes depending a given block.
+    *
+    * @param blockHash The block that orphans are depending on.
+    * @return The list of orphan block hashes depending the given block.
+    */
+  def getOrphansDependingOn(blockHash : Hash) : List[Hash] = {
     // TODO : Implement
     assert(false)
     null

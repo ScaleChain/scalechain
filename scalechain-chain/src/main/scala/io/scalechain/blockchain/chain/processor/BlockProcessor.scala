@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain.processor
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
+import org.slf4j.LoggerFactory
 
 /** Process a received block.
   *
@@ -22,6 +23,8 @@ import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
   *
   */
 object BlockProcessor {
+  private lazy val logger = LoggerFactory.getLogger(BlockProcessor.getClass)
+
   val chain = Blockchain.get
 
   /** Get a block.
@@ -47,11 +50,12 @@ object BlockProcessor {
   }
 
   /** Check if a block exists either as an orphan or non-orphan.
+    * naming rule : 'exists' checks orphan blocks as well, whereas hasNonOrphan does not.
     *
     * @param blockHash The hash of the block to check.
     * @return true if the block exist; false otherwise.
     */
-  def hasBlock(blockHash : Hash) : Boolean  = {
+  def exists(blockHash : Hash) : Boolean  = {
     return hasNonOrphan(blockHash) || hasOrphan(blockHash)
   }
 
