@@ -1,0 +1,25 @@
+            ,-.                                                                                                                           
+            `-'                                                                                                                           
+            /|\                                                                                                                           
+             |                 ,---------.                 ,--------------------.             ,----------------.          ,--------------.
+            / \                |ApiServer|                 |ApiServerInitializer|             |ApiServerHandler|          |RequestHandler|
+      ScaleChainPeer           `----+----'                 `---------+----------'             `-------+--------'          `------+-------'
+            |     listen(port)      |                                |                                |                          |        
+            | --------------------->|                                |                                |                          |        
+            |                       |                                |                                |                          |        
+            |                       |request to initialize the server|                                |                          |        
+            |                       |-------------------------------->                                |                          |        
+            |                       |                                |                                |                          |        
+            |                       |                                | request to handle each response|                          |        
+            |                       |                                | ------------------------------->                          |        
+            |                       |                                |                                |                          |        
+            |                       |                              ,-------------------------------!. |                          |        
+            |                       |                              |The ApiServerHandler redirects |_\|       handleRequest      |        
+            |                       |                              |each RPC request it receives to  || ------------------------->        
+            |                       |                              |RequestHandler.handleRequest     ||                          |        
+      ScaleChainPeer           ,----+----.                 ,-------`---------------------------------'+--------.          ,------+-------.
+            ,-.                |ApiServer|                 |ApiServerInitializer|             |ApiServerHandler|          |RequestHandler|
+            `-'                `---------'                 `--------------------'             `----------------'          `--------------'
+            /|\                                                                                                                           
+             |                                                                                                                            
+            / \                                                                                                                           

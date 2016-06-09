@@ -1,0 +1,35 @@
+            ,-.                                                                                                                                                   
+            `-'                                                                                                                                                   
+            /|\                                                                                                                                                   
+             |                                       ,-----------------.                                         ,-------------------------.          ,----------.
+            / \                                      |ServiceDispatcher|                                         |Services.serviceByCommand|          |RpcCommand|
+      RequestHandler                                 `--------+--------'                                         `------------+------------'          `----+-----'
+            |----.                                            |                                                               |                            |      
+            |    | parse request string into RpcRequest       |                                                               |                            |      
+            |<---'                                            |                                                               |                            |      
+            |                                                 |                                                               |                            |      
+            |               dispatch(RpcRequest)              |                                                               |                            |      
+            | ------------------------------------------------>                                                               |                            |      
+            |                                                 |                                                               |                            |      
+            |                                                 |             find RpcCommand by the command string             |                            |      
+            |                                                 | -------------------------------------------------------------->                            |      
+            |                                                 |                                                               |                            |      
+            |                                                 |                                     invoke (RpcRequest)       |                            |      
+            |                                                 | ------------------------------------------------------------------------------------------->      
+            |                                                 |                                                               |                            |      
+            |                                                 |----.                                                                                       |      
+            |                                                 |    | convert the result of RpcCommand invocation to RpcResponse                            |      
+            |                                                 |<---'                                                                                       |      
+            |                                                 |                                                               |                            |      
+            |                return RpcResponse               |                                                               |                            |      
+            | <------------------------------------------------                                                               |                            |      
+            |                                                 |                                                               |                            |      
+            |----.                                                                                                            |                            |      
+            |    | convert RpcResponse to Json response string.                                                               |                            |      
+            |<---'                                                                                                            |                            |      
+      RequestHandler                                 ,--------+--------.                                         ,------------+------------.          ,----+-----.
+            ,-.                                      |ServiceDispatcher|                                         |Services.serviceByCommand|          |RpcCommand|
+            `-'                                      `-----------------'                                         `-------------------------'          `----------'
+            /|\                                                                                                                                                   
+             |                                                                                                                                                    
+            / \                                                                                                                                                   
