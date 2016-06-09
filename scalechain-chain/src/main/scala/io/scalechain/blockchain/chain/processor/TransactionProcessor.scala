@@ -40,7 +40,7 @@ object TransactionProcessor {
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
   def addTransactionToDiskPool(txHash : Hash, transaction : Transaction) : Unit = {
-    chain.addTransactionToDiskPool(txHash, transaction)
+    chain.txPool.addTransactionToDiskPool(txHash, transaction)
   }
 
   /**

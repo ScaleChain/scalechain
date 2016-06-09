@@ -1,0 +1,295 @@
+package io.scalechain.blockchain.chain
+
+import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.proto.{Transaction, Block, BlockInfo}
+import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.transaction.ChainBlock
+import org.slf4j.LoggerFactory
+
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+import io.scalechain.blockchain.script.HashSupported._
+
+/**
+  * Created by kangmo on 6/9/16.
+  */
+class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
+  private val logger = LoggerFactory.getLogger(classOf[BlockMagnet])
+
+  var chainEventListener : Option[ChainEventListener] = None
+
+  /** Set an event listener of the blockchain.
+    *
+    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
+    */
+  def setEventListener( listener : ChainEventListener ): Unit = {
+    chainEventListener = Some(listener)
+  }
+
+  /**
+    * Detach a block from the best blockchain.
+    *
+    * @param blockInfo The BlockInfo of the block to detach.
+    * @param block The block to detach.
+    */
+  protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    block.transactions foreach { transaction : Transaction =>
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // The coin base input does not spend any previous output. Do nothing.
+      } else {
+        txMagnet.detachTransaction(transaction)
+      }
+    }
+
+    // For each transaction in the block, sync with wallet.
+    chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
+  }
+
+  /**
+    * Detach blocks from the best blockchain. Recent blocks are detached first. (Detach order : Newest -> Oldest )
+    *
+    * @param beforeFirst Blocks after this block are detached from the best blockchain.
+    * @param last The last block in the best blockchain.
+    */
+  @tailrec
+  protected[chain] final def detachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
+    assert(beforeFirst.height <= last.height)
+
+    if (beforeFirst == last) {
+      // The base case. Just unlink the next block hash of the before the first block to detach.
+      storage.updateNextBlockHash(beforeFirst.blockHeader.hash, None)
+    } else {
+      // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
+      detachedBlocks.prepend(lastBlock)
+      detachBlock(last, lastBlock)
+      // Unlink the next block hash.
+      storage.updateNextBlockHash(last.blockHeader.hash, None)
+
+      // Get the block before the last one, continue iteration.
+      val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
+      detachBlocksAfter(beforeFirst, beforeLastInfo, beforeLastBlock, detachedBlocks)
+    }
+  }
+
+
+  /**
+    * Attach a block to the best blockchain.
+    *
+    * @param block The block to attach
+    */
+  protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    // Check if the block is valid.
+    BlockProcessor.validateBlock(block)
+
+    block.transactions foreach { transaction : Transaction =>
+      val transactionHash = transaction.hash
+
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // The coin base input does not spend any previous output. Do nothing.
+      } else {
+        txMagnet.attachTransaction(transactionHash, transaction)
+        // Step 5 : Remove the transaction from the disk pool.
+        txPool.removeTransactionFromDiskPool(transactionHash)
+      }
+
+      // Add UTXO : set all outputs are unspent for the newly attached transaction.
+      txMagnet.markAllOutputsUnspent(transactionHash)
+    }
+
+    // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+
+    // For each transaction in the block, sync with wallet.
+    chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )
+  }
+
+  /**
+    * collect BlockInfos from the last to the next block of the beforeFirst.
+    * The collected BlockInfos are kept in blockInfos List in ascending order. (Order : Oldest -> Newest)
+    *
+    * @param blockInfos The list buffer to keep the block info.
+    * @param beforeFirst Blocks after this block are collected.
+    * @param last The last block to collect.
+    */
+  @tailrec
+  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+    // TODO : Need to check if our memory is enough by checking the gap of the height between beforeFirst and last
+    if (beforeFirst == last) {
+      // The base case. Nothing to do.
+    } else {
+      // Note that we are constructing the blockInfos so that the order of the blocks in the blockInfos is from the oldest to the newest.
+      blockInfos.prepend(last)
+      val beforeLastOption : Option[BlockInfo] = storage.getBlockInfo(last.blockHeader.hashPrevBlock)
+      assert(beforeLastOption.isDefined)
+      collectBlockInfos(blockInfos, beforeFirst, beforeLastOption.get)
+    }
+  }
+
+  /**
+    * Attach blocks to the best blockchain. Oldest blocks are attached first. (Attach order : Oldest -> Newest )
+    *
+    * @param beforeFirst Blocks after this block are attached to the best blockchain.
+    * @param last The last block in the new best blockchain.
+    */
+  protected[chain] def attachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+    // Blocks NOT in the best blockchain does not have the BlockInfo.nextBlockHash.
+    // We need to track from the last back to beforeFirst, and reverse the list.
+    val blockInfos = ListBuffer[BlockInfo]()
+    collectBlockInfos(blockInfos, beforeFirst, last)
+
+    var prevBlockHash = beforeFirst.blockHeader.hash
+    // The previous block of the first block in the list buffer should be the beforeFirst block.
+    assert(prevBlockHash == blockInfos.head.blockHeader.hashPrevBlock)
+    // The last block info in the list buffer should match the last block info passed to this method.
+    assert(last == blockInfos.last)
+
+    blockInfos foreach { blockInfo : BlockInfo =>
+      val blockHash = blockInfo.blockHeader.hash
+      // Get the block
+      val Some((readBlockInfo, readBlock)) = storage.getBlock(blockHash)
+      assert(readBlockInfo == blockInfo)
+
+      attachBlock( readBlockInfo, readBlock )
+      // Link the next block hash.
+      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+
+      prevBlockHash = blockHash
+    }
+
+    // The last block should not have any next block.
+    assert( last.nextBlockHash.isEmpty )
+  }
+
+
+  /** Reorganize blocks.
+    * This method is called when the new best block is not based on the original best block.
+    *
+    * @param originalBestBlock The original best block before the new best one was found.
+    * @param newBestBlock The new best block, which has greater chain work than the original best block.
+    */
+  def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo) : Unit = {
+    // TODO : BUGBUG : Need to think about RocksDB transactions.
+
+    assert( originalBestBlock.chainWork < newBestBlock.chainWork)
+
+    val detachedBlocks = new ListBuffer[Block]
+
+    // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
+    val commonBlock : BlockInfo = findCommonBlock(originalBestBlock, newBestBlock)
+
+    // TODO : Call chainEventListener : onNewBlock, onRemoveBlock
+
+    // Step 2 : Detach blocks after the common block to originalBestBlock, which is the tip of the current best blockchain.
+    // TODO : BUGBUG : First need to get the list of detached blocks first, and then add transactions in the detached blocks into the transaction pool.
+    val Some((bestBlockInfo, bestBlock )) = storage.getBlock(originalBestBlock.blockHeader.hash)
+    assert(bestBlockInfo == originalBestBlock)
+    detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock, detachedBlocks)
+
+
+    // Step 2 : Move the transaction from the detached blocks into disk-pool.
+    // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
+    detachedBlocks foreach { block : Block =>
+      block.transactions foreach { transaction : Transaction =>
+        if (transaction.inputs(0).isCoinBaseInput()) {
+          // Do nothing
+        } else {
+          txPool.addTransactionToDiskPool(transaction.hash, transaction)
+        }
+      }
+    }
+
+
+    // Step 3 : Attach blocks after the common block to the newBestBlock.
+    attachBlocksAfter(commonBlock, newBestBlock)
+    /*
+
+
+
+      // Step 2 : Get the list of blocks to disconnect from the common block to the tip of the current blockchain
+
+      // Step 3 : Get the list of blocks to connect from the common block to the longer blockchain.
+
+      // Step 4 : Reorder the list of blocks to connect so that the blocks with lower height come first.
+
+      // Step 5 : Disconnect blocks from the current (shorter) blockchain. (order : newest to oldest)
+      LOOP block := For each block to disconnect
+          // Step 5.1 : Read each block, and disconnect each block.
+          block.ReadFromDisk(pindex)
+          block.DisconnectBlock(txdb, pindex)
+              1. Mark all outputs spent by all inputs of all transactions in the block as unspent.
+              LOOP tx := For each transaction in the block
+                  1.1. Mark outputs pointed by the inputs of the transaction unspent.
+                  tx.DisconnectInputs
+                      - LOOP input := For each input in the transaction
+                          - Get the transaction pointed by the input
+                          - On disk, Mark the output point by the input as spent
+              2. On disk, disconnect from the previous block
+                  (previous block.next = null)
+
+          // Step 5.2 : Prepare transactions to add back to the mempool.
+      }
+
+      // Step 6 : Connect blocks from the longer blockchain to the current blockchain. (order : oldest to newest)
+      LOOP block := For each block to connect
+          // kangmo : comment - Step 6.1 : Read block, connect the block to the current blockchain, which does not have the disconnected blocks.
+          block.ReadFromDisk(pindex)
+          block.ConnectBlock(txdb, pindex)
+              - 1. Do preliminary checks for a block
+              pblock->CheckBlock()
+
+              - 2. Prepare a queue for database changes marking outputs spent by all inputs of all transactions in the block.
+              map<uint256, CTxIndex> mapQueuedChanges;
+
+              - 3. Populate mapQueuedChanges with transaction outputs marking which transactions are spending each of the outputs.
+              LOOP tx := For each transaction in the block
+                  - 3.1 Mark transaction outputs pointed by inputs of this transaction spent.
+                  IF not coinbase transaction
+                      CTransaction::ConnectInputs( .. & mapQueuedChanges .. )
+                          LOOP input := for each input in the transaction
+                              // 1. read CTxIndex from disk if not read yet.
+                              // 2. read the transaction that the outpoint points from disk if not read yet.
+                              // 3. Increase DoS score if an invalid output index was found in a transaction input.
+                              // 4. check coinbase maturity for outpoints spent by a transaction.
+                              // 5. Skip ECDSA signature verification when connecting blocks (fBlock=true) during initial download
+                              // 6. check double spends for each OutPoint of each transaction input in a transaction.
+                              // 7. check value range of each input and sum of inputs.
+                              // 8. for the transaction output pointed by the input, mark this transaction as the spending transaction of the output.
+
+                          // check if the sum of input values is greater than or equal to the sum of outputs.
+                          // make sure if the fee is not negative.
+                          // check the minimum transaction fee for each transaction.
+                  // Add UTXO : set all outputs are unspent for the newly connected transaction.
+
+              - 4. For each items in mapQueuedChanges, write to disk.
+              - 5. Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+              - 6. On disk, connect the block from the previous block. (previous block.next = this block)
+
+              - 7. For each transaction, sync with wallet.
+              LOOP tx := For each transaction in the block
+                  SyncWithWallets
+                      - For each registered wallet
+                           pwallet->AddToWalletIfInvolvingMe
+          // Step 6.2 : Prepare transactions to remove from the mempool
+      }
+
+      // Step 7 : Write the hash of the tip block on the best blockchain, commit the db transaction.
+
+      // Step 8 : Set the next block pointer for each connected block. Also, set next block pointer to null for each disconnected block.
+      // Note : next pointers of in-memory block index nodes are modified after the on-disk transaction commits the on-disk version of the next pointers.
+
+      // Step 9 : add transactions in the disconnected blocks to the mempool.
+
+      // Step 10 : Remove transactions in the connected blocks from the mempool.
+*/
+  }
+
+  /** Get the descriptor of the common ancestor of the two given blocks.
+    *
+    * @param block1 The first given block.
+    * @param block2 The second given block.
+    */
+  protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockInfo = {
+    // TODO : Implement
+    assert(false)
+    null
+  }
+}

@@ -61,9 +61,7 @@ object BlockProcessor {
     * @return true if the block exists as an orphan; false otherwise.
     */
   def hasOrphan(blockHash : Hash) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    false
+    chain.blockOrphange.hasOrphan(blockHash)
   }
 
   /** Check if the block exists as a non-orphan block.
@@ -82,8 +80,7 @@ object BlockProcessor {
     * @param block the block to put as an orphan block.
     */
   def putOrphan(block : Block) : Unit = {
-    // TODO : Implement
-    assert(false)
+    chain.blockOrphange.putOrphan(block)
   }
 
   /**
@@ -94,9 +91,7 @@ object BlockProcessor {
     * @return The hash of the (missing) root parent.
     */
   def getOrphanRoot(blockHash : Hash) : Hash = {
-    // TODO : Implement
-    assert(false)
-    null
+    chain.blockOrphange.getOrphanRoot(blockHash)
   }
 
   /**

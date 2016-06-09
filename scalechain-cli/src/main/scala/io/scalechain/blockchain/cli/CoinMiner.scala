@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli
 
 import java.util
 
-import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.PeerCommunicator
 import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
@@ -50,6 +50,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
   val PREMINE_BLOCKS = 5;
+
+  val blockMining = new BlockMining( chain.txPool, chain )
+
   def start() : Unit = {
 
     val thread = new Thread {
@@ -84,7 +87,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
-          val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
+          val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
           val bestBlockHash = chain.getBestBlockHash()
           if (bestBlockHash.isDefined) {
             // Step 3 : Get block header
