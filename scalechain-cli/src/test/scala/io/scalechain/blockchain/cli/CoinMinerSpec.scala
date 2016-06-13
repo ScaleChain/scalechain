@@ -16,6 +16,7 @@ import org.scalatest._
   */
 class CoinMinerSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
   this: Suite =>
+  import Hash._
 
   override def beforeEach() {
     // set-up code

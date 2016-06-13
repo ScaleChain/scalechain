@@ -29,17 +29,6 @@ object CoinMiner {
     assert(theCoinMiner != null)
     theCoinMiner
   }
-
-  def isLessThan(hash1 : Hash, hash2 : Hash): Boolean = {
-    val value1 = Utils.bytesToBigInteger(hash1.value)
-    val value2 = Utils.bytesToBigInteger(hash2.value)
-
-    if ( value1.compareTo( value2 ) < 0 ) {
-      true
-    } else {
-      false
-    }
-  }
 }
 
 
@@ -103,7 +92,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = newBlockHeader.hash
 
-              if (CoinMiner.isLessThan(newBlockHash, blockHashThreshold)) {
+              if (Hash.isLessThan(newBlockHash, blockHashThreshold)) {
                 // Check the best block hash once more.
                 if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
                   // Step 5 : When a block is found, create the block and put it on the blockchain.

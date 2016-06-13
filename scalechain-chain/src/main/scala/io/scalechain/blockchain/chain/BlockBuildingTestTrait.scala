@@ -3,6 +3,9 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.{OutputOwnership, CoinAmount, TransactionTestDataTrait, CoinAddress}
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.crypto.HashEstimation
+
+import scala.annotation.tailrec
 
 /** A transaction output with an outpoint of it.
   *
@@ -118,4 +121,23 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     block
   }
 
+  /**
+    * Mine a block whose estimated hash calculation is the given one.
+    * @param block The block to mine. We will change nonce of the block for each iteration.
+    * @param requiredHashCalulcations The estimated hash calculations of the block should be this value.
+    * @param nonce The nonce value.
+    * @return The mined block.
+    */
+  @tailrec
+  final def doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block = {
+    val newBlockHeader = block.header.copy(nonce = nonce)
+    val newBlockHash = newBlockHeader.hash
+
+    if (HashEstimation.getHashCalculations(newBlockHash.value) == requiredHashCalulcations) {
+      val newBlock = block.copy( header = newBlockHeader )
+      newBlock
+    } else {
+      doMining(block, requiredHashCalulcations, nonce + 1)
+    }
+  }
 }
