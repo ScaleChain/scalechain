@@ -22,6 +22,9 @@ object HeadersMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, headers : Headers ) : Unit = {
+    // We don't support the headers first approach yet.
+    logger.warn("Headers message is not supported yet.")
+/*
     var prevHeaderHash : Hash = null
     // Step 1 : Accept block headers received.
     headers.headers foreach { header : BlockHeader =>
@@ -40,6 +43,8 @@ object HeadersMessageHandler {
     // BUGBUG : We need to construct block locators instead of simply sending the last block header hash we received.
     val getHeadersMessage = GetHeadersFactory.create( List( headers.headers.last.hash ) )
     context.peer.send(getHeadersMessage)
+*/
+
 /*
     // Step 1 : read block headers
     // Step 2 : Accept block headers.

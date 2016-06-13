@@ -33,9 +33,7 @@ object BlockProcessor {
     * @return Some(block) if the block exists; None otherwise.
     */
   def getBlock(blockHash : Hash) : Option[Block] = {
-    // TODO : Implement
-    assert(false)
-    null
+    chain.getBlock(blockHash).map(_._2)
   }
 
   /** Get a block header
@@ -44,9 +42,7 @@ object BlockProcessor {
     * @return Some(blockHeader) if the block header exists; None otherwise.
     */
   def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    // TODO : Implement
-    assert(false)
-    null
+    chain.getBlockHeader(blockHash)
   }
 
   /** Check if a block exists either as an orphan or non-orphan.
@@ -74,9 +70,7 @@ object BlockProcessor {
     * @return true if the block exists as a non-orphan; false otherwise.
     */
   def hasNonOrphan(blockHash : Hash) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    false
+    chain.hasBlock(blockHash)
   }
 
   /** Put the block as an orphan block.
@@ -88,11 +82,11 @@ object BlockProcessor {
   }
 
   /**
-    * Get the root parent that is missing for the given block.
-    * Ex> When B1's parent is B0, B2's parent is B1 and B0 is missing, the orphan root of the B2 is B0.
+    * Get the root orphan that does not have its parent even in the orphan blocks.
+    * Ex> When B1's parent is B0, B2's parent is B1 and B0 is missing, the orphan root of the B2 is B1.
     *
     * @param blockHash The block to find the root parent of it.
-    * @return The hash of the (missing) root parent.
+    * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
   def getOrphanRoot(blockHash : Hash) : Hash = {
     chain.blockOrphange.getOrphanRoot(blockHash)
@@ -149,8 +143,7 @@ object BlockProcessor {
     * @param block The block to delete from orphans.
     */
   protected[chain] def delOrphan(block : Block) : Unit = {
-    // TODO : Implement
-    assert(false)
+    chain.blockOrphange.delOrphan(block)
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.

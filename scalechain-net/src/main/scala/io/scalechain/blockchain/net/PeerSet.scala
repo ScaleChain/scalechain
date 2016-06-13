@@ -1,9 +1,10 @@
 package io.scalechain.blockchain.net
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.{SocketAddress, InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
 import io.netty.channel.Channel
+import io.netty.channel.embedded.EmbeddedChannel
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.CollectionUtil
@@ -62,6 +63,19 @@ class PeerSet {
           val peer = Peer(channel)
           peerByAddress.put(inetAddress, peer )
           peer
+        }
+        // For unit tests. We need to accept a socket whose toString method returns "embedded"
+        case embeddedSocketAddress : SocketAddress => {
+          if ( embeddedSocketAddress .toString == "embedded") {
+            val peer = Peer(channel)
+            // Put the peer as a peer on the localhost using port 1000.
+            peerByAddress.put(new InetSocketAddress(1000), peer )
+            peer
+          } else {
+            val message = s"The remote address of the channel was not the type EmbeddedSocketAddress. Remote Address : ${channel.remoteAddress()}"
+            logger.error(message)
+            throw new ChainException(ErrorCode.InternalError, message )
+          }
         }
         case _ => {
           val message = s"The remote address of the channel was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}"

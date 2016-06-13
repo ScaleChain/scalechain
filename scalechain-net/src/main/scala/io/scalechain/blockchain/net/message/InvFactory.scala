@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.net.message
 
-import io.scalechain.blockchain.proto.{Inv, Hash}
+import io.scalechain.blockchain.proto.{InvType, InvVector, Inv, Hash}
 
 /**
   * The factory that creates Inv messages.
@@ -12,9 +12,12 @@ object InvFactory {
     * @return The created Inv message.
     */
   def createBlockInventories(blockHashes : List[Hash]) : Inv = {
-    // TODO : Implement
-    assert(false)
-    null
+    Inv(blockHashes.map{ hash : Hash =>
+      InvVector(
+        InvType.MSG_BLOCK,
+        hash
+      )
+    })
   }
 
   /** Create an Inv message containing transaction inventories.
@@ -23,8 +26,11 @@ object InvFactory {
     * @return The created Inv message.
     */
   def createTransactionInventories(transactionHashes : List[Hash]) : Inv = {
-    // TODO : Implement
-    assert(false)
-    null
+    Inv(transactionHashes.map{ hash : Hash =>
+      InvVector(
+        InvType.MSG_TX,
+        hash
+      )
+    })
   }
 }

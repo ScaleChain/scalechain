@@ -40,11 +40,11 @@ class BlockOrphange(storage : BlockStorage) {
   }
 
   /**
-    * Get the root parent that is missing for the given block.
-    * Ex> When B1's parent is B0, B2's parent is B1 and B0 is missing, the orphan root of the B2 is B0.
+    * Get the root orphan that does not have its parent even in the orphan blocks.
+    * Ex> When B1's parent is B0, B2's parent is B1 and B0 is missing, the orphan root of the B2 is B1.
     *
     * @param blockHash The block to find the root parent of it.
-    * @return The hash of the (missing) root parent.
+    * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
   def getOrphanRoot(blockHash : Hash) : Hash = {
     // TODO : Implement

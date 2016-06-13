@@ -445,3 +445,6 @@ else if (strCommand == "pong") {
 }
 ```
 
+# References
+## Headers-first
+https://github.com/bitcoin/bitcoin/pull/4468

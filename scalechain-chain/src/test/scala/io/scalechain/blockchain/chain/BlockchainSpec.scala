@@ -37,4 +37,52 @@ class BlockchainSpec extends BlockchainTestTrait with ChainTestDataTrait with Sh
     chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
     chain.getBlockHash(0) shouldBe env.GenesisBlockHash
   }
+
+  "setEventListener" should "" in {
+  }
+
+  "setBestBlock" should "" in {
+  }
+
+  "putBlock" should "" in {
+  }
+
+  "putBlockHeader" should "" in {
+  }
+
+  "putTransaction" should "" in {
+  }
+
+  "getIterator" should "" in {
+  }
+
+  "getBestBlockHeight" should "" in {
+  }
+
+  "getBestBlockHash" should "" in {
+  }
+
+  "getBlockHash" should "" in {
+  }
+
+  "getBlockInfo" should "" in {
+  }
+
+  "hasBlock" should "" in {
+  }
+
+  "getBlock" should "" in {
+  }
+
+  "getBlockHeader" should "" in {
+  }
+
+  "getTransaction" should "" in {
+  }
+
+  "hasTransaction" should "" in {
+  }
+
+  "getTransactionOutput" should "" in {
+  }
 }

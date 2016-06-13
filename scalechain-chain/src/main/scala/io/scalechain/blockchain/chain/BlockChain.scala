@@ -178,11 +178,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           // We already checked if the parent block exists.
           assert(prevBlockDesc.isDefined)
 
+          val prevBlockHash = prevBlockDesc.get.blockHeader.hash
+
+          storage.putBlock(block)
+          storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+          val blockInfo = storage.getBlockInfo(blockHash).get
+
           // Case 2.A : The previous block of the new block is the current best block.
-          if (prevBlockDesc.get.blockHeader.hash.value == theBestBlock.blockHeader.hash.value) {
+          if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
             // Step 2.A.1 : Update the best block
-            storage.putBlock(block)
-            val blockInfo = storage.getBlockInfo(blockHash).get
             storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
             setBestBlock( blockHash, blockInfo )
@@ -199,10 +203,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
             logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
 
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
-            storage.putBlock(block)
-            val blockInfo = storage.getBlockInfo(blockHash).get
-            theBestBlock = blockInfo
-
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
             if (blockInfo.chainWork > theBestBlock.chainWork) {
               logger.warn("Block reorganization started.")
@@ -220,6 +220,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
         }
       }
     }
+  }
+
+  /**
+    * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
+    *
+    * Note : the next block hash is not updated.
+    *
+    * @param blockHash The hash of the block header.
+    * @param blockHeader The block header.
+    */
+  def putBlockHeader(blockHash : Hash, blockHeader:BlockHeader) : Unit = {
+    // TODO : Implement
+    logger.warn("Headers-first IBD is not supported yet.")
+    assert(false)
   }
 
   /** Put a transaction we received from peers into the disk-pool.
@@ -243,10 +257,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       }
     }
   }
-
-
-
-
 
   /** Return an iterator that iterates each ChainBlock from a given height.
     *
@@ -298,6 +308,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
   /**
     * Used by BlockLocator to get the info of the given block.
+    *
     * @param blockHash The hash of the block to get the info of it.
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
@@ -328,6 +339,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
     storage.getBlock(blockHash)
   }
+
+
+  /** Get a block header by the header hash.
+    *
+    * @param blockHash The hash of the block header.
+    * @return The block header.
+    */
+  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
+    storage.getBlockHeader(blockHash)
+  }
+
   /** Return a transaction that matches the given transaction hash.
     *
     * Used by listtransaction RPC to get the

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import io.scalechain.blockchain.{ErrorCode, NetException}
 import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.net.message.{HeadersFactory, InvFactory}
@@ -26,6 +27,10 @@ object GetHeadersMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit = {
+    // We don't support the headers first approach yet.
+    logger.warn("GetHeaders message is not supported yet.")
+  /*
+    // TODO : Investigate : Need to request block data for headers we got?
     // TODO : Investigate : Need to understand : GetDistanceBack
 
     // Step 1 : Prepare the hashes of block headers to send.
@@ -58,5 +63,6 @@ object GetHeadersMessageHandler {
       val headersMessage = HeadersFactory.create(blockHeaders)
       context.peer.send(headersMessage)
     }
+  */
   }
 }

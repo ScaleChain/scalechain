@@ -1,15 +1,11 @@
 package io.scalechain.blockchain.chain
 
 import java.io.File
-import java.math.BigInteger
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.test.ProtoTestData
-import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.ChainEnvironment
-import io.scalechain.util.HexUtil
-import org.apache.commons.io.FileUtils
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
+import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 trait BlockchainTestTrait extends FlatSpec with ChainTestDataTrait with BeforeAndAfterEach {
@@ -33,6 +29,7 @@ trait BlockchainTestTrait extends FlatSpec with ChainTestDataTrait with BeforeAn
 
     storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
     chain = new Blockchain(storage)
+    Blockchain.theBlockchain = chain
 
     super.beforeEach()
   }

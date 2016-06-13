@@ -149,8 +149,12 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       assert(readBlockInfo == blockInfo)
 
       attachBlock( readBlockInfo, readBlock )
+
       // Link the next block hash.
       storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+
+      // Update the block height index.
+      storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
       prevBlockHash = blockHash
     }

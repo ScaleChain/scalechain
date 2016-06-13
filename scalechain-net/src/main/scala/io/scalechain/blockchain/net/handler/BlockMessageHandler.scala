@@ -38,7 +38,7 @@ object BlockMessageHandler {
       // TODO : Increase DoS score of the peer if the block was invalid.
       // TODO : Make sure we do not hit any issue even though an exception is thrown by validateBlock.
 
-      if (BlockProcessor.hasNonOrphan(block.header.hashPrevBlock)) { // Case 1 : Orphan block
+      if (BlockProcessor.hasNonOrphan(block.header.hashPrevBlock)) { // Case 1 : Non-Orphan block.
         // Step 1.1 : Store the block to the blockchain. Do block reorganization if necessary.
         val acceptedAsNewBestBlock = BlockProcessor.acceptBlock(blockHash, block)
 
@@ -53,7 +53,7 @@ object BlockMessageHandler {
         // Step 1.3 : Relay the newly added blocks to peers as an inventory if it was the tip of the longest block chain by the time the block was accepted.
         val invMessage = InvFactory.createBlockInventories(newBlockHashes)
         context.communicator.sendToAll(invMessage)
-      } else { // Case 2 : Non-Orphan block.
+      } else { // Case 2 : Orphan block
         // Step 2.1 : Put the orphan block
         // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
         BlockProcessor.putOrphan(block)

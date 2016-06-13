@@ -224,6 +224,8 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             appendResult.txLocators
           } else {
             // case 2.2 : no block info was found, previous block header does not exists.
+            // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+            // before invoking putBlock method.
             logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
 
             List()

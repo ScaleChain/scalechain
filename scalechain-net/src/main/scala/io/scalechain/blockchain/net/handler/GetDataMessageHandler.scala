@@ -44,5 +44,8 @@ object GetDataMessageHandler {
     messagesToSend foreach { message : ProtocolMessage =>
       context.peer.send(message)
     }
+
+    // TODO : Step 4 : Need to send NotFound message for not found block or transaction.
+    // This is necessary for the SPV clients. We will implement this feature when we support SPV clients.
   }
 }
