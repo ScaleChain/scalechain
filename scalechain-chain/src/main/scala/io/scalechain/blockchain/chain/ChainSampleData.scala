@@ -56,34 +56,12 @@ class TestBlockIndex extends BlockIndex {
   }
 }
 
-/** A transaction output with an outpoint of it.
-  *
-  * @param output The transaction output.
-  * @param outPoint The transaction out point which is used for pointing the transaction output.
-  */
-case class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
-
-
-case class TransactionWithName(name:String, transaction:Transaction)
-
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends TransactionTestDataTrait{
+class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends BlockBuildingTestTrait {
 
   private val blockIndex = new TestBlockIndex()
-
-  val availableOutputs = new TransactionOutputSet()
-
-  def generateAddress(account:String) : AddressData = {
-    val addressData = generateAddress()
-    onAddressGeneration(account, addressData.address)
-    addressData
-  }
-
-  def onAddressGeneration(account:String, address : CoinAddress) : Unit = {
-    // by default, do nothing.
-  }
 
   object Alice {
     val Addr1 = generateAddress("Alice") // for receiving from others
@@ -119,86 +97,21 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
     }
   }
 
-  def getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
-  def getBlockHash(block : Block) = block.header.hash
 
   /** Add all outputs in a transaction into an output set.
     *
     * @param outputSet The output set where each output of the given transaction is added.
     * @param transactionWithName The transaction that has outputs to be added to the set.
     */
-  def addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) = {
+  override def addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit = {
+    super.addTransaction(outputSet, transactionWithName)
+
     val transactionHash = getTxHash(transactionWithName)
-    var outputIndex = -1
-
-    transactionWithName.transaction.outputs foreach { output =>
-      outputIndex += 1
-      outputSet.addTransactionOutput( OutPoint(transactionHash, outputIndex), output )
-    }
-
     blockIndex.addTransaction( transactionHash, transactionWithName.transaction)
     chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
     //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
-  /** Create a generation transaction
-    *
-    * @param amount The amount of coins to generate
-    * @param generatedBy The OutputOwnership that owns the newly generated coin. Ex> a coin address.
-    * @return The newly generated transaction
-    */
-  def generationTransaction( name : String,
-                             amount : CoinAmount,
-                             generatedBy : OutputOwnership
-                           ) : TransactionWithName = {
-    val transaction = TransactionBuilder.newBuilder(availableOutputs)
-      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
-      .addOutput(CoinAmount(50), generatedBy)
-      .build()
-    val transactionWithName = TransactionWithName(name, transaction)
-    addTransaction( availableOutputs, transactionWithName)
-    transactionWithName
-  }
-
-
-  /** Get an output of a given transaction.
-    *
-    * @param transactionWithName The transaction where we get an output.
-    * @param outputIndex The index of the output. Zero-based index.
-    * @return The transaction output with an out point.
-    */
-  def getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint = {
-    val transactionHash = transactionWithName.transaction.hash
-    OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
-  }
-
-  case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
-
-  /** Create a new normal transaction
-    *
-    * @param spendingOutputs The list of spending outputs. These are spent by inputs.
-    * @param newOutputs The list of newly created outputs.
-    * @return
-    */
-  def normalTransaction( name : String, spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) : TransactionWithName = {
-    val builder = TransactionBuilder.newBuilder(availableOutputs)
-
-    spendingOutputs foreach { output =>
-      builder.addInput(output.outPoint)
-    }
-
-    newOutputs foreach { output =>
-      builder.addOutput(output.amount, output.outputOwnership)
-    }
-
-    val transaction = builder.build()
-
-    val transactionWithName = TransactionWithName(name, transaction)
-
-    addTransaction( availableOutputs, transactionWithName)
-
-    transactionWithName
-  }
 
   def addBlock(block: Block) : Unit = {
     val blockHeight = blockIndex.bestBlockHeight+1
@@ -209,22 +122,16 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   }
 
   def newBlock(transactionsWithName : List[TransactionWithName]) : Block = {
-    val builder = BlockBuilder.newBuilder()
-
-    transactionsWithName.map(_.transaction) foreach { transaction =>
-      builder.addTransaction(transaction)
-    }
-
-    val block = builder.build(blockIndex.bestBlockHash, System.currentTimeMillis() / 1000)
+    val block = newBlock(blockIndex.bestBlockHash, transactionsWithName)
     addBlock(block)
     block
   }
+
 
   // Test cases may override this method to check the status of blockchain.
   def onStepFinish(stepNumber : Int): Unit = {
     // to nothing
   }
-
 
   // Put genesis block.
   addBlock(env.GenesisBlock)
@@ -246,6 +153,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Tr
   val S1_Block = newBlock(List(S1_AliceGenTx))
   val S1_BlockHash = getBlockHash(S1_Block)
   val S1_BlockHeight = 1
+
   onStepFinish(1)
 
   /////////////////////////////////////////////////////////////////////////////////

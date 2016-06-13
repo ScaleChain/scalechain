@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.ChainEnvironment
+import io.scalechain.blockchain.transaction.{ChainTestTrait, ChainEnvironment}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
@@ -12,7 +12,7 @@ import org.scalatest._
   * Created by kangmo on 5/28/16.
   */
 // Remove the ignore annotation after creating the "by block height" index
-class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
+class BlockLocatorSpec extends BlockchainTestTrait with ChainTestDataTrait with ShouldMatchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockLocatorSpec/")

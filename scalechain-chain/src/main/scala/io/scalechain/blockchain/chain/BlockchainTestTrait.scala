@@ -8,7 +8,7 @@ import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-trait BlockchainTestTrait extends FlatSpec with ChainTestDataTrait with BeforeAndAfterEach {
+trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
 
   this: Suite =>
 
