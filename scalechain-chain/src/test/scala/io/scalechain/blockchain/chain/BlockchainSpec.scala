@@ -4,12 +4,13 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.{ Hash}
 import io.scalechain.blockchain.storage.{BlockStorage, DiskBlockStorage, Storage}
+import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.scalechain.crypto.HashFunctions
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainSpec extends BlockchainTestTrait with ChainTestDataTrait with ShouldMatchers {
+class BlockchainSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
 
   this: Suite =>
 

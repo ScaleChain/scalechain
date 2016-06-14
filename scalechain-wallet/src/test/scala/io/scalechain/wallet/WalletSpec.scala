@@ -3,7 +3,7 @@ package io.scalechain.wallet
 import java.io.File
 
 import io.scalechain.blockchain.TransactionVerificationException
-import io.scalechain.blockchain.chain.{TransactionWithName, OutputWithOutPoint, ChainSampleData, ChainTestDataTrait}
+import io.scalechain.blockchain.chain.{TransactionWithName, OutputWithOutPoint, ChainSampleData}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.HashSupported._
@@ -24,7 +24,7 @@ import scala.collection.SortedSet
   * Created by kangmo on 5/12/16.
   */
 //@Ignore
-class WalletSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrait with Matchers {
+class WalletSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
