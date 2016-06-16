@@ -822,7 +822,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             Hash( transactionInput.outputTransactionHash.value ),
             transactionInput.outputIndex.toInt)
 
-          // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
+          // Step 4 : Wallet Store : Mark a UTXO unspent searching by OutPoint.
           if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
             isTransactionRelated = true
             isTransactionRelatedToTheOwnership = true

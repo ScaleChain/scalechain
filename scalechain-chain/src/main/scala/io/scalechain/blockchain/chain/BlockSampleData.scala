@@ -134,7 +134,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
 
     // TX04b2 goes to the transaction pool, as it depends on the unpent output, (TX02,2)
     val TX04b2 = normalTransaction(
-      "TX05b",
+      "TX04b",
       spendingOutputs = List( getOutput(TX02,2) ),
       newOutputs = List(
         NewOutput(CoinAmount(9), Addr2.address)
@@ -149,7 +149,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
       spendingOutputs = List( getOutput(TX04a,0) ),
       newOutputs = List(
         NewOutput(CoinAmount(5), Addr2.address)
-        // We have very expensive fee, 1 SC ㅋㅋㅋㅋㅋㅋㅋㅋㅋ
+        // We have very expensive fee, 1 SC
       )
     )
     // UTXO : TX02 : 2

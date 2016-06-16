@@ -26,6 +26,9 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
     super.beforeEach()
 
+    // put the genesis block
+    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
+
     o = chain.txOrphanage
   }
 
