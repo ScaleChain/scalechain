@@ -64,26 +64,29 @@ class TransactionProcessor(val chain : Blockchain) {
       val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
-        assert(dependentChild.isDefined)
-        try {
-          // Try to add to the transaction pool.
-          addTransactionToPool(dependentChildHash, dependentChild.get)
-          // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
-          acceptedChildren.append(dependentChildHash)
-          // del the orphan
-          chain.txOrphanage.delOrphan(dependentChildHash)
-        } catch {
-          case e : ChainException => {
-            if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
-              // do nothing.
-              // TODO : Add a test case.
-            } else if ( e.code == ErrorCode.ParentTransactionNotFound) { // The transaction depends on another parent transaction.
-              // do nothing. Still an orphan transaction.
-              // TODO : Add a test case.
-            } else {
-              throw e
+        if (dependentChild.isDefined) {
+          try {
+            // Try to add to the transaction pool.
+            addTransactionToPool(dependentChildHash, dependentChild.get)
+            // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
+            acceptedChildren.append(dependentChildHash)
+            // del the orphan
+            chain.txOrphanage.delOrphan(dependentChildHash)
+          } catch {
+            case e : ChainException => {
+              if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
+                // do nothing.
+                // TODO : Add a test case.
+              } else if ( e.code == ErrorCode.ParentTransactionNotFound) { // The transaction depends on another parent transaction.
+                // do nothing. Still an orphan transaction.
+                // TODO : Add a test case.
+              } else {
+                throw e
+              }
             }
           }
+        } else {
+          // The orphan tranasction was already deleted. nothing to do.
         }
       }
       chain.txOrphanage.removeDependenciesOn(parentTxHash)

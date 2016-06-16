@@ -233,12 +233,20 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
     b.getBlock(BLK04b.header.hash) shouldBe Some(BLK04b)
   }
 
-/*
-// Need to implement after implementing headers-first approach.
-  "acceptBlockHeader" should "" ignore {
+  "acceptChildren" should "accept nothing if no child exists" in {
+    b.acceptBlock(BLK01.header.hash, BLK01)
+
+    val acceptedChildren : List[Hash] = b.acceptChildren(BLK01.header.hash)
+
+    acceptedChildren shouldBe List()
   }
 
-  "getBlockHeader" should "" ignore {
-  }
-*/
+  /*
+  // Need to implement after implementing headers-first approach.
+    "acceptBlockHeader" should "" ignore {
+    }
+
+    "getBlockHeader" should "" ignore {
+    }
+  */
 }
