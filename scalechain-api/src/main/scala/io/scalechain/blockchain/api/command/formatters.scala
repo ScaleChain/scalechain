@@ -63,6 +63,18 @@ object TransactionDecoder {
     val rawTransaction = HexUtil.bytes(serializedTransaction)
     TransactionCodec.parse(rawTransaction)
   }
+
+  /** Decodes multiple transactions from a hex string.
+    *
+    * Note : This method uses parseMany, which is
+    * @param serializedTransactions The hex string that has multiple(or single) transactions to decode.
+    * @return A list of transactions.
+    */
+  def decodeTransactions(serializedTransactions : String) : List[Transaction] = {
+    val rawTransactions = HexUtil.bytes(serializedTransactions)
+    TransactionCodec.parseMany(rawTransactions)
+  }
+
 }
 
 // [API Layer] encode a transaction

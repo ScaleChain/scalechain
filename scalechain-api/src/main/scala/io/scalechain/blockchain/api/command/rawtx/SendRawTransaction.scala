@@ -2,9 +2,9 @@ package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.{TransactionDecoder, RpcCommand}
-import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.{Hash, HashFormat}
+import io.scalechain.blockchain.proto.{Transaction, Hash, HashFormat}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{ByteArray}
 import spray.json.DefaultJsonProtocol._
@@ -66,22 +66,44 @@ object SendRawTransaction extends RpcCommand {
       val allowHighFees: Boolean = request.params.getOption[Boolean]("Allow High Fees", 1).getOrElse(false)
 
       // Step 1 : Decode the transaction and run validation.
-      val transaction = TransactionDecoder.decodeTransaction(serializedTransaction)
-      new TransactionVerifier(transaction).verify(Blockchain.get)
+      val transactions : List[Transaction] = TransactionDecoder.decodeTransactions(serializedTransaction)
 
-      // Step 2 : Check if the transaction already exists.
-      val txHash = transaction.hash
-      val transactionOption = RpcSubSystem.get.getTransaction(txHash)
+      // If the transaction already exists, the tx hash is put into the txHashes list as Left(hash)
+      // If the transaction successfully sent, the tx hash is put into the txHashes list as Right(hash)
+      val txHashes : List[ Either[Hash,Hash] ] = transactions.map { tx: Transaction =>
+        new TransactionVerifier(tx).verify(Blockchain.get)
 
-      if (transactionOption.isDefined) {
+        // Step 2 : Check if the transaction already exists.
+        val txHash = tx.hash
+        val transactionOption = RpcSubSystem.get.getTransaction(txHash)
+
+        if (transactionOption.isDefined) {
+          Left(txHash)
+        } else {
+          RpcSubSystem.get.sendRawTransaction(tx, allowHighFees)
+          Right(txHash)
+        }
+      }
+      if (txHashes.count( _.isLeft ) > 0) {
         // BUGBUG : check bitcoin core code to make sure the error code matches.
+        val txIds = txHashes.filter(_.isLeft).mkString(",")
         Left(RpcError(
               RpcError.RPC_INVALID_PARAMETER.code,
               RpcError.RPC_INVALID_PARAMETER.messagePrefix,
-              "The transaction already exists."))
+              "The transaction already exists. Transaction ID(s): " + txIds))
       } else {
-        RpcSubSystem.get.sendRawTransaction(transaction, allowHighFees)
-        Right(Some(StringResult(ByteArray.byteArrayToString(txHash.value))))
+        if (txHashes.length == 1) {
+          // To keep the response compatible with bitcoind,
+          // return as a single StringResult if only one transaction was provided.
+          val txHash : Hash = txHashes.map(_.right.get).head
+          Right(Some(StringResult(ByteArray.byteArrayToString(txHash.value))))
+        } else {
+          // return as a StringListResult if more than one transaction was privided.
+          val txHashStringList = txHashes.map(_.right.get).map{ txHash : Hash =>
+            ByteArray.byteArrayToString(txHash.value)
+          }
+          Right(Some(StringListResult(txHashStringList)))
+        }
       }
     }
   }

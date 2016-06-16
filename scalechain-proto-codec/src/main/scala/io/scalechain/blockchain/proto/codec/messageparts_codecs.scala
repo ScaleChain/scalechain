@@ -9,6 +9,8 @@ import scodec.{DecodeResult, Attempt, Codec}
 import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
 
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 
 trait SerializeParseUtil[T] {
@@ -42,6 +44,29 @@ trait SerializeParseUtil[T] {
         throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
       }
     }
+  }
+
+  @tailrec
+  final def parseManyInternal(bitVector:BitVector, decodedItems : ListBuffer[T]) : Unit = {
+    codec.decode(bitVector) match {
+      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
+        decodedItems.append(decoded)
+        if ( !remainder.isEmpty ) {
+          parseManyInternal(remainder, decodedItems)
+          // throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+        }
+      }
+      case Attempt.Failure(err) => {
+        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+      }
+    }
+  }
+
+  def parseMany(data: Array[Byte]) : List[T] = {
+    val decodedItems = new ListBuffer[T]()
+    val bitVector: BitVector = BitVector.view(data)
+    parseManyInternal(bitVector, decodedItems)
+    decodedItems.toList
   }
 }
 
