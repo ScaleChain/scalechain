@@ -5,6 +5,8 @@ import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 import org.slf4j.LoggerFactory
 
+object BlockProcessor extends BlockProcessor(Blockchain.get)
+
 /** Process a received block.
   *
   * The block processor is responsible for following handlings.
@@ -22,10 +24,10 @@ import org.slf4j.LoggerFactory
   *    - If the parent of the block is the current best block(=the tip of the best blockchain), put the block on top of the current best block.
   *
   */
-object BlockProcessor {
-  private lazy val logger = LoggerFactory.getLogger(BlockProcessor.getClass)
+class BlockProcessor(val chain : Blockchain) {
+  private val logger = LoggerFactory.getLogger(classOf[BlockProcessor])
 
-  val chain = Blockchain.get
+
 
   /** Get a block.
     *
@@ -123,10 +125,6 @@ object BlockProcessor {
     * @return true if the newly accepted block became the new best block.
     */
   def acceptBlock(blockHash : Hash, block : Block) : Boolean = {
-    // TODO : Implement
-    assert(false)
-    true
-
     // Step 1. Need to check if the same blockheader hash exists by looking up mapBlockIndex
     // Step 2. Need to increase DoS score if an orphan block was received.
     // Step 3. Need to increase DoS score if the block hash does not meet the required difficulty.
@@ -134,7 +132,7 @@ object BlockProcessor {
     // Step 5. Need to check the lock time of all transactions.
     // Step 6. Need to check block hashes for checkpoint blocks.
     // Step 7. Write the block on the block database, reorganize blocks if necessary.
-    // on Step 7, call chain.putBlock.
+    chain.putBlock(blockHash, block)
   }
 
   /**

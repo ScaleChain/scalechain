@@ -4,13 +4,13 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash}
 import org.slf4j.LoggerFactory
 
+object TransactionProcessor extends TransactionProcessor(Blockchain.get)
+
 /** Processes a received transaction.
   *
   */
-object TransactionProcessor {
-  private lazy val logger = LoggerFactory.getLogger(TransactionProcessor.getClass)
-
-  val chain = Blockchain.get
+class TransactionProcessor(val chain : Blockchain) {
+  private val logger = LoggerFactory.getLogger(classOf[TransactionProcessor])
 
   /** See if a transaction exists. Checks orphan transactions as well.
     * naming rule : 'exists' checks orphan transactions as well, whereas hasNonOrphan does not.
@@ -42,6 +42,7 @@ object TransactionProcessor {
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
   def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
+    // TODO : Need to check if the validity of the transation?
     chain.txPool.addTransactionToPool(txHash, transaction)
   }
 

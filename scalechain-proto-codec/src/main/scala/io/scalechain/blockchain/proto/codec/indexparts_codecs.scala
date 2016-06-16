@@ -80,9 +80,7 @@ object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor
 
 object OrphanBlockDescriptorCodec extends MessagePartCodec[OrphanBlockDescriptor] {
   val codec : Codec[OrphanBlockDescriptor] = {
-    ("blockHeader" | BlockHeaderCodec.codec) ::
-    ("transactionCount" | int32L) ::
-    ("blockLocatorOption" | FileRecordLocatorCodec.codec )
+    ("block" | BlockCodec.codec)
   }.as[OrphanBlockDescriptor]
 }
 

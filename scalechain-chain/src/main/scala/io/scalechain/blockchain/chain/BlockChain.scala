@@ -111,8 +111,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
 
-  val blockOrphange = new BlockOrphange(storage)
-  val txOrphange = new TransactionOrphange(storage)
+  val blockOrphange = new BlockOrphanage(storage)
+  val txOrphange = new TransactionOrphanage(storage)
 
   /** Set an event listener of the blockchain.
     *
@@ -152,13 +152,16 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * TODO : Need to check the merkle root hash in the block.
     *
     * @param block The block to put into the blockchain.
+    * @return true if the newly accepted block became the new best block.
+    *
     */
-  def putBlock(blockHash : Hash, block:Block) : Unit = {
+  def putBlock(blockHash : Hash, block:Block) : Boolean = {
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     synchronized {
       if (storage.hasBlock(blockHash)) {
         logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
+        false
       } else {
 
         // Case 1. If it is the genesis block, set the genesis block as the current best block.
@@ -170,6 +173,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           setBestBlock(blockHash, storage.getBlockInfo(blockHash).get )
 
           chainEventListener.map(_.onAttachBlock(ChainBlock( height = 0, block)))
+
+          true
         } else { // Case 2. Not a genesis block.
           assert(theBestBlock != null)
 
@@ -202,6 +207,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
             logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
 
+            true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
             if (blockInfo.chainWork > theBestBlock.chainWork) {
@@ -215,6 +221,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
               setBestBlock(blockHash, blockInfo)
 
               // TODO : Update best block in wallet (so we can detect restored wallets)
+              true
+            } else {
+              false
             }
           }
         }

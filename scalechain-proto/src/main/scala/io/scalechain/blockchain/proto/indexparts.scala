@@ -66,15 +66,9 @@ case class TransactionDescriptor( transactionLocatorOption : Option[FileRecordLo
 
 /** A descriptor for an orphan block. Used as the value of the (key:block hash, value:orphan block) index.
   *
-  * @param blockHeader The header of the block.
-  * @param transactionCount The number of transactions.
-  * @param blockLocator The on-disk location of the block.
+  * @param block The orphan block.
   */
-case class OrphanBlockDescriptor(
-                                  blockHeader : BlockHeader,
-                                  transactionCount : Int,
-                                  blockLocator : FileRecordLocator
-) extends ProtocolMessage
+case class OrphanBlockDescriptor( block : Block ) extends ProtocolMessage
 
 /** a descriptor for an orphan transaction. Used as the value of the (key:transaction hash, value:orphan transaction) index.
   *

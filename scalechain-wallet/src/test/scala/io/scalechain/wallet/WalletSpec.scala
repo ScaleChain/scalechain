@@ -786,7 +786,7 @@ String Response : {
           }
           case 3 => {
             wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
-              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = true),
               utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
               utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
               utxo("Alice", S3_AliceCoin1_A2, confirmations = 1, spendable = true),
@@ -796,7 +796,7 @@ String Response : {
           }
           case 4 => {
             wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
-              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = true),
               utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
               utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
               utxo("Carry", S3_CarrayCoin1_A3, confirmations = 1, spendable = true),
@@ -807,7 +807,7 @@ String Response : {
 
           case 5 => {
             wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
-              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = false),
+              utxo("Bob", S2_BobGenCoin_A50, confirmations = 2, spendable = true),
               utxo("Alice", S2_AliceChangeCoin1_A39, confirmations = 2, spendable = true),
               utxo("Carry", S3_CarrayGenCoin_A50, confirmations = 1, spendable = false),
               utxo("Bob", S3_BobChangeCoin1_A5, confirmations = 1, spendable = true),
@@ -831,7 +831,7 @@ String Response : {
     )
 
     wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Bob.Addr1.address))).toSet shouldBe Set(
-      utxo("Bob", S.S2_BobGenCoin_A50, confirmations = 2, spendable = false)
+      utxo("Bob", S.S2_BobGenCoin_A50, confirmations = 2, spendable = true)
     )
 
     wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Bob.Addr2.address))).toSet shouldBe Set(

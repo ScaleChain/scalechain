@@ -34,23 +34,17 @@ class OrphanBlockIndexSpec extends FlatSpec with ShouldMatchers with BeforeAndAf
     * @return The created orphan block.
     */
   def orphanBlock(num : Int) = OrphanBlockDescriptor(
-    transactionCount = num,
-    blockHeader = BlockHeader(
-      version = 4,
-      hashPrevBlock = Hash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
-      hashMerkleRoot = Hash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
-      timestamp = 1234567890L,
-      target = num,
-      nonce = num
-    ),
-    blockLocator =
-      FileRecordLocator(
-        fileIndex = num,
-        RecordLocator(
-          offset = num+1,
-          size = num+2
-        )
-      )
+    Block(
+      header = BlockHeader(
+        version = 4,
+        hashPrevBlock = Hash(bytes("3f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e7b")),
+        hashMerkleRoot = Hash(bytes("4f4fa19803dec4d6a84fae3821da7ac7577080ef75451294e71f9b20e0ab1e70")),
+        timestamp = 1234567890L,
+        target = num,
+        nonce = num
+      ),
+      transactions = List()
+    )
   )
 
   var index : OrphanBlockIndex = null
