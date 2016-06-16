@@ -1,9 +1,31 @@
-for command in getbestblockhash getblock getblockhash help submitblock getpeerinfo decoderawtransaction getrawtransaction sendrawtransaction signrawtransaction getaccount getaccountaddress getnewaddress getreceivedbyaddress listtransactions listunspent sendfrom 
-do
-   echo ""
-   echo "========================================================================"
-   echo $command 
-   echo "========================================================================"
+PORT=8080
 
-   ./${command}.sh
-done
+scalechain-cli getbestblockhash
+
+scalechain-cli getnewaddress myaccount
+
+scalechain-cli getaccount n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli getaccountaddress _FOR_TEST_ONLY
+
+scalechain-cli getblock 00b7b368820eb4d41678e90e2fcf56c7c50c05fb05575c7c942ef73e2ee23cc3
+
+scalechain-cli getblockhash 2
+
+scalechain-cli getpeerinfo
+
+scalechain-cli getrawtransaction 18a82339d5433ee0e37fe61fc8ba84a8a00148bb041faf831f2c70516cad1816
+
+scalechain-cli getreceivedbyaddress n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli importaddress n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli listtransactions _FOR_TEST_ONLY
+
+scalechain-cli listunspent n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli sendrawtransaction 0100000001c997a5e56e104102fa209c6a852dd90660a20b2d9c352423edce25857fcd3704000000004847304402204e45e16932b8af514961a1d3a1a25fdf3f4f7732e9d624c6c61548ab5fb8cd410220181522ec8eca07de4860a4acdd12909d831cc56cbbac4622082221a8768d1d0901ffffffff0200ca9a3b00000000434104ae1a62fe09c5f51b13905f07f06b99a2f7159b2225f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a0626f1baded5c72a704f7e6cd84cac00286bee0000000043410411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3ac00000000
+
+scalechain-cli signrawtransaction 01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e0000000000ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000
+
+scalechain-cli decoderawtransaction 0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000
