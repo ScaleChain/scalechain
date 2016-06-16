@@ -1,8 +1,11 @@
 package io.scalechain.blockchain.chain.processor
 
+import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash}
 import org.slf4j.LoggerFactory
+
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 object TransactionProcessor extends TransactionProcessor(Blockchain.get)
 
@@ -49,14 +52,47 @@ class TransactionProcessor(val chain : Blockchain) {
   /**
     * Recursively accepts children of the given parent.
     *
-    * @param parentTxHash The hash of the parent transaction that an orphan might depend on.
+    * @param initialParentTxHash The hash of the parent transaction that an orphan might depend on.
     * @return The list of hashes of accepted children transactions.
     */
-  def acceptChildren(parentTxHash : Hash) : List[Hash] = {
-    // TODO : Implement
-    assert(false)
-    null
-    // chain.txOrphange.removeDependencyOn
+  def acceptChildren(initialParentTxHash : Hash) : List[Hash] = {
+    val acceptedChildren = new ArrayBuffer[Hash]
+
+    var i = -1;
+    do {
+      val parentTxHash = if (acceptedChildren.length == 0) initialParentTxHash else acceptedChildren(i)
+      val dependentChildren : List[Hash] = chain.txOrphange.getOrphansDependingOn(parentTxHash)
+      dependentChildren foreach { dependentChildHash : Hash =>
+        val dependentChild = chain.txOrphange.getOrphan(dependentChildHash)
+        assert(dependentChild.isDefined)
+        try {
+          // Try to add to the transaction pool.
+          addTransactionToPool(dependentChildHash, dependentChild.get)
+          // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
+          acceptedChildren.append(dependentChildHash)
+        } catch {
+          case e : ChainException => {
+            if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
+              // do nothing.
+              // TODO : Add a test case.
+            } else if ( e.code == ErrorCode.ParentTransactionNotFound) { // The transaction depends on another parent transaction.
+              // do nothing. Still an orphan transaction.
+              // TODO : Add a test case.
+            } else {
+              throw e
+            }
+          }
+        }
+      }
+      chain.txOrphange.removeDependenciesOn(parentTxHash)
+      i += 1
+    } while( i < acceptedChildren.length)
+
+    acceptedChildren foreach { childTxHash : Hash =>
+    }
+
+    // Remove duplicate by converting to a set, and return as a list.
+    acceptedChildren.toSet.toList
   }
 
   /**

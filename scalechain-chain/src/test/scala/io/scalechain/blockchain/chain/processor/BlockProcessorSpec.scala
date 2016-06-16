@@ -11,7 +11,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockProcessorTestTrait/")
+  val testPath = new File("./target/unittests-BlockProcessorSpec/")
 
   override def beforeEach() {
     // initialize a test.

@@ -16,11 +16,11 @@ class InventoryProcessor(val chain : Blockchain) {
     inventory.invType match {
       case InvType.MSG_TX => {
         // Transaction : Check the transaction database, transaction pool, and orphan transactions
-        TransactionProcessor.exists(inventory.hash)
+        new TransactionProcessor(chain).exists(inventory.hash)
       }
       case InvType.MSG_BLOCK => {
         // Block : Check the block database, orphan blocks
-        BlockProcessor.exists(inventory.hash)
+        new BlockProcessor(chain).exists(inventory.hash)
       }
       case _ => {
         logger.warn(s"Unknown inventory type : ${inventory}")

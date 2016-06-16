@@ -49,6 +49,8 @@ object TxMessageHandler {
         if (e.code == ErrorCode.ParentTransactionNotFound) {
           // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
           TransactionProcessor.putOrphan(transactionHash, transaction)
+        } else if (e.code == ErrorCode.TransactionOutputAlreadySpent) {
+          logger.warn(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
         }
       }
     }

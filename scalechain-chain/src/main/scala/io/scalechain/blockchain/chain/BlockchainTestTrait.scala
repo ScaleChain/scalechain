@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import java.io.File
+import java.lang.ref.WeakReference
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.HashSupported._
@@ -39,8 +40,10 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
 
     // finalize a test.
     storage.close()
+
     storage = null
     chain = null
+    Blockchain.theBlockchain = null
 
     FileUtils.deleteDirectory(testPath)
   }

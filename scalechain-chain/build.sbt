@@ -4,3 +4,4 @@
 
 //import Version._
 //libraryDependencies ..
+//parallelExecution in Test := false

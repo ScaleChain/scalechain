@@ -38,15 +38,6 @@ class BlockProcessor(val chain : Blockchain) {
     chain.getBlock(blockHash).map(_._2)
   }
 
-  /** Get a block header
-    *
-    * @param blockHash The hash of the block to get.
-    * @return Some(blockHeader) if the block header exists; None otherwise.
-    */
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    chain.getBlockHeader(blockHash)
-  }
-
   /** Check if a block exists either as an orphan or non-orphan.
     * naming rule : 'exists' checks orphan blocks as well, whereas hasNonOrphan does not.
     *
@@ -109,12 +100,12 @@ class BlockProcessor(val chain : Blockchain) {
     // Step 6. check the number of script operations on the locking/unlocking script.
     // Step 7. Calculate the merkle root hash, compare it with the one in the block header.
     // TODO : Implement
+    //    assert(false)
 /*
     val message = s"The block is invalid(${outPoint})."
     logger.warn(message)
     throw new ChainException(ErrorCode.InvalidBlock, message)
 */
-    assert(false)
   }
 
   /**
@@ -166,6 +157,18 @@ class BlockProcessor(val chain : Blockchain) {
   }
 
 
+/* TODO : Need to implement getBlockHeader and acceptBlockHeader when we implement the headers-first approach.
+
+
+  /** Get a block header
+    *
+    * @param blockHash The hash of the block to get.
+    * @return Some(blockHeader) if the block header exists; None otherwise.
+    */
+  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
+    chain.getBlockHeader(blockHash)
+  }
+
   /** Accept the block header to the blockchain.
     *
     * @param blockHeader The block header to accept.
@@ -181,4 +184,6 @@ class BlockProcessor(val chain : Blockchain) {
     // TODO : Implement
     assert(false)
   }
+*/
+
 }

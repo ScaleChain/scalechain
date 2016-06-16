@@ -3,7 +3,7 @@ package io.scalechain.blockchain.chain.processor
 import java.io.File
 
 import io.scalechain.blockchain.chain.{BlockSampleData, BlockchainTestTrait}
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.{InvType, InvVector, Hash}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import HashSupported._
@@ -13,9 +13,10 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-TransactionProcessorTestTrait/")
+  val testPath = new File("./target/unittests-TransactionProcessorSpec/")
   var t : TransactionProcessor = null
   var b : BlockProcessor = null
+
   import BlockSampleData._
   import BlockSampleData.Tx._
   import BlockSampleData.Block._
@@ -26,6 +27,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
     super.beforeEach()
     t = new TransactionProcessor(chain)
     b = new BlockProcessor(chain)
+
     // Put the genesis block for testing.
     b.acceptBlock(env.GenesisBlockHash, env.GenesisBlock)
   }
@@ -90,7 +92,37 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
     t.chain.txPool.getTransactionsFromPool should contain (TX03.transaction.hash, TX03.transaction)
   }
 
-  "acceptChildren" should "" in {
+  "acceptChildren" should "accept all children" in {
+    t.putOrphan(TX03.transaction.hash, TX03.transaction )
+    t.putOrphan(TX04.transaction.hash, TX04.transaction )
+
+    /**
+      * Transaction Dependency before calling acceptChildren
+      *
+      *  TX02 → TX03
+      *    ↘       ↘
+      *      ↘ → → → → TX04
+      */
+
+    b.acceptBlock(BLK01.header.hash, BLK01)
+
+    t.addTransactionToPool(TX02.transaction.hash, TX02.transaction)
+    val acceptedChildren : List[Hash] = t.acceptChildren(TX02.transaction.hash)
+    acceptedChildren.toSet shouldBe Set(TX03.transaction.hash, TX04.transaction.hash)
+    t.chain.txOrphange.getOrphansDependingOn(TX02.transaction.hash) shouldBe List()
+    t.chain.txOrphange.getOrphansDependingOn(TX03.transaction.hash) shouldBe List()
+    t.chain.txOrphange.getOrphansDependingOn(TX04.transaction.hash) shouldBe List()
+
+    t.chain.txOrphange.getOrphan(TX02.transaction.hash) shouldBe None
+
+    t.delOrphans(List(TX03.transaction.hash, TX04.transaction.hash))
+
+    t.chain.txOrphange.getOrphan(TX03.transaction.hash) shouldBe None
+    t.chain.txOrphange.getOrphan(TX04.transaction.hash) shouldBe None
+
+    t.getTransaction(TX02.transaction.hash) shouldBe Some(TX02.transaction)
+    t.getTransaction(TX03.transaction.hash) shouldBe Some(TX03.transaction)
+    t.getTransaction(TX04.transaction.hash) shouldBe Some(TX04.transaction)
   }
 
   "putOrphan" should "put an orphan" in {

@@ -83,6 +83,6 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
 
   def close() : Unit = {
     db.close
-    options.dispose()
+    options.dispose
   }
 }
