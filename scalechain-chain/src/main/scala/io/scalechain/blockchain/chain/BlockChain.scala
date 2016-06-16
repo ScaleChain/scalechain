@@ -111,8 +111,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
 
-  val blockOrphange = new BlockOrphanage(storage)
-  val txOrphange = new TransactionOrphanage(storage)
+  val blockOrphanage = new BlockOrphanage(storage)
+  val txOrphanage = new TransactionOrphanage(storage)
 
   /** Set an event listener of the blockchain.
     *

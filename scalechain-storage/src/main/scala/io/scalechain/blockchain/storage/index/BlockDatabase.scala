@@ -184,7 +184,9 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
 
       // The last block height should not be decreased.
       // The last block height should increase
-      assert( currentInfo.lastBlockHeight < blockFileInfo.lastBlockHeight)
+
+// when a orphan block is
+//      assert( currentInfo.lastBlockHeight < blockFileInfo.lastBlockHeight)
 
       // Caution : The last block timestamp can decrease.
     }

@@ -37,6 +37,15 @@ class BlockOrphanage(storage : BlockStorage) {
 
 
   /**
+    * Get an orphan block.
+    * @param blockHash The hash of the orphan block.
+    * @return Some(block) if the orphan was found; None otherwise.
+    */
+  def getOrphan(blockHash : Hash) : Option[Block] = {
+    storage.getOrphanBlock(blockHash).map(_.block)
+  }
+
+  /**
     * Remove the block from the orphan blocks.
     *
     * @param block The block to delete from orphans.

@@ -26,7 +26,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
     super.beforeEach()
 
-    o = chain.txOrphange
+    o = chain.txOrphanage
   }
 
   override def afterEach() {
@@ -41,7 +41,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
 
-  "delOrphans" should "del orphans matching the given hashes" in {
+  "delOrphan" should "del orphans matching the given hashes" in {
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04a.transaction.hash, TX04a.transaction )
@@ -49,7 +49,8 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
     o.removeDependenciesOn(TX04a.transaction.hash)
     o.removeDependenciesOn(TX02.transaction.hash)
 
-    o.delOrphans(List( TX02.transaction.hash, TX04a.transaction.hash) )
+    o.delOrphan( TX02.transaction.hash )
+    o.delOrphan( TX04a.transaction.hash )
     o.getOrphan(TX02.transaction.hash) shouldBe None
     o.getOrphan(TX03.transaction.hash) shouldBe Some(TX03.transaction)
     o.getOrphan(TX04a.transaction.hash) shouldBe None
@@ -79,14 +80,16 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   /**
     * Transaction Dependency :
     *
-    *  TX02 → TX03
-    *    ↘       ↘
-    *      ↘ → → → → TX04
+    *  GEN01  → TX02 → TX03
+    *          ↘      ↘
+    *            ↘ → → → → TX04
     */
   "getOrphansDependingOn" should "be able to put dependent orphans first" in {
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
+
+    o.getOrphansDependingOn(GEN01.transaction.hash).toSet shouldBe Set(TX02.transaction.hash)
     o.getOrphansDependingOn(TX02.transaction.hash).toSet shouldBe Set(TX03.transaction.hash, TX04.transaction.hash)
     o.getOrphansDependingOn(TX03.transaction.hash).toSet shouldBe Set(TX04.transaction.hash)
     o.getOrphansDependingOn(TX04.transaction.hash).toSet shouldBe Set()
@@ -97,6 +100,8 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
+
+    o.getOrphansDependingOn(GEN01.transaction.hash).toSet shouldBe Set(TX02.transaction.hash)
     o.getOrphansDependingOn(TX02.transaction.hash).toSet shouldBe Set(TX03.transaction.hash, TX04.transaction.hash)
     o.getOrphansDependingOn(TX03.transaction.hash).toSet shouldBe Set(TX04.transaction.hash)
     o.getOrphansDependingOn(TX04.transaction.hash).toSet shouldBe Set()

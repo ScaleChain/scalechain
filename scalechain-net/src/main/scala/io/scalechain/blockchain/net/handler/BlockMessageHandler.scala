@@ -43,16 +43,18 @@ object BlockMessageHandler {
         val acceptedAsNewBestBlock = BlockProcessor.acceptBlock(blockHash, block)
 
         // Step 1.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
-        val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(block)
+        val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(blockHash)
 
         val newBlockHashes = if (acceptedAsNewBestBlock) {
           blockHash :: newlyBestBlockHashes
         } else {
           newlyBestBlockHashes
         }
-        // Step 1.3 : Relay the newly added blocks to peers as an inventory if it was the tip of the longest block chain by the time the block was accepted.
+
+        // Step 1.3 : Relay the newly added blocks to peers as an inventory
         val invMessage = InvFactory.createBlockInventories(newBlockHashes)
         context.communicator.sendToAll(invMessage)
+
       } else { // Case 2 : Orphan block
         // Step 2.1 : Put the orphan block
         // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.

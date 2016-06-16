@@ -212,7 +212,8 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       )
     }
 
-
+    // If a block on a fork is added, the last block might not increase.
+/*
     // The last block height should not be decreased.
     intercept[AssertionError] {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
@@ -228,7 +229,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
         )
       )
     }
-
+*/
     // Caution : The last block timestamp can decrease.
   }
 

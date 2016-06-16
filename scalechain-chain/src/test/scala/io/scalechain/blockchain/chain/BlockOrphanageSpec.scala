@@ -27,7 +27,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
 
     super.beforeEach()
 
-    o = chain.blockOrphange
+    o = chain.blockOrphanage
   }
 
   override def afterEach() {
@@ -82,6 +82,23 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
     o.getOrphansDependingOn(BLK03a.header.hash) shouldBe List()
     o.getOrphansDependingOn(BLK03b.header.hash) shouldBe List()
     o.getOrphansDependingOn(BLK02.header.hash).toSet shouldBe Set(BLK03a.header.hash, BLK03b.header.hash)
+  }
+
+
+  "getOrphan" should "return None for a non-existent orphan" in {
+    o.getOrphan(BLK02.header.hash) shouldBe None
+  }
+
+
+  "getOrphan" should "return an orphan" in {
+    o.putOrphan(BLK03a)
+    o.putOrphan(BLK03b)
+    o.putOrphan(BLK02)
+
+    o.getOrphan(BLK03a.header.hash) shouldBe Some(BLK03a)
+    o.getOrphan(BLK03b.header.hash) shouldBe Some(BLK03b)
+    o.getOrphan(BLK02.header.hash) shouldBe Some(BLK02)
+
   }
 
 

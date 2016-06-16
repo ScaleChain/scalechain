@@ -10,17 +10,12 @@ import HashSupported._
   */
 class TransactionOrphanage(storage : BlockStorage) {
   /**
-    * Remove transactions from the indexes maintaining the orphans.
+    * Remove a transaction from the indexes maintaining the orphans.
     *
-    * @param orphanTransactions The list of hashes of the accepted orphan transactions to remove.
+    * @param orphanTxHash The hash of the accepted orphan transaction to remove.
     */
-  def delOrphans(orphanTransactions : List[Hash]) : Unit = {
-    orphanTransactions foreach { orphanTxHash =>
-      // There should be no transaction depending on the transaction removed from the orphanage
-      assert( storage.getOrphanTransactionsByParent(orphanTxHash).isEmpty)
-
-      storage.delOrphanTransaction(orphanTxHash)
-    }
+  def delOrphan(orphanTxHash : Hash) : Unit = {
+    storage.delOrphanTransaction(orphanTxHash)
   }
 
   /**

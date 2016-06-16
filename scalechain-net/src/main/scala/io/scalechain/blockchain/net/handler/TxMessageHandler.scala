@@ -34,16 +34,12 @@ object TxMessageHandler {
 
       // Yes! the transaction was put into the disk-pool.
       // Step 2 : Recursively check if any orphan transaction depends on this transaction.
+      // Also delete the newly accepted transactions from indexes for orphan transactions.
       val acceptedChildren : List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
-
 
       // Step 3 : Relay the transaction as an inventory
       val invMessage = InvFactory.createTransactionInventories( transactionHash :: acceptedChildren )
       context.communicator.sendToAll( invMessage )
-
-      // Step 4 : For each orphan transaction that has all inputs connected, remove from the orphan transaction.
-      TransactionProcessor.delOrphans(acceptedChildren)
-
     } catch {
       case e : ChainException => {
         if (e.code == ErrorCode.ParentTransactionNotFound) {

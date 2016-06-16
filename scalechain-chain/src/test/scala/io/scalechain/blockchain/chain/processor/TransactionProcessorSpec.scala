@@ -109,16 +109,13 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
     t.addTransactionToPool(TX02.transaction.hash, TX02.transaction)
     val acceptedChildren : List[Hash] = t.acceptChildren(TX02.transaction.hash)
     acceptedChildren.toSet shouldBe Set(TX03.transaction.hash, TX04.transaction.hash)
-    t.chain.txOrphange.getOrphansDependingOn(TX02.transaction.hash) shouldBe List()
-    t.chain.txOrphange.getOrphansDependingOn(TX03.transaction.hash) shouldBe List()
-    t.chain.txOrphange.getOrphansDependingOn(TX04.transaction.hash) shouldBe List()
+    t.chain.txOrphanage.getOrphansDependingOn(TX02.transaction.hash) shouldBe List()
+    t.chain.txOrphanage.getOrphansDependingOn(TX03.transaction.hash) shouldBe List()
+    t.chain.txOrphanage.getOrphansDependingOn(TX04.transaction.hash) shouldBe List()
 
-    t.chain.txOrphange.getOrphan(TX02.transaction.hash) shouldBe None
-
-    t.delOrphans(List(TX03.transaction.hash, TX04.transaction.hash))
-
-    t.chain.txOrphange.getOrphan(TX03.transaction.hash) shouldBe None
-    t.chain.txOrphange.getOrphan(TX04.transaction.hash) shouldBe None
+    t.chain.txOrphanage.getOrphan(TX02.transaction.hash) shouldBe None
+    t.chain.txOrphanage.getOrphan(TX03.transaction.hash) shouldBe None
+    t.chain.txOrphanage.getOrphan(TX04.transaction.hash) shouldBe None
 
     t.getTransaction(TX02.transaction.hash) shouldBe Some(TX02.transaction)
     t.getTransaction(TX03.transaction.hash) shouldBe Some(TX03.transaction)
@@ -127,18 +124,6 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
 
   "putOrphan" should "put an orphan" in {
     t.putOrphan(TX03.transaction.hash, TX03.transaction)
-    t.chain.txOrphange.getOrphan(TX03.transaction.hash).get shouldBe TX03.transaction
-  }
-
-  "delOrphans" should "del sorphans" in {
-    t.putOrphan(TX03.transaction.hash, TX03.transaction)
-    t.putOrphan(TX04.transaction.hash, TX04.transaction)
-    t.putOrphan(TX05a.transaction.hash, TX05a.transaction)
-
-    t.delOrphans(List(TX04.transaction.hash, TX05a.transaction.hash))
-
-    t.chain.txOrphange.getOrphan(TX03.transaction.hash).get shouldBe TX03.transaction
-    t.chain.txOrphange.getOrphan(TX04.transaction.hash) shouldBe None
-    t.chain.txOrphange.getOrphan(TX05a.transaction.hash) shouldBe None
+    t.chain.txOrphanage.getOrphan(TX03.transaction.hash).get shouldBe TX03.transaction
   }
 }

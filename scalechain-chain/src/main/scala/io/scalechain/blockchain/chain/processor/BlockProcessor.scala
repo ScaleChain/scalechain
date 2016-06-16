@@ -5,6 +5,8 @@ import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable.ArrayBuffer
+
 object BlockProcessor extends BlockProcessor(Blockchain.get)
 
 /** Process a received block.
@@ -54,7 +56,7 @@ class BlockProcessor(val chain : Blockchain) {
     * @return true if the block exists as an orphan; false otherwise.
     */
   def hasOrphan(blockHash : Hash) : Boolean = {
-    chain.blockOrphange.hasOrphan(blockHash)
+    chain.blockOrphanage.hasOrphan(blockHash)
   }
 
   /** Check if the block exists as a non-orphan block.
@@ -71,7 +73,7 @@ class BlockProcessor(val chain : Blockchain) {
     * @param block the block to put as an orphan block.
     */
   def putOrphan(block : Block) : Unit = {
-    chain.blockOrphange.putOrphan(block)
+    chain.blockOrphanage.putOrphan(block)
   }
 
   /**
@@ -82,7 +84,7 @@ class BlockProcessor(val chain : Blockchain) {
     * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
   def getOrphanRoot(blockHash : Hash) : Hash = {
-    chain.blockOrphange.getOrphanRoot(blockHash)
+    chain.blockOrphanage.getOrphanRoot(blockHash)
   }
 
   /**
@@ -126,24 +128,35 @@ class BlockProcessor(val chain : Blockchain) {
     chain.putBlock(blockHash, block)
   }
 
-  /**
-    * Remove the block from the orphan blocks.
-    *
-    * @param block The block to delete from orphans.
-    */
-  protected[chain] def delOrphan(block : Block) : Unit = {
-    chain.blockOrphange.delOrphan(block)
-  }
-
   /** Recursively accept orphan children blocks of the given block, if any.
     *
-    * @param block The newly accepted parent block. As a result of it, we can accept the children of the newly accepted block.
-    * @return A list of block hashes, which were the best block by the time they were accepted.
+    * @param initialParentBlockHash The hash of the newly accepted parent block. As a result of it, we can accept the children of the newly accepted block.
+    * @return A list of block hashes which were newly accepted.
     */
-  def acceptChildren(block : Block) : List[Hash] = {
-    // TODO : Implement
-    assert(false)
-    null
+  def acceptChildren(initialParentBlockHash : Hash) : List[Hash] = {
+    val acceptedChildren = new ArrayBuffer[Hash]
+
+    var i = -1;
+    do {
+      val parentTxHash = if (acceptedChildren.length == 0) initialParentBlockHash else acceptedChildren(i)
+      val dependentChildren : List[Hash] = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
+      dependentChildren foreach { dependentChildHash : Hash =>
+        val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
+        assert(dependentChild.isDefined)
+
+        // add to the transaction pool.
+        acceptBlock(dependentChildHash, dependentChild.get)
+        // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
+        acceptedChildren.append(dependentChildHash)
+        // delete the orphan
+        chain.blockOrphanage.delOrphan(dependentChild.get)
+      }
+      chain.blockOrphanage.removeDependenciesOn(parentTxHash)
+      i += 1
+    } while( i < acceptedChildren.length)
+
+    // Remove duplicate by converting to a set, and return as a list.
+    acceptedChildren.toSet.toList
 /*
     newly_added_blocks = List(block hash)
     LOOP newBlock := For each newly_added_blocks

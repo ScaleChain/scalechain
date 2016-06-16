@@ -22,7 +22,7 @@ class TransactionProcessor(val chain : Blockchain) {
     * @return true if the transaction was found; None otherwise.
     */
   def exists(txHash : Hash) : Boolean = {
-    chain.hasTransaction(txHash) || chain.txOrphange.hasOrphan(txHash)
+    chain.hasTransaction(txHash) || chain.txOrphanage.hasOrphan(txHash)
   }
 
   /** Get a transaction either from a block or from the transaction disk-pool.
@@ -61,15 +61,17 @@ class TransactionProcessor(val chain : Blockchain) {
     var i = -1;
     do {
       val parentTxHash = if (acceptedChildren.length == 0) initialParentTxHash else acceptedChildren(i)
-      val dependentChildren : List[Hash] = chain.txOrphange.getOrphansDependingOn(parentTxHash)
+      val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
-        val dependentChild = chain.txOrphange.getOrphan(dependentChildHash)
+        val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
         assert(dependentChild.isDefined)
         try {
           // Try to add to the transaction pool.
           addTransactionToPool(dependentChildHash, dependentChild.get)
           // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
           acceptedChildren.append(dependentChildHash)
+          // del the orphan
+          chain.txOrphanage.delOrphan(dependentChildHash)
         } catch {
           case e : ChainException => {
             if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
@@ -84,24 +86,12 @@ class TransactionProcessor(val chain : Blockchain) {
           }
         }
       }
-      chain.txOrphange.removeDependenciesOn(parentTxHash)
+      chain.txOrphanage.removeDependenciesOn(parentTxHash)
       i += 1
     } while( i < acceptedChildren.length)
 
-    acceptedChildren foreach { childTxHash : Hash =>
-    }
-
     // Remove duplicate by converting to a set, and return as a list.
     acceptedChildren.toSet.toList
-  }
-
-  /**
-    * Remove transactions from the indexes maintaining the orphans.
-    *
-    * @param orphanTransactions The list of hashes of the accepted orphan transactions to remove.
-    */
-  def delOrphans(orphanTransactions : List[Hash]) : Unit = {
-    chain.txOrphange.delOrphans(orphanTransactions)
   }
 
   /**
@@ -111,6 +101,6 @@ class TransactionProcessor(val chain : Blockchain) {
     * @param transaction The orphan transaction.
     */
   def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
-    chain.txOrphange.putOrphan(txHash, transaction)
+    chain.txOrphanage.putOrphan(txHash, transaction)
   }
 }
