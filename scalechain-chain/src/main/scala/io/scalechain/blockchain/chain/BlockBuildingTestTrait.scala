@@ -6,6 +6,7 @@ import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
 
 import scala.annotation.tailrec
+import scala.util.Random
 
 /** A transaction output with an outpoint of it.
   *
@@ -62,7 +63,8 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
                              generatedBy : OutputOwnership
                            ) : TransactionWithName = {
     val transaction = TransactionBuilder.newBuilder(availableOutputs)
-      .addGenerationInput(CoinbaseData("The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
+      // Need to put a random number so that we have different transaction id for the generation transaction.
+      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
@@ -123,6 +125,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
 
   /**
     * Mine a block whose estimated hash calculation is the given one.
+ *
     * @param block The block to mine. We will change nonce of the block for each iteration.
     * @param requiredHashCalulcations The estimated hash calculations of the block should be this value.
     * @param nonce The nonce value.

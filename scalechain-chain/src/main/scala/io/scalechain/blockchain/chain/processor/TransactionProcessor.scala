@@ -44,9 +44,9 @@ class TransactionProcessor(val chain : Blockchain) {
     * @param transaction The transaction to add to the disk-pool.
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
+  def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
     // TODO : Need to check if the validity of the transation?
-    chain.txPool.addTransactionToPool(txHash, transaction)
+    chain.putTransaction(txHash, transaction)
   }
 
   /**
@@ -67,7 +67,7 @@ class TransactionProcessor(val chain : Blockchain) {
         if (dependentChild.isDefined) {
           try {
             // Try to add to the transaction pool.
-            addTransactionToPool(dependentChildHash, dependentChild.get)
+            putTransaction(dependentChildHash, dependentChild.get)
             // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
             acceptedChildren.append(dependentChildHash)
             // del the orphan

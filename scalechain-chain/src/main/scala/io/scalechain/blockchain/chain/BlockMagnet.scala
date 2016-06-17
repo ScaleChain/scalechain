@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.{Transaction, Block, BlockInfo}
 import io.scalechain.blockchain.storage.BlockStorage
@@ -33,7 +34,9 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param block The block to detach.
     */
   protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
-    block.transactions foreach { transaction : Transaction =>
+    // Detach each transaction in reverse order.
+    // TODO : Optimize : Iterate a list in reverse order without reversing it.
+    block.transactions.reverse foreach { transaction : Transaction =>
       if (transaction.inputs(0).isCoinBaseInput()) {
         // The coin base input does not spend any previous output. Do nothing.
       } else {
@@ -62,6 +65,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
       detachedBlocks.prepend(lastBlock)
       detachBlock(last, lastBlock)
+
       // Unlink the next block hash.
       storage.updateNextBlockHash(last.blockHeader.hash, None)
 
@@ -118,6 +122,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     } else {
       // Note that we are constructing the blockInfos so that the order of the blocks in the blockInfos is from the oldest to the newest.
       blockInfos.prepend(last)
+      assert(!last.blockHeader.hashPrevBlock.isAllZero())
       val beforeLastOption : Option[BlockInfo] = storage.getBlockInfo(last.blockHeader.hashPrevBlock)
       assert(beforeLastOption.isDefined)
       collectBlockInfos(blockInfos, beforeFirst, beforeLastOption.get)
@@ -189,21 +194,40 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock, detachedBlocks)
 
 
-    // Step 2 : Move the transaction from the detached blocks into disk-pool.
+    // Step 3 : Attach blocks after the common block to the newBestBlock.
+    attachBlocksAfter(commonBlock, newBestBlock)
+
+    // Step 4 : Move the transaction from the detached blocks into the transaction pool.
+    // Note 1 : Some transactions might not be able to put into the transaction pool, because of double spending the UTXO spent by transactions on newly attached blocks.
+    // Note 2 : Some transactions might not be able to put into the transaction pool, because it depends on the above double spending transactions.
     // TODO : Do we really need to reset the transaction record locator? How do we recover it when we attach the transaction again?
     detachedBlocks foreach { block : Block =>
       block.transactions foreach { transaction : Transaction =>
+        val transactionHash = transaction.hash
         if (transaction.inputs(0).isCoinBaseInput()) {
           // Do nothing
         } else {
-          txPool.addTransactionToPool(transaction.hash, transaction)
+          try {
+            if (storage.hasTransaction(transactionHash)) {
+              // The transaction already exists.
+              // This can happen, as the newly attached block might have the same transaction. Do nothing.
+            } else {
+              txPool.addTransactionToPool(transactionHash, transaction)
+              chainEventListener.map(_.onNewTransaction(transaction))
+            }
+          } catch {
+            case e : ChainException => {
+              e.code match {
+                case ErrorCode.TransactionOutputAlreadySpent => // do nothing. a double spending transaction
+                case ErrorCode.ParentTransactionNotFound => // do nothing. these transactions may depend on double spending transactions.
+                case _ => throw e
+              }
+            }
+          }
         }
       }
     }
 
-
-    // Step 3 : Attach blocks after the common block to the newBestBlock.
-    attachBlocksAfter(commonBlock, newBestBlock)
     /*
 
 
@@ -287,13 +311,36 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
   }
 
   /** Get the descriptor of the common ancestor of the two given blocks.
+    * Because all blocks are on top of the genesis block, this method should at least return the BlockInfo for the genesis block.
     *
     * @param block1 The first given block.
     * @param block2 The second given block.
     */
-  protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockInfo = {
-    // TODO : Implement
-    assert(false)
-    null
+  @tailrec
+  final protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockInfo = {
+    if ( block1.height < block2.height ) {
+      // back track for block2
+      assert(!block2.blockHeader.hashPrevBlock.isAllZero())
+      val prevBlock2 : BlockInfo = storage.getBlockInfo(block2.blockHeader.hashPrevBlock).get
+      findCommonBlock(block1, prevBlock2)
+    } else if (block1.height > block2.height) {
+      // back track for block1
+      assert(!block1.blockHeader.hashPrevBlock.isAllZero())
+      val prevBlock1 : BlockInfo = storage.getBlockInfo(block1.blockHeader.hashPrevBlock).get
+      findCommonBlock(prevBlock1, block2)
+    } else { // block1.height == block2.height
+      if (block1.blockHeader == block2.blockHeader) { // the base case : The common block was found
+        assert(block1 == block2)
+        block1
+      } else {
+        assert(!block1.blockHeader.hashPrevBlock.isAllZero())
+        assert(!block2.blockHeader.hashPrevBlock.isAllZero())
+        // the block height is same, but the block header does not match.
+        // back track for block1 and block2
+        val prevBlock1 : BlockInfo = storage.getBlockInfo(block1.blockHeader.hashPrevBlock).get
+        val prevBlock2 : BlockInfo = storage.getBlockInfo(block2.blockHeader.hashPrevBlock).get
+        findCommonBlock(prevBlock1, prevBlock2)
+      }
+    }
   }
 }

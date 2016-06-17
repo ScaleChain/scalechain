@@ -33,8 +33,9 @@ class TransactionMagnet(storage : BlockStorage) {
       throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    if( txDesc.outputsSpentBy(outPoint.outputIndex).isDefined ) { // The transaction output was already spent.
-    val message = s"An output pointed by an out-point(${outPoint}) has already been spent. The in-point(${inPoint}) tried to spend it again."
+    val spendingInPointOption  = txDesc.outputsSpentBy(outPoint.outputIndex)
+    if( spendingInPointOption.isDefined ) { // The transaction output was already spent.
+    val message = s"An output pointed by an out-point(${outPoint}) has already been spent by ${spendingInPointOption.get}. The in-point(${inPoint}) tried to spend it again."
       logger.warn(message)
       throw new ChainException(ErrorCode.TransactionOutputAlreadySpent, message)
     }
@@ -64,12 +65,12 @@ class TransactionMagnet(storage : BlockStorage) {
       throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    val SpendingInPointOption = txDesc.outputsSpentBy(outPoint.outputIndex)
+    val spendingInPointOption = txDesc.outputsSpentBy(outPoint.outputIndex)
     // The output pointed by the out-point should have been spent by the transaction input poined by the given in-point.
-    assert( SpendingInPointOption.isDefined )
+    assert( spendingInPointOption.isDefined )
 
-    if( SpendingInPointOption.get != inPoint ) { // The transaction output was NOT spent by the transaction input poined by the given in-point.
-    val message = s"An output pointed by an out-point(${outPoint}) was not spent by the expected transaction input pointed by the in-point(${inPoint})."
+    if( spendingInPointOption.get != inPoint ) { // The transaction output was NOT spent by the transaction input poined by the given in-point.
+    val message = s"An output pointed by an out-point(${outPoint}) was not spent by the expected transaction input pointed by the in-point(${inPoint}), but spent by ${spendingInPointOption.get}."
       logger.warn(message)
       throw new ChainException(ErrorCode.TransactionOutputSpentByUnexpectedInput, message)
     }

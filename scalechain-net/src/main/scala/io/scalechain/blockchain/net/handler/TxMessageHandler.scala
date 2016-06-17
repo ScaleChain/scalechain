@@ -30,7 +30,7 @@ object TxMessageHandler {
 
     try {
       // Try to put the transaction into the disk-pool
-      TransactionProcessor.addTransactionToPool(transactionHash, transaction)
+      TransactionProcessor.putTransaction(transactionHash, transaction)
 
       // Yes! the transaction was put into the disk-pool.
       // Step 2 : Recursively check if any orphan transaction depends on this transaction.

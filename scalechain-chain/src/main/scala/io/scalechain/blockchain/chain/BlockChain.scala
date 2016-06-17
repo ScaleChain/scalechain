@@ -205,13 +205,12 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
             chainEventListener.map(_.onAttachBlock(ChainBlock(height = blockInfo.height, block)))
 
-            logger.info(s"Successfully have put the block in the best blockchain.\n Hash : ${blockHash}")
-
+            logger.info(s"Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
             true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
             if (blockInfo.chainWork > theBestBlock.chainWork) {
-              logger.warn("Block reorganization started.")
+              logger.warn(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The new Best (${blockInfo.blockHeader.hash},${blockInfo})")
 
               // Step 3.B.2 : Reorganize the blocks.
               // transaction handling, orphan block handling is done in this method.
@@ -223,6 +222,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
               // TODO : Update best block in wallet (so we can detect restored wallets)
               true
             } else {
+              logger.warn(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
               false
             }
           }
@@ -230,7 +230,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       }
     }
   }
-
+/*
   /**
     * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
     *
@@ -244,16 +244,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     logger.warn("Headers-first IBD is not supported yet.")
     assert(false)
   }
-
+*/
   /** Put a transaction we received from peers into the disk-pool.
     *
     * @param transaction The transaction to put into the disk-pool.
     */
-  def putTransaction(transaction : Transaction) : Unit = {
+  def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
     synchronized {
       // TODO : BUGBUG : Need to start a RocksDB transaction.
       try {
-        val txHash = transaction.hash
         // Step 1 : Add transaction to the transaction pool.
         txPool.addTransactionToPool(txHash, transaction)
         // TODO : BUGBUG : Need to commit the RocksDB transaction.

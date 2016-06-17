@@ -49,7 +49,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
   "exists" should "return true for a non-orphan transaction in the transaction pool" in {
     b.acceptBlock(BLK01.header.hash, BLK01)
     b.acceptBlock(BLK02.header.hash, BLK02)
-    t.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
+    t.putTransaction(TX03.transaction.hash, TX03.transaction)
     t.exists(TX03.transaction.hash) shouldBe true
   }
 
@@ -72,7 +72,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
   "getTransaction" should "return Some(non-orphan transaction) in the transaction pool" in {
     b.acceptBlock(BLK01.header.hash, BLK01)
     b.acceptBlock(BLK02.header.hash, BLK02)
-    t.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
+    t.putTransaction(TX03.transaction.hash, TX03.transaction)
     t.getTransaction(TX03.transaction.hash).get shouldBe TX03.transaction
   }
 
@@ -85,10 +85,10 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
     t.getTransaction(TX03.transaction.hash) shouldBe None
   }
 
-  "addTransactionToPool" should "add a transaction in the pool" in {
+  "putTransaction" should "add a transaction in the pool" in {
     b.acceptBlock(BLK01.header.hash, BLK01)
     b.acceptBlock(BLK02.header.hash, BLK02)
-    t.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
+    t.putTransaction(TX03.transaction.hash, TX03.transaction)
     t.chain.txPool.getTransactionsFromPool should contain (TX03.transaction.hash, TX03.transaction)
   }
 
@@ -106,7 +106,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
 
     b.acceptBlock(BLK01.header.hash, BLK01)
 
-    t.addTransactionToPool(TX02.transaction.hash, TX02.transaction)
+    t.putTransaction(TX02.transaction.hash, TX02.transaction)
     val acceptedChildren : List[Hash] = t.acceptChildren(TX02.transaction.hash)
     acceptedChildren.toSet shouldBe Set(TX03.transaction.hash, TX04.transaction.hash)
     t.chain.txOrphanage.getOrphansDependingOn(TX02.transaction.hash) shouldBe List()
@@ -125,7 +125,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
   "acceptChildren" should "accept nothing if no child exists" in {
     b.acceptBlock(BLK01.header.hash, BLK01)
 
-    t.addTransactionToPool(TX02.transaction.hash, TX02.transaction)
+    t.putTransaction(TX02.transaction.hash, TX02.transaction)
 
     val acceptedChildren : List[Hash] = t.acceptChildren(TX02.transaction.hash)
 

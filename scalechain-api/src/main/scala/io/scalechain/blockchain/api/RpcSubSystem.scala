@@ -3,10 +3,11 @@ package io.scalechain.blockchain.api
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator, PeerSet}
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import spray.json.JsObject
-
+import HashSupported._
 /**
   * Created by kangmo on 3/15/16.
   */
@@ -112,7 +113,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     // TODO : BUGBUG : allowHighFees is not used.
     peerCommunicator.propagateTransaction(transaction)
 
-    chain.putTransaction(transaction)
+    chain.putTransaction(transaction.hash, transaction)
   }
 
   /** Get the list of information on each peer.

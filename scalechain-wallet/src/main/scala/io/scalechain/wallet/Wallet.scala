@@ -648,10 +648,11 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     */
   def onAttachBlock(chainBlock:ChainBlock) : Unit = {
     var transactionIndex = -1
+    val allOutputOwnerships = store.getOutputOwnerships(None)
     chainBlock.block.transactions foreach { transaction =>
       transactionIndex += 1
       registerTransaction(
-        store.getOutputOwnerships(None),
+        allOutputOwnerships,
         transaction,
         Some(chainBlock),
         Some(transactionIndex)
@@ -664,8 +665,11 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param chainBlock The block to remove from the best blockchain.
     */
   def onDetachBlock(chainBlock:ChainBlock) : Unit = {
-    chainBlock.block.transactions foreach { transaction =>
-      unregisterTransaction( store.getOutputOwnerships(None), transaction )
+    // Unregister transaction in reverse order.
+    // TODO : OPTIMIZE : Without reversing transactions, find out a way to iterate a list in reverse order.
+    val allOutputOwnerships = store.getOutputOwnerships(None)
+    chainBlock.block.transactions.reverse foreach { transaction =>
+      unregisterTransaction( allOutputOwnerships, transaction )
     }
   }
 
@@ -715,23 +719,48 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             val outPoint = OutPoint(transactionHash, outputIndex)
             //println(s"registerTransaction outPoint=> ${outPoint}")
             // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
-            store.putTransactionOutPoint(ownership, outPoint)
-            val walletOutput = WalletOutput(
-              blockindex  = chainBlock.map( _.height ),
-              // Whether this output is in the generation transaction.
-              // TODO : BUGBUG : Need to check the outputIndex as well to see if an
-              coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
-              spent = false,
-              transactionOutput = transactionOutput
-            )
-            store.putWalletOutput(outPoint, walletOutput)
+
+            val walletOutputOption = store.getWalletOutput(outPoint)
+
+            val blockHeightOption = chainBlock.map( _.height )
+
+            if (walletOutputOption.isEmpty) {
+//            if (true) {
+              // A transaction can be registered more than once. Ex> when added to a mempool, when a block is attached.
+              // So, we need to put the output only if the output does not exist yet.
+              // Otherwise, we may overwrite the "spent" flag from true to false.
+
+              store.putTransactionOutPoint(ownership, outPoint)
+
+              val walletOutput = WalletOutput(
+                blockindex  = blockHeightOption,
+                // Whether this output is in the generation transaction.
+                // TODO : BUGBUG : Need to check the outputIndex as well to see if an
+                coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
+                spent = false,
+                transactionOutput = transactionOutput
+              )
+              store.putWalletOutput(outPoint, walletOutput)
+
+              logger.info(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
+            } else {
+              store.putWalletOutput(outPoint,
+                walletOutputOption.get.copy(
+                  blockindex = blockHeightOption)
+              )
+
+              logger.info(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}point : ${outPoint}")
+            }
             isTransactionRelated = true
             isTransactionRelatedToTheOwnership = true
+
           }
         }
 
+        var inputIndex = -1
         // Step 3 : Mark a UTXO spent if this transaction spends it.
         transaction.inputs foreach { transactionInput =>
+          inputIndex += 1
           // TODO : Check if the transaction input is generation transaction input?
 
           // Step 3 : Block Store : Get the transaction output the input is spending.
@@ -745,9 +774,12 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             if (ownership.owns(walletOutputOption.get.transactionOutput)) {
               // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
               val found = store.markWalletOutputSpent(spentOutput, true)
+              assert(found)
+
               isTransactionRelated = true
               isTransactionRelatedToTheOwnership = true
-              assert(found)
+
+              logger.info(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
           } else { // The output was not found.
             // TODO : Make sure we always have the wallet output for an ownership even though the system crashes.
@@ -810,12 +842,16 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             store.delWalletOutput(outPoint)
             isTransactionRelated = true
             isTransactionRelatedToTheOwnership = true
+
+            logger.info(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
           }
         }
 
+        var inputIndex = -1
         // Step 3 : Mark a UTXO unspent if this transaction spends it.
         transaction.inputs foreach { transactionInput =>
           // TODO : Check if the transaction input is generation transaction input?
+          inputIndex += 1
 
           // Step 3 : Block Store : Get the transaction output the input is spending.
           val spentOutput = OutPoint(
@@ -826,6 +862,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
           if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
             isTransactionRelated = true
             isTransactionRelatedToTheOwnership = true
+
+            logger.info(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
           } else {
             // We should not have the output in our wallet database.
             assert( store.getWalletOutput(spentOutput).isEmpty )
