@@ -1,0 +1,58 @@
+if [ $# -lt 1 ]
+then
+	echo "scalechain-cli <command> <arg1> <arg2> ... "
+	exit -1
+fi
+	
+PATH=$PATH:`pwd`
+COMMAND=$1
+case $COMMAND in 
+getbestblockhash)
+	getbestblockhash.sh
+	;;
+getnewaddress)
+	getnewaddress.sh $2
+	;;
+getaccount)
+	getaccount.sh $2
+	;;
+getaccountaddress)
+	getaccountaddress.sh $2
+	;;
+getblock)
+	getblock.sh $2
+	;;
+getblockhash)
+	getblockhash.sh $2
+	;;
+getpeerinfo)
+	getpeerinfo.sh 
+	;;
+getrawtransaction)
+	getrawtransaction.sh $2
+	;;
+getreceivedbyaddress)
+	getreceivedbyaddress.sh $2
+	;;
+importaddress)
+	importaddress.sh $2
+	;;
+listtransactions)
+	listtransactions.sh $2
+	;;
+listunspent)
+	listunspent.sh $2
+	;;
+sendrawtransaction)
+	sendrawtransaction.sh $2
+	;;
+signrawtransaction)
+	signrawtransaction.sh $2
+	;;
+decoderawtransaction)
+	decoderawtransaction.sh $2
+	;;	
+*)
+	Echo "Unsupported command"
+	;;
+esac

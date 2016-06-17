@@ -1,9 +1,31 @@
-for command in getbestblockhash getblock getblockhash help submitblock getpeerinfo decoderawtransaction getrawtransaction sendrawtransaction signrawtransaction getaccount getaccountaddress getnewaddress getreceivedbyaddress listtransactions listunspent sendfrom 
-do
-   echo ""
-   echo "========================================================================"
-   echo $command 
-   echo "========================================================================"
+PORT=8080
 
-   ./${command}.sh
-done
+scalechain-cli getbestblockhash
+
+scalechain-cli getnewaddress myaccount
+
+scalechain-cli getaccount n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli getaccountaddress _FOR_TEST_ONLY
+
+scalechain-cli getblock 00b7b368820eb4d41678e90e2fcf56c7c50c05fb05575c7c942ef73e2ee23cc3
+
+scalechain-cli getblockhash 2
+
+scalechain-cli getpeerinfo
+
+scalechain-cli getrawtransaction 129eb42c3c149b49746f20a8ab76cd56e34ad2d406e42321d16c035bcf11e2de
+
+scalechain-cli getreceivedbyaddress n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli importaddress n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli listtransactions _FOR_TEST_ONLY
+
+scalechain-cli listunspent n2wZFfmhjkBndcQZTErtaKDVyjZ2pkD5xm
+
+scalechain-cli sendrawtransaction 04000000010000000000000000000000000000000000000000000000000000000000000000ffffff0007e171caecabacaa000000000100f2052a010000001976a9148395ff74198d0089cf72792a089ad666f6b5607888ac00000000
+
+scalechain-cli signrawtransaction 04000000010000000000000000000000000000000000000000000000000000000000000000ffffff0007e171caecabacaa000000000100f2052a010000001976a9148395ff74198d0089cf72792a089ad666f6b5607888ac00000000
+
+scalechain-cli decoderawtransaction 04000000010000000000000000000000000000000000000000000000000000000000000000ffffff0007e171caecabacaa000000000100f2052a010000001976a9148395ff74198d0089cf72792a089ad666f6b5607888ac00000000

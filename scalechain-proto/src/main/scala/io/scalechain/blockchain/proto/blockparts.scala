@@ -1,15 +1,26 @@
 package io.scalechain.blockchain.proto
 
 import io.scalechain.util
-import io.scalechain.util.{ByteArray, HexUtil}
+import io.scalechain.util.{Utils, ByteArray, HexUtil, BigIntUtil}
 import HexUtil.scalaHex
 import ByteArray._
-
-import io.scalechain.util.BigIntUtil
 import BigIntUtil._
 import spray.json.{JsValue, JsString, RootJsonFormat}
 
+object Hash {
+  val ALL_ZERO = Hash("0" * 64)
 
+  def isLessThan(hash1 : Hash, hash2 : Hash): Boolean = {
+    val value1 = Utils.bytesToBigInteger(hash1.value)
+    val value2 = Utils.bytesToBigInteger(hash2.value)
+
+    if ( value1.compareTo( value2 ) < 0 ) {
+      true
+    } else {
+      false
+    }
+  }
+}
 /** A hash case class that can represent transaction hash or block hash.
   * Used by an inventory vector, InvVector.
   *
@@ -46,6 +57,7 @@ object BlockHeader {
     * For encoding/decoding the difficulty bits in the block header, see the following link.
     *
     * https://en.bitcoin.it/wiki/Difficulty
+    *
     * @param minBlockHash The minimum block hash.
     * @return The encoded difficulty. ( 4 byte integer )
     */

@@ -33,6 +33,7 @@ object ScaleChainPeer {
                          apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
                          network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name"),
+                         maxBlockSize: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.mining.max_block_size"),
                          minerInitialDelayMS: Int = 20000,
                          minerHashDelayMS : Int = 200
                        )
@@ -172,7 +173,6 @@ object ScaleChainPeer {
 
     assert( chain.getBestBlockHash().isDefined )
 
-
     // Step 6 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
     val peerCommunicator: PeerCommunicator = initializeNetLayer(params)
@@ -189,7 +189,7 @@ object ScaleChainPeer {
     JsonRpcMicroservice.runService(params.apiInboundPort)
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS )
+    val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
 
     CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator, minerParams)
   }

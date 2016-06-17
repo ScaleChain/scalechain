@@ -1,1 +1,1 @@
-curl --verbose --data-binary '{"jsonrpc": "1.0", "id":1, "method": "getrawtransaction", "params": ["18a82339d5433ee0e37fe61fc8ba84a8a00148bb041faf831f2c70516cad1816", 1] }' -H 'Content-Type: application/json' http://127.0.0.1:$PORT/
+curl --data-binary "{\"jsonrpc\": \"1.0\", \"id\":1, \"method\": \"getrawtransaction\", \"params\": [\"$1\", 1] }" -H 'Content-Type: application/json' http://127.0.0.1:$PORT/

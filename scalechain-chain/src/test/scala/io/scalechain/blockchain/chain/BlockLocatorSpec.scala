@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.ChainEnvironment
+import io.scalechain.blockchain.transaction.{TransactionTestDataTrait, ChainTestTrait, ChainEnvironment}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
@@ -12,19 +12,19 @@ import org.scalatest._
   * Created by kangmo on 5/28/16.
   */
 // Remove the ignore annotation after creating the "by block height" index
-class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
+class BlockLocatorSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockLocatorSpec/")
   var locator : BlockLocator = null
 
+  // For testing, override the MAX_HASH_COUNT to 5 so that we get only 5 hashes if the hashStop is all zero.
+  val MAX_HASH_COUNT = 5
+
   override def beforeEach() {
     super.beforeEach()
 
-    locator = new BlockLocator(chain) {
-      // For testing, override the MAX_HASH_COUNT to 5 so that we get only 5 hashes if the hashStop is all zero.
-      override val MAX_HASH_COUNT = 5
-    }
+    locator = new BlockLocator(chain)
 
     // put hashes into chain.
     chain.putBlock(
@@ -226,7 +226,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
           env.GenesisBlockHash
         )
       ),
-      env.GenesisBlockHash
+      env.GenesisBlockHash,
+      MAX_HASH_COUNT
     ) shouldBe List(
         env.GenesisBlockHash
     )
@@ -239,7 +240,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         SampleData.S2_BlockHash // No block matches.
       )
       ),
-      env.GenesisBlockHash
+      env.GenesisBlockHash,
+      MAX_HASH_COUNT
     ) shouldBe List(
       env.GenesisBlockHash
     )
@@ -252,7 +254,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         SampleData.S2_BlockHash // No block matches. Ignored
       )
       ),
-      ALL_ZERO_HASH // hashStop is all zero : Get 5 hashes.
+      ALL_ZERO_HASH, // hashStop is all zero : Get 5 hashes.
+      MAX_HASH_COUNT
     ) shouldBe List(
       env.GenesisBlockHash,
       numberToHash(1),
@@ -269,7 +272,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         SampleData.S2_BlockHash // No block matches.
       )
       ),
-      Hash( numberToHash(3).value) // hashStop 3
+      Hash( numberToHash(3).value), // hashStop 3
+      MAX_HASH_COUNT
     ) shouldBe List(
       env.GenesisBlockHash,
       numberToHash(1),
@@ -287,7 +291,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      Hash( numberToHash(3).value) // hashStop 3
+      Hash( numberToHash(3).value), // hashStop 3
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3) // Only hash 3 is returned.
     )
@@ -302,7 +307,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      Hash( numberToHash(3).value) // hashStop 3
+      Hash( numberToHash(3).value), // hashStop 3
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3) // Only hash 3 is returned.
     )
@@ -316,7 +322,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      Hash( numberToHash(6).value) // hashStop 6
+      Hash( numberToHash(6).value), // hashStop 6
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3),
       numberToHash(4),
@@ -330,7 +337,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      Hash( numberToHash(7).value) // hashStop 7
+      Hash( numberToHash(7).value), // hashStop 7
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3),
       numberToHash(4),
@@ -345,7 +353,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      Hash( numberToHash(8).value) // hashStop 8, but we can only send five hashes at once.
+      Hash( numberToHash(8).value), // hashStop 8, but we can only send five hashes at once.
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3),
       numberToHash(4),
@@ -364,7 +373,8 @@ class BlockLocatorSpec extends BlockchainTestTrait with ShouldMatchers {
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
-      ALL_ZERO_HASH // Get 5 hashes without any hashStop.
+      ALL_ZERO_HASH, // Get 5 hashes without any hashStop.
+      MAX_HASH_COUNT
     ) shouldBe List(
       numberToHash(3), // 5 hashes from the hash 3 is returned.
       numberToHash(4),

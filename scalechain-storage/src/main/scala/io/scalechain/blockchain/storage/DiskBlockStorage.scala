@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import java.io.File
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
+import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.storage.index.{CassandraDatabase, BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import io.scalechain.crypto.HashEstimation
@@ -183,7 +183,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             blockDatabase.putBlockInfo(blockHash, newBlockInfo)
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, newBlockInfo.height)
 
             //logger.info("The block locator was updated. block hash : {}", blockHash)
             appendResult.txLocators
@@ -218,7 +217,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             val blockHeight = blockInfo.height
             val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
             updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
-            checkBestBlockHash(blockHash, blockHeight)
 
             isNewBlock = true
             //logger.info("The new block was put. block hash : {}", blockHash)
@@ -226,6 +224,8 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             appendResult.txLocators
           } else {
             // case 2.2 : no block info was found, previous block header does not exists.
+            // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+            // before invoking putBlock method.
             logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
 
             List()
@@ -241,15 +241,38 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     }
   }
 
+  // TODO : Add test case
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    // TODO : Rethink synchonization.
+    synchronized {
+      blockDatabase.getTransactionDescriptor(txHash)
+    }
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    synchronized {
+      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
+    }
+  }
+
+
+  /** Return a transaction that matches the given transaction hash.
+    *
+    * @param transactionHash
+    * @return
+    */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
       val txDescriptorOption = blockDatabase.getTransactionDescriptor(transactionHash)
       txDescriptorOption.map { txDesc: TransactionDescriptor =>
-        txDesc.transaction match {
-          case Left(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
-          case Right(transaction) => transaction
+        txDesc.transactionLocatorOption match {
+          // The transaction was written as part of a block.
+          case Some(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
+          // The transaction is in the pool.
+          case None => getTransactionFromPool(transactionHash).get
         }
       }
     }

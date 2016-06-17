@@ -14,6 +14,9 @@ object DatabaseTablePrefixes {
   val BEST_BLOCK_HASH : Byte = 'B'
   val BLOCK_HEIGHT : Byte = 'h'
 
+  // The disk-pool, which keeps transactions on disk instead of mempool.
+  val TRANSACTION_POOL : Byte = 'd'
+
   val ORPHAN_BLOCK : Byte = '1'
   val ORPHAN_TRANSACTION : Byte = '2'
   val ORPHAN_BLOCKS_BY_PARENT : Byte = '3'
@@ -121,19 +124,31 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
     */
   def putTransactions(transactions : List[(Transaction, TransactionLocator)]) = {
     for ( (transaction, txLocatorDesc) <- transactions) {
+
+      // We may already have a transaction descriptor for the transaction.
+      val txDescOption = getTransactionDescriptor(txLocatorDesc.txHash)
+      // Keep the outputs spent by if it already exists.
+      val outpusSpentBy = txDescOption.map( _.outputsSpentBy).getOrElse( List.fill(transaction.outputs.length)(None) )
       val txDesc =
         TransactionDescriptor(
-          Left(txLocatorDesc.txLocator),
-          List.fill(transaction.outputs.length)(None) )
+          Some(txLocatorDesc.txLocator),
+          outpusSpentBy
+        )
 
-      db.putObject(TRANSACTION, txLocatorDesc.txHash, txDesc)(HashCodec, TransactionDescriptorCodec)
+      putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
 
       assert( txLocatorDesc.txHash == transaction.hash )
     }
   }
 
+  // TODO : Add test case
   def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
     db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
   }
 
   /** Remove a transaction from the transaction index.
@@ -169,7 +184,9 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
 
       // The last block height should not be decreased.
       // The last block height should increase
-      assert( currentInfo.lastBlockHeight < blockFileInfo.lastBlockHeight)
+
+// when a orphan block is
+//      assert( currentInfo.lastBlockHeight < blockFileInfo.lastBlockHeight)
 
       // Caution : The last block timestamp can decrease.
     }

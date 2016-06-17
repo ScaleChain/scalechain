@@ -1,1 +1,0 @@
-curl --data-binary '{"jsonrpc": "1.0", "id":1, "method": "gettxout", "params": ["184c6195ddd4204219644e2d4169d22cf264144ef5b6a49a09a571f4639a60b9", 0] }' -H 'content-type: application/json' http://127.0.0.1:$PORT/

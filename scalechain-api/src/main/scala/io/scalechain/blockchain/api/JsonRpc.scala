@@ -56,6 +56,7 @@ object RpcResultJsonFormat {
     def write(result : RpcResult) = result match {
 
       case StringResult(value)            => JsString(value)
+      case StringListResult(values)       => JsArray(values.map(JsString(_)).toVector)
       case NumberResult(value)            => JsNumber(value)
 
       case GetPeerInfoResult( items )     => items.toJson

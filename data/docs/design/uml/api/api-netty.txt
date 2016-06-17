@@ -1,0 +1,17 @@
+@startuml
+'hide footbox
+
+actor ScaleChainPeer
+
+ScaleChainPeer -> ApiServer : listen(port)
+ApiServer -> ApiServerInitializer : request to initialize the server
+ApiServerInitializer -> ApiServerHandler : request to handle each response
+ApiServerHandler -> RequestHandler : handleRequest
+
+note left
+    The ApiServerHandler redirects
+    each RPC request it receives to
+    RequestHandler.handleRequest
+end note
+
+@enduml

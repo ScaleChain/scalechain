@@ -1,28 +1,14 @@
 package io.scalechain.blockchain.net.handler
 
-import io.netty.channel.embedded
-import io.netty.channel.embedded.EmbeddedChannel
+import java.io.File
+
 import org.scalatest._
 
-class AddrMessageHandlerSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers with HandlerTestTrait {
+class AddrMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
   this: Suite =>
 
-  var context : MessageHandlerContext = null
-  var channel : EmbeddedChannel = null
+  val testPath = new File("./target/unittests-AddrMessageHandlerSpec/")
 
-  override def beforeEach() {
-    // initialization code.
-    channel = new EmbeddedChannel()
-    context = context(channel)
-
-    super.beforeEach()
-  }
-
-  override def afterEach() {
-    super.afterEach()
-
-    // finalization code
-    context = null
-    channel.close()
+  "handle" should "" in {
   }
 }

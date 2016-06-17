@@ -158,7 +158,7 @@ class TestEnvironment extends ChainEnvironment {
   /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
     *
     */
-  val CoinbaseMaturity : Int = 3
+  val CoinbaseMaturity : Int = 2
 }
 
 /** The singleton for the testnet environment.

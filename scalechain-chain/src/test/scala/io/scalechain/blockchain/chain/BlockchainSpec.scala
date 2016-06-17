@@ -4,12 +4,13 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.{ Hash}
 import io.scalechain.blockchain.storage.{BlockStorage, DiskBlockStorage, Storage}
+import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.scalechain.crypto.HashFunctions
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainSpec extends BlockchainTestTrait with ChainTestDataTrait with ShouldMatchers {
+class BlockchainSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
 
   this: Suite =>
 
@@ -36,5 +37,53 @@ class BlockchainSpec extends BlockchainTestTrait with ChainTestDataTrait with Sh
 
     chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
     chain.getBlockHash(0) shouldBe env.GenesisBlockHash
+  }
+
+  "setEventListener" should "" in {
+  }
+
+  "setBestBlock" should "" in {
+  }
+
+  "putBlock" should "" in {
+  }
+
+  "putBlockHeader" should "" in {
+  }
+
+  "putTransaction" should "" in {
+  }
+
+  "getIterator" should "" in {
+  }
+
+  "getBestBlockHeight" should "" in {
+  }
+
+  "getBestBlockHash" should "" in {
+  }
+
+  "getBlockHash" should "" in {
+  }
+
+  "getBlockInfo" should "" in {
+  }
+
+  "hasBlock" should "" in {
+  }
+
+  "getBlock" should "" in {
+  }
+
+  "getBlockHeader" should "" in {
+  }
+
+  "getTransaction" should "" in {
+  }
+
+  "hasTransaction" should "" in {
+  }
+
+  "getTransactionOutput" should "" in {
   }
 }

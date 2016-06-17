@@ -273,9 +273,11 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos) {
                 // Note : next pointers of in-memory block index nodes are modified after the on-disk transaction commits the on-disk version of the next pointers. 
             
                 // Step 9 : add transactions in the disconnected blocks to the mempool.
+                tx.AcceptToMemoryPool(txdb, false);
             
                 // Step 10 : Remove transactions in the connected blocks from the mempool.
-               
+                tx.RemoveFromMemoryPool();
+                               
             // 4. Update best block in wallet (so we can detect restored wallets)
             // 5. set the block as the tip of the best chain.
 }
@@ -324,7 +326,7 @@ deque<pair<int64, CInv> > vRelayExpiration;
 ## strCommand == "getdata" in ProcessMessage in main.cpp
 ```
 else if (strCommand == "getdata") {
-    // Step 1 : Return an error if the number of inventories should is greater than 50,000.
+    // Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
     LOOP inv := For each inventory in the "getdata" message 
         // 1. For a block hash : 
@@ -443,3 +445,6 @@ else if (strCommand == "pong") {
 }
 ```
 
+# References
+## Headers-first
+https://github.com/bitcoin/bitcoin/pull/4468

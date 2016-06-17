@@ -1,0 +1,14 @@
+@startuml
+'hide footbox
+
+actor RequestHandler
+
+RequestHandler -> RequestHandler : parse request string into RpcRequest
+RequestHandler -> ServiceDispatcher : dispatch(RpcRequest)
+ServiceDispatcher -> Services.serviceByCommand : find RpcCommand by the command string
+ServiceDispatcher -> RpcCommand : invoke (RpcRequest)
+ServiceDispatcher -> ServiceDispatcher : convert the result of RpcCommand invocation to RpcResponse
+ServiceDispatcher -> RequestHandler : return RpcResponse
+RequestHandler -> RequestHandler : convert RpcResponse to Json response string.
+
+@enduml

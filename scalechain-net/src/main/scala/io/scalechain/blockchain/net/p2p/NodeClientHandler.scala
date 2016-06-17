@@ -20,15 +20,8 @@ class NodeClientHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
       messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
     }
 
-    // Step 1 : Process the received message to get the response to send if any.
-    val responseMessageOption = messageHandler.handle(message)
-
-    // Step 2 : Send the response back to the channel if any.
-    responseMessageOption.map { responseMessage =>
-      context.channel().writeAndFlush(message)
-    }
-
-//    println(msg)
+    // Process the received message, and send message to peers if necessary.
+    messageHandler.handle(message)
   }
 
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) : Unit = {

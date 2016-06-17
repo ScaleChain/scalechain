@@ -89,6 +89,14 @@ object ErrorCode {
   val InvalidOutPoint                = ErrorCode("invalid_out_point")
   val InvalidBlockHeight             = ErrorCode("invalid_block_height")
   val InvalidBlockHeightOnDatabase   = ErrorCode("invalid_block_height_on_database")
+  val InvalidTransactionOutPoint     = ErrorCode("invalid_transaction_out_point")
+  val TransactionOutputAlreadySpent  = ErrorCode("transaction_output_already_spent")
+  val TransactionOutputSpentByUnexpectedInput  = ErrorCode("transaction_output_spent_by_unexpected_input")
+  val ParentTransactionNotFound      = ErrorCode("parent_transaction_not_found")
+
+  // Net Layer
+  // HeadersMessageHandler
+  val NonContinuousBlockHeaders      = ErrorCode("non_continuous_block_headers")
 
 }
 
@@ -122,6 +130,8 @@ class TransactionStorageException(val code : ErrorCode) extends ExceptionWithErr
 class BlockStorageException(val code : ErrorCode) extends ExceptionWithErrorCode
 
 class ChainException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
+
+class NetException(val code : ErrorCode, override val message : String = "") extends ExceptionWithErrorCode
 
 class WalletException(val code : ErrorCode) extends ExceptionWithErrorCode
 

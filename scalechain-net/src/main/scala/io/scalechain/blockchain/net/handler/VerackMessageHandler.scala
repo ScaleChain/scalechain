@@ -15,8 +15,7 @@ object VerackMessageHandler {
     * @param message The message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, message : Verack ) : Option[ProtocolMessage] = {
+  def handle( context : MessageHandlerContext, message : Verack ) : Unit = {
     // TODO : Implement
-    None
   }
 }

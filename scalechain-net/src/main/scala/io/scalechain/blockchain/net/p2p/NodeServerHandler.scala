@@ -57,23 +57,8 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
       messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
     }
 
-    // Step 1 : Process the received message to get the response to send if any.
-    val responseMessageOption = messageHandler.handle(message)
-
-    // Step 2 : Send the response back to the channel if any.
-    responseMessageOption.map { responseMessage =>
-      context.channel().writeAndFlush(responseMessage)
-    }
-/*
-    // Send the received message to all channels but the current one.
-    for ( c <- channels.asScala) {
-      if (c != ctx.channel()) {
-        c.writeAndFlush("[" + ctx.channel().remoteAddress() + "] " + msg + '\n')
-      } else {
-        c.writeAndFlush("[you] " + msg + '\n')
-      }
-    }
-*/
+    // Process the received message, and send message to peers if necessary.
+    messageHandler.handle(message)
 
 /*
     // Close the connection if the client has sent 'bye'.

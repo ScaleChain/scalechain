@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli
 
 import java.util
 
-import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.PeerCommunicator
 import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Random
 
-case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int )
+case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
 /**
   * Created by kangmo on 3/15/16.
   */
@@ -29,17 +29,6 @@ object CoinMiner {
     assert(theCoinMiner != null)
     theCoinMiner
   }
-
-  def isLessThan(hash1 : Hash, hash2 : Hash): Boolean = {
-    val value1 = Utils.bytesToBigInteger(hash1.value)
-    val value2 = Utils.bytesToBigInteger(hash2.value)
-
-    if ( value1.compareTo( value2 ) < 0 ) {
-      true
-    } else {
-      false
-    }
-  }
 }
 
 
@@ -50,6 +39,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
   val PREMINE_BLOCKS = 5;
+
+  val blockMining = new BlockMining( chain.txPool, chain )
+
   def start() : Unit = {
 
     val thread = new Thread {
@@ -84,7 +76,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
           val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
           // Step 2 : Create the block template
-          val blockTemplate = chain.getBlockTemplate(COINBASE_MESSAGE, minerAddress)
+          val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
           val bestBlockHash = chain.getBestBlockHash()
           if (bestBlockHash.isDefined) {
             // Step 3 : Get block header
@@ -100,7 +92,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = newBlockHeader.hash
 
-              if (CoinMiner.isLessThan(newBlockHash, blockHashThreshold)) {
+              if (Hash.isLessThan(newBlockHash, blockHashThreshold)) {
                 // Check the best block hash once more.
                 if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
                   // Step 5 : When a block is found, create the block and put it on the blockchain.

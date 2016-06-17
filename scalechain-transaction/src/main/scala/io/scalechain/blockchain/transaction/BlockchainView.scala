@@ -47,7 +47,7 @@ trait BlockchainView extends CoinsView {
 
   /** Return a transaction that matches the given transaction hash.
     *
-    * Used by listtransaction RPC to get the
+    * Used by listtransaction RPC
     *
     * @param transactionHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.

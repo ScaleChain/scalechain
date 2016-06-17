@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.scalechain.crypto.HashFunctions
 import org.scalatest._
 
 import scala.collection.mutable.ArrayBuffer
 
-class MerkleRootHashSpec extends FlatSpec with BeforeAndAfterEach with ChainTestDataTrait with ShouldMatchers {
+class MerkleRootHashSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ShouldMatchers {
   "mergeHash" should "merge two hash values" in {
     val expectedHash = Hash( HashFunctions.hash256(TXHASH1.value.array ++ TXHASH2.value.array).value )
     MerkleRootCalculator.mergeHash( TXHASH1, TXHASH2 ) shouldBe expectedHash

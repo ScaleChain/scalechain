@@ -73,16 +73,14 @@ object BlockHeightCodec extends MessagePartCodec[BlockHeight] {
 
 object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor] {
   val codec : Codec[TransactionDescriptor] = {
-    ("transaction"    | either(bool(8), FileRecordLocatorCodec.codec, TransactionCodec.codec)) ::
+    ("transactionLocatorOption"    | optional(bool(8), FileRecordLocatorCodec.codec)) ::
     ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
   }.as[TransactionDescriptor]
 }
 
 object OrphanBlockDescriptorCodec extends MessagePartCodec[OrphanBlockDescriptor] {
   val codec : Codec[OrphanBlockDescriptor] = {
-    ("blockHeader" | BlockHeaderCodec.codec) ::
-    ("transactionCount" | int32L) ::
-    ("blockLocatorOption" | FileRecordLocatorCodec.codec )
+    ("block" | BlockCodec.codec)
   }.as[OrphanBlockDescriptor]
 }
 
