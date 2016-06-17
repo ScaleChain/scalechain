@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.{Transaction, Block, BlockInfo}
+import io.scalechain.blockchain.proto.{BlockHeader, Transaction, Block, BlockInfo}
 import io.scalechain.blockchain.storage.BlockStorage
 import io.scalechain.blockchain.transaction.ChainBlock
 import org.slf4j.LoggerFactory
@@ -51,16 +51,14 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
   /**
     * Detach blocks from the best blockchain. Recent blocks are detached first. (Detach order : Newest -> Oldest )
     *
-    * @param beforeFirst Blocks after this block are detached from the best blockchain.
+    * @param beforeFirstHeader Blocks after this block are detached from the best blockchain.
     * @param last The last block in the best blockchain.
     */
   @tailrec
-  protected[chain] final def detachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
-    assert(beforeFirst.height <= last.height)
-
-    if (beforeFirst == last) {
+  protected[chain] final def detachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
+    if (beforeFirstHeader == last.blockHeader) {
       // The base case. Just unlink the next block hash of the before the first block to detach.
-      storage.updateNextBlockHash(beforeFirst.blockHeader.hash, None)
+      storage.updateNextBlockHash(beforeFirstHeader.hash, None)
     } else {
       // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
       detachedBlocks.prepend(lastBlock)
@@ -71,7 +69,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
       // Get the block before the last one, continue iteration.
       val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
-      detachBlocksAfter(beforeFirst, beforeLastInfo, beforeLastBlock, detachedBlocks)
+      detachBlocksAfter(beforeFirstHeader, beforeLastInfo, beforeLastBlock, detachedBlocks)
     }
   }
 
@@ -111,37 +109,40 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * The collected BlockInfos are kept in blockInfos List in ascending order. (Order : Oldest -> Newest)
     *
     * @param blockInfos The list buffer to keep the block info.
-    * @param beforeFirst Blocks after this block are collected.
+    * @param beforeFirstHeader Blocks after this block are collected.
     * @param last The last block to collect.
     */
   @tailrec
-  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirstHeader : BlockHeader, last : BlockInfo) : Unit = {
     // TODO : Need to check if our memory is enough by checking the gap of the height between beforeFirst and last
-    if (beforeFirst == last) {
+    if (beforeFirstHeader == last.blockHeader) {
       // The base case. Nothing to do.
     } else {
       // Note that we are constructing the blockInfos so that the order of the blocks in the blockInfos is from the oldest to the newest.
       blockInfos.prepend(last)
-      assert(!last.blockHeader.hashPrevBlock.isAllZero())
+      if (last.blockHeader.hashPrevBlock.isAllZero()) {
+        logger.error(s"collectBlockInfos : The last block is the genesis block. beforeFirst:${beforeFirstHeader}, last:${last}")
+        assert(false)
+      }
       val beforeLastOption : Option[BlockInfo] = storage.getBlockInfo(last.blockHeader.hashPrevBlock)
       assert(beforeLastOption.isDefined)
-      collectBlockInfos(blockInfos, beforeFirst, beforeLastOption.get)
+      collectBlockInfos(blockInfos, beforeFirstHeader, beforeLastOption.get)
     }
   }
 
   /**
     * Attach blocks to the best blockchain. Oldest blocks are attached first. (Attach order : Oldest -> Newest )
     *
-    * @param beforeFirst Blocks after this block are attached to the best blockchain.
+    * @param beforeFirstHeader Blocks after this block are attached to the best blockchain.
     * @param last The last block in the new best blockchain.
     */
-  protected[chain] def attachBlocksAfter(beforeFirst : BlockInfo, last : BlockInfo) : Unit = {
+  protected[chain] def attachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo) : Unit = {
     // Blocks NOT in the best blockchain does not have the BlockInfo.nextBlockHash.
     // We need to track from the last back to beforeFirst, and reverse the list.
     val blockInfos = ListBuffer[BlockInfo]()
-    collectBlockInfos(blockInfos, beforeFirst, last)
+    collectBlockInfos(blockInfos, beforeFirstHeader, last)
 
-    var prevBlockHash = beforeFirst.blockHeader.hash
+    var prevBlockHash = beforeFirstHeader.hash
     // The previous block of the first block in the list buffer should be the beforeFirst block.
     assert(prevBlockHash == blockInfos.head.blockHeader.hashPrevBlock)
     // The last block info in the list buffer should match the last block info passed to this method.
@@ -183,7 +184,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     val detachedBlocks = new ListBuffer[Block]
 
     // Step 1 : Find the common block(pfork) between the current blockchain(pindexBest) and the new longer blockchain.
-    val commonBlock : BlockInfo = findCommonBlock(originalBestBlock, newBestBlock)
+    val commonBlockHeader : BlockHeader = findCommonBlock(originalBestBlock, newBestBlock)
 
     // TODO : Call chainEventListener : onNewBlock, onRemoveBlock
 
@@ -191,11 +192,11 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     // TODO : BUGBUG : First need to get the list of detached blocks first, and then add transactions in the detached blocks into the transaction pool.
     val Some((bestBlockInfo, bestBlock )) = storage.getBlock(originalBestBlock.blockHeader.hash)
     assert(bestBlockInfo == originalBestBlock)
-    detachBlocksAfter(commonBlock, bestBlockInfo, bestBlock, detachedBlocks)
+    detachBlocksAfter(commonBlockHeader, bestBlockInfo, bestBlock, detachedBlocks)
 
 
     // Step 3 : Attach blocks after the common block to the newBestBlock.
-    attachBlocksAfter(commonBlock, newBestBlock)
+    attachBlocksAfter(commonBlockHeader, newBestBlock)
 
     // Step 4 : Move the transaction from the detached blocks into the transaction pool.
     // Note 1 : Some transactions might not be able to put into the transaction pool, because of double spending the UTXO spent by transactions on newly attached blocks.
@@ -317,7 +318,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param block2 The second given block.
     */
   @tailrec
-  final protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockInfo = {
+  final protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockHeader = {
     if ( block1.height < block2.height ) {
       // back track for block2
       assert(!block2.blockHeader.hashPrevBlock.isAllZero())
@@ -330,8 +331,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       findCommonBlock(prevBlock1, block2)
     } else { // block1.height == block2.height
       if (block1.blockHeader == block2.blockHeader) { // the base case : The common block was found
-        assert(block1 == block2)
-        block1
+        block1.blockHeader
       } else {
         assert(!block1.blockHeader.hashPrevBlock.isAllZero())
         assert(!block2.blockHeader.hashPrevBlock.isAllZero())
