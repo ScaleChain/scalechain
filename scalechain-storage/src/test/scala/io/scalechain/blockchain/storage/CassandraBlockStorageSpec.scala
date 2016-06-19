@@ -18,7 +18,6 @@ class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBl
 }
 
 // Cassandra Test is taking too long. Temporarily disable the suite.
-@Ignore
 class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
@@ -49,7 +48,7 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
     super.afterAll()
 
     cassandraBlockStorage.close()
-//    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
   }
 
   override def beforeEach() {

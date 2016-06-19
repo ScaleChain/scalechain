@@ -11,7 +11,6 @@ import org.scalatest._
   * Created by kangmo on 11/2/15.
   */
 // Cassandra is taking too long for the unit test. Disable it temporarily.
-@Ignore
 class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
@@ -25,7 +24,6 @@ class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfte
   override def beforeAll() {
     FileUtils.deleteDirectory( testPath )
     testPath.mkdir()
-
     EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, cassandraPath);
 
     db = new CassandraDatabase( testPath, "kvstore" )
@@ -37,7 +35,7 @@ class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfte
     super.afterAll()
     db.close()
 
-//    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
   }
 
   override def beforeEach() {

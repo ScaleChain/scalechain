@@ -1,52 +1,38 @@
 version: '2'
 services:
-  cassandra-1:
+  cassandra-01:
     image: cassandra
-    container_name: cassandra-1
+    container_name: cassandra-01
     environment:
-      CASSANDRA_BROADCAST_ADDRESS: "cassandra-1"
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-01"
     ports:
     - 7000
-    volumes:
-    - "cassandra1:/var/lib/cassandra"
+    - "9042:9042"
     restart: always
-  cassandra-2:
+  cassandra-02:
     image: cassandra
-    container_name: cassandra-2
+    container_name: cassandra-02
     environment:
-      CASSANDRA_BROADCAST_ADDRESS: "cassandra-2"
-      CASSANDRA_SEEDS: "cassandra-1"
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-02"
+      CASSANDRA_SEEDS: "cassandra-01"
     ports:
     - 7000
+    - "9042:9042"
     depends_on:
-      - cassandra-1
-    volumes:
-    - "cassandra2:/var/lib/cassandra"
+      - cassandra-01
     restart: always
-  cassandra-3:
+  cassandra-03:
     image: cassandra
-    container_name: cassandra-3
+    container_name: cassandra-03
     environment:
-      CASSANDRA_BROADCAST_ADDRESS: "cassandra-3"
-      CASSANDRA_SEEDS: "cassandra-1"
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-03"
+      CASSANDRA_SEEDS: "cassandra-01"
     ports:
     - 7000
+    - "9042:9042"
     depends_on:
-      - cassandra-2
-    volumes:
-    - "cassandra3:/var/lib/cassandra"
+      - cassandra-02
     restart: always
-    
-volumes:
-  cassandra1:
-    external:
-        name: e1b32812fca71d758e98ffd0bcc5af3c8651f4717a4c14437b276f3b651fcc2c
-  cassandra2:
-    external:
-        name: 978f60c1ad1ec001b1d8b9b581cc657b79b389a8f44c9f197d89a06dd324a738
-  cassandra3:
-    external:
-        name: 7e70da6aa776d542d873763d6bd18c753bcc99d79bce3d3983dac2c9898dac4d
         
 networks:
   default:

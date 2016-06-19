@@ -15,8 +15,6 @@ object CassandraDatabase {
 class CassandraDatabase(path : File, tableName : String) extends KeyValueDatabase {
   import CassandraDatabase._
 
-  EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-
   val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(9142).build()
   val session = cluster.connect()
 

@@ -1,3 +1,6 @@
+RPC_PORT_BASE=8080
+
+
 if [ $# -ne 3 ] 
 then
        Usage "$0 {build|remove}"
