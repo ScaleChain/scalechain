@@ -26,7 +26,7 @@ class CassandraDatabaseSpec extends KeyValueDatabaseTestTrait with BeforeAndAfte
     testPath.mkdir()
     EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, cassandraPath);
 
-    db = new CassandraDatabase( testPath, "kvstore" )
+    db = new CassandraDatabase( "127.0.0.1", 9142, "kvstore" )
 
     super.beforeAll()
   }

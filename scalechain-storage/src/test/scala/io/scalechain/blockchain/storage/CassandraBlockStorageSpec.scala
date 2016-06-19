@@ -9,7 +9,7 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.scalatest.{Ignore, BeforeAndAfterAll, Suite, BeforeAndAfterEach}
 
 // For Unit tests.
-class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath) {
+class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath, "127.0.0.1", 9142 ) {
   protected[storage] def truncateTables(): Unit = {
     blocksTable.truncateTable
     transactionsTable.truncateTable

@@ -12,10 +12,10 @@ object CassandraDatabase {
   val KEYSPACE_NAME = "scalechain"
 }
 
-class CassandraDatabase(path : File, tableName : String) extends KeyValueDatabase {
+class CassandraDatabase(cassandraAddress : String, cassandraPort : Int, tableName : String) extends KeyValueDatabase {
   import CassandraDatabase._
 
-  val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(9142).build()
+  val cluster = Cluster.builder().addContactPoint(cassandraAddress).withPort(cassandraPort).build()
   val session = cluster.connect()
 
   session.execute(s"CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE_NAME} WITH REPLICATION ={ 'class' : 'SimpleStrategy', 'replication_factor' : 3 }")

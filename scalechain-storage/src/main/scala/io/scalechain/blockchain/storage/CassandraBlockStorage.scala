@@ -9,10 +9,36 @@ import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, Ro
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
+// A version Using CassandraBlockStorage
+object CassandraBlockStorage {
+  val MAX_FILE_SIZE = 1024 * 1024 * 100
+  //val MAX_FILE_SIZE = 1024 * 1024 * 1
+
+
+  var theBlockStorage : CassandraBlockStorage = null
+
+  def create(directoryPath : File, cassandraAddress : String, cassandraPort : Int) : BlockStorage = {
+    assert(theBlockStorage == null)
+    theBlockStorage = new CassandraBlockStorage(directoryPath, cassandraAddress, cassandraPort)
+
+    theBlockStorage
+  }
+
+  /** Get the block storage. This actor is a singleton, used by transaction validator.
+    *
+    * @return The block storage.
+    */
+  def get() : BlockStorage = {
+    assert(theBlockStorage != null)
+    theBlockStorage
+  }
+
+}
+
 
 /** Store block headers, block transactions, the best block hash.
   */
-class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
+class CassandraBlockStorage(directoryPath : File, cassandraAddress : String, cassandraPort : Int) extends BlockStorage {
   private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
 
   private val rocksDatabasePath = new File( directoryPath, "rocksdb")
@@ -29,12 +55,12 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
   // The serialized blocks are stored on this table.
   // Key : Block header hash
   // Value : Serialized block
-  protected[storage] val blocksTable = new CassandraDatabase(directoryPath, "blocks")
+  protected[storage] val blocksTable = new CassandraDatabase(cassandraAddress, cassandraPort, "blocks")
 
   // The serialized transactions are stored on this table.
   // Key : Transaction Hash
   // Value : Serialized transaction
-  protected[storage] val transactionsTable = new CassandraDatabase(directoryPath, "transactions")
+  protected[storage] val transactionsTable = new CassandraDatabase(cassandraAddress, cassandraPort, "transactions")
 
 
   /** Store a block.
@@ -59,6 +85,8 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
         } else {
           // case 1.2 block info with a block locator was found
           // The block already exists. Do not put it once more.
+          // This can happen when the mining node already had put the block, but other nodes tried to put it once more.
+          // (Because a cassandra cluster is shared by all nodes )
           logger.warn("The block already exists. block hash : {}", blockHash)
         }
       } else {
