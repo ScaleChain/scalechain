@@ -22,17 +22,8 @@ class PeerCommunicator(peerSet : PeerSet) {
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
     peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
-      val messageString = message match {
-        case m : Block => {
-          s"Block. Hash : ${m.header.hash}"
-        }
-        case m : Transaction => {
-          s"Transaction. Hash : ${m.hash}"
-        }
-        case m => {
-          StringUtil.getBrief(m.toString, 256)
-        }
-      }
+
+      val messageString = MessageSummarizer.summarize(message)
       logger.info(s"Sending to one of all peers : ${address}, ${messageString}")
       peer.send(message)
     }

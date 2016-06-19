@@ -51,9 +51,14 @@ object BlockMessageHandler {
           newlyBestBlockHashes
         }
 
-        // Step 1.3 : Relay the newly added blocks to peers as an inventory
-        val invMessage = InvFactory.createBlockInventories(newBlockHashes)
-        context.communicator.sendToAll(invMessage)
+        if (newBlockHashes.isEmpty) {
+          // Do nothing. Nothing to send.
+        } else {
+          // Step 1.3 : Relay the newly added blocks to peers as an inventory
+          val invMessage = InvFactory.createBlockInventories(newBlockHashes)
+          context.communicator.sendToAll(invMessage)
+          logger.info(s"Propagating newly accepted blocks : ${invMessage} ")
+        }
 
       } else { // Case 2 : Orphan block
         // Step 2.1 : Put the orphan block
@@ -65,6 +70,7 @@ object BlockMessageHandler {
         val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
         context.peer.send(getBlocksMessage)
         logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Inventories requested : ${getBlocksMessage} ")
+        logger.info(s"Requesting to inventories of parents of the orphan : ${getBlocksMessage} ")
       }
     }
   }

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
 import io.scalechain.blockchain.chain.processor.{BlockProcessor, TransactionProcessor}
+import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.proto.InvType.InvType
 import io.scalechain.blockchain.proto._
 import org.slf4j.LoggerFactory
@@ -42,6 +43,7 @@ object GetDataMessageHandler {
 
     // Step 3 : Send data messages ( either Transaction or Block )
     messagesToSend foreach { message : ProtocolMessage =>
+      logger.info(s"Responding to datadata. Message : ${MessageSummarizer.summarize(message)}")
       context.peer.send(message)
     }
 

@@ -41,6 +41,8 @@ object CassandraBlockStorage {
 class CassandraBlockStorage(directoryPath : File, cassandraAddress : String, cassandraPort : Int) extends BlockStorage {
   private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
 
+  directoryPath.mkdir()
+
   private val rocksDatabasePath = new File( directoryPath, "rocksdb")
   rocksDatabasePath.mkdir()
 

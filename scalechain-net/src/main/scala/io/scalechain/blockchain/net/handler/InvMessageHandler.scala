@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
 import io.scalechain.blockchain.chain.processor.{BlockProcessor, InventoryProcessor}
+import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.{GetDataFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto.{InvType, InvVector, Inv, ProtocolMessage}
 import org.slf4j.LoggerFactory
@@ -33,6 +34,7 @@ object InvMessageHandler {
             val orphanRoot = BlockProcessor.getOrphanRoot(inventory.hash)
             val getBlocksMessage = GetBlocksFactory.create(inventory.hash)
             context.peer.send(getBlocksMessage)
+            logger.info(s"Requesting getblocks of orphan parents in response to inv. Message : ${MessageSummarizer.summarize(getBlocksMessage)}")
           }
           None
       } else {
@@ -44,5 +46,6 @@ object InvMessageHandler {
     // Step 4 : Send the GetData message to get data for the missing inventories in this node.
     val getDataMessage = GetDataFactory.create(inventoriesToGetData)
     context.peer.send(getDataMessage)
+    logger.info(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
   }
 }
