@@ -15,8 +15,11 @@ import org.slf4j.LoggerFactory
 class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
   private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
 
+  private val rocksDatabasePath = new File( directoryPath, "rocksdb")
+  rocksDatabasePath.mkdir()
+
   // Implemenent the KeyValueDatabase declared in BlockStorage trait.
-  protected[storage] val keyValueDB = new CassandraDatabase(directoryPath, "block_metadata")
+  protected[storage] val keyValueDB = new RocksDatabase( rocksDatabasePath )
 
   // Implemenent the BlockDatabase declared in BlockStorage trait.
   // Block info including block header,
@@ -71,7 +74,7 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
             prevBlockInfoOption,
             block.header,
             blockHash,
-            0, // transaction count
+            block.transactions.length, // transaction count
             None // block locator
           )
 
@@ -85,6 +88,10 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
           //logger.info("The new block was put. block hash : {}", blockHash)
         } else {
           // case 2.2 : no block info was found, previous block header does not exists.
+
+          // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+          // before invoking putBlock method.
+
           logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
         }
       }
@@ -104,22 +111,21 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     blocksTable.put( blockHash.value, BlockCodec.serialize(block))
   }
 
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Implement
-    assert(false)
-    null
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    // TODO : Implement
-    assert(false)
-  }
-
+  /**
+    * Get a transaction stored in a block or get it from transaction pool.
+    *
+    * TODO : Add test case.
+    * @param transactionHash
+    * @return
+    */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     this.synchronized {
       val serializedTransactionOption = transactionsTable.get(transactionHash.value)
-      serializedTransactionOption.map( TransactionCodec.parse(_) )
+      if (serializedTransactionOption.isDefined) {
+        serializedTransactionOption.map(TransactionCodec.parse(_))
+      } else {
+        getTransactionFromPool(transactionHash)
+      }
     }
   }
 

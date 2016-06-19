@@ -241,23 +241,9 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     }
   }
 
-  // TODO : Add test case
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Rethink synchonization.
-    synchronized {
-      blockDatabase.getTransactionDescriptor(txHash)
-    }
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    synchronized {
-      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
-    }
-  }
-
-
   /** Return a transaction that matches the given transaction hash.
+    *
+    * TODO : Add test case.
     *
     * @param transactionHash
     * @return
