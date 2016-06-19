@@ -6,7 +6,7 @@ libraryDependencies ++= Seq(
   "org.rocksdb" % "rocksdbjni" % "4.5.1",
   "org.fusesource.leveldbjni" % "leveldbjni-osx" % "1.8",
 //  "org.fusesource.leveldbjni" % "leveldbjni-linux64" % "1.8",
-  "org.apache.cassandra" % "cassandra-all" % "3.4",
+  "org.apache.cassandra" % "cassandra-all" % "3.5",
   "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.2",
   "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.2",
   "org.cassandraunit" % "cassandra-unit" % "3.0.0.1"
