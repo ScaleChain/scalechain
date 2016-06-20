@@ -15,10 +15,15 @@ It also summarizes classes for data structures required to implement features.
 
 # Transaction
 ## Transaction Signing
+TransactionSigner.sign signed an unsigned transaction or partly signed transaction. 
+It returns SignedTransaction which contains a Transaction with the signature on the unlocking script of each input it signs.
 
-## Transaction Validation
+## Transaction Signature Verification
+TransactionVerifier.verify verifies inputs of each transaction by executing (1) unlocking script and (2) locking script of each input checking if they produce True on top of the stack. 
 
 # Script Executor
+Script executor parses the binary form of scripts (byte array) to produce a list of script operations.
+Each script operation implements execute method to execute the script operation using script environment and script stack.
 
 ## Parse
 ScriptParser.parse parses a given raw script in a byte array to get the list of ScriptOp(s).
@@ -73,5 +78,27 @@ OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
 5. CheckSig(in Crypto.scala) implements signature verification, OP_CHECKSIG.
 
 ## Pay to Public Key
+
+
 ## Pay to Script Hash
+```
+scriptPubKey: OP_HASH160 <scriptHash> OP_EQUAL 
+scriptSig: ..signatures... <serialized script>
+```
+
+```
+m-of-n multi-signature transaction:
+scriptSig: 0 <sig1> ... <script>
+script: OP_m <pubKey1> ... OP_n OP_CHECKMULTISIG
+```
+
 ## Multi-sig
+Locking Script : 
+```
+0 <sig1> <sig2>  
+```
+
+Unlocking Script : 
+```
+OP_2 <pubKey1> <pubKey2> <pubKey3> OP_3 OP_CHECKMULTISIG
+```
