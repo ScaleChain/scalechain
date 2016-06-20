@@ -20,15 +20,6 @@ It also summarizes classes for data structures required to implement features.
 
 # Script Executor
 
-2. 실행기 시작지점 
-
-3. 주요 구조체 
-
-4. 실행기 동작 방식
-바이너리 스크립트 => 파싱 => ScriptOpList => 실행 => 성공/실패로 결과
-
-
-
 ## Parse
 ScriptParser.parse parses a given raw script in a byte array to get the list of ScriptOp(s).
 
@@ -74,11 +65,12 @@ The locking script has five script operations.
 ```
 OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
 ```
-OP_DUP is implmented by OpDup(in Stack.scala)
-OP_HASH160 is implemented by OpHash160(in Crypto.scala)
-<pubKeyHash> pushes the public key hash on top of the stack, and it is implemented by OpPush(in Constant.scala).
-OP_EQUALVERIFY pops two items from the stack and continues the execution if they are same. Implemented by OpEqualVerify( in BitwiseLogic.scala)
-CheckSig(in Crypto.scala) implements signature verification, OP_CHECKSIG.
+
+1. OP_DUP is implmented by OpDup(in Stack.scala)
+2. OP_HASH160 is implemented by OpHash160(in Crypto.scala)
+3. <pubKeyHash> pushes the public key hash on top of the stack, and it is implemented by OpPush(in Constant.scala).
+4. OP_EQUALVERIFY pops two items from the stack and continues the execution if they are same. Implemented by OpEqualVerify( in BitwiseLogic.scala)
+5. CheckSig(in Crypto.scala) implements signature verification, OP_CHECKSIG.
 
 ## Pay to Public Key
 ## Pay to Script Hash
