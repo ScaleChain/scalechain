@@ -78,7 +78,7 @@ object SendRawTransaction extends RpcCommand {
         val transactionOption = RpcSubSystem.get.getTransaction(txHash)
 
         if (transactionOption.isDefined) {
-          Left(txHash)
+          Right(txHash)
         } else {
           RpcSubSystem.get.sendRawTransaction(tx, allowHighFees)
           Right(txHash)

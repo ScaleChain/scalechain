@@ -12,7 +12,7 @@ CASSANDRA_IP_LAST=$[$1+$CASSANDRA_IP_LAST_BASE]
 CASSANDRA_IP="192.168.99.${CASSANDRA_IP_LAST}"
 
 echo "Deleting all test files."
-#rm -rf target/*-$P2P_PORT
+rm -rf target/*-$P2P_PORT
 
 echo "Using P2P port $P2P_PORT, RPC port $RPC_PORT"
 echo "JAVA_OPTS=$JAVA_OPTIONS"
