@@ -9,16 +9,14 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.scalatest.{Ignore, BeforeAndAfterAll, Suite, BeforeAndAfterEach}
 
 // For Unit tests.
-class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath) {
+class CassandraBlockStorageForUnitTest(directoryPath : File) extends CassandraBlockStorage(directoryPath, "127.0.0.1", 9142 ) {
   protected[storage] def truncateTables(): Unit = {
-    keyValueDB.truncateTable
     blocksTable.truncateTable
     transactionsTable.truncateTable
   }
 }
 
 // Cassandra Test is taking too long. Temporarily disable the suite.
-@Ignore
 class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
@@ -33,6 +31,7 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
   var storage: BlockStorage = null
 
   val cassandraPath = "./target/embeddedCassandra-CassandraBlockStorageSpec/"
+  val rocksdbPath = "./target/embeddedCassandra-CassandraBlockStorageSpec/rocksdb/"
 
   val testPath = new File(cassandraPath)
 
@@ -49,10 +48,14 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
     super.afterAll()
 
     cassandraBlockStorage.close()
-//    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+    EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
   }
 
+  val rocksDbTestPath = new File(rocksdbPath)
   override def beforeEach() {
+    FileUtils.deleteDirectory(rocksDbTestPath)
+    rocksDbTestPath.mkdir()
+
     cassandraBlockStorage = new CassandraBlockStorageForUnitTest(testPath)
     cassandraBlockStorage.truncateTables()
     storage = cassandraBlockStorage
@@ -63,6 +66,9 @@ class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfte
   override def afterEach() {
     super.afterEach()
 
+    cassandraBlockStorage.close()
+
+    FileUtils.deleteDirectory(rocksDbTestPath)
   }
 
 }

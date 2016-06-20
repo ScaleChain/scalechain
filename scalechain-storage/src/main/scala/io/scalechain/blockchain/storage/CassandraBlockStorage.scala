@@ -9,14 +9,45 @@ import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, Ro
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
+// A version Using CassandraBlockStorage
+object CassandraBlockStorage {
+  val MAX_FILE_SIZE = 1024 * 1024 * 100
+  //val MAX_FILE_SIZE = 1024 * 1024 * 1
+
+
+  var theBlockStorage : CassandraBlockStorage = null
+
+  def create(directoryPath : File, cassandraAddress : String, cassandraPort : Int) : BlockStorage = {
+    assert(theBlockStorage == null)
+    theBlockStorage = new CassandraBlockStorage(directoryPath, cassandraAddress, cassandraPort)
+
+    theBlockStorage
+  }
+
+  /** Get the block storage. This actor is a singleton, used by transaction validator.
+    *
+    * @return The block storage.
+    */
+  def get() : BlockStorage = {
+    assert(theBlockStorage != null)
+    theBlockStorage
+  }
+
+}
+
 
 /** Store block headers, block transactions, the best block hash.
   */
-class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
+class CassandraBlockStorage(directoryPath : File, cassandraAddress : String, cassandraPort : Int) extends BlockStorage {
   private val logger = LoggerFactory.getLogger(classOf[CassandraBlockStorage])
 
+  directoryPath.mkdir()
+
+  private val rocksDatabasePath = new File( directoryPath, "rocksdb")
+  rocksDatabasePath.mkdir()
+
   // Implemenent the KeyValueDatabase declared in BlockStorage trait.
-  protected[storage] val keyValueDB = new CassandraDatabase(directoryPath, "block_metadata")
+  protected[storage] val keyValueDB = new RocksDatabase( rocksDatabasePath )
 
   // Implemenent the BlockDatabase declared in BlockStorage trait.
   // Block info including block header,
@@ -26,12 +57,12 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
   // The serialized blocks are stored on this table.
   // Key : Block header hash
   // Value : Serialized block
-  protected[storage] val blocksTable = new CassandraDatabase(directoryPath, "blocks")
+  protected[storage] val blocksTable = new CassandraDatabase(cassandraAddress, cassandraPort, "blocks")
 
   // The serialized transactions are stored on this table.
   // Key : Transaction Hash
   // Value : Serialized transaction
-  protected[storage] val transactionsTable = new CassandraDatabase(directoryPath, "transactions")
+  protected[storage] val transactionsTable = new CassandraDatabase(cassandraAddress, cassandraPort, "transactions")
 
 
   /** Store a block.
@@ -56,6 +87,8 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
         } else {
           // case 1.2 block info with a block locator was found
           // The block already exists. Do not put it once more.
+          // This can happen when the mining node already had put the block, but other nodes tried to put it once more.
+          // (Because a cassandra cluster is shared by all nodes )
           logger.warn("The block already exists. block hash : {}", blockHash)
         }
       } else {
@@ -71,7 +104,7 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
             prevBlockInfoOption,
             block.header,
             blockHash,
-            0, // transaction count
+            block.transactions.length, // transaction count
             None // block locator
           )
 
@@ -85,6 +118,10 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
           //logger.info("The new block was put. block hash : {}", blockHash)
         } else {
           // case 2.2 : no block info was found, previous block header does not exists.
+
+          // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+          // before invoking putBlock method.
+
           logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
         }
       }
@@ -104,22 +141,21 @@ class CassandraBlockStorage(directoryPath : File) extends BlockStorage {
     blocksTable.put( blockHash.value, BlockCodec.serialize(block))
   }
 
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Implement
-    assert(false)
-    null
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    // TODO : Implement
-    assert(false)
-  }
-
+  /**
+    * Get a transaction stored in a block or get it from transaction pool.
+    *
+    * TODO : Add test case.
+    * @param transactionHash
+    * @return
+    */
   def getTransaction(transactionHash : Hash) : Option[Transaction] = {
     this.synchronized {
       val serializedTransactionOption = transactionsTable.get(transactionHash.value)
-      serializedTransactionOption.map( TransactionCodec.parse(_) )
+      if (serializedTransactionOption.isDefined) {
+        serializedTransactionOption.map(TransactionCodec.parse(_))
+      } else {
+        getTransactionFromPool(transactionHash)
+      }
     }
   }
 

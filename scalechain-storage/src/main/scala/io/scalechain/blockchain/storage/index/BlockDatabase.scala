@@ -102,6 +102,16 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
   }
 
+  // TODO : Add test case
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
+  }
+
   def close() = db.close()
 }
 
@@ -139,16 +149,6 @@ class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase
 
       assert( txLocatorDesc.txHash == transaction.hash )
     }
-  }
-
-  // TODO : Add test case
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
   }
 
   /** Remove a transaction from the transaction index.

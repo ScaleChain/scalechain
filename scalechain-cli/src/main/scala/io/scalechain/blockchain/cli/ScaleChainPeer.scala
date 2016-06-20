@@ -11,7 +11,7 @@ import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
-import io.scalechain.blockchain.storage.{GenesisBlock, BlockStorage, DiskBlockStorage, Storage}
+import io.scalechain.blockchain.storage._
 import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{HexUtil, Config}
 import io.scalechain.util.HexUtil._
@@ -29,6 +29,8 @@ object ScaleChainPeer {
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          peerPort: Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+                         cassandraAddress: Option[String] = if (io.scalechain.util.Config.scalechain.hasPath("scalechain.storage.cassandra.address")) Some(io.scalechain.util.Config.scalechain.getString("scalechain.storage.cassandra.address")) else None,
+                         cassandraPort: Option[Int] = if (io.scalechain.util.Config.scalechain.hasPath("scalechain.storage.cassandra.port")) Some(io.scalechain.util.Config.scalechain.getInt("scalechain.storage.cassandra.port")) else None,
                          p2pInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.port"),
                          apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
@@ -54,6 +56,12 @@ object ScaleChainPeer {
       opt[Int]('x', "peerPort") action { (x, c) =>
         c.copy(peerPort = Some(x))
       } text ("The port of the peer we want to connect.")
+      opt[String]("cassandraAddress") action { (x, c) =>
+        c.copy(cassandraAddress = Some(x))
+      } text ("The address of the cassandra instance for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
+      opt[Int]("cassandraPort") action { (x, c) =>
+        c.copy(peerPort = Some(x))
+      } text ("The port of the cassandra instance  for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
       // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
       opt[String]('m', "miningAccount") action { (x, c) =>
         c.copy(miningAccount = x)
@@ -157,9 +165,15 @@ object ScaleChainPeer {
     // Step 4 : Storage Layer : Initialize block storage.
     val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
-    // Initialize the block storage.
-    // TODO : Investigate when to call storage.close.
-    val storage: BlockStorage = DiskBlockStorage.create(blockStoragePath)
+
+    val storage: BlockStorage =
+    if (params.cassandraAddress.isDefined && params.cassandraPort.isDefined) {
+      CassandraBlockStorage.create(blockStoragePath, params.cassandraAddress.get, params.cassandraPort.get)
+    } else {
+      // Initialize the block storage.
+      // TODO : Investigate when to call storage.close.
+      DiskBlockStorage.create(blockStoragePath)
+    }
 
 
     // Step 5 : Chain Layer : Initialize blockchain.

@@ -29,22 +29,28 @@ object TxMessageHandler {
     // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
 
     try {
-      // Try to put the transaction into the disk-pool
-      TransactionProcessor.putTransaction(transactionHash, transaction)
+      if (TransactionProcessor.exists(transactionHash)) {
+        logger.info(s"The transaction already exists. ${transaction}")
+      } else {
+        // Try to put the transaction into the disk-pool
+        TransactionProcessor.putTransaction(transactionHash, transaction)
 
-      // Yes! the transaction was put into the disk-pool.
-      // Step 2 : Recursively check if any orphan transaction depends on this transaction.
-      // Also delete the newly accepted transactions from indexes for orphan transactions.
-      val acceptedChildren : List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
+        // Yes! the transaction was put into the disk-pool.
+        // Step 2 : Recursively check if any orphan transaction depends on this transaction.
+        // Also delete the newly accepted transactions from indexes for orphan transactions.
+        val acceptedChildren : List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
 
-      // Step 3 : Relay the transaction as an inventory
-      val invMessage = InvFactory.createTransactionInventories( transactionHash :: acceptedChildren )
-      context.communicator.sendToAll( invMessage )
+        // Step 3 : Relay the transaction as an inventory
+        val invMessage = InvFactory.createTransactionInventories( transactionHash :: acceptedChildren )
+        context.communicator.sendToAll( invMessage )
+        logger.info(s"Propagating inventories for the newly accepted transactions. ${invMessage}")
+      }
     } catch {
       case e : ChainException => {
         if (e.code == ErrorCode.ParentTransactionNotFound) {
           // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
           TransactionProcessor.putOrphan(transactionHash, transaction)
+          logger.warn(s"An orphan transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
         } else if (e.code == ErrorCode.TransactionOutputAlreadySpent) {
           logger.warn(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
         }

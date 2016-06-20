@@ -29,7 +29,7 @@ this: Suite =>
 
     EmbeddedCassandraServerHelper.startEmbeddedCassandra(EmbeddedCassandraServerHelper.DEFAULT_CASSANDRA_YML_FILE, cassandraPath);
 
-    cassandraDatabase = new CassandraDatabase( testPath, "kvstore" )
+    cassandraDatabase = new CassandraDatabase( "127.0.0.1", 9142, "kvstore" )
     db = new BlockDatabase( cassandraDatabase )
 
     super.beforeAll()

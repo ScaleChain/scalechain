@@ -35,39 +35,6 @@ object DiskBlockStorage {
 
 }
 
-/*
-// A version Using CassandraBlockStorage
-object DiskBlockStorage {
-  val MAX_FILE_SIZE = 1024 * 1024 * 100
-  //val MAX_FILE_SIZE = 1024 * 1024 * 1
-
-
-  var theBlockStorage : CassandraBlockStorage = null
-
-  def create(storagePath : File) : BlockStorage = {
-    assert(theBlockStorage == null)
-    theBlockStorage = new CassandraBlockStorage(storagePath)
-
-    // See if we have genesis block. If not, put one.
-    //if ( ! theBlockStorage.hasBlock(GenesisBlock.HASH) ) {
-    //  theBlockStorage.putBlock(GenesisBlock.BLOCK)
-    //}
-
-    theBlockStorage
-  }
-
-  /** Get the block storage. This actor is a singleton, used by transaction validator.
-    *
-    * @return The block storage.
-    */
-  def get() : BlockStorage = {
-    assert(theBlockStorage != null)
-    theBlockStorage
-  }
-
-}
-*/
-
 /** Stores block header, block, and transactions in the block.
   *
   * Blocks are stored in two cases.
@@ -241,23 +208,9 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     }
   }
 
-  // TODO : Add test case
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Rethink synchonization.
-    synchronized {
-      blockDatabase.getTransactionDescriptor(txHash)
-    }
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    synchronized {
-      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
-    }
-  }
-
-
   /** Return a transaction that matches the given transaction hash.
+    *
+    * TODO : Add test case.
     *
     * @param transactionHash
     * @return

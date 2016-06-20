@@ -18,8 +18,20 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor]
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor)
+  // TODO : Add test case
+  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
+    // TODO : Rethink synchonization.
+    synchronized {
+      blockDatabase.getTransactionDescriptor(txHash)
+    }
+  }
+
+  // TODO : Add test case
+  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
+    synchronized {
+      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
+    }
+  }
 
   /** Get the block hash at the given height on the best blockchain.
     *

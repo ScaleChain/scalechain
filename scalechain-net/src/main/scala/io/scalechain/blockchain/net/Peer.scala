@@ -28,6 +28,9 @@ case class Peer(private val channel : Channel, var versionOption : Option[Versio
   }
 
   def send(message : ProtocolMessage) = {
+    val messageString = MessageSummarizer.summarize(message)
+    logger.info(s"Sending to peer : ${channel.remoteAddress}, ${messageString}")
+
     channel.writeAndFlush(message)
   }
 }

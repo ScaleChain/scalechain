@@ -37,9 +37,11 @@ object GetBlocksMessageHandler {
     // Step 4 : Pack the block hashes into an Inv message, and reply it to the requester.
     if (filteredBlockHashes.isEmpty) {
       // Do nothing. Nothing to send.
+      logger.info(s"Nothing to send in response to getblocks message.")
     } else {
       val invMessage = InvFactory.createBlockInventories(filteredBlockHashes)
       context.peer.send(invMessage)
+      logger.info(s"Requesting inventories in response to getblocks message. ${filteredBlockHashes}")
     }
   }
 }

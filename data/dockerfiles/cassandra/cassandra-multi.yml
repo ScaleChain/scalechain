@@ -1,0 +1,40 @@
+version: '2'
+services:
+  cassandra-01:
+    image: cassandra
+    container_name: cassandra-01
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-01"
+    ports:
+    - 7000
+    - "9042:9042"
+    restart: always
+  cassandra-02:
+    image: cassandra
+    container_name: cassandra-02
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-02"
+      CASSANDRA_SEEDS: "cassandra-01"
+    ports:
+    - 7000
+    - "9042:9042"
+    depends_on:
+      - cassandra-01
+    restart: always
+  cassandra-03:
+    image: cassandra
+    container_name: cassandra-03
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-03"
+      CASSANDRA_SEEDS: "cassandra-01"
+    ports:
+    - 7000
+    - "9042:9042"
+    depends_on:
+      - cassandra-02
+    restart: always
+        
+networks:
+  default:
+    external:
+       name: swarm-net

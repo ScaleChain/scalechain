@@ -6,24 +6,29 @@ import java.nio.ByteBuffer
 import com.datastax.driver.core.{Row, TableMetadata, KeyspaceMetadata, Cluster}
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
+import org.slf4j.LoggerFactory
 
 
 object CassandraDatabase {
   val KEYSPACE_NAME = "scalechain"
 }
 
-class CassandraDatabase(path : File, tableName : String) extends KeyValueDatabase {
+class CassandraDatabase(cassandraAddress : String, cassandraPort : Int, tableName : String) extends KeyValueDatabase {
+  private val logger = LoggerFactory.getLogger(classOf[CassandraDatabase])
+
   import CassandraDatabase._
 
-  EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-
-  val cluster = Cluster.builder().addContactPoint("127.0.0.1").withPort(9142).build()
+  val cluster = Cluster.builder().addContactPoint(cassandraAddress).withPort(cassandraPort).build()
   val session = cluster.connect()
+
+  logger.info(s"Connected to Cassandra server at ${cassandraAddress}:${cassandraPort}")
 
   session.execute(s"CREATE KEYSPACE IF NOT EXISTS ${KEYSPACE_NAME} WITH REPLICATION ={ 'class' : 'SimpleStrategy', 'replication_factor' : 3 }")
   session.execute(s"USE ${KEYSPACE_NAME}")
 
   session.execute(s"CREATE TABLE IF NOT EXISTS ${tableName} (key blob primary key, value blob)")
+
+  logger.info(s"Prepared Cassandra table, ${tableName}")
 
   // FOR UNIT TESTS
   protected[storage] def truncateTable() : Unit = {
