@@ -44,8 +44,12 @@ object InvMessageHandler {
     }.filter(_.isDefined).map(_.get) // filter out None values.
 
     // Step 4 : Send the GetData message to get data for the missing inventories in this node.
-    val getDataMessage = GetDataFactory.create(inventoriesToGetData)
-    context.peer.send(getDataMessage)
-    logger.info(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
+    if (inventoriesToGetData.isEmpty) {
+      // Nothing to request.
+    } else {
+      val getDataMessage = GetDataFactory.create(inventoriesToGetData)
+      context.peer.send(getDataMessage)
+      logger.info(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
+    }
   }
 }

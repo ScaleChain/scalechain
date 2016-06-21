@@ -43,7 +43,7 @@ object GetDataMessageHandler {
 
     // Step 3 : Send data messages ( either Transaction or Block )
     messagesToSend foreach { message : ProtocolMessage =>
-      logger.info(s"Responding to datadata. Message : ${MessageSummarizer.summarize(message)}")
+      logger.info(s"Responding to getdata. Message : ${MessageSummarizer.summarize(message)}")
       context.peer.send(message)
     }
 

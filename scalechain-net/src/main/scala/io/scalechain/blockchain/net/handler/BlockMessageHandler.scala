@@ -70,7 +70,7 @@ object BlockMessageHandler {
         val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
         context.peer.send(getBlocksMessage)
         logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Inventories requested : ${getBlocksMessage} ")
-        logger.info(s"Requesting to inventories of parents of the orphan : ${getBlocksMessage} ")
+        logger.info(s"Requesting inventories of parents of the orphan : ${getBlocksMessage} ")
       }
     }
   }

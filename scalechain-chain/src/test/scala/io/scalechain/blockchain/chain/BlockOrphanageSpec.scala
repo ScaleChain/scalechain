@@ -143,7 +143,6 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
     o.getOrphanRoot(BLK03a.header.hash) shouldBe BLK02.header.hash
   }
 
-
   "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" in {
     o.putOrphan(BLK03a)
     o.putOrphan(BLK03b)

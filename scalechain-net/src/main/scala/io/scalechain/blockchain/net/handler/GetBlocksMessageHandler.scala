@@ -18,7 +18,7 @@ object GetBlocksMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit = {
-    // TODO :   Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
+    // TODO : Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
 
     // Step 1 : Get the list of block hashes to send.
     val locator = new BlockLocator(Blockchain.get)
