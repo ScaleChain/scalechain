@@ -27,10 +27,12 @@ object BlockMessageHandler {
     val blockHash = block.header.hash
 
 
-    logger.info(s"[P2P] Received a block. Hash : ${blockHash}")
+    logger.info(s"[P2P] Received a block. Hash : ${blockHash}, Header : ${block.header}")
 
-    if (BlockProcessor.exists(blockHash)) {
+    if (BlockProcessor.hasNonOrphan(blockHash)) {
       logger.warn(s"[P2P] Duplicate block was received. Hash : ${blockHash}")
+    } else if (BlockProcessor.hasOrphan(blockHash)) {
+      logger.warn(s"[P2P] Duplicate orphan block was received. Hash : ${blockHash}")
     } else {
       // TODO : Add the block as a known inventory of the node that sent it.
       // pfrom->AddInventoryKnown(inv);
@@ -69,7 +71,7 @@ object BlockMessageHandler {
         val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
         val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
         context.peer.send(getBlocksMessage)
-        logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Inventories requested : ${getBlocksMessage} ")
+        logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
         logger.info(s"Requesting inventories of parents of the orphan : ${getBlocksMessage} ")
       }
     }
