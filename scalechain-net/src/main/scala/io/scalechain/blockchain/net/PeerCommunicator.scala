@@ -21,12 +21,7 @@ class PeerCommunicator(peerSet : PeerSet) {
   */
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
-    peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
-
-      val messageString = MessageSummarizer.summarize(message)
-      logger.info(s"Sending to one of all peers : ${address}, ${messageString}")
-      peer.send(message)
-    }
+    peerSet.sendToAll(message)
   }
 
   /** Propagate a newly mined block to the peers. Called by a miner, whenever a new block was mined.

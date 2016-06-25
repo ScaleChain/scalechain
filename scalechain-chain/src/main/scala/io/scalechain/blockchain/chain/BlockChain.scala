@@ -284,8 +284,10 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The best block height.
     */
   def getBestBlockHeight() : Long = {
-    assert(theBestBlock != null)
-    theBestBlock.height
+    synchronized {
+      assert(theBestBlock != null)
+      theBestBlock.height
+    }
   }
 
   /** Return the hash of block on the tip of the best blockchain.
@@ -293,7 +295,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The best block hash.
     */
   def getBestBlockHash() : Option[Hash] = {
-    storage.getBestBlockHash()
+    synchronized {
+      storage.getBestBlockHash()
+    }
   }
 
 
@@ -305,13 +309,16 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The hash of the block header.
     */
   def getBlockHash(blockHeight : Long) : Hash = {
-    val blockHashOption = storage.getBlockHashByHeight(blockHeight)
-    // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
-    if (blockHashOption.isEmpty) {
+    synchronized {
 
-      throw new ChainException( ErrorCode.InvalidBlockHeight)
+      val blockHashOption = storage.getBlockHashByHeight(blockHeight)
+      // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
+      if (blockHashOption.isEmpty) {
+
+        throw new ChainException(ErrorCode.InvalidBlockHeight)
+      }
+      blockHashOption.get
     }
-    blockHashOption.get
   }
 
   /**
@@ -321,7 +328,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
   def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
-    storage.getBlockInfo(blockHash)
+    synchronized {
+      storage.getBlockInfo(blockHash)
+    }
   }
 
 
@@ -334,7 +343,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if the block exists; false otherwise.
     */
   def hasBlock(blockHash : Hash) : Boolean = {
-    storage.hasBlock(blockHash)
+    synchronized {
+      storage.hasBlock(blockHash)
+    }
   }
 
   /** Get a block searching by the header hash.
@@ -345,7 +356,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The searched block.
     */
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
-    storage.getBlock(blockHash)
+    synchronized {
+      storage.getBlock(blockHash)
+    }
   }
 
 
@@ -355,7 +368,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The block header.
     */
   def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    storage.getBlockHeader(blockHash)
+    synchronized {
+      storage.getBlockHeader(blockHash)
+    }
   }
 
   /** Return a transaction that matches the given transaction hash.
@@ -366,18 +381,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
   def getTransaction(txHash : Hash) : Option[Transaction] = {
-    // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
+    synchronized {
+      // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
-    // Step 1 : Search block database.
-    val dbTransactionOption = storage.getTransaction( txHash )
+      // Step 1 : Search block database.
+      val dbTransactionOption = storage.getTransaction(txHash)
 
-    // Step 3 : TODO : Run validation.
+      // Step 3 : TODO : Run validation.
 
-    //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
-    //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
-    //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+      //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
+      //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+      //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
-    dbTransactionOption
+      dbTransactionOption
+    }
   }
 
   /** Check if the transaction exists either in a block on the best blockchain or on the transaction pool.
@@ -386,7 +403,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if we have the transaction; false otherwise.
     */
   def hasTransaction(txHash : Hash) : Boolean = {
-    storage.getTransactionDescriptor(txHash).isDefined
+    synchronized {
+      storage.getTransactionDescriptor(txHash).isDefined
+    }
   }
 
   /** Return a transaction output specified by a give out point.
@@ -395,21 +414,23 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The transaction output we found.
     */
   def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
-    // Coinbase outpoints should never come here
-    assert( !outPoint.transactionHash.isAllZero() )
+    synchronized {
+      // Coinbase outpoints should never come here
+      assert(!outPoint.transactionHash.isAllZero())
 
-    val transaction = getTransaction(outPoint.transactionHash)
-    if (transaction.isEmpty) {
-      throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)
+      val transaction = getTransaction(outPoint.transactionHash)
+      if (transaction.isEmpty) {
+        throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)
+      }
+
+      val outputs = transaction.get.outputs
+
+      if (outPoint.outputIndex >= outputs.length) {
+        throw new ChainException(ErrorCode.InvalidOutPoint, s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}")
+      }
+
+      outputs(outPoint.outputIndex)
     }
-
-    val outputs = transaction.get.outputs
-
-    if( outPoint.outputIndex >= outputs.length) {
-      throw new ChainException(ErrorCode.InvalidOutPoint, s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}")
-    }
-
-    outputs(outPoint.outputIndex)
   }
 }
 

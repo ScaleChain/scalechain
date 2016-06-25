@@ -3,8 +3,9 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
-import io.netty.channel.Channel
+import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
 import io.scalechain.blockchain.proto.{ProtocolMessage, Version}
+import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 
@@ -22,16 +23,30 @@ case class Peer(private val channel : Channel, var versionOption : Option[Versio
     */
   def isLive : Boolean = {
     // TODO : Implement this based on the time we received pong from this peer.
+    channel.isOpen && channel.isActive
     // Check if the time we received pong is within a threshold.
     //assert(false)
-    true
+//    true
   }
 
   def send(message : ProtocolMessage) = {
     val messageString = MessageSummarizer.summarize(message)
-    logger.info(s"Sending to peer : ${channel.remoteAddress}, ${messageString}")
+    channel.writeAndFlush(message).addListener(new ChannelFutureListener() {
+      def operationComplete(future:ChannelFuture) {
+        assert( future.isDone )
+        if (future.isSuccess) { // completed successfully
+          logger.info(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
+        }
 
-    channel.writeAndFlush(message)
+        if (future.cause() != null) { // completed with failure
+          logger.info(s"Failed to send to peer : ${channel.remoteAddress}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+        }
+
+        if (future.isCancelled) { // completed by cancellation
+          logger.info(s"Canceled to send to peer : ${channel.remoteAddress}, ${messageString}")
+        }
+      }
+    })
   }
 }
 

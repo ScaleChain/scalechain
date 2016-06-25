@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
 import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
+import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.proto.{GetBlocks, ProtocolMessage, GetData}
 import org.slf4j.LoggerFactory
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory
   * The message handler for GetBlocks message.
   */
 object GetBlocksMessageHandler {
-  private lazy val logger = LoggerFactory.getLogger(GetDataMessageHandler.getClass)
+  private lazy val logger = LoggerFactory.getLogger(GetBlocksMessageHandler.getClass)
 
   /** Handle GetBlocks message.
     *
@@ -41,7 +42,7 @@ object GetBlocksMessageHandler {
     } else {
       val invMessage = InvFactory.createBlockInventories(filteredBlockHashes)
       context.peer.send(invMessage)
-      logger.info(s"Requesting inventories in response to getblocks message. ${filteredBlockHashes}")
+      logger.info(s"Sending inventories in response to getblocks message. ${MessageSummarizer.summarize(invMessage)}")
     }
   }
 }

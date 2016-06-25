@@ -1,8 +1,6 @@
 package io.scalechain.blockchain.net
 
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.channel._
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.handler.ssl.SslHandler
@@ -10,23 +8,17 @@ import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.GlobalEventExecutor
 import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 
 import java.net.InetAddress
-
-object NodeServerHandler {
-  // TODO : Investiate why we need the channel group.
-  val channels : ChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-}
 
 /**
   * Handles a server-side channel.
   */
 class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[ProtocolMessage] {
   private val logger = LoggerFactory.getLogger(classOf[NodeServerHandler])
-
-  import NodeServerHandler._
 
   var messageHandler : ProtocolMessageHandler = null
 
@@ -37,7 +29,8 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
     ctx.pipeline().get(classOf[SslHandler]).handshakeFuture().addListener(
       new GenericFutureListener[Future[Channel]]() {
         override def operationComplete(future : Future[Channel])  {
-          logger.info(s"Connection accepted from ${ctx.channel().remoteAddress()}")
+          val remoteAddress = ctx.channel().remoteAddress()
+          logger.info(s"Connection accepted from ${remoteAddress}")
           /*
           ctx.writeAndFlush(
             "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n")
@@ -46,16 +39,38 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
               ctx.pipeline().get(classOf[SslHandler]).engine().getSession().getCipherSuite() +
             " cipher suite.\n")
           */
-          channels.add(ctx.channel())
+
+          assert(messageHandler == null)
+          val peer = peerSet.add(ctx.channel())
+          messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
+
+          ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
+            def operationComplete(future:ChannelFuture) {
+              assert( future.isDone )
+
+              peerSet.remove(remoteAddress)
+
+              if (future.isSuccess) { // completed successfully
+                logger.info(s"Connection closed. Remote address : ${remoteAddress}")
+              }
+
+              if (future.cause() != null) { // completed with failure
+                logger.info(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+              }
+
+              if (future.isCancelled) { // completed by cancellation
+                logger.info(s"Canceled to close connection. Remote address : ${remoteAddress}")
+              }
+            }
+          })
+
         }
-      })
+      }
+    )
   }
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
-    if (messageHandler == null ) {
-      val peer = peerSet.add(context.channel())
-      messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
-    }
+    assert(messageHandler != null)
 
     // Process the received message, and send message to peers if necessary.
     messageHandler.handle(message)
