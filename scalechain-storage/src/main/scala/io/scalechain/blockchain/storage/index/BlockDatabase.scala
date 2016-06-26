@@ -54,6 +54,14 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.putObject(BLOCK_HEIGHT, BlockHeight(height), hash)(BlockHeightCodec, HashCodec)
   }
 
+  /**
+    * Del the block hash by height.
+    * @param height the height of the block to delete.
+    */
+  def delBlockHashByHeight(height : Long) : Unit = {
+    db.delObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec)
+  }
+
   /** Update the hash of the next block.
     *
     * @param hash The block to update the next block hash.

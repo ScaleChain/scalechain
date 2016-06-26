@@ -162,6 +162,22 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
     db.getBlockHashByHeight(1) shouldBe Some(DUMMY_HASH2)
   }
 
+  "delBlockHashByHeight" should "successfully delete the block hash" in {
+    db.putBlockHashByHeight(0, DUMMY_HASH1)
+    db.putBlockHashByHeight(1, DUMMY_HASH2)
+
+    db.getBlockHashByHeight(0) shouldBe Some(DUMMY_HASH1)
+    db.getBlockHashByHeight(1) shouldBe Some(DUMMY_HASH2)
+
+    db.delBlockHashByHeight(1)
+    db.getBlockHashByHeight(0) shouldBe Some(DUMMY_HASH1)
+    db.getBlockHashByHeight(1) shouldBe None
+
+    db.delBlockHashByHeight(0)
+    db.getBlockHashByHeight(0) shouldBe None
+    db.getBlockHashByHeight(1) shouldBe None
+  }
+
   "updateNextBlockHash" should "successfully update the next block hash" in {
     val blockInfo = TestBlockInfo
 

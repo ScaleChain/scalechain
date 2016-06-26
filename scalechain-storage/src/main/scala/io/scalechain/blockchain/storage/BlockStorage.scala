@@ -53,6 +53,14 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     blockDatabase.putBlockHashByHeight(height, hash)
   }
 
+  /**
+    * Del the block hash by height.
+    * @param height the height of the block to delete.
+    */
+  def delBlockHashByHeight(height : Long) : Unit = {
+    blockDatabase.delBlockHashByHeight(height)
+  }
+
   /** Update the hash of the next block.
     *
     * @param hash The block to update the next block hash.

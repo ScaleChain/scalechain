@@ -193,7 +193,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
             // Step 2.A.1 : Update the best block
             storage.putBlockHashByHeight(blockInfo.height, blockHash)
-
             setBestBlock( blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
@@ -216,7 +215,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
               // transaction handling, orphan block handling is done in this method.
               blockMagnet.reorganize(originalBestBlock = theBestBlock, newBestBlock = blockInfo)
 
+
               // Step 3.B.3 : Update the best block
+              storage.putBlockHashByHeight(blockInfo.height, blockHash)
               setBestBlock(blockHash, blockInfo)
 
               // TODO : Update best block in wallet (so we can detect restored wallets)
@@ -314,7 +315,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       val blockHashOption = storage.getBlockHashByHeight(blockHeight)
       // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
       if (blockHashOption.isEmpty) {
-
+        logger.error(s"Invalid blockHeight for Blockchain.getBlockHash : ${blockHeight}, best block height : ${theBestBlock.height}")
         throw new ChainException(ErrorCode.InvalidBlockHeight)
       }
       blockHashOption.get

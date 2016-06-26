@@ -20,7 +20,10 @@ echo "MINER_INITIAL_DELAY_MS=$MINER_INITIAL_DELAY_MS"
 echo "MINER_HASH_DELAY_MS=$MINER_HASH_DELAY_MS"
 
 LOG_FILE="target/sc$1.log"
+EXCEPTION_FILE="target/ex$1.log"
 
 rm $LOG_FILE
-SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE 2>&1 
+rm $EXCEPTION_FILE
+
+SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE | grep "Exception" | tee $EXCEPTION_FILE 2>&1
 

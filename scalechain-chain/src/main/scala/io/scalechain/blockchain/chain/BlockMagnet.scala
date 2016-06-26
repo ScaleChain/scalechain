@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.{BlockHeader, Transaction, Block, BlockInfo}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.BlockStorage
 import io.scalechain.blockchain.transaction.ChainBlock
 import org.slf4j.LoggerFactory
@@ -46,6 +46,8 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
     // For each transaction in the block, sync with wallet.
     chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
+
+    storage.delBlockHashByHeight(blockInfo.height)
   }
 
   /**
@@ -80,6 +82,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param block The block to attach
     */
   protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    val blockHash = block.header.hash
     // Check if the block is valid.
     BlockProcessor.validateBlock(block)
 
@@ -99,6 +102,9 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
+
+    // Put the index for block hash by height
+    storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
     // For each transaction in the block, sync with wallet.
     chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )

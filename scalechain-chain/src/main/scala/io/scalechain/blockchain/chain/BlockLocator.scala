@@ -102,7 +102,7 @@ class BlockLocator(chain : Blockchain) {
         listBuf.append( lastHash )
         addedHashes += 1
         blockHeight += 1
-      } while( blockHeight < bestBlockHeight && addedHashes < maxHashCount && lastHash != hashStop )
+      } while( blockHeight <= bestBlockHeight && addedHashes < maxHashCount && lastHash != hashStop )
 
       listBuf.toList
     }
