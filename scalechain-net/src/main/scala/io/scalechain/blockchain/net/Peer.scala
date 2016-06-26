@@ -4,8 +4,9 @@ import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
-import io.scalechain.blockchain.proto.{ProtocolMessage, Version}
+import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
 import io.scalechain.util.StackUtil
+import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
 
 
@@ -16,6 +17,39 @@ import org.slf4j.LoggerFactory
   */
 case class Peer(private val channel : Channel, var versionOption : Option[Version] = None, var pongReceived : Option[Int] = None) {
   private val logger = LoggerFactory.getLogger(classOf[Peer])
+
+  /**
+    * Keep block hashes requested using getblocks message.
+    * Only keep up to 4 block hashes in the cache.
+    */
+  protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
+
+  /**
+    * Keep a block as requested using getblocks message.
+    * @param blockHash The hash of block requested using getblocks message.
+    */
+  def blockRequested(blockHash : Hash) = {
+    blocksRequested.put(blockHash, ())
+  }
+
+  /**
+    * Check if a block was requested using getblocks message.
+    * @param blockHash The block hash to check.
+    * @return true if the block was requested; false otherwise.
+    */
+  def isBlockRequested(blockHash : Hash) = {
+    blocksRequested.containsKey(blockHash)
+  }
+
+
+  /**
+    * Clear all requested blocks.
+    */
+  def clearBlocksRequested() = {
+    blocksRequested.clear()
+  }
+
+
 
   /** Return if this peer is live.
     *

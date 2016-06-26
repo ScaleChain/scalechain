@@ -69,10 +69,15 @@ object BlockMessageHandler {
 
         // Step 2.2 : Request the peer to send the root parent of the orphan block.
         val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
-        val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
-        context.peer.send(getBlocksMessage)
-        logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
-        logger.info(s"Requesting inventories of parents of the orphan : ${getBlocksMessage} ")
+        if ( context.peer.isBlockRequested(orphanRootHash) ) {
+          // The block is already requested. do nothing.
+        } else {
+          val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
+          context.peer.send(getBlocksMessage)
+          context.peer.blockRequested(orphanRootHash)
+          logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
+          logger.info(s"Requesting inventories of parents of the orphan : ${getBlocksMessage} ")
+        }
       }
     }
   }

@@ -87,8 +87,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             // Step 3 : Loop until we find a block header hash less than the threshold.
 //            do {
               // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-              val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
-//              val blockHashThreshold = Hash("0F00000000000000000000000000000000000000000000000000000000000000")
+//              val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
+              val blockHashThreshold = Hash("0F00000000000000000000000000000000000000000000000000000000000000")
 
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = newBlockHeader.hash
