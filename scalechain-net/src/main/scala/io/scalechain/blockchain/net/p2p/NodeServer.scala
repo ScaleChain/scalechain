@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.{ChannelFutureListener, ChannelFuture, EventLoopGroup}
+import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelFuture, EventLoopGroup}
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.logging.LogLevel
@@ -9,7 +9,7 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
-import io.scalechain.util.StackUtil
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 class NodeServer(peerSet : PeerSet) {
@@ -28,6 +28,7 @@ class NodeServer(peerSet : PeerSet) {
 
     b.group(bossGroup, workerGroup)
       .channel(classOf[NioServerSocketChannel])
+      .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
       .handler(new LoggingHandler(LogLevel.INFO))
       .childHandler(new NodeServerInitializer(sslCtx, peerSet))
 
@@ -40,7 +41,8 @@ class NodeServer(peerSet : PeerSet) {
         }
 
         if (future.cause() != null) { // completed with failure
-          logger.info(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+          val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+          logger.info(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}, ${causeDescription}")
         }
 
         if (future.isCancelled) { // completed by cancellation

@@ -4,11 +4,12 @@ import io.netty.channel._
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.handler.ssl.SslHandler
+import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.GlobalEventExecutor
 import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.util.StackUtil
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 
@@ -55,7 +56,8 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
               }
 
               if (future.cause() != null) { // completed with failure
-                logger.info(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+                val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+                logger.info(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
               }
 
               if (future.isCancelled) { // completed by cancellation
@@ -71,20 +73,24 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
     assert(messageHandler != null)
+    try {
+      // Process the received message, and send message to peers if necessary.
+      messageHandler.handle(message)
 
-    // Process the received message, and send message to peers if necessary.
-    messageHandler.handle(message)
-
-/*
-    // Close the connection if the client has sent 'bye'.
-    if ("bye".equals(msg.toLowerCase())) {
-      ctx.close()
+      /*
+          // Close the connection if the client has sent 'bye'.
+          if ("bye".equals(msg.toLowerCase())) {
+            ctx.close()
+          }
+      */
+    } finally {
+      ReferenceCountUtil.release(message);
     }
-*/
   }
 
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {
-    cause.printStackTrace()
+    val causeDescription = ExceptionUtil.describe( cause.getCause )
+    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     ctx.close()
   }
 }

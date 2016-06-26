@@ -103,25 +103,42 @@ class PeerSet {
     */
   def sendToAll(message : ProtocolMessage): Unit = {
     val messageString = MessageSummarizer.summarize(message)
-    logger.info(s"Sending to all peers : ${messageString}")
 
-    channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
-      def operationComplete(future:ChannelGroupFuture) {
-        assert( future.isDone )
-        val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
-        if (future.isSuccess) { // completed successfully
-          logger.info(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
-        }
+    if (channels.size > 0) {
+      logger.info(s"Sending to all peers : ${messageString}")
 
-        if (future.cause() != null) { // completed with failure
-          logger.info(s"Failed to send to (some of) peers : ${remoteAddresses}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
-        }
+      channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
+        def operationComplete(future:ChannelGroupFuture) {
+          assert( future.isDone )
+          val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
+          if (future.isSuccess) { // completed successfully
+            logger.info(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
+          }
 
-        if (future.isCancelled) { // completed by cancellation
-          logger.info(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
+          if (future.cause() != null) { // completed with failure
+          val failureDescriptions =
+            future.cause.iterator.asScala.map{ entry =>
+              val channel : Channel = entry.getKey
+              val throwable : Throwable = entry.getValue
+              val causeDescription =
+                if (throwable.getCause == null)
+                  ""
+                else
+                  s"Cause : { exception : ${throwable.getCause}, stack : ${StackUtil.getStackTrace(throwable.getCause)} }"
+              s"An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
+            }.mkString("\n")
+
+            logger.info(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}" )
+          }
+
+          if (future.isCancelled) { // completed by cancellation
+            logger.info(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
+          }
         }
-      }
-    })
+      })
+    } else {
+      logger.warn(s"No connected peer to send the message : ${messageString}")
+    }
   }
 
 

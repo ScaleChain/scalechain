@@ -7,8 +7,10 @@ import io.netty.handler.codec.http.HttpHeaders.Names._
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http._
-import io.netty.util.CharsetUtil
+import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.scalechain.blockchain.api.RequestHandler
+import io.scalechain.util.{StackUtil, ExceptionUtil}
+import org.slf4j.LoggerFactory
 import collection.convert.wrapAll._
 import java.util
 
@@ -20,6 +22,9 @@ object ApiServerHandler {
 }
 
 class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
+  private val logger = LoggerFactory.getLogger(classOf[ApiServerHandler])
+
+
   private var request: HttpRequest = null
   /** Buffer that stores the response content */
   private final val requestData: StringBuilder = new StringBuilder
@@ -29,29 +34,33 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
   }
 
   protected def channelRead0(ctx: ChannelHandlerContext, msg: AnyRef) {
-    if (msg.isInstanceOf[HttpRequest]) {
-      val request: HttpRequest = msg.asInstanceOf[HttpRequest]
-      this.request = request
-      if (HttpHeaders.is100ContinueExpected(request)) {
-        ApiServerHandler.send100Continue(ctx)
+    try {
+      if (msg.isInstanceOf[HttpRequest]) {
+        val request: HttpRequest = msg.asInstanceOf[HttpRequest]
+        this.request = request
+        if (HttpHeaders.is100ContinueExpected(request)) {
+          ApiServerHandler.send100Continue(ctx)
+        }
+        requestData.setLength(0)
       }
-      requestData.setLength(0)
-    }
-    if (msg.isInstanceOf[HttpContent]) {
-      val httpContent: HttpContent = msg.asInstanceOf[HttpContent]
-      val content: ByteBuf = httpContent.content
-      if (content.isReadable) {
-        requestData.append(content.toString(CharsetUtil.UTF_8))
-      }
-      if (msg.isInstanceOf[LastHttpContent]) {
-        val trailer: LastHttpContent = msg.asInstanceOf[LastHttpContent]
+      if (msg.isInstanceOf[HttpContent]) {
+        val httpContent: HttpContent = msg.asInstanceOf[HttpContent]
+        val content: ByteBuf = httpContent.content
+        if (content.isReadable) {
+          requestData.append(content.toString(CharsetUtil.UTF_8))
+        }
+        if (msg.isInstanceOf[LastHttpContent]) {
+          val trailer: LastHttpContent = msg.asInstanceOf[LastHttpContent]
 
-        val responseString = RequestHandler.handleRequest(requestData.toString)
+          val responseString = RequestHandler.handleRequest(requestData.toString)
 
-        if (!writeResponse(trailer, ctx, responseString)) {
-          ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+          if (!writeResponse(trailer, ctx, responseString)) {
+            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+          }
         }
       }
+    } finally {
+      ReferenceCountUtil.release(msg);
     }
   }
 
@@ -84,7 +93,8 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-    cause.printStackTrace
+    val causeDescription = ExceptionUtil.describe( cause.getCause )
+    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     ctx.close
   }
 }

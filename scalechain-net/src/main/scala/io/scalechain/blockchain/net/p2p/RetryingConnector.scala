@@ -4,6 +4,7 @@ import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
 import io.scalechain.blockchain.net.{Peer, NodeClient, PeerSet}
 import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}
 import io.scalechain.util.HexUtil._
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
@@ -30,6 +31,30 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
 
           channel.writeAndFlush(versionMessage)
 
+          future.channel().closeFuture.addListener( new ChannelFutureListener() {
+            def operationComplete(future:ChannelFuture) {
+              assert( future.isDone )
+
+              if (future.isSuccess) { // completed successfully
+                logger.info(s"Connection closed. Remote address : ${channel.remoteAddress()}")
+              }
+
+              if (future.cause() != null) { // completed with failure
+                val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+                logger.info(s"Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+              }
+
+              if (future.isCancelled) { // completed by cancellation
+                logger.info(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
+              }
+/*
+              logger.info(s"Connection to ${address}:${port} closed. Will reconnect in a second.")
+              Thread.sleep(retryIntervalSeconds*1000)
+              // Retry connection.
+              connect(address, port)
+*/
+            }
+          })
         } else {
           channel.close()
           nodeClient.close()

@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.net
 
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.{ChannelFutureListener, Channel, ChannelFuture, EventLoopGroup}
+import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.ssl.SslContext
@@ -11,7 +11,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-import io.scalechain.util.StackUtil
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 
@@ -34,6 +34,7 @@ class NodeClient(peerSet : PeerSet) extends AutoCloseable {
     val b : Bootstrap = new Bootstrap()
        b.group(group)
       .channel(classOf[NioSocketChannel])
+      .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
       .handler(new NodeClientInitializer(sslCtx, address, port, peerSet))
 
     // Start the connection attempt.
@@ -48,7 +49,9 @@ class NodeClient(peerSet : PeerSet) extends AutoCloseable {
         }
 
         if (future.cause() != null) { // completed with failure
-          logger.info(s"Failed to connect to ${address}:${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+          val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+
+          logger.info(s"Failed to connect to ${address}:${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
         }
 
         if (future.isCancelled) { // completed by cancellation
