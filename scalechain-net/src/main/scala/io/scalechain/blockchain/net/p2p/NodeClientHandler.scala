@@ -17,17 +17,13 @@ class NodeClientHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
   var messageHandler : ProtocolMessageHandler = null
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
-    try {
-      if (messageHandler == null ) {
-        val peer = peerSet.add(context.channel())
-        messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
-      }
-
-      // Process the received message, and send message to peers if necessary.
-      messageHandler.handle(message)
-    } finally {
-      ReferenceCountUtil.release(message);
+    if (messageHandler == null ) {
+      val peer = peerSet.add(context.channel())
+      messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
     }
+
+    // Process the received message, and send message to peers if necessary.
+    messageHandler.handle(message)
   }
 
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) : Unit = {

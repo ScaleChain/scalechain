@@ -77,19 +77,15 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
     assert(messageHandler != null)
-    try {
-      // Process the received message, and send message to peers if necessary.
-      messageHandler.handle(message)
+    // Process the received message, and send message to peers if necessary.
+    messageHandler.handle(message)
 
-      /*
-          // Close the connection if the client has sent 'bye'.
-          if ("bye".equals(msg.toLowerCase())) {
-            ctx.close()
-          }
-      */
-    } finally {
-      ReferenceCountUtil.release(message);
-    }
+    /*
+        // Close the connection if the client has sent 'bye'.
+        if ("bye".equals(msg.toLowerCase())) {
+          ctx.close()
+        }
+    */
   }
 
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {

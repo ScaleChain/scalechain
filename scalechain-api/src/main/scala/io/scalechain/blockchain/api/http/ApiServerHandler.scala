@@ -34,33 +34,29 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
   }
 
   protected def channelRead0(ctx: ChannelHandlerContext, msg: AnyRef) {
-    try {
-      if (msg.isInstanceOf[HttpRequest]) {
-        val request: HttpRequest = msg.asInstanceOf[HttpRequest]
-        this.request = request
-        if (HttpHeaders.is100ContinueExpected(request)) {
-          ApiServerHandler.send100Continue(ctx)
-        }
-        requestData.setLength(0)
+    if (msg.isInstanceOf[HttpRequest]) {
+      val request: HttpRequest = msg.asInstanceOf[HttpRequest]
+      this.request = request
+      if (HttpHeaders.is100ContinueExpected(request)) {
+        ApiServerHandler.send100Continue(ctx)
       }
-      if (msg.isInstanceOf[HttpContent]) {
-        val httpContent: HttpContent = msg.asInstanceOf[HttpContent]
-        val content: ByteBuf = httpContent.content
-        if (content.isReadable) {
-          requestData.append(content.toString(CharsetUtil.UTF_8))
-        }
-        if (msg.isInstanceOf[LastHttpContent]) {
-          val trailer: LastHttpContent = msg.asInstanceOf[LastHttpContent]
+      requestData.setLength(0)
+    }
+    if (msg.isInstanceOf[HttpContent]) {
+      val httpContent: HttpContent = msg.asInstanceOf[HttpContent]
+      val content: ByteBuf = httpContent.content
+      if (content.isReadable) {
+        requestData.append(content.toString(CharsetUtil.UTF_8))
+      }
+      if (msg.isInstanceOf[LastHttpContent]) {
+        val trailer: LastHttpContent = msg.asInstanceOf[LastHttpContent]
 
-          val responseString = RequestHandler.handleRequest(requestData.toString)
+        val responseString = RequestHandler.handleRequest(requestData.toString)
 
-          if (!writeResponse(trailer, ctx, responseString)) {
-            ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
-          }
+        if (!writeResponse(trailer, ctx, responseString)) {
+          ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
         }
       }
-    } finally {
-      ReferenceCountUtil.release(msg);
     }
   }
 
