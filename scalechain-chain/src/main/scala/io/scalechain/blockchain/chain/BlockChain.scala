@@ -186,18 +186,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           val prevBlockHash = prevBlockDesc.get.blockHeader.hash
 
           storage.putBlock(block)
-          storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
           val blockInfo = storage.getBlockInfo(blockHash).get
 
           // Case 2.A : The previous block of the new block is the current best block.
           if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
-            // Step 2.A.1 : Update the best block
+            // Step 2.A.1 : Update the next block hash of the previous block.
+            storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+
+            // Step 2.A.2 : Update the best block
             storage.putBlockHashByHeight(blockInfo.height, blockHash)
             setBestBlock( blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
 
-            // Step 2.A.2 : Remove transactions in the block from the disk-pool.
+            // Step 2.A.3 : Remove transactions in the block from the disk-pool.
             block.transactions.foreach { transaction =>
               storage.delTransactionFromPool(transaction.hash)
             }

@@ -8,6 +8,7 @@ import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.GlobalEventExecutor
+import io.scalechain.blockchain.net.message.VersionFactory
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
@@ -44,6 +45,9 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
           assert(messageHandler == null)
           val peer = peerSet.add(ctx.channel())
           messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
+
+          // Upon successful connection, send the version message.
+          peer.send( VersionFactory.create )
 
           ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
             def operationComplete(future:ChannelFuture) {
@@ -91,6 +95,7 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {
     val causeDescription = ExceptionUtil.describe( cause.getCause )
     logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
-    ctx.close()
+    // TODO : BUGBUG : Need to close connection when an exception is thrown?
+    //    ctx.close()
   }
 }

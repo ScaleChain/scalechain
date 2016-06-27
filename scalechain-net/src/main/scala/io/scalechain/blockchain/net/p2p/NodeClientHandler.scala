@@ -33,6 +33,7 @@ class NodeClientHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) : Unit = {
     val causeDescription = ExceptionUtil.describe( cause.getCause )
     logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
-    ctx.close()
+    // TODO : BUGBUG : Need to close connection when an exception is thrown?
+    //    ctx.close()
   }
 }

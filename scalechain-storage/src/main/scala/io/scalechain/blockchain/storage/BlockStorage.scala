@@ -98,8 +98,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
-    // TODO : Optimize : We don't need to deserialize a block to see if it exists on our database.
-    getBlock(blockHash).isDefined
+    blockDatabase.getBlockInfo(blockHash).isDefined
   }
 
   def hasTransaction(transactionHash : Hash) : Boolean = {

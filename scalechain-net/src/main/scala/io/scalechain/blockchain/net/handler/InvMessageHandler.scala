@@ -25,8 +25,12 @@ object InvMessageHandler {
     // TODO : Step 2 : Add the inventory as a known inventory to the node that sent the "inv" message.
     logger.info(s"Handling Inventories receieved.")
     // Step 3 : Get a list of inventories to request data with GetData message.
+    var blockInventories = 0
     val inventoriesToGetData =
     inv.inventories.map { inventory : InvVector  =>
+      if (inventory.invType == InvType.MSG_BLOCK) {
+        blockInventories += 1
+      }
       // Step 3 : Check if we already have it
       if (InventoryProcessor.alreadyHas(inventory)) { // The inventory already exists.
         /*
@@ -52,7 +56,16 @@ object InvMessageHandler {
     } else {
       val getDataMessage = GetDataFactory.create(inventoriesToGetData)
       context.peer.send(getDataMessage)
+
       logger.info(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
+    }
+
+    if (blockInventories == GetBlocksMessageHandler.MAX_HASH_PER_REQUEST) {
+      if (context.peer.requestedBlock().isDefined) {
+        val blockHashToRequest = context.peer.requestedBlock().get
+        context.peer.send( GetBlocksFactory.create(blockHashToRequest) )
+        logger.info(s"Requesting the next batch of hashes to get the blocks. Orphan root : ${blockHashToRequest}")
+      }
     }
   }
 }

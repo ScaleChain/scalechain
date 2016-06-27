@@ -61,23 +61,30 @@ object BlockMessageHandler {
           context.communicator.sendToAll(invMessage)
           logger.info(s"Propagating newly accepted blocks : ${invMessage} ")
         }
-
       } else { // Case 2 : Orphan block
-        // Step 2.1 : Put the orphan block
-        // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
-        BlockProcessor.putOrphan(block)
-
-        // Step 2.2 : Request the peer to send the root parent of the orphan block.
-        val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
-        if ( context.peer.isBlockRequested(orphanRootHash) ) {
-          // The block is already requested. do nothing.
+        if (context.peer.requestedBlock().isDefined ) {
+          // Do not process orphan blocks. We already requested parents of an orphan root.
         } else {
+          // Step 2.1 : Put the orphan block
+          // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
+          BlockProcessor.putOrphan(block)
+
+          // Step 2.2 : Request the peer to send the root parent of the orphan block.
+          val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
+
           val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
           context.peer.send(getBlocksMessage)
           context.peer.blockRequested(orphanRootHash)
           logger.warn(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
-          logger.info(s"Requesting inventories of parents of the orphan : ${getBlocksMessage} ")
+          logger.info(s"Requesting inventories of parents of the orphan. Orphan root: ${orphanRootHash} ")
         }
+      }
+    }
+
+    if ( context.peer.requestedBlock().isDefined ) { // If the block hash matches the requested block, clear the requested block for getting parents of an orphan root.
+      if ( blockHash == context.peer.requestedBlock().get ) {
+        logger.info(s"The requested block received. Clearing the requested block. ${blockHash}")
+        context.peer.clearRequestedBlock()
       }
     }
   }

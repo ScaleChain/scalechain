@@ -60,4 +60,23 @@ class PeerCommunicator(peerSet : PeerSet) {
 
     peerInfosIter.toList
   }
+
+  /**
+    * Get the peer which has highest best block height.
+    * @return Some(best PeerInfo) if there is any connected peer; None otherwise.
+    */
+  def getBestPeer() : Option[PeerInfo] = {
+    val peerInfos = getPeerInfos
+    if (peerInfos.isEmpty) {
+      None
+    } else {
+      def betterPeer(peer1 : PeerInfo, peer2 : PeerInfo) : PeerInfo = {
+        if (peer1.startingheight.getOrElse(0L) > peer2.startingheight.getOrElse(0L))
+          peer1
+        else
+          peer2
+      }
+      Some( peerInfos.reduceLeft(betterPeer) )
+    }
+  }
 }

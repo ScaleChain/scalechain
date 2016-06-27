@@ -13,23 +13,36 @@ import org.slf4j.LoggerFactory
 /** Represents a connected peer.
   *
   * @param channel The netty channel where we send messages.
-  * @param versionOption The version we got from the peer. This is set to some value only if we received the Version message.
   */
-case class Peer(private val channel : Channel, var versionOption : Option[Version] = None, var pongReceived : Option[Int] = None) {
+case class Peer(private val channel : Channel) {
   private val logger = LoggerFactory.getLogger(classOf[Peer])
+
+  /**
+    * The version we got from the peer. This is set to some value only if we received the Version message.
+    */
+  var versionOption : Option[Version] = None
+  var pongReceived : Option[Int] = None
+
+  /**
+    * Update version received from the peer.
+    * @param version
+    */
+  def updateVersion(version : Version) : Unit = {
+    versionOption = Some(version)
+  }
 
   /**
     * Keep block hashes requested using getblocks message.
     * Only keep up to 4 block hashes in the cache.
     */
-  protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
-
+  //protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
+  var requestedBlockHashOption : Option[Hash] = None
   /**
     * Keep a block as requested using getblocks message.
     * @param blockHash The hash of block requested using getblocks message.
     */
-  def blockRequested(blockHash : Hash) = {
-    blocksRequested.put(blockHash, ())
+  def blockRequested(blockHash : Hash) : Unit = {
+    requestedBlockHashOption = Some(blockHash)
   }
 
   /**
@@ -38,15 +51,16 @@ case class Peer(private val channel : Channel, var versionOption : Option[Versio
     * @return true if the block was requested; false otherwise.
     */
   def isBlockRequested(blockHash : Hash) = {
-    blocksRequested.containsKey(blockHash)
+    requestedBlockHashOption == Some(blockHash)
   }
 
+  def requestedBlock() = requestedBlockHashOption
 
   /**
     * Clear all requested blocks.
     */
-  def clearBlocksRequested() = {
-    blocksRequested.clear()
+  def clearRequestedBlock() = {
+    requestedBlockHashOption = None
   }
 
 
@@ -114,11 +128,11 @@ case class PeerInfo(
                      version : Option[Int], // 70001
                      // The user agent this node sends in its version message.
                      // This string will have been sanitized to prevent corrupting the JSON results. May be an empty string
-                     subver : Option[String] // "/Satoshi:0.8.6/"
+                     subver : Option[String], // "/Satoshi:0.8.6/"
                      // Set to true if this node connected to us; set to false if we connected to this node
                      //  inbound : Boolean, // false
                      // The height of the remote node’s block chain when it connected to us as reported in its version message
-                     //  startingheight : Long, // 315280
+                     startingheight : Option[Long] // 315280
                      // The ban score we’ve assigned the node based on any misbehavior it’s made.
                      // By default, Bitcoin Core disconnects when the ban score reaches 100
                      //  banscore : Int,  // 0
@@ -145,7 +159,8 @@ object PeerInfo {
       id=peerIndex,
       addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
       version=peer.versionOption.map(_.version),
-      subver=peer.versionOption.map(_.userAgent)
+      subver=peer.versionOption.map(_.userAgent),
+      startingheight = peer.versionOption.map(_.startHeight)
     )
   }
 }

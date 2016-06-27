@@ -35,7 +35,7 @@ object RpcResultJsonFormat {
 
   implicit val implicitGetBlockResult = jsonFormat9(GetBlockResult.apply)
 
-  implicit val implicitPeerInfoResult = jsonFormat4(PeerInfo.apply)
+  implicit val implicitPeerInfoResult = jsonFormat5(PeerInfo.apply)
 
 
   import RawTransactionInputJsonFormat._

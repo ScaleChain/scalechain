@@ -3,12 +3,13 @@ package io.scalechain.blockchain.cli
 import java.util
 
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
-import io.scalechain.blockchain.net.PeerCommunicator
+import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
+import scala.collection.JavaConverters._
 
 import scala.util.Random
 
@@ -42,6 +43,36 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
   val blockMining = new BlockMining( chain.txPool, chain )
 
+
+  /**
+    * Check if we can start mining.
+    * @return true if we can mine; false otherwise.
+    */
+  def canMine() : Boolean = {
+    val peerCount = io.scalechain.util.Config.scalechain.getConfigList("scalechain.p2p.peers").asScala.toArray.length
+    // exclude myself.
+    val peerCountExcudingMe = peerCount - 1
+
+    // We have two-way peer connections. From me to peer, From peer to me.
+    val maxPeerConnections = peerCountExcudingMe * 2
+
+    val peerInfos = peerCommunicator.getPeerInfos()
+    // Do we have enough number of peers? (At least more than half)
+    if ( peerInfos.length >= maxPeerConnections / 2 ) {
+      // Did we receive starting height for all peers?
+      if ( peerInfos.filter( _.startingheight.isDefined ).length == peerInfos.length ) {
+        val bestPeer = peerCommunicator.getBestPeer.get
+        val bestBlockHeight = chain.getBestBlockHeight()
+
+        // Did we catch up the best peer, which has the highest block height by the time we connected ?
+        bestBlockHeight >= bestPeer.startingheight.get
+      } else {
+        false
+      }
+    } else { // Not enough connected peers.
+      false
+    }
+  }
   def start() : Unit = {
 
     val thread = new Thread {
@@ -74,21 +105,31 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             Thread.sleep(random.nextInt(params.HashDelayMS))
           }
 
-          val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
-          // Step 2 : Create the block template
-          val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
-          val bestBlockHash = chain.getBestBlockHash()
-          if (bestBlockHash.isDefined) {
-            // Step 3 : Get block header
-            val blockHeader = blockTemplate.getBlockHeader(Hash(bestBlockHash.get.value))
-            val startTime = System.currentTimeMillis()
-            var blockFound = false;
+          if (canMine()) {
+            val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+            // Step 2 : Create the block template
+            val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
+            val bestBlockHash = chain.getBestBlockHash()
+            if (bestBlockHash.isDefined) {
+              // Step 3 : Get block header
+              val blockHeader = blockTemplate.getBlockHeader(Hash(bestBlockHash.get.value))
+              val startTime = System.currentTimeMillis()
+              var blockFound = false;
 
-            // Step 3 : Loop until we find a block header hash less than the threshold.
-//            do {
+              // Step 3 : Loop until we find a block header hash less than the threshold.
+              //            do {
               // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-//              val blockHashThreshold = Hash("00F0000000000000000000000000000000000000000000000000000000000000")
-              val blockHashThreshold = Hash("0F00000000000000000000000000000000000000000000000000000000000000")
+
+              // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
+              val blockHeaderThreshold =
+                if (io.scalechain.util.Config.scalechain.hasPath("scalechain.mining.header_hash_threshold"))
+                  io.scalechain.util.Config.scalechain.getString("scalechain.mining.header_hash_threshold")
+                else "00F0000000000000000000000000000000000000000000000000000000000000"
+
+              val blockHashThreshold = Hash(blockHeaderThreshold)
+              if (blockHashThreshold.value.length != 32) {
+                logger.error(s"scalechain.mining.header_hash_threshold should be 32 bytes. The specified value has ${blockHashThreshold.value.length} bytes")
+              }
 
               val newBlockHeader = blockHeader.copy(nonce = nonce)
               val newBlockHash = newBlockHeader.hash
@@ -105,9 +146,13 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   logger.info(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
                 }
               }
- //           } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
+              //           } while (System.currentTimeMillis() - startTime < MINING_TRIAL_WINDOW_MILLIS && !blockFound)
+            } else {
+              logger.error("The best block hash is not defined yet.")
+            }
           } else {
-            logger.error("The best block hash is not defined yet.")
+            // If we can't mine, it could take time to catch up other nodes. sleep 10 seconds before checking again.
+            Thread.sleep(10000)
           }
         }
       }
