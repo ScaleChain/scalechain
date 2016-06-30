@@ -14,23 +14,42 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
   private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
   protected[storage] val blockDatabase : BlockDatabase
 
-  def putBlock(blockHash : Hash, block : Block) : Boolean
+  def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator]
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
 
-  // TODO : Add test case
+  /**
+    * Get the descriptor of a transaction by hash
+    *
+    * TODO : Add a test case
+    * @param txHash The transaction hash.
+    * @return Some(descriptor) if the transaction exists; None otherwise.
+    */
   def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Rethink synchonization.
-    synchronized {
-      blockDatabase.getTransactionDescriptor(txHash)
-    }
+    blockDatabase.getTransactionDescriptor(txHash)
   }
 
-  // TODO : Add test case
+  /**
+    * Put the descriptor of a transaction with hash of it
+    *
+    * TODO : Add a test case
+    *
+    * @param txHash The transaction hash.
+    * @param transactionDescriptor The descriptor of the transaction.
+    */
   def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    synchronized {
-      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
-    }
+    blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
+  }
+
+  /**
+    * Del the descriptor of a transaction by hash.
+    *
+    * TODO : Add a test case
+    *
+    * @param txHash The transaction hash
+    */
+  def delTransactionDescriptor(txHash : Hash) : Unit = {
+    blockDatabase.delTransactionDescriptor(txHash)
   }
 
   /** Get the block hash at the given height on the best blockchain.
@@ -39,7 +58,6 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     * @return The hash of the block at the height on the best blockchain.
     */
   def getBlockHashByHeight(height : Long) : Option[Hash] = {
-    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.getBlockHashByHeight(height)
   }
 
@@ -49,12 +67,12 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     * @param hash The hash of the block.
     */
   def putBlockHashByHeight(height : Long, hash : Hash) : Unit = {
-    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.putBlockHashByHeight(height, hash)
   }
 
   /**
     * Del the block hash by height.
+    *
     * @param height the height of the block to delete.
     */
   def delBlockHashByHeight(height : Long) : Unit = {
@@ -81,15 +99,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     blockDatabase.getBlockInfo(hash).get.nextBlockHash
   }
 
-  /** Remove a transaction from the block storage.
-    *
-    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
-    *
-    * @param transactionHash The hash of the transaction to remove from the blockchain.
-    */
-  def removeTransaction(transactionHash : Hash) : Unit
-
-  def putBlock(block : Block) : Boolean = {
+  def putBlock(block : Block) : List[TransactionLocator] = {
     putBlock(block.header.hash, block)
   }
 
@@ -98,7 +108,8 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
-    blockDatabase.getBlockInfo(blockHash).isDefined
+    val blockInfo = blockDatabase.getBlockInfo(blockHash)
+    blockInfo.isDefined && blockInfo.get.blockLocatorOption.isDefined
   }
 
   def hasTransaction(transactionHash : Hash) : Boolean = {

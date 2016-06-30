@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.{TransactionAnalyzer, ChainEventListener}
+import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
@@ -127,10 +127,19 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @return
     */
   protected [wallet] def getWalletTransactions(accountOption : Option[String]) : Set[WalletTransaction] = {
-    getTransactionHashes(accountOption).map { transactionHash : Hash =>
-      store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
-    }.filter(_.isDefined) // Filter out None values.
-     .map(_.get) // Get rid of the Option wrapper.
+    // The blockchain might be in progress of block reorganization.
+    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
+    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
+    //
+    // (1) the list of transactions
+    // (2) the list of transaction outputs.
+    // (3) the flag whether an output was spent or not
+    Blockchain.get.synchronized {
+      getTransactionHashes(accountOption).map { transactionHash: Hash =>
+        store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
+      }.filter(_.isDefined) // Filter out None values.
+        .map(_.get) // Get rid of the Option wrapper.
+    }
   }
 
   /**
@@ -197,7 +206,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                                                    negativeFeeOption : Option[scala.math.BigDecimal],
                                                    outputOwnershipsFilterOption : Option[List[OutputOwnership]],
                                                    includeWatchOnly  : Boolean
-                                                 ) : Option[TransactionDescriptor] = {
+                                                 ) : Option[WalletTransactionDescriptor] = {
 
     /**
       *  category should be set to one of the following values:
@@ -254,7 +263,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         None
       } else {
         Some(
-          TransactionDescriptor(
+          WalletTransactionDescriptor(
             involvesWatchonly = involvesWatchonly,
             account = accountOption.get,
             // TODO : BUGBUG : According to the specification, this should be the "paying" address.
@@ -306,7 +315,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                         count           : Int,
                         skip            : Long,
                         includeWatchOnly: Boolean
-                      ) : List[TransactionDescriptor] = {
+                      ) : List[WalletTransactionDescriptor] = {
 
     // 1. Get transactions
     val transactions : List[WalletTransaction] = getWalletTransactions(accountOption).toList
@@ -404,19 +413,28 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @return The iterator for UTXOs.
     */
   protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
-    store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
+    // The blockchain might be in progress of block reorganization.
+    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
+    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
+    //
+    // (1) the list of transactions
+    // (2) the list of transaction outputs.
+    // (3) the flag whether an output was spent or not
+    Blockchain.get.synchronized {
+      store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
 
-      //println(s"getTransactionOutPoints : ${outPoint}")
-      store.getWalletOutput(outPoint).map{ walletOutput => // convert WalletOutput to WalletOutputWithInfo
+        //println(s"getTransactionOutPoints : ${outPoint}")
+        store.getWalletOutput(outPoint).map{ walletOutput => // convert WalletOutput to WalletOutputWithInfo
 
-        //println(s"getWalletOutput : ${walletOutput}")
-        WalletOutputWithInfo(
-          outPoint,
-          walletOutput
-        )
-      }
-    } .filter(_.isDefined) // getWalletOutput returns Option[OutPoint]. Get rid of None values.
-      .map(_.get)       // Now get rid of the Option wrapper.
+          //println(s"getWalletOutput : ${walletOutput}")
+          WalletOutputWithInfo(
+            outPoint,
+            walletOutput
+          )
+        }
+      } .filter(_.isDefined) // getWalletOutput returns Option[OutPoint]. Get rid of None values.
+        .map(_.get)       // Now get rid of the Option wrapper.
+    }
   }
 
   /** Convert a WalletOutputWithInfo to a UnspentCoinDescriptor.

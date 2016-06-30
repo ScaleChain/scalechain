@@ -8,7 +8,7 @@ import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.{BlockInfoFactory, BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
+import io.scalechain.blockchain.storage._
 import io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.transaction._
@@ -167,12 +167,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
         // Case 1. If it is the genesis block, set the genesis block as the current best block.
         if (block.header.hashPrevBlock.isAllZero()) {
           assert(theBestBlock == null)
+
           storage.putBlock(block)
-          storage.putBlockHashByHeight(0, blockHash)
 
-          setBestBlock(blockHash, storage.getBlockInfo(blockHash).get )
+          val blockInfo = storage.getBlockInfo(blockHash).get
 
-          chainEventListener.map(_.onAttachBlock(ChainBlock( height = 0, block)))
+          // Attach the block. ChainEventListener is invoked in this method.
+          blockMagnet.attachBlock(blockInfo, block)
+
+          setBestBlock(blockHash, blockInfo )
 
           true
         } else { // Case 2. Not a genesis block.
@@ -190,22 +193,13 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
           // Case 2.A : The previous block of the new block is the current best block.
           if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
-            // Step 2.A.1 : Update the next block hash of the previous block.
-            storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+            // Step 2.A.1 : Attach the block. ChainEventListener is invoked in this method.
+            blockMagnet.attachBlock(blockInfo, block)
 
             // Step 2.A.2 : Update the best block
-            storage.putBlockHashByHeight(blockInfo.height, blockHash)
             setBestBlock( blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
-
-            // Step 2.A.3 : Remove transactions in the block from the disk-pool.
-            block.transactions.foreach { transaction =>
-              storage.delTransactionFromPool(transaction.hash)
-            }
-
-            chainEventListener.map(_.onAttachBlock(ChainBlock(height = blockInfo.height, block)))
-
             logger.info(s"Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
             true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
@@ -233,21 +227,49 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       }
     }
   }
-/*
-  /**
-    * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
-    *
-    * Note : the next block hash is not updated.
-    *
-    * @param blockHash The hash of the block header.
-    * @param blockHeader The block header.
-    */
-  def putBlockHeader(blockHash : Hash, blockHeader:BlockHeader) : Unit = {
-    // TODO : Implement
-    logger.warn("Headers-first IBD is not supported yet.")
-    assert(false)
-  }
-*/
+
+  /*
+    /** Put transactions into the transaction index.
+      * Key : transaction hash
+      * Value : FileRecordLocator for the transaction.
+      *
+      * @param transactions The list of transactions to put.
+      */
+    def putTransactions(transactions : List[(Transaction, TransactionLocator)]) : Unit = {
+      for ( (transaction, txLocatorDesc) <- transactions) {
+
+        // We may already have a transaction descriptor for the transaction.
+        val txDescOption = storage.getTransactionDescriptor(txLocatorDesc.txHash)
+        // Keep the outputs spent by if it already exists.
+        val outpusSpentBy = txDescOption.map( _.outputsSpentBy).getOrElse( List.fill(transaction.outputs.length)(None) )
+        val txDesc =
+          TransactionDescriptor(
+            Some(txLocatorDesc.txLocator),
+            outpusSpentBy
+          )
+
+        storage.putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
+
+        assert( txLocatorDesc.txHash == transaction.hash )
+      }
+    }
+  */
+
+  /*
+    /**
+      * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
+      *
+      * Note : the next block hash is not updated.
+      *
+      * @param blockHash The hash of the block header.
+      * @param blockHeader The block header.
+      */
+    def putBlockHeader(blockHash : Hash, blockHeader:BlockHeader) : Unit = {
+      // TODO : Implement
+      logger.warn("Headers-first IBD is not supported yet.")
+      assert(false)
+    }
+  */
   /** Put a transaction we received from peers into the disk-pool.
     *
     * @param transaction The transaction to put into the disk-pool.
@@ -423,13 +445,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
       val transaction = getTransaction(outPoint.transactionHash)
       if (transaction.isEmpty) {
-        throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)
+        val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
+        logger.error(message)
+        throw new ChainException(ErrorCode.InvalidOutPoint, message)
       }
 
       val outputs = transaction.get.outputs
 
-      if (outPoint.outputIndex >= outputs.length) {
-        throw new ChainException(ErrorCode.InvalidOutPoint, s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}")
+      if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
+        val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
+        logger.error(message)
+        throw new ChainException(ErrorCode.InvalidOutPoint, message)
       }
 
       outputs(outPoint.outputIndex)

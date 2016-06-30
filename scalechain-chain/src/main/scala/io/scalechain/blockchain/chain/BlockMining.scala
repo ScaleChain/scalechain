@@ -67,7 +67,7 @@ class BlockMining(transactionPool : TransactionPool, coinsView : CoinsView) {
 
   /** Select transactions to include into a block.
     *
-    *  Order transactions by fee in descending order.
+    *  Order transactions by dependency and by fee(in descending order).
     *  List N transactions based on the priority and fee so that the serialzied size of block
     *  does not exceed the max size. (ex> 1MB)
     *
@@ -76,11 +76,28 @@ class BlockMining(transactionPool : TransactionPool, coinsView : CoinsView) {
     *  The block template has the transactions to keep in the block.
     *  In the block template, it has all fields set except the nonce and the timestamp.
     *
+    *  The first criteria for ordering transactions in a block is the transaction dependency.
+    *
+    *  Why is ordering transactions in a block based on dependency is necessary?
+    *    When blocks are reorganized, transactions in the block are detached the reverse order of the transactions stored in a block.
+    *    Also, they are attached in the same order of the transactions stored in a block.
+    *    The order of transactions in a block should be based on the dependency, otherwise, an outpoint in an input of a transaction may point to a non-existent transaction by the time it is attached.    *
+    *
+    *
+    *  How?
+    *    1. Create a priority queue that has complete(= all required transactions exist) transactions.
+    *    2. The priority is based on the transaction fee, for now. In the future, we need to improve the priority to consider the amount of coin to transfer.
+    *    3. Prepare a temporary transaction pool. The pool will be used to look up dependent transactions while trying to attach transactions.
+    *    4. Try to attach each transaction in the input list depending on transactions on the temporary transaction pool instead of the transaction pool in Blockchain. (We should not actually attach the transaction, but just 'try to' attach the transaction without changing the "spent" in-point of UTXO.)
+    *    5. For all complete transactions that can be attached, move from the input list to the priority queue.
+    *    6. If there is any transaction in the priority queue, pick the best transaction with the highest priority into the temporary transaction pool, and Go to step 4. Otherwise, stop iteration.
+    *
+    *
     * @param transactions The candidate transactions
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
-  protected def selectTransactions(generationTransaction:Transaction, transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
+  protected[chain] def selectTransactions(generationTransaction:Transaction, transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
     val selectedTransactions = new ListBuffer[Transaction]()
     // Step 1 : TODO : Select high priority transactions
 

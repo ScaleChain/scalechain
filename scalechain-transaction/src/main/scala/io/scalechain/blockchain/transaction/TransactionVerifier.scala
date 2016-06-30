@@ -129,7 +129,7 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
     * @return The locking script attached to the UTXO which this input references.
     */
   def getLockingScript(chainView : BlockchainView): LockingScript = {
-    try {
+//    try {
       val output = chainView.getTransactionOutput(
         OutPoint(
           Hash( transactionInput.outputTransactionHash.value) ,
@@ -138,12 +138,14 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
       )
       output.lockingScript
       // TODO : BUGBUG : Need to check if the UTXO is from Generation transaction to check 100 blocks are created?
+/*
     } catch {
-      case _ : Exception => {
+      case _ : ChainException => {
         val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${transaction.hash}"
         throw new TransactionVerificationException(ErrorCode.InvalidOutPoint, message = s"Invalid Output Index." + details)
       }
     }
+*/
 /*
     val outputTxOption = blockIndex.getTransaction(transactionInput.outputTransactionHash)
     lazy val details = s"OutPoint : (${transactionInput.outputTransactionHash}, ${transactionInput.outputIndex}). Transaction:${transaction}, Input index : ${inputIndex}, Transaction Hash : ${transaction.hash}"

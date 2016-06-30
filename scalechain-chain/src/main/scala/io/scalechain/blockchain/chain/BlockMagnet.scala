@@ -3,7 +3,7 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.storage.{TransactionLocator, BlockWriter, BlockStorage}
 import io.scalechain.blockchain.transaction.ChainBlock
 import org.slf4j.LoggerFactory
 
@@ -37,17 +37,16 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     // Detach each transaction in reverse order.
     // TODO : Optimize : Iterate a list in reverse order without reversing it.
     block.transactions.reverse foreach { transaction : Transaction =>
-      if (transaction.inputs(0).isCoinBaseInput()) {
-        // The coin base input does not spend any previous output. Do nothing.
-      } else {
-        txMagnet.detachTransaction(transaction)
-      }
+      txMagnet.detachTransaction(transaction)
     }
+
+    storage.delBlockHashByHeight(blockInfo.height)
+
+    // Unlink the next block hash.
+    storage.updateNextBlockHash(blockInfo.blockHeader.hash, None)
 
     // For each transaction in the block, sync with wallet.
     chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
-
-    storage.delBlockHashByHeight(blockInfo.height)
   }
 
   /**
@@ -66,15 +65,11 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       detachedBlocks.prepend(lastBlock)
       detachBlock(last, lastBlock)
 
-      // Unlink the next block hash.
-      storage.updateNextBlockHash(last.blockHeader.hash, None)
-
       // Get the block before the last one, continue iteration.
       val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
       detachBlocksAfter(beforeFirstHeader, beforeLastInfo, beforeLastBlock, detachedBlocks)
     }
   }
-
 
   /**
     * Attach a block to the best blockchain.
@@ -86,25 +81,30 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     // Check if the block is valid.
     BlockProcessor.validateBlock(block)
 
-    block.transactions foreach { transaction : Transaction =>
+    assert(blockInfo.blockHeader == block.header)
+
+    val txLocators : List[TransactionLocator] = BlockWriter.getTxLocators(blockInfo.blockLocatorOption.get, block)
+
+    for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
       val transactionHash = transaction.hash
 
-      if (transaction.inputs(0).isCoinBaseInput()) {
-        // The coin base input does not spend any previous output. Do nothing.
-      } else {
-        txMagnet.attachTransaction(transactionHash, transaction)
-        // Step 5 : Remove the transaction from the disk pool.
-        txPool.removeTransactionFromPool(transactionHash)
-      }
-
-      // Add UTXO : set all outputs are unspent for the newly attached transaction.
-      txMagnet.markAllOutputsUnspent(transactionHash)
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator) )
+      // Step 5 : Remove the transaction from the disk pool.
+      txPool.removeTransactionFromPool(transactionHash)
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
 
     // Put the index for block hash by height
     storage.putBlockHashByHeight(blockInfo.height, blockHash)
+
+    val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
+    if (prevBlockHash.isAllZero()) {
+      // The genesis block. do nothing.
+    } else {
+      // Link the next block hash.
+      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+    }
 
     // For each transaction in the block, sync with wallet.
     chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )
@@ -161,12 +161,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       assert(readBlockInfo == blockInfo)
 
       attachBlock( readBlockInfo, readBlock )
-
-      // Link the next block hash.
-      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
-
-      // Update the block height index.
-      storage.putBlockHashByHeight(blockInfo.height, blockHash)
 
       prevBlockHash = blockHash
     }

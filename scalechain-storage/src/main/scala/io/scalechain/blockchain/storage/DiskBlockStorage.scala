@@ -4,8 +4,9 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.storage.index.{CassandraDatabase, BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
@@ -129,7 +130,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
-  def putBlock(blockHash : Hash, block : Block) : Boolean = {
+  def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
@@ -199,12 +200,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
           }
         }
 
-      if (!txLocators.isEmpty) {
-        // case 1.1 and case 2.1 has newly stored transactions.
-        blockDatabase.putTransactions(block.transactions zip txLocators)
-      }
-
-      isNewBlock
+      txLocators
     }
   }
 
@@ -228,19 +224,6 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
           case None => getTransactionFromPool(transactionHash).get
         }
       }
-    }
-  }
-
-  /** Remove a transaction from the block storage.
-    *
-    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
-    *
-    * @param transactionHash The hash of the transaction to remove from the blockchain.
-    */
-  def removeTransaction(transactionHash : Hash) : Unit = {
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      blockDatabase.delTransaction(transactionHash)
     }
   }
 

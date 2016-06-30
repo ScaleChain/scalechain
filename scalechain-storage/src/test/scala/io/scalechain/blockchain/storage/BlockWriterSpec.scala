@@ -97,5 +97,16 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatche
     readBlock2 shouldBe block2
   }
 
+  "getTxLocators" should "return the same list of transaction locators returned by appendBlock." in {
+    // Step 1 : Write using appendBlock
+    val appendBlockResult1 : AppendBlockResult = writer.appendBlock(block1)
+    val appendBlockResult2 : AppendBlockResult = writer.appendBlock(block2)
+
+    // Step 2 : check if the list of transaction locators returned by getTxLocators matches the one in the apend block result.
+    BlockWriter.getTxLocators(appendBlockResult1.blockLocator, block1) shouldBe appendBlockResult1.txLocators
+    BlockWriter.getTxLocators(appendBlockResult2.blockLocator, block2) shouldBe appendBlockResult2.txLocators
+  }
 }
+
+
 

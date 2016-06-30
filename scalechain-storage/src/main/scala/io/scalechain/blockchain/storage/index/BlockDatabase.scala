@@ -56,6 +56,7 @@ class BlockDatabase(db : KeyValueDatabase) {
 
   /**
     * Del the block hash by height.
+    *
     * @param height the height of the block to delete.
     */
   def delBlockHashByHeight(height : Long) : Unit = {
@@ -110,14 +111,39 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
   }
 
-  // TODO : Add test case
+  /**
+    * Get the descriptor of a transaction by hash
+    *
+    * TODO : Add a test case
+    *
+    * @param txHash The transaction hash.
+    * @return Some(descriptor) if the transaction exists; None otherwise.
+    */
   def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
     db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
   }
 
-  // TODO : Add test case
+  /**
+    * Put the descriptor of a transaction with hash of it
+    *
+    * TODO : Add a test case
+    *
+    * @param txHash The transaction hash.
+    * @param transactionDescriptor The descriptor of the transaction.
+    */
   def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
     db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
+  }
+
+  /**
+    * Del the descriptor of a transaction by hash.
+    *
+    * TODO : Add a test case
+    *
+    * @param txHash The transaction hash
+    */
+  def delTransactionDescriptor(txHash : Hash) : Unit = {
+    db.delObject(TRANSACTION, txHash)(HashCodec)
   }
 
   def close() = db.close()
@@ -125,47 +151,12 @@ class BlockDatabase(db : KeyValueDatabase) {
 
 /** BlockDatabase for use with RecordStorage.
   *
-  * Additional features : tracking block file info, transaction locators.
+  * Additional features : tracking block file info
   *
   * When storing blocks with RecordStorage, we need to keep track of block file information.
-  * We also should have a locator of each transactions keyed by the transaction hash.
   */
 class BlockDatabaseForRecordStorage(db : KeyValueDatabase) extends BlockDatabase(db){
   import DatabaseTablePrefixes._
-
-  /** Put transactions into the transaction index.
-    * Key : transaction hash
-    * Value : FileRecordLocator for the transaction.
-    *
-    * @param transactions
-    * @return
-    */
-  def putTransactions(transactions : List[(Transaction, TransactionLocator)]) = {
-    for ( (transaction, txLocatorDesc) <- transactions) {
-
-      // We may already have a transaction descriptor for the transaction.
-      val txDescOption = getTransactionDescriptor(txLocatorDesc.txHash)
-      // Keep the outputs spent by if it already exists.
-      val outpusSpentBy = txDescOption.map( _.outputsSpentBy).getOrElse( List.fill(transaction.outputs.length)(None) )
-      val txDesc =
-        TransactionDescriptor(
-          Some(txLocatorDesc.txLocator),
-          outpusSpentBy
-        )
-
-      putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
-
-      assert( txLocatorDesc.txHash == transaction.hash )
-    }
-  }
-
-  /** Remove a transaction from the transaction index.
-    *
-    * @param txHash The hash of the transaction to remove.
-    */
-  def delTransaction(txHash : Hash ) : Unit = {
-    db.delObject(TRANSACTION, txHash)(HashCodec)
-  }
 
   def putBlockFileInfo(fileNumber : FileNumber, blockFileInfo : BlockFileInfo) : Unit = {
     // Input validation for the block file info.

@@ -43,7 +43,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
   )
 
   val DUMMY_HASH = Hash(bytes("0"*64))
-
+/*
   "putTransactions" should "successfully put transactions onto database" in {
     // At first, we should not have any tranasctions on the database.
     for( transaction <- TestData.block.transactions) {
@@ -74,6 +74,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       txDesc.get.transactionLocatorOption.get.recordLocator.offset should be > BLOCK_LOCATOR.recordLocator.offset
     }
   }
+  */
 
   "putBlockFileInfo/getBlockFileInfo" should "successfully put/get data" in {
     val FILE_NUMBER = FileNumber(1)

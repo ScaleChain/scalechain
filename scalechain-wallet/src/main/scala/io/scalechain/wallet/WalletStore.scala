@@ -2,6 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
@@ -262,7 +263,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
       } else {
         using( db.seekPrefixedObject(OWNERSHIPS, accountOption.get)(OutputOwnershipCodec, OneByteCodec) ) in (_.toList)
       }
-    // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
+      // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
     ).map{ case (CStringPrefixed(_, ownership : OutputOwnership), _) => ownership }
   }
 

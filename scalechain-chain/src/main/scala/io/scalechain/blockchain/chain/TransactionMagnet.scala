@@ -2,14 +2,14 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.storage.{TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
 import org.slf4j.LoggerFactory
 
 /**
   * Created by kangmo on 6/9/16.
   */
-class TransactionMagnet(storage : BlockStorage) {
+class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) {
   private val logger = LoggerFactory.getLogger(classOf[TransactionMagnet])
 
   /**
@@ -143,10 +143,16 @@ class TransactionMagnet(storage : BlockStorage) {
     */
   def detachTransaction(transaction : Transaction) : Unit = {
     val transactionHash = transaction.hash
-    // Step 1 : Detach each transaction input
-    detachTransactionInputs(transactionHash, transaction)
 
-    // TODO : BUGBUG : P0 : Need to reset the transaction locator of the transaction descriptor.
+    // Step 1 : Detach each transaction input
+    if (transaction.inputs(0).isCoinBaseInput()) {
+      // Nothing to do for the coinbase inputs.
+    } else {
+      detachTransactionInputs(transactionHash, transaction)
+    }
+
+    // Remove the transaction from transaction descriptor, otherwise other transactions can spend the UTXO from the detached transaction.
+    storage.delTransactionDescriptor(transactionHash)
   }
 
   /**
@@ -193,11 +199,21 @@ class TransactionMagnet(storage : BlockStorage) {
     *
     * @param transaction The transaction to attach.
     */
-  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator]) : Unit = {
     // Step 1 : Attach each transaction input
-    attachTransactionInputs(transactionHash, transaction)
+    if (transaction.inputs(0).isCoinBaseInput()) {
+      // Nothing to do for the coinbase inputs.
+    } else {
+      attachTransactionInputs(transactionHash, transaction)
+    }
 
-    // TODO : BUGBUG : P0 : Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
+    // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
+    val txDesc =
+      TransactionDescriptor(
+        transactionLocatorOption = txLocatorOption,
+        List.fill(transaction.outputs.length)(None) )
+
+    storage.putTransactionDescriptor(transactionHash, txDesc)
 
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.
     // TODO : Step 3 : make sure if the fee is not negative.
