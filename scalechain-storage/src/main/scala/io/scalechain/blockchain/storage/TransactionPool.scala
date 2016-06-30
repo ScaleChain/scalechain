@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
-import io.scalechain.blockchain.proto.codec.{TransactionCodec, OneByteCodec, HashCodec}
-import io.scalechain.blockchain.proto.{Transaction, OneByte, Hash}
+import io.scalechain.blockchain.proto.codec.{TransactionPoolEntryCodec, TransactionCodec, OneByteCodec, HashCodec}
+import io.scalechain.blockchain.proto.{TransactionPoolEntry, Transaction, OneByte, Hash}
 import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes._
 import io.scalechain.blockchain.storage.index.{DatabaseTablePrefixes, SharedKeyValueDatabase}
 import io.scalechain.util.HexUtil._
@@ -22,15 +22,15 @@ trait TransactionPool extends SharedKeyValueDatabase {
   import TransactionPool._
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
-  private implicit val transactionCodec = TransactionCodec
+  private implicit val transactionCodec = TransactionPoolEntryCodec
 
   /** Put a transaction into the transaction pool.
     *
     * @param txHash The hash of the transaction to add.
-    * @param transaction The transaction to add.
+    * @param transactionPoolEntry The transaction to add.
     */
-  def putTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
-    keyValueDB.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transaction )
+  def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry) : Unit = {
+    keyValueDB.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
   }
 
   /** Get a transaction from the transaction pool.
@@ -38,8 +38,8 @@ trait TransactionPool extends SharedKeyValueDatabase {
     * @param txHash The hash of the transaction to get.
     * @return The transaction which matches the given transaction hash.
     */
-  def getTransactionFromPool(txHash : Hash) : Option[Transaction] = {
-    keyValueDB.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionCodec)
+  def getTransactionFromPool(txHash : Hash) : Option[TransactionPoolEntry] = {
+    keyValueDB.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
   }
 
 
@@ -47,12 +47,12 @@ trait TransactionPool extends SharedKeyValueDatabase {
     *
     * @return List of transactions in the pool. List of (transaction hash, transaction) pair.
     */
-  def getTransactionsFromPool() : List[(Hash, Transaction)] = {
+  def getTransactionsFromPool() : List[(Hash, TransactionPoolEntry)] = {
     (
-      using(keyValueDB.seekPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY)(HashCodec, TransactionCodec)) in {
+      using(keyValueDB.seekPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
         _.toList
       }
-    ).map{ case (CStringPrefixed(_, txHash), transaction ) => (txHash, transaction) }
+    ).map{ case (CStringPrefixed(_, txHash), transactionPoolEntry ) => (txHash, transactionPoolEntry) }
   }
 
   /** Del a transaction from the pool.

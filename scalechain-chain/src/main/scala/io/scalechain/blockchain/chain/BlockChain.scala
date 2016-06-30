@@ -173,6 +173,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           val blockInfo = storage.getBlockInfo(blockHash).get
 
           // Attach the block. ChainEventListener is invoked in this method.
+          // TODO : BUGBUG : Before attaching a block, we need to test if all transactions in the block can be attached.
+          // - If any of them are not attachable, the blockchain remains in an inconsistent state because only part of transactions are attached.
           blockMagnet.attachBlock(blockInfo, block)
 
           setBestBlock(blockHash, blockInfo )
@@ -213,7 +215,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
 
               // Step 3.B.3 : Update the best block
-              storage.putBlockHashByHeight(blockInfo.height, blockHash)
               setBestBlock(blockHash, blockInfo)
 
               // TODO : Update best block in wallet (so we can detect restored wallets)
@@ -429,7 +430,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     */
   def hasTransaction(txHash : Hash) : Boolean = {
     synchronized {
-      storage.getTransactionDescriptor(txHash).isDefined
+      storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
     }
   }
 

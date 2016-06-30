@@ -9,44 +9,79 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 6/9/16.
   */
-class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) {
+class TransactionMagnet(storage : BlockStorage) {
   private val logger = LoggerFactory.getLogger(classOf[TransactionMagnet])
+
+
+  protected[chain] def getOutputsSpentBy(txHash : Hash) : List[Option[InPoint]] = {
+    storage.getTransactionDescriptor(txHash).map(_.outputsSpentBy).getOrElse {
+      storage.getTransactionFromPool(txHash).map(_.outputsSpentBy).getOrElse {
+        null
+      }
+    }
+  }
+
+  protected[chain] def putOutputsSpentBy(txHash : Hash, outputsSpentBy : List[Option[InPoint]]) = {
+    val txDescOption = storage.getTransactionDescriptor(txHash)
+    val txPoolEntryOption = storage.getTransactionFromPool(txHash)
+    if ( txDescOption.isDefined) {
+      storage.putTransactionDescriptor(
+        txHash,
+        txDescOption.get.copy(
+          outputsSpentBy = outputsSpentBy
+        )
+      )
+      assert(txPoolEntryOption.isEmpty)
+    } else {
+      assert( txPoolEntryOption.isDefined )
+      storage.putTransactionToPool(
+        txHash,
+        txPoolEntryOption.get.copy(
+          outputsSpentBy = outputsSpentBy
+        )
+      )
+      assert(txDescOption.isEmpty)
+    }
+  }
 
   /**
     * Mark an output spent by the given in-point.
     *
     * @param outPoint The out-point that points to the output to mark.
     * @param inPoint The in-point that points to a transaction input that spends to output.
+    * @param checkOnly If true, do not update the spending in-point, just check if the output is a valid UTXO.
     */
-  protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint): Unit = {
-    val txDesc = storage.getTransactionDescriptor(outPoint.transactionHash).getOrElse {
+  protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint, checkOnly : Boolean): Unit = {
+    val outputsSpentBy : List[Option[InPoint]] = getOutputsSpentBy(outPoint.transactionHash)
+    if (outputsSpentBy == null) {
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist yet."
       logger.warn(message)
       throw new ChainException(ErrorCode.ParentTransactionNotFound, message)
     }
 
     // TODO : BUGBUG : indexing into a list is slow. Optimize the code.
-    if ( outPoint.outputIndex < 0 || txDesc.outputsSpentBy.length <= outPoint.outputIndex ) {
+    if ( outPoint.outputIndex < 0 || outputsSpentBy.length <= outPoint.outputIndex ) {
       // TODO : Add DoS score. The outpoint in a transaction input was invalid.
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) has invalid transaction output index."
       logger.warn(message)
       throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    val spendingInPointOption  = txDesc.outputsSpentBy(outPoint.outputIndex)
+    val spendingInPointOption = outputsSpentBy(outPoint.outputIndex)
     if( spendingInPointOption.isDefined ) { // The transaction output was already spent.
     val message = s"An output pointed by an out-point(${outPoint}) has already been spent by ${spendingInPointOption.get}. The in-point(${inPoint}) tried to spend it again."
       logger.warn(message)
       throw new ChainException(ErrorCode.TransactionOutputAlreadySpent, message)
     }
 
-    storage.putTransactionDescriptor(
-      outPoint.transactionHash,
-      txDesc.copy(
-        // Mark the output spent by the in-point.
-        outputsSpentBy = txDesc.outputsSpentBy.updated(outPoint.outputIndex, Some(inPoint))
+    if (checkOnly) {
+      // Do not update, just check if the output can be marked as spent.
+    } else {
+      putOutputsSpentBy(
+        outPoint.transactionHash,
+        outputsSpentBy.updated(outPoint.outputIndex, Some(inPoint))
       )
-    )
+    }
   }
 
   /**
@@ -56,16 +91,22 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
     * @param inPoint The in-point that points to a transaction input that should have spent the output.
     */
   protected[chain] def markOutputUnspent(outPoint : OutPoint, inPoint : InPoint): Unit = {
-    val Some(txDesc) = storage.getTransactionDescriptor(outPoint.transactionHash)
+    val outputsSpentBy : List[Option[InPoint]] = getOutputsSpentBy(outPoint.transactionHash)
+    if (outputsSpentBy == null) {
+      val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist."
+      logger.warn(message)
+      throw new ChainException(ErrorCode.ParentTransactionNotFound, message)
+    }
+
     // TODO : BUGBUG : indexing into a list is slow. Optimize the code.
-    if ( outPoint.outputIndex < 0 || txDesc.outputsSpentBy.length <= outPoint.outputIndex ) {
+    if ( outPoint.outputIndex < 0 || outputsSpentBy.length <= outPoint.outputIndex ) {
       // TODO : Add DoS score. The outpoint in a transaction input was invalid.
       val message = s"An output pointed by an out-point(${outPoint}) has invalid transaction output index. The output should have been spent by ${inPoint}"
       logger.warn(message)
       throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    val spendingInPointOption = txDesc.outputsSpentBy(outPoint.outputIndex)
+    val spendingInPointOption = outputsSpentBy(outPoint.outputIndex)
     // The output pointed by the out-point should have been spent by the transaction input poined by the given in-point.
     assert( spendingInPointOption.isDefined )
 
@@ -75,15 +116,13 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
       throw new ChainException(ErrorCode.TransactionOutputSpentByUnexpectedInput, message)
     }
 
-    storage.putTransactionDescriptor(
+    putOutputsSpentBy(
       outPoint.transactionHash,
-      txDesc.copy(
-        // Mark the output unspent.
-        outputsSpentBy = txDesc.outputsSpentBy.updated(outPoint.outputIndex, None)
-      )
+      outputsSpentBy.updated(outPoint.outputIndex, None)
     )
   }
 
+/*
   /**
     * Mark all outputs of the given transaction unspent.
     * Called when a new transaction is attached to the best blockchain.
@@ -100,7 +139,7 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
       )
     )
   }
-
+*/
 
   /**
     * Detach the transaction input from the best blockchain.
@@ -151,8 +190,10 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
       detachTransactionInputs(transactionHash, transaction)
     }
 
-    // Remove the transaction from transaction descriptor, otherwise other transactions can spend the UTXO from the detached transaction.
+    // Remove the transaction descriptor otherwise other transactions can spend the UTXO from the detached transaction.
+    // The transaction might not be stored in a block on the best blockchain yet. Remove the transaction from the pool too.
     storage.delTransactionDescriptor(transactionHash)
+    storage.delTransactionFromPool(transactionHash)
   }
 
   /**
@@ -160,8 +201,10 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
     *
     * @param inPoint The in-point that points to the input to attach.
     * @param transactionInput The transaction input to attach.
+    * @param checkOnly If true, do not attach the transaction input, but just check if the transaction input can be attached.
+    *
     */
-  protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+  protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput, checkOnly : Boolean) : Unit = {
     // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
     assert(!transactionInput.isCoinBaseInput())
 
@@ -172,7 +215,7 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
     // TODO : Step 5. Skip ECDSA signature verification when connecting blocks (fBlock=true) during initial download
     // TODO : Step 6. check value range of each input and sum of inputs.
     // TODO : Step 7. for the transaction output pointed by the input, mark this transaction as the spending transaction of the output. check double spends.
-    markOutputSpent(transactionInput.getOutPoint(), inPoint)
+    markOutputSpent(transactionInput.getOutPoint(), inPoint, checkOnly)
   }
 
   /** Attach the transaction inputs to the outputs spent by them.
@@ -180,15 +223,17 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
     *
     * @param transactionHash The hash of the tranasction that has the inputs.
     * @param transaction The transaction that has the inputs.
+    * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
+    *
     */
-  protected[chain] def attachTransactionInputs(transactionHash : Hash, transaction : Transaction) : Unit = {
+  protected[chain] def attachTransactionInputs(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean) : Unit = {
     var inputIndex = -1
     transaction.inputs foreach { transactionInput : TransactionInput =>
       // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
       assert(!transactionInput.isCoinBaseInput())
       inputIndex += 1
 
-      attachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput)
+      attachTransactionInput(InPoint(transactionHash, inputIndex), transactionInput, checkOnly)
     }
   }
 
@@ -197,23 +242,40 @@ class TransactionMagnet(storage : BlockStorage, readOnlyMode : Boolean = false) 
     *
     * For UTXOs, all outputs spent by the transaction is marked as spent by this transaction.
     *
+    * @param transactionHash The hash of the transaction to attach.
     * @param transaction The transaction to attach.
+    * @param txLocatorOption Some(locator) if the transaction is stored in a block on the best blockchain; None if the transaction should be stored in a mempool.
+    * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
+    *
     */
-  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator]) : Unit = {
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator], checkOnly : Boolean  ) : Unit = {
     // Step 1 : Attach each transaction input
     if (transaction.inputs(0).isCoinBaseInput()) {
       // Nothing to do for the coinbase inputs.
     } else {
-      attachTransactionInputs(transactionHash, transaction)
+      attachTransactionInputs(transactionHash, transaction, checkOnly)
     }
 
-    // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
-    val txDesc =
-      TransactionDescriptor(
-        transactionLocatorOption = txLocatorOption,
-        List.fill(transaction.outputs.length)(None) )
-
-    storage.putTransactionDescriptor(transactionHash, txDesc)
+    if (checkOnly) {
+      // Do nothing. We just want to check if we can attach the transaction.
+    } else {
+      // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
+      if (txLocatorOption.isDefined) {
+        storage.putTransactionDescriptor(transactionHash,
+          TransactionDescriptor(
+            transactionLocator = txLocatorOption.get,
+            List.fill(transaction.outputs.length)(None)
+          )
+        )
+      } else {
+        storage.putTransactionToPool(
+          transactionHash,
+          TransactionPoolEntry(
+            transaction,
+            List.fill(transaction.outputs.length)(None) )
+        )
+      }
+    }
 
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.
     // TODO : Step 3 : make sure if the fee is not negative.

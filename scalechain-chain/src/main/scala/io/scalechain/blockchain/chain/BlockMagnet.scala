@@ -42,8 +42,10 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
     storage.delBlockHashByHeight(blockInfo.height)
 
+    val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
+    assert(!prevBlockHash.isAllZero()) // The genesis block can't be attached or detached
     // Unlink the next block hash.
-    storage.updateNextBlockHash(blockInfo.blockHeader.hash, None)
+    storage.updateNextBlockHash(prevBlockHash, None)
 
     // For each transaction in the block, sync with wallet.
     chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
@@ -58,8 +60,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
   @tailrec
   protected[chain] final def detachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
     if (beforeFirstHeader == last.blockHeader) {
-      // The base case. Just unlink the next block hash of the before the first block to detach.
-      storage.updateNextBlockHash(beforeFirstHeader.hash, None)
+      // The base case.
     } else {
       // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
       detachedBlocks.prepend(lastBlock)
@@ -85,12 +86,23 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
     val txLocators : List[TransactionLocator] = BlockWriter.getTxLocators(blockInfo.blockLocatorOption.get, block)
 
+    // TODO : BUGBUG : Optimize : length on List is slow.
+    assert(txLocators.length == block.transactions.length)
+
+    // Before attaching a block, check if we can attach each transaction first without affecting the transaction database.
+    // If any error such as double spending is detected, an exception is raised.
+    for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
+      val transactionHash = transaction.hash
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = true)
+    }
+
     for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
       val transactionHash = transaction.hash
 
-      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator) )
       // Step 5 : Remove the transaction from the disk pool.
       txPool.removeTransactionFromPool(transactionHash)
+
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = false )
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
@@ -100,7 +112,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
     val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
     if (prevBlockHash.isAllZero()) {
-      // The genesis block. do nothing.
+      // the genesis block. do nothing. genesis blocks are not reorganized, but can be attached when the block is put for the first time.
     } else {
       // Link the next block hash.
       storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
