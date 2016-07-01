@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{OutputOwnership, CoinAmount, TransactionTestDataTrait, CoinAddress}
+import io.scalechain.blockchain.transaction._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
 
@@ -143,4 +143,18 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
       doMining(block, requiredHashCalulcations, nonce + 1)
     }
   }
+
+  def minerAddress() = {
+    CoinAddress.from(PrivateKey.generate)
+  }
+
+  def mineBlock(chain : Blockchain) = {
+    val blockMining = chain.createBlockMining()
+    val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+    // Step 2 : Create the block template
+    val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)
+    val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash().get ), nonce = 0 )
+    doMining( block, requiredHashCalulcations = 4)
+  }
+
 }

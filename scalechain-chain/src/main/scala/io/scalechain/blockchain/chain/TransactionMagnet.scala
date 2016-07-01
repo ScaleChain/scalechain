@@ -72,7 +72,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     val outputsSpentBy : List[Option[InPoint]] = getOutputsSpentBy(outPoint.transactionHash)
     if (outputsSpentBy == null) {
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist yet."
-      logger.warn(message)
+      if (!checkOnly)
+        logger.warn(message)
       throw new ChainException(ErrorCode.ParentTransactionNotFound, message)
     }
 
@@ -80,24 +81,32 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     if ( outPoint.outputIndex < 0 || outputsSpentBy.length <= outPoint.outputIndex ) {
       // TODO : Add DoS score. The outpoint in a transaction input was invalid.
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) has invalid transaction output index."
-      logger.warn(message)
+      if (!checkOnly)
+        logger.warn(message)
       throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
     val spendingInPointOption = outputsSpentBy(outPoint.outputIndex)
     if( spendingInPointOption.isDefined ) { // The transaction output was already spent.
-    val message = s"An output pointed by an out-point(${outPoint}) has already been spent by ${spendingInPointOption.get}. The in-point(${inPoint}) tried to spend it again."
-      logger.warn(message)
-      throw new ChainException(ErrorCode.TransactionOutputAlreadySpent, message)
-    }
-
-    if (checkOnly) {
-      // Do not update, just check if the output can be marked as spent.
+      if ( spendingInPointOption.get == inPoint ) {
+        // Already marked as spent by the given in-point.
+        // This can happen when a transaction is already attached while it was put into the transaction pool,
+        // But tried to attach again while accepting a block that has the (already attached) transaction.
+      } else {
+        val message = s"An output pointed by an out-point(${outPoint}) has already been spent by ${spendingInPointOption.get}. The in-point(${inPoint}) tried to spend it again."
+        if (!checkOnly)
+          logger.warn(message);
+        throw new ChainException(ErrorCode.TransactionOutputAlreadySpent, message)
+      }
     } else {
-      putOutputsSpentBy(
-        outPoint.transactionHash,
-        outputsSpentBy.updated(outPoint.outputIndex, Some(inPoint))
-      )
+      if (checkOnly) {
+        // Do not update, just check if the output can be marked as spent.
+      } else {
+        putOutputsSpentBy(
+          outPoint.transactionHash,
+          outputsSpentBy.updated(outPoint.outputIndex, Some(inPoint))
+        )
+      }
     }
   }
 

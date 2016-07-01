@@ -164,6 +164,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     *
     */
   def putBlock(blockHash : Hash, block:Block) : Boolean = {
+
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     synchronized {

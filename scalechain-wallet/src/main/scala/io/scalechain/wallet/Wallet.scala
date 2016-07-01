@@ -665,6 +665,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param chainBlock The block added to the best blockchain.
     */
   def onAttachBlock(chainBlock:ChainBlock) : Unit = {
+    logger.info(s"[Wallet attach block started. Height : ${chainBlock.height}, Hash : ${chainBlock.block.header.hash}] ")
+
     var transactionIndex = -1
     val allOutputOwnerships = store.getOutputOwnerships(None)
     chainBlock.block.transactions foreach { transaction =>
@@ -683,6 +685,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param chainBlock The block to remove from the best blockchain.
     */
   def onDetachBlock(chainBlock:ChainBlock) : Unit = {
+    logger.info(s"[Wallet detach block started. Height : ${chainBlock.height}, Hash : ${chainBlock.block.header.hash}]")
+
     // Unregister transaction in reverse order.
     // TODO : OPTIMIZE : Without reversing transactions, find out a way to iterate a list in reverse order.
     val allOutputOwnerships = store.getOutputOwnerships(None)
@@ -705,13 +709,14 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
     */
   protected[wallet] def registerTransaction(ownerships: List[OutputOwnership], transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-
     synchronized {
       //println(s"registerTransaction=${transaction}")
 
 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
+
+      logger.info(s"[Wallet register tx:${transactionHash}] started.")
 
       val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
@@ -843,6 +848,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
+
+      logger.info(s"[Wallet unregister tx:${transactionHash}] started.")
 
       // If the transaction is related to the output
       var isTransactionRelated = false

@@ -66,12 +66,16 @@ class TransactionProcessor(val chain : Blockchain) {
         val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
         if (dependentChild.isDefined) {
           try {
+            //println(s"trying to accept a child. ${dependentChildHash}")
             // Try to add to the transaction pool.
             putTransaction(dependentChildHash, dependentChild.get)
             // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
             acceptedChildren.append(dependentChildHash)
             // del the orphan
             chain.txOrphanage.delOrphan(dependentChildHash)
+
+            //println(s"accepted a child. ${dependentChildHash}")
+
           } catch {
             case e : ChainException => {
               if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.

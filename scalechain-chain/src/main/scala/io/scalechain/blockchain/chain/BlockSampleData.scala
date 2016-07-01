@@ -118,7 +118,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
     // UTXO : TX02 : 2
     // UTXO : TX04a : 0
 
-    // TX04b can't go into the transaction pool when the BLK04 becomes the best block,
+    // TX04b can't go into the transaction pool when the BLK04a becomes the best block,
     // as it depends on the output GEN03b created on the branch b.
     val TX04b = normalTransaction(
       "TX04b",
@@ -134,7 +134,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
 
     // TX04b2 goes to the transaction pool, as it depends on the unpent output, (TX02,2)
     val TX04b2 = normalTransaction(
-      "TX04b",
+      "TX04b2",
       spendingOutputs = List( getOutput(TX02,2) ),
       newOutputs = List(
         NewOutput(CoinAmount(9), Addr2.address)

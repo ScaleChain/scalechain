@@ -17,7 +17,7 @@ import io.scalechain.blockchain.script.HashSupported._
 class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
   private val logger = LoggerFactory.getLogger(classOf[BlockMagnet])
 
-  var chainEventListener : Option[ChainEventListener] = None
+  protected [chain] var chainEventListener : Option[ChainEventListener] = None
 
   /** Set an event listener of the blockchain.
     *
@@ -89,13 +89,15 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     // TODO : BUGBUG : Optimize : length on List is slow.
     assert(txLocators.length == block.transactions.length)
 
+    // TODO : BUGBUG : P0 : Need to check with a temporary transaction pool.
+/*
     // Before attaching a block, check if we can attach each transaction first without affecting the transaction database.
     // If any error such as double spending is detected, an exception is raised.
     for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
       val transactionHash = transaction.hash
       txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = true)
     }
-
+*/
     for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
       val transactionHash = transaction.hash
 

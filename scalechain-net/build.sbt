@@ -5,3 +5,5 @@ libraryDependencies ++= Seq(
   // for LRUMap in Peer.
   "org.apache.commons" % "commons-collections4" % "4.1"
 )
+
+parallelExecution in Test := false

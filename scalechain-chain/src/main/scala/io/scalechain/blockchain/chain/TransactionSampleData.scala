@@ -23,6 +23,7 @@ class TransactionSampleData extends BlockBuildingTestTrait {
     val GEN02 = generationTransaction("GenTx.BLK02", CoinAmount(50), Addr1.address)
     val GEN03 = generationTransaction("GenTx.BLK03", CoinAmount(50), Addr1.address)
     val GEN04 = generationTransaction("GenTx.BLK04", CoinAmount(50), Addr1.address)
+    val GEN05 = generationTransaction("GenTx.BLK05", CoinAmount(50), Addr1.address)
 
     val TX03 = normalTransaction(
       "TX03",
