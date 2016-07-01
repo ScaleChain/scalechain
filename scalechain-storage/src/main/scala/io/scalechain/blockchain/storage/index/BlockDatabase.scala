@@ -111,41 +111,6 @@ class BlockDatabase(db : KeyValueDatabase) {
     db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
   }
 
-  /**
-    * Get the descriptor of a transaction by hash
-    *
-    * TODO : Add a test case
-    *
-    * @param txHash The transaction hash.
-    * @return Some(descriptor) if the transaction exists; None otherwise.
-    */
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
-  }
-
-  /**
-    * Put the descriptor of a transaction with hash of it
-    *
-    * TODO : Add a test case
-    *
-    * @param txHash The transaction hash.
-    * @param transactionDescriptor The descriptor of the transaction.
-    */
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
-  }
-
-  /**
-    * Del the descriptor of a transaction by hash.
-    *
-    * TODO : Add a test case
-    *
-    * @param txHash The transaction hash
-    */
-  def delTransactionDescriptor(txHash : Hash) : Unit = {
-    db.delObject(TRANSACTION, txHash)(HashCodec)
-  }
-
   def close() = db.close()
 }
 

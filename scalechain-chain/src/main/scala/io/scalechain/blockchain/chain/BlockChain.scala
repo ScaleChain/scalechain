@@ -107,12 +107,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
   var chainEventListener : Option[ChainEventListener] = None
 
-  val txMagnet = new TransactionMagnet(storage)
+  val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
 
   val blockOrphanage = new BlockOrphanage(storage)
   val txOrphanage = new TransactionOrphanage(storage)
+
+  /**
+    * Create the block mining, which knows how to select transactions from the transaction pool.
+    * @return The created block mining.
+    */
+  def createBlockMining() : BlockMining = {
+    new BlockMining(storage, txPool, this)
+  }
 
   /** Set an event listener of the blockchain.
     *

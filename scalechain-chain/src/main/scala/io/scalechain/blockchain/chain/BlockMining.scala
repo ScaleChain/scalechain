@@ -1,19 +1,56 @@
 package io.scalechain.blockchain.chain
 
+import java.io.File
+
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto.{Transaction, CoinbaseData}
-import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Transaction, CoinbaseData}
+import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.{TransactionPoolIndex, BlockStorage}
+import io.scalechain.blockchain.storage.index.{RocksDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.transaction.{CoinsView, CoinAmount, CoinAddress}
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
+import HashSupported._
 
+
+class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoolIndex {
+  private val logger = LoggerFactory.getLogger(classOf[TemporaryTransactionPoolIndex])
+
+  directoryPath.mkdir()
+
+  // Implemenent the KeyValueDatabase declared in BlockStorage trait.
+  val keyValueDB = new RocksDatabase(directoryPath)
+
+  def close() : Unit = {
+    this.synchronized {
+      keyValueDB.close()
+    }
+  }
+}
+
+class TemporaryCoinsView(coinsView : CoinsView, tempTxPoolIndex : TemporaryTransactionPoolIndex) extends CoinsView {
+  /** Return a transaction output specified by a give out point.
+    *
+    * @param outPoint The outpoint that points to the transaction output.
+    * @return The transaction output we found.
+    */
+  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    // Find from the temporary transaction pool index first, and then find from the coins view.
+    tempTxPoolIndex.getTransactionFromPool(outPoint.transactionHash).map(_.transaction.outputs(outPoint.outputIndex)).getOrElse {
+      coinsView.getTransactionOutput(outPoint)
+    }
+  }
+}
 
 /**
   * Created by kangmo on 6/9/16.
   */
-class BlockMining(transactionPool : TransactionPool, coinsView : CoinsView) {
+class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView) {
   private val logger = LoggerFactory.getLogger(classOf[BlockMining])
 
   /*
@@ -92,23 +129,15 @@ class BlockMining(transactionPool : TransactionPool, coinsView : CoinsView) {
     *    5. For all complete transactions that can be attached, move from the input list to the priority queue.
     *    6. If there is any transaction in the priority queue, pick the best transaction with the highest priority into the temporary transaction pool, and Go to step 4. Otherwise, stop iteration.
     *
-    *
     * @param transactions The candidate transactions
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
   protected[chain] def selectTransactions(generationTransaction:Transaction, transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
+    val candidateTransactions = new ListBuffer[Transaction]()
+    candidateTransactions ++= transactions
     val selectedTransactions = new ListBuffer[Transaction]()
-    // Step 1 : TODO : Select high priority transactions
 
-    // Step 2 : TODO : Sort transactions by fee in descending order.
-
-    // Step 3 : TODO : Choose transactions until we fill up the max block size.
-
-    // Step 4 : TODO : Sort transactions based on a criteria to store into a block.
-
-    // TODO : Need to check the sort order of transactions in a block.
-    // TODO : Need to calculate the size of the block header on the fly instead of using the hard coded value 80.
     val BLOCK_HEADER_SIZE = 80
     val MAX_TRANSACTION_LENGTH_SIZE = 9 // The max size of variable int encoding.
     var serializedBlockSize = BLOCK_HEADER_SIZE + MAX_TRANSACTION_LENGTH_SIZE
@@ -116,13 +145,57 @@ class BlockMining(transactionPool : TransactionPool, coinsView : CoinsView) {
     serializedBlockSize += TransactionCodec.serialize(generationTransaction).length
     selectedTransactions.append(generationTransaction)
 
-    transactions foreach { tx =>
-      serializedBlockSize += TransactionCodec.serialize(tx).length
-      if (serializedBlockSize <= maxBlockSize) {
-        selectedTransactions.append(tx)
-      }
-    }
+    val tempTxPoolFile = new File(s"./target/temp-tx-pool-${Random.nextInt}")
+    val tempTranasctionPoolIndex = new TemporaryTransactionPoolIndex( tempTxPoolFile )
+    // The TemporaryCoinsView with additional transactions in the temporary transaction pool.
+    // TemporaryCoinsView returns coins in the transaction pool of the coinsView, which may not be included in tempTranasctionPoolIndex,
+    // But this should be fine, because we are checking if a transaction can be attached without including the transaction pool of the coinsView.
+    val tempCoinsView = new TemporaryCoinsView(coinsView, tempTranasctionPoolIndex)
+    val txQueue = new TransactionPriorityQueue(tempCoinsView)
 
-    selectedTransactions.toList
+    val txMagnet = new TransactionMagnet(txDescIndex, tempTranasctionPoolIndex)
+
+    // For all attachable transactions, attach them, and move to the priority queue.
+    try {
+      var newlySelectedTransaction : Option[Transaction] = None
+      do {
+        candidateTransactions foreach { tx : Transaction =>
+          val txHash = tx.hash
+          // Test if it can be atached.
+          val isTxAttachable = try {
+            txMagnet.attachTransaction(txHash, tx, None, checkOnly = true)
+            true
+          } catch {
+            case e : ChainException => {
+              false
+            }  // The transaction can't be attached.
+          }
+
+          if (isTxAttachable) { // move the the transaction queue
+            candidateTransactions -= tx
+            txQueue.enqueue(tx)
+          }
+        }
+
+        newlySelectedTransaction = txQueue.dequeue()
+
+        if (newlySelectedTransaction.isDefined) {
+          val newTx = newlySelectedTransaction.get
+          serializedBlockSize += TransactionCodec.serialize(newTx).length
+          if (serializedBlockSize <= maxBlockSize) {
+            // Attach the transaction
+            txMagnet.attachTransaction(newTx.hash, newTx, None, checkOnly = false)
+            selectedTransactions += newTx
+          }
+        }
+      } while(newlySelectedTransaction.isDefined && (serializedBlockSize <= maxBlockSize) )
+      // Caution : serializedBlockSize is greater than the actual block size
+
+      selectedTransactions.toList
+
+    } finally {
+      tempTranasctionPoolIndex.close
+      FileUtils.deleteDirectory(tempTxPoolFile)
+    }
   }
 }

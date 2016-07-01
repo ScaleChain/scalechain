@@ -215,7 +215,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      val txDescriptorOption = blockDatabase.getTransactionDescriptor(transactionHash)
+      val txDescriptorOption = getTransactionDescriptor(transactionHash)
       if (txDescriptorOption.isDefined) { // The transaction is in a block on the best blockchain.
         Some( blockRecordStorage.readRecord(txDescriptorOption.get.transactionLocator)(TransactionCodec) )
       } else {

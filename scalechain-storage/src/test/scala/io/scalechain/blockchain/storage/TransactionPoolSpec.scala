@@ -37,14 +37,14 @@ class TransactionPoolSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
   }
 
 
-  var pool: TransactionPool = null
+  var pool: TransactionPoolIndex = null
 
   val testPath = new File("./target/unittests-TransactionPoolSpec")
 
   override def beforeEach() {
 
     FileUtils.deleteDirectory(testPath)
-    pool = new TransactionPool {
+    pool = new TransactionPoolIndex {
       val keyValueDB = new RocksDatabase(testPath)
     }
 

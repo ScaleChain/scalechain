@@ -10,47 +10,13 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionPool with OrphanBlockIndex with OrphanTransactionIndex {
+trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with OrphanBlockIndex with OrphanTransactionIndex {
   private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
   protected[storage] val blockDatabase : BlockDatabase
 
   def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator]
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
-
-  /**
-    * Get the descriptor of a transaction by hash
-    *
-    * TODO : Add a test case
-    * @param txHash The transaction hash.
-    * @return Some(descriptor) if the transaction exists; None otherwise.
-    */
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    blockDatabase.getTransactionDescriptor(txHash)
-  }
-
-  /**
-    * Put the descriptor of a transaction with hash of it
-    *
-    * TODO : Add a test case
-    *
-    * @param txHash The transaction hash.
-    * @param transactionDescriptor The descriptor of the transaction.
-    */
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
-  }
-
-  /**
-    * Del the descriptor of a transaction by hash.
-    *
-    * TODO : Add a test case
-    *
-    * @param txHash The transaction hash
-    */
-  def delTransactionDescriptor(txHash : Hash) : Unit = {
-    blockDatabase.delTransactionDescriptor(txHash)
-  }
 
   /** Get the block hash at the given height on the best blockchain.
     *

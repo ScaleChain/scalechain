@@ -43,7 +43,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     storage.delBlockHashByHeight(blockInfo.height)
 
     val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
-    assert(!prevBlockHash.isAllZero()) // The genesis block can't be attached or detached
+    assert(!prevBlockHash.isAllZero()) // The genesis block can't be detached
     // Unlink the next block hash.
     storage.updateNextBlockHash(prevBlockHash, None)
 

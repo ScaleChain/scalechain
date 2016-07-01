@@ -41,7 +41,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   val MINING_TRIAL_WINDOW_MILLIS = 10000
   val PREMINE_BLOCKS = 5;
 
-  val blockMining = new BlockMining( chain.txPool, chain )
+  val blockMining = chain.createBlockMining()
 
 
   /**

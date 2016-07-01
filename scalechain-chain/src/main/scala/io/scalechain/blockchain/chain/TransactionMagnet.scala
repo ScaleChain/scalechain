@@ -1,31 +1,48 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{TransactionLocator, BlockStorage}
+import io.scalechain.blockchain.storage.{TransactionPoolIndex, TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
 import org.slf4j.LoggerFactory
 
 /**
-  * Created by kangmo on 6/9/16.
+  * The transaction maganet which is able to attach or detach transactions.
+  *
+  * @param txDescIndex The storage for block.
+  * @param txPoolIndex The storage for transaction pool. If not given, set to storage.
+  *                      During mining, txPoolStorage is a separate transaction pool for testing dependency of each transaction.
+  *                      Otherwise, txPoolStorage is the 'storage' parameter.
   */
-class TransactionMagnet(storage : BlockStorage) {
+class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex) {
   private val logger = LoggerFactory.getLogger(classOf[TransactionMagnet])
 
-
+  /**
+    * Get the list of in-points that are spending the outputs of a transaction
+    *
+    * @param txHash The hash of the transaction.
+    * @return The list of in-points that are spending the outputs of the transaction
+    */
   protected[chain] def getOutputsSpentBy(txHash : Hash) : List[Option[InPoint]] = {
-    storage.getTransactionDescriptor(txHash).map(_.outputsSpentBy).getOrElse {
-      storage.getTransactionFromPool(txHash).map(_.outputsSpentBy).getOrElse {
+    txDescIndex.getTransactionDescriptor(txHash).map(_.outputsSpentBy).getOrElse {
+      txPoolIndex.getTransactionFromPool(txHash).map(_.outputsSpentBy).getOrElse {
         null
       }
     }
   }
 
+  /**
+    * Put the list of in-points that are spending the outputs of a transaction
+    *
+    * @param txHash The hash of the transaction.
+    * @param outputsSpentBy The list of in-points that are spending the outputs of the transaction
+    */
   protected[chain] def putOutputsSpentBy(txHash : Hash, outputsSpentBy : List[Option[InPoint]]) = {
-    val txDescOption = storage.getTransactionDescriptor(txHash)
-    val txPoolEntryOption = storage.getTransactionFromPool(txHash)
+    val txDescOption = txDescIndex.getTransactionDescriptor(txHash)
+    val txPoolEntryOption = txPoolIndex.getTransactionFromPool(txHash)
     if ( txDescOption.isDefined) {
-      storage.putTransactionDescriptor(
+      txDescIndex.putTransactionDescriptor(
         txHash,
         txDescOption.get.copy(
           outputsSpentBy = outputsSpentBy
@@ -34,7 +51,7 @@ class TransactionMagnet(storage : BlockStorage) {
       assert(txPoolEntryOption.isEmpty)
     } else {
       assert( txPoolEntryOption.isDefined )
-      storage.putTransactionToPool(
+      txPoolIndex.putTransactionToPool(
         txHash,
         txPoolEntryOption.get.copy(
           outputsSpentBy = outputsSpentBy
@@ -122,25 +139,6 @@ class TransactionMagnet(storage : BlockStorage) {
     )
   }
 
-/*
-  /**
-    * Mark all outputs of the given transaction unspent.
-    * Called when a new transaction is attached to the best blockchain.
-    *
-    * @param txHash The hash of the transaction.
-    */
-  protected[chain] def markAllOutputsUnspent(txHash : Hash): Unit = {
-    val Some(txDesc) = storage.getTransactionDescriptor(txHash)
-    storage.putTransactionDescriptor(
-      txHash,
-      txDesc.copy(
-        // Mark all outputs unspent.
-        outputsSpentBy = List.fill(txDesc.outputsSpentBy.length)(None)
-      )
-    )
-  }
-*/
-
   /**
     * Detach the transaction input from the best blockchain.
     * The output spent by the transaction input is marked as unspent.
@@ -192,8 +190,8 @@ class TransactionMagnet(storage : BlockStorage) {
 
     // Remove the transaction descriptor otherwise other transactions can spend the UTXO from the detached transaction.
     // The transaction might not be stored in a block on the best blockchain yet. Remove the transaction from the pool too.
-    storage.delTransactionDescriptor(transactionHash)
-    storage.delTransactionFromPool(transactionHash)
+    txDescIndex.delTransactionDescriptor(transactionHash)
+    txPoolIndex.delTransactionFromPool(transactionHash)
   }
 
   /**
@@ -261,14 +259,14 @@ class TransactionMagnet(storage : BlockStorage) {
     } else {
       // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
       if (txLocatorOption.isDefined) {
-        storage.putTransactionDescriptor(transactionHash,
+        txDescIndex.putTransactionDescriptor(transactionHash,
           TransactionDescriptor(
             transactionLocator = txLocatorOption.get,
             List.fill(transaction.outputs.length)(None)
           )
         )
       } else {
-        storage.putTransactionToPool(
+        txPoolIndex.putTransactionToPool(
           transactionHash,
           TransactionPoolEntry(
             transaction,

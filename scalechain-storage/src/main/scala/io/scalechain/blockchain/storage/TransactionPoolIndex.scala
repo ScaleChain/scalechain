@@ -8,7 +8,7 @@ import io.scalechain.blockchain.storage.index.{DatabaseTablePrefixes, SharedKeyV
 import io.scalechain.util.HexUtil._
 import io.scalechain.util.Using._
 
-object TransactionPool {
+object TransactionPoolIndex {
   // A dummy prefix key to list all transactions in the disk-pool.
   val DUMMY_PREFIX_KEY = "0"
 
@@ -18,8 +18,8 @@ object TransactionPool {
   * Provides index operations for disk-pool, which keeps transactions on-disk instead of mempool.
   * c.f. Orphan transactions are not stored in the disk-pool.
   */
-trait TransactionPool extends SharedKeyValueDatabase {
-  import TransactionPool._
+trait TransactionPoolIndex extends SharedKeyValueDatabase {
+  import TransactionPoolIndex._
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
   private implicit val transactionCodec = TransactionPoolEntryCodec
