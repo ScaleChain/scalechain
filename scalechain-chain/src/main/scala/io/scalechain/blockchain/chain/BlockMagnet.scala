@@ -17,16 +17,6 @@ import io.scalechain.blockchain.script.HashSupported._
 class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
   private val logger = LoggerFactory.getLogger(classOf[BlockMagnet])
 
-  protected [chain] var chainEventListener : Option[ChainEventListener] = None
-
-  /** Set an event listener of the blockchain.
-    *
-    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
-    */
-  def setEventListener( listener : ChainEventListener ): Unit = {
-    chainEventListener = Some(listener)
-  }
-
   /**
     * Detach a block from the best blockchain.
     *
@@ -46,9 +36,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     assert(!prevBlockHash.isAllZero()) // The genesis block can't be detached
     // Unlink the next block hash.
     storage.updateNextBlockHash(prevBlockHash, None)
-
-    // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
   }
 
   /**
@@ -98,13 +85,17 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = true)
     }
 */
+    val chainBlockOption = Some(ChainBlock(blockInfo.height, block))
+    var transactionIndex = -1
     for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
+      transactionIndex += 1
+
       val transactionHash = transaction.hash
 
       // Step 5 : Remove the transaction from the disk pool.
       txPool.removeTransactionFromPool(transactionHash)
 
-      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = false )
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = false, chainBlockOption, Some(transactionIndex) )
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
@@ -119,9 +110,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       // Link the next block hash.
       storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
     }
-
-    // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )
   }
 
   /**
@@ -228,7 +216,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
               // This can happen, as the newly attached block might have the same transaction. Do nothing.
             } else {
               txPool.addTransactionToPool(transactionHash, transaction)
-              chainEventListener.map(_.onNewTransaction(transaction))
             }
           } catch {
             case e : ChainException => {

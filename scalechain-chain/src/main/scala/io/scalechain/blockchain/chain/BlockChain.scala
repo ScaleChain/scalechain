@@ -105,8 +105,6 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
 class Blockchain(storage : BlockStorage) extends BlockchainView  {
   private val logger = LoggerFactory.getLogger(classOf[Blockchain])
 
-  var chainEventListener : Option[ChainEventListener] = None
-
   val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
@@ -127,8 +125,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
     */
   def setEventListener( listener : ChainEventListener ): Unit = {
-    chainEventListener = Some(listener)
-    blockMagnet.setEventListener(listener)
+    txMagnet.setEventListener(listener)
   }
 
   /** The descriptor of the best block.
@@ -290,9 +287,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       try {
         // Step 1 : Add transaction to the transaction pool.
         txPool.addTransactionToPool(txHash, transaction)
+
         // TODO : BUGBUG : Need to commit the RocksDB transaction.
-        // Step 2 : Notify event listeners that a new transaction was added.
-        chainEventListener.map(_.onNewTransaction(transaction))
 
       } finally {
         // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.

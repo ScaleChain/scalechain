@@ -108,7 +108,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
 
     val transactionHash = getTxHash(transactionWithName)
     blockIndex.addTransaction( transactionHash, transactionWithName.transaction)
-    chainEventListener.map(_.onNewTransaction(transactionWithName.transaction))
+    chainEventListener.map(_.onNewTransaction(transactionWithName.transaction, None, None))
     //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
@@ -116,9 +116,15 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
   def addBlock(block: Block) : Unit = {
     val blockHeight = blockIndex.bestBlockHeight+1
     blockIndex.addBlock(block, blockHeight)
-    chainEventListener.map(_.onAttachBlock(
-      ChainBlock(blockHeight, block)
-    ))
+    var transactionIndex = -1;
+    block.transactions foreach { transaction =>
+      transactionIndex += 1
+      chainEventListener.map(_.onNewTransaction(
+        transaction,
+        Some( ChainBlock(blockHeight, block) ),
+        Some( transactionIndex )
+      ))
+    }
   }
 
   def newBlock(transactionsWithName : List[TransactionWithName]) : Block = {

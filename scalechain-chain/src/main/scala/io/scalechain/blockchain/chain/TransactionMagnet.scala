@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, TransactionLocator, BlockStorage}
@@ -17,6 +18,16 @@ import org.slf4j.LoggerFactory
   */
 class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex) {
   private val logger = LoggerFactory.getLogger(classOf[TransactionMagnet])
+
+  protected [chain] var chainEventListener : Option[ChainEventListener] = None
+
+  /** Set an event listener of the blockchain.
+    *
+    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
+    */
+  def setEventListener( listener : ChainEventListener ): Unit = {
+    chainEventListener = Some(listener)
+  }
 
   /**
     * Get the list of in-points that are spending the outputs of a transaction
@@ -201,6 +212,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     // The transaction might not be stored in a block on the best blockchain yet. Remove the transaction from the pool too.
     txDescIndex.delTransactionDescriptor(transactionHash)
     txPoolIndex.delTransactionFromPool(transactionHash)
+
+    chainEventListener.map(_.onRemoveTransaction(transaction))
   }
 
   /**
@@ -255,7 +268,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
     *
     */
-  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator], checkOnly : Boolean  ) : Unit = {
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator], checkOnly : Boolean, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None) : Unit = {
     // Step 1 : Attach each transaction input
     if (transaction.inputs(0).isCoinBaseInput()) {
       // Nothing to do for the coinbase inputs.
@@ -282,6 +295,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
             List.fill(transaction.outputs.length)(None) )
         )
       }
+
+      chainEventListener.map(_.onNewTransaction(transaction, chainBlock, transactionIndex))
     }
 
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.

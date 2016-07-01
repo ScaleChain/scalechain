@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.api.command
 
 import io.scalechain.util.StackUtil
-import io.scalechain.blockchain.{ErrorCode, ExceptionWithErrorCode}
+import io.scalechain.blockchain.{RpcException, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
@@ -16,7 +16,12 @@ trait RpcCommand {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
-        logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
+        if (e.isInstanceOf[RpcException] ) {
+          // We had an invalid RPC call such as missing mandatory parameters.
+          // do not log anything about this, because the cause of this exception is not ScaleChain server, but users calling RPCs.
+        } else {
+          logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
+        }
         val rpcError = RpcCommand.ERROR_MAP(e.code)
         Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
       }
