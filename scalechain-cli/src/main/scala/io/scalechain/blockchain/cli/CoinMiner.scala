@@ -47,7 +47,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
   /**
     * Check if we can start mining.
- *
+    *
     * @return true if we can mine; false otherwise.
     */
   def canMine() : Boolean = {
@@ -90,9 +90,6 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
         // Sleep for one minute to wait for each peer to start.
         Thread.sleep(params.InitialDelayMS)
 
-        // Step 1 : Set the minder's coin address to receive block mining reward.
-        val minerAddress = wallet.getReceivingAddress(minerAccount)
-
         var nonce : Int = 1
 
         while(true) { // This thread loops forever.
@@ -101,9 +98,20 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
           // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
 
+          val bestBlockHeight = chain.getBestBlockHeight()
+
+          // Step 1 : Set the minder's coin address to receive block mining reward.
+          // The mined coin goes to minerAccount if the best block height is less than 128.
+          val minerAddress =
+            if (bestBlockHeight < 128)
+              wallet.getReceivingAddress(minerAccount)
+            else
+              wallet.getReceivingAddress("internal")
+
+
           var sleep = true
           if (params.InitialDelayMS % 100 == 76) {
-            if ( chain.getBestBlockHeight() < 10 ) {
+            if ( bestBlockHeight < 10 ) {
               sleep = false
             }
           }
