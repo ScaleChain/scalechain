@@ -329,7 +329,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     * @param outputOwnership The output ownership to check.
     * @return true if the ownership exists; false otherwise.
     */
-  protected [wallet] def ownershipExists(outputOwnership : OutputOwnership) : Boolean = {
+  def ownershipExists(outputOwnership : OutputOwnership) : Boolean = {
     val ownershipOption = db.getObject(OWNERSHIP_DESC, outputOwnership)(OutputOwnershipCodec, OwnershipDescriptorCodec)
     ownershipOption.isDefined
   }
