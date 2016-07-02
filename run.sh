@@ -11,6 +11,7 @@ RPC_PORT=$[$1+$RPC_PORT_BASE]
 
 echo "Deleting all test files."
 rm -rf target/*-$P2P_PORT
+rm -rf target/request-*
 
 echo "Using P2P port $P2P_PORT, RPC port $RPC_PORT"
 echo "SBT_OPTS=$JAVA_OPTIONS"

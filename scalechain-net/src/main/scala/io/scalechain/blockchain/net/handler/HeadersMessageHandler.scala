@@ -24,26 +24,31 @@ object HeadersMessageHandler {
   def handle( context : MessageHandlerContext, headers : Headers ) : Unit = {
     // We don't support the headers first approach yet.
     logger.warn("Headers message is not supported yet.")
-/*
-    var prevHeaderHash : Hash = null
-    // Step 1 : Accept block headers received.
-    headers.headers foreach { header : BlockHeader =>
-      if (prevHeaderHash != null) {
-        if (prevHeaderHash != header.hashPrevBlock) {
-          val message = s"Headers message contains non-continuous block headers. Expected previous header hash ${prevHeaderHash}, actual header : ${header}"
-          logger.warn(message)
-          // TODO : Increase DoS score.
-          throw new NetException(ErrorCode.NonContinuousBlockHeaders)
-        }
-      }
 
-      BlockProcessor.acceptBlockHeader(header)
+    // During block reorganization, transactions/blocks are attached/detached. We need to synchronize with block reorganization.
+    Blockchain.get.synchronized {
+      /*
+          var prevHeaderHash : Hash = null
+          // Step 1 : Accept block headers received.
+          headers.headers foreach { header : BlockHeader =>
+            if (prevHeaderHash != null) {
+              if (prevHeaderHash != header.hashPrevBlock) {
+                val message = s"Headers message contains non-continuous block headers. Expected previous header hash ${prevHeaderHash}, actual header : ${header}"
+                logger.warn(message)
+                // TODO : Increase DoS score.
+                throw new NetException(ErrorCode.NonContinuousBlockHeaders)
+              }
+            }
+
+            BlockProcessor.acceptBlockHeader(header)
+          }
+          // Step 2 : Request next block headers.
+          // BUGBUG : We need to construct block locators instead of simply sending the last block header hash we received.
+          val getHeadersMessage = GetHeadersFactory.create( List( headers.headers.last.hash ) )
+          context.peer.send(getHeadersMessage)
+      */
+
     }
-    // Step 2 : Request next block headers.
-    // BUGBUG : We need to construct block locators instead of simply sending the last block header hash we received.
-    val getHeadersMessage = GetHeadersFactory.create( List( headers.headers.last.hash ) )
-    context.peer.send(getHeadersMessage)
-*/
 
 /*
     // Step 1 : read block headers
