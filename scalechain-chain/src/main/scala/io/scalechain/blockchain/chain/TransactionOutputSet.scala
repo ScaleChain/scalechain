@@ -48,7 +48,7 @@ class TransactionOutputSet extends CoinsView {
   def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
     val outputOption = outputsByOutPoint.get(outPoint)
     if (outputOption.isEmpty) {
-      throw new ChainException( ErrorCode.InvalidOutPoint )
+      throw new ChainException( ErrorCode.InvalidTransactionOutPoint )
     }
     outputOption.get
   }

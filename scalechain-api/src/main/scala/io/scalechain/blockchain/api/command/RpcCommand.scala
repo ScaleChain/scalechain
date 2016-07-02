@@ -22,8 +22,16 @@ trait RpcCommand {
         } else {
           logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
         }
-        val rpcError = RpcCommand.ERROR_MAP(e.code)
-        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+        RpcCommand.ERROR_MAP.get(e.code) match {
+          case Some(rpcError) => {
+            Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+          }
+          case _ => {
+            val rpcError = RpcError.RPC_INTERNAL_ERROR
+            logger.error(s"No mapping to RPC error for exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
+            Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+          }
+        }
       }
       // In case any error happens, return as RpcError.
       case e : Exception => {
@@ -52,6 +60,8 @@ object RpcCommand {
     ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR,
     // used by getblockheight.
     // TODO : Bitcoin Compatibility : Need to use the same RPC error when the height parameter has an invalid value.
-    ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMS
+    ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.InvalidTransactionOutPoint -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.ParentTransactionNotFound -> RpcError.RPC_INVALID_PARAMETER
   )
 }

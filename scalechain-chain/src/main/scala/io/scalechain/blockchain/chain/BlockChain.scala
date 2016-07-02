@@ -453,7 +453,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       if (transaction.isEmpty) {
         val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
         logger.error(message)
-        throw new ChainException(ErrorCode.InvalidOutPoint, message)
+        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
       }
 
       val outputs = transaction.get.outputs
@@ -461,7 +461,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
         val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
         logger.error(message)
-        throw new ChainException(ErrorCode.InvalidOutPoint, message)
+        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
       }
 
       outputs(outPoint.outputIndex)
