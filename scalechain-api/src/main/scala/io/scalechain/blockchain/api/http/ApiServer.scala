@@ -3,7 +3,7 @@ package io.scalechain.blockchain.api.http
 import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{Channel, ChannelOption, EventLoopGroup}
+import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.{SslContextBuilder, SslContext}
@@ -29,11 +29,25 @@ class ApiServer {
     //b.option[Integer](ChannelOption.SO_BACKLOG, 1024)
     b.group(bossGroup, workerGroup)
      .channel(classOf[NioServerSocketChannel])
-     .handler(new LoggingHandler(LogLevel.INFO))
+     .handler(new LoggingHandler(LogLevel.TRACE))
      .childHandler(new ApiServerInitializer(sslCtx))
 
-    b.bind(port)
-    logger.info("ScaleChain API available at " + (if (useSSL) "https" else "http") + "://127.0.0.1:" + port + '/')
+    b.bind(port).addListener(new ChannelFutureListener() {
+      def operationComplete(future:ChannelFuture) {
+        assert( future.isDone )
+        if (future.isSuccess) { // completed successfully
+          logger.info(s"ScaleChain API available at ${(if (useSSL) "https" else "http")}://127.0.0.1:${port}")
+        }
+
+        if (future.cause() != null) { // completed with failure
+          logger.error(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}")
+        }
+
+        if (future.isCancelled) { // completed by cancellation
+          logger.error(s"Canceled to bind port : ${port}")
+        }
+      }
+    })
   }
 
   def shutdown() : Unit = {

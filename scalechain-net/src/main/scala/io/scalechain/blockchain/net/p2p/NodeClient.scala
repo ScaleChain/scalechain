@@ -52,7 +52,7 @@ class NodeClient(peerSet : PeerSet) extends AutoCloseable {
         if (future.cause() != null) { // completed with failure
           val causeDescription = ExceptionUtil.describe( future.cause.getCause )
 
-          logger.info(s"Failed to connect to ${address}:${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+          logger.info(s"Failed to connect to ${address}:${port}. Exception : ${future.cause.getMessage}")
         }
 
         if (future.isCancelled) { // completed by cancellation

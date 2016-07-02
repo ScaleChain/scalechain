@@ -30,7 +30,7 @@ class NodeServer(peerSet : PeerSet) {
     b.group(bossGroup, workerGroup)
       .channel(classOf[NioServerSocketChannel])
       .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
-      .handler(new LoggingHandler(LogLevel.INFO))
+      .handler(new LoggingHandler(LogLevel.TRACE))
       .childHandler(new NodeServerInitializer(sslCtx, peerSet))
 
     //b.bind(port).sync().channel().closeFuture().sync()
@@ -42,8 +42,7 @@ class NodeServer(peerSet : PeerSet) {
         }
 
         if (future.cause() != null) { // completed with failure
-          val causeDescription = ExceptionUtil.describe( future.cause.getCause )
-          logger.error(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}, ${causeDescription}")
+          logger.error(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}")
         }
 
         if (future.isCancelled) { // completed by cancellation
