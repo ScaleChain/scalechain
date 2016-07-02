@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
 import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
 import io.scalechain.util.StackUtil
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory
   * @param channel The netty channel where we send messages.
   */
 case class Peer(private val channel : Channel) {
-  private val logger = LoggerFactory.getLogger(classOf[Peer])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Peer]) )
 
   /**
     * The version we got from the peer. This is set to some value only if we received the Version message.
@@ -25,6 +26,7 @@ case class Peer(private val channel : Channel) {
 
   /**
     * Update version received from the peer.
+ *
     * @param version
     */
   def updateVersion(version : Version) : Unit = {
@@ -39,6 +41,7 @@ case class Peer(private val channel : Channel) {
   var requestedBlockHashOption : Option[Hash] = None
   /**
     * Keep a block as requested using getblocks message.
+ *
     * @param blockHash The hash of block requested using getblocks message.
     */
   def blockRequested(blockHash : Hash) : Unit = {
@@ -47,6 +50,7 @@ case class Peer(private val channel : Channel) {
 
   /**
     * Check if a block was requested using getblocks message.
+ *
     * @param blockHash The block hash to check.
     * @return true if the block was requested; false otherwise.
     */
@@ -83,15 +87,15 @@ case class Peer(private val channel : Channel) {
       def operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
-          logger.info(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
+          logger.debug(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
         }
 
         if (future.cause() != null) { // completed with failure
-          logger.info(s"Failed to send to peer : ${channel.remoteAddress}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+          logger.debug(s"Failed to send to peer : ${channel.remoteAddress}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
         }
 
         if (future.isCancelled) { // completed by cancellation
-          logger.info(s"Canceled to send to peer : ${channel.remoteAddress}, ${messageString}")
+          logger.debug(s"Canceled to send to peer : ${channel.remoteAddress}, ${messageString}")
         }
       }
     })

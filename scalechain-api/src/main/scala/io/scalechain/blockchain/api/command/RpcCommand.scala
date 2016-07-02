@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.api.command
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.util.StackUtil
 import io.scalechain.blockchain.{RpcException, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
 trait RpcCommand {
-  private val logger = LoggerFactory.getLogger(classOf[RpcCommand])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[RpcCommand]) )
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]]
   def help() : String

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
@@ -103,7 +104,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   *
   */
 class Blockchain(storage : BlockStorage) extends BlockchainView  {
-  private val logger = LoggerFactory.getLogger(classOf[Blockchain])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
   val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
   val txPool = new TransactionPool(storage, txMagnet)
@@ -114,6 +115,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
   /**
     * Create the block mining, which knows how to select transactions from the transaction pool.
+ *
     * @return The created block mining.
     */
   def createBlockMining() : BlockMining = {
@@ -166,7 +168,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
 
     synchronized {
       if (storage.hasBlock(blockHash)) {
-        logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
+        logger.trace(s"Duplicate block was ignored. Block hash : ${blockHash}")
         false
       } else {
 
@@ -213,7 +215,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
             if (blockInfo.chainWork > theBestBlock.chainWork) {
-              logger.warn(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The new Best (${blockInfo.blockHeader.hash},${blockInfo})")
+              logger.info(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The new Best (${blockInfo.blockHeader.hash},${blockInfo})")
 
               // Step 3.B.2 : Reorganize the blocks.
               // transaction handling, orphan block handling is done in this method.
@@ -226,7 +228,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
               // TODO : Update best block in wallet (so we can detect restored wallets)
               true
             } else {
-              logger.warn(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
+              logger.info(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
               false
             }
           }
@@ -345,7 +347,6 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       val blockHashOption = storage.getBlockHashByHeight(blockHeight)
       // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
       if (blockHashOption.isEmpty) {
-        logger.error(s"Invalid blockHeight for Blockchain.getBlockHash : ${blockHeight}, best block height : ${theBestBlock.height}")
         throw new ChainException(ErrorCode.InvalidBlockHeight)
       }
       blockHashOption.get

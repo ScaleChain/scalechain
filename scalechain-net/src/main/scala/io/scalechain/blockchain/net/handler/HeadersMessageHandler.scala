@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.{Blockchain, BlockLocator}
 import io.scalechain.blockchain.net.message.GetHeadersFactory
 import io.scalechain.blockchain.script.HashSupported
@@ -13,7 +14,7 @@ import HashSupported._
   * The message handler for Headers message.
   */
 object HeadersMessageHandler {
-  private lazy val logger = LoggerFactory.getLogger(HeadersMessageHandler.getClass)
+  private lazy val logger = Logger( LoggerFactory.getLogger(HeadersMessageHandler.getClass) )
 
   /** Handle Headers message.
     *

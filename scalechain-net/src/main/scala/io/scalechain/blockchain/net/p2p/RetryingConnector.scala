@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.p2p
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.message.VersionFactory
@@ -15,7 +16,7 @@ import scala.annotation.tailrec
   * Created by kangmo on 5/26/16.
   */
 class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
-  private val logger = LoggerFactory.getLogger(classOf[RetryingConnector])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[RetryingConnector]) )
 
   def connect(address : String, port : Int) : Unit = {
     // TODO : BUGBUG : Need to call nodeClient.close when the connection closes?
@@ -41,11 +42,11 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
 
               if (future.cause() != null) { // completed with failure
                 val causeDescription = ExceptionUtil.describe( future.cause.getCause )
-                logger.info(s"Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+                logger.warn(s"Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
               }
 
               if (future.isCancelled) { // completed by cancellation
-                logger.info(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
+                logger.warn(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
               }
 /*
               logger.info(s"Connection to ${address}:${port} closed. Will reconnect in a second.")

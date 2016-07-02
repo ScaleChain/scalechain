@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net
 
 import java.net.{InetAddress, InetSocketAddress}
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{HexUtil, StringUtil}
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 5/22/16.
   */
 class PeerCommunicator(peerSet : PeerSet) {
-  private val logger = LoggerFactory.getLogger(classOf[PeerCommunicator])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[PeerCommunicator]) )
 
   /*
     protected[net] def sendToAny(message : ProtocolMessage): Unit = {
@@ -63,6 +64,7 @@ class PeerCommunicator(peerSet : PeerSet) {
 
   /**
     * Get the peer which has highest best block height.
+ *
     * @return Some(best PeerInfo) if there is any connected peer; None otherwise.
     */
   def getBestPeer() : Option[PeerInfo] = {

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel._
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.DefaultChannelGroup
@@ -20,7 +21,7 @@ import java.net.InetAddress
   * Handles a server-side channel.
   */
 class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[ProtocolMessage] {
-  private val logger = LoggerFactory.getLogger(classOf[NodeServerHandler])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeServerHandler]) )
 
   var messageHandler : ProtocolMessageHandler = null
 
@@ -61,11 +62,11 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
 
               if (future.cause() != null) { // completed with failure
                 val causeDescription = ExceptionUtil.describe( future.cause.getCause )
-                logger.info(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+                logger.warn(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
               }
 
               if (future.isCancelled) { // completed by cancellation
-                logger.info(s"Canceled to close connection. Remote address : ${remoteAddress}")
+                logger.warn(s"Canceled to close connection. Remote address : ${remoteAddress}")
               }
             }
           })

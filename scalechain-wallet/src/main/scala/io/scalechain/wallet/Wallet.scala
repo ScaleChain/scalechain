@@ -2,6 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
@@ -38,7 +39,7 @@ case class WalletOutputWithInfo(
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
-  private val logger = LoggerFactory.getLogger(classOf[Wallet])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Wallet]) )
 
   val store = new WalletStore(walletFolder)
 
@@ -704,14 +705,13 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
 
-      logger.info(s"[Wallet register tx:${transactionHash}] started.")
+      logger.trace(s"[Wallet register tx:${transactionHash}] started.")
 
       val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
       // If the transaction is related to the output
       var isTransactionRelated = false
 
-      var isTransactionRelatedToTheOwnership = false
       // Step 2 : Put each UTXO if the output ownership owns it.
       var outputIndex = -1
       transaction.outputs foreach { transactionOutput =>
@@ -726,16 +726,16 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
           //println(s"registerTransaction outPoint=> ${outPoint}")
           // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
-
-          isTransactionRelated = true
         }
 
         if (walletOutputOwnerships.isEmpty) {
           // Do nothing, the transaction output is not related to the output ownerships in the wallet.
         } else {
-          val walletOutputOption = store.getWalletOutput(outPoint)
+          isTransactionRelated = true
 
           val blockHeightOption = chainBlock.map( _.height )
+
+          val walletOutputOption = store.getWalletOutput(outPoint)
 
           if (walletOutputOption.isEmpty) {
             // A transaction can be registered more than once. Ex> when added to a mempool, when a block is attached.
@@ -752,22 +752,22 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             )
             store.putWalletOutput(outPoint, walletOutput)
 
-            logger.info(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
+            logger.debug(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
           } else {
             store.putWalletOutput(outPoint,
               walletOutputOption.get.copy(
                 blockindex = blockHeightOption)
             )
 
-            logger.info(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}. outpoint : ${outPoint}")
+            logger.debug(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}. outpoint : ${outPoint}")
           }
         }
       }
 
-      var inputIndex = -1
       if (transaction.inputs(0).isCoinBaseInput()) {
         // do nothing
       } else {
+        var inputIndex = -1
         // Step 3 : Mark a UTXO spent if this transaction spends it.
         transaction.inputs foreach { transactionInput =>
           inputIndex += 1
@@ -790,7 +790,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             // We have the output in our wallet.
             // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
             if ( store.markWalletOutputSpent(spentOutput, true) ) {
-              logger.info(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+              logger.debug(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
 
             isTransactionRelated = true
@@ -831,11 +831,13 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
 
-      logger.info(s"[Wallet unregister tx:${transactionHash}] started.")
+      logger.trace(s"[Wallet unregister tx:${transactionHash}] started.")
 
       // TODO : BUGBUG : When the JVM crashes while executing registerTransaction, related keys may exists on wallet indexes without the WalletTransaction being put into the wallet index.
       // If the transaction is related to the output
+
       var isTransactionRelated = false
+
       var outputIndex = -1
       // Step 2 : Remove each UTXO if the output ownership owns it.
       transaction.outputs foreach { transactionOutput =>
@@ -851,9 +853,15 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
           store.delTransactionHash(ownership, transactionHash)
         }
 
-        store.delWalletOutput(outPoint)
+        if (walletOutputOwnerships.isEmpty) {
+          // Do nothing, the transaction output is not related to the output ownerships in the wallet.
+        } else {
+          store.delWalletOutput(outPoint)
 
-        logger.info(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
+          logger.debug(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
+
+          isTransactionRelated = true
+        }
       }
 
       var inputIndex = -1
@@ -883,13 +891,19 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
             // Step 4 : Wallet Store : Mark a UTXO unspent searching by OutPoint.
             if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
-              logger.info(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+              logger.debug(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
+
+            isTransactionRelated = true
           }
         }
       }
       // Step 5 : Wallet Store : Remove a transaction.
-      store.delWalletTransaction(transactionHash)
+      if (isTransactionRelated) {
+        store.delWalletTransaction(transactionHash)
+      } else {
+        assert( store.getWalletTransaction(transactionHash).isEmpty )
+      }
     }
   }
 

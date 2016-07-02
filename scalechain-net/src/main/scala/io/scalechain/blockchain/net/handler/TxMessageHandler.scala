@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.{ErrorCode, ChainException}
@@ -12,7 +13,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * The message handler for Tx message.
   */
 object TxMessageHandler {
-  private lazy val logger = LoggerFactory.getLogger(TxMessageHandler.getClass)
+  private lazy val logger = Logger( LoggerFactory.getLogger(TxMessageHandler.getClass) )
 
   val chain = Blockchain.get
 
@@ -24,7 +25,7 @@ object TxMessageHandler {
     */
   def handle( context : MessageHandlerContext, transaction : Transaction ) : Unit = {
     val transactionHash = transaction.hash
-    logger.info(s"[P2P] Received a transaction. Hash : ${transactionHash}")
+    logger.trace(s"[P2P] Received a transaction. Hash : ${transactionHash}")
 
     // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
 
@@ -35,7 +36,7 @@ object TxMessageHandler {
 
       try {
         if (TransactionProcessor.exists(transactionHash)) {
-          logger.info(s"The transaction already exists. ${transaction}")
+          logger.trace(s"The transaction already exists. ${transaction}")
         } else {
           // Try to put the transaction into the disk-pool
           TransactionProcessor.putTransaction(transactionHash, transaction)
@@ -48,16 +49,16 @@ object TxMessageHandler {
           // Step 3 : Relay the transaction as an inventory
           val invMessage = InvFactory.createTransactionInventories(transactionHash :: acceptedChildren)
           context.communicator.sendToAll(invMessage)
-          logger.info(s"Propagating inventories for the newly accepted transactions. ${invMessage}")
+          logger.trace(s"Propagating inventories for the newly accepted transactions. ${invMessage}")
         }
       } catch {
         case e: ChainException => {
           if (e.code == ErrorCode.ParentTransactionNotFound) {
             // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
             TransactionProcessor.putOrphan(transactionHash, transaction)
-            logger.warn(s"An orphan transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
+            logger.info(s"An orphan transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
           } else if (e.code == ErrorCode.TransactionOutputAlreadySpent) {
-            logger.warn(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
+            logger.trace(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
           }
         }
       }

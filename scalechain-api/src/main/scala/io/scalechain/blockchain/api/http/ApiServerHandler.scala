@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.http
 
+import com.typesafe.scalalogging.Logger
 import io.netty.buffer.{Unpooled, ByteBuf}
 import io.netty.channel.{SimpleChannelInboundHandler, ChannelHandlerContext, ChannelFutureListener}
 import io.netty.handler.codec.DecoderResult
@@ -22,7 +23,7 @@ object ApiServerHandler {
 }
 
 class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
-  private val logger = LoggerFactory.getLogger(classOf[ApiServerHandler])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[ApiServerHandler]) )
 
 
   private var request: HttpRequest = null

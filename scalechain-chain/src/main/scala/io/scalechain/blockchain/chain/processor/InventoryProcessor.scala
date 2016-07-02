@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{InvType, InvVector}
 import org.slf4j.LoggerFactory
@@ -10,7 +11,7 @@ object InventoryProcessor extends InventoryProcessor( Blockchain.get )
   * Process a received Inv message.
   */
 class InventoryProcessor(val chain : Blockchain) {
-  private lazy val logger = LoggerFactory.getLogger(classOf[InventoryProcessor])
+  private lazy val logger = Logger( LoggerFactory.getLogger(classOf[InventoryProcessor]) )
 
   def alreadyHas(inventory : InvVector) : Boolean = {
     inventory.invType match {

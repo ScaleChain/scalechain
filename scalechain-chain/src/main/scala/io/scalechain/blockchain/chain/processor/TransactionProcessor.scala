@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash}
@@ -13,7 +14,7 @@ object TransactionProcessor extends TransactionProcessor(Blockchain.get)
   *
   */
 class TransactionProcessor(val chain : Blockchain) {
-  private val logger = LoggerFactory.getLogger(classOf[TransactionProcessor])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionProcessor]) )
 
   /** See if a transaction exists. Checks orphan transactions as well.
     * naming rule : 'exists' checks orphan transactions as well, whereas hasNonOrphan does not.

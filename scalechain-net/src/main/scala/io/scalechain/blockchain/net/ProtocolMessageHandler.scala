@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.net.handler._
 import io.scalechain.blockchain.proto._
 import org.slf4j.LoggerFactory
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory
   */
 class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
   val context = new MessageHandlerContext(peer, communicator)
-  private val logger = LoggerFactory.getLogger(classOf[ProtocolMessageHandler])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[ProtocolMessageHandler]) )
 
   /** Handle a message coming from the TCP stream.
     *
@@ -59,7 +60,7 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
         BlockMessageHandler.handle(context, block)
       }
       case m: ProtocolMessage => {
-        logger.warn("Received a message, but done nothing : " + m.getClass.getName)
+        logger.warn(s"Received a message, but done nothing : ${m.getClass.getName}" )
         None
       }
     }

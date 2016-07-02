@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.{TransactionPoolEntry, TransactionDescriptor, Hash, Transaction}
 import io.scalechain.blockchain.storage.BlockStorage
 import org.slf4j.LoggerFactory
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 6/9/16.
   */
 class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(classOf[TransactionPool])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPool]) )
 
   def getTransactionsFromPool() : List[(Hash, Transaction)] = {
     storage.getTransactionsFromPool().map{ case (hash, transactionPoolEntry) =>
@@ -24,7 +25,6 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     *
     * @param txHash The hash of the transaction to add.
     * @param transaction The transaction to add to the disk-pool.
-    *
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
   def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {

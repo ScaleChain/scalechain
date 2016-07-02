@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto._
@@ -15,7 +16,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * Created by kangmo on 6/9/16.
   */
 class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockMagnet])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockMagnet]) )
 
   /**
     * Detach a block from the best blockchain.

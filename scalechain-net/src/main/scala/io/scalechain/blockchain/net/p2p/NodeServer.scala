@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelFuture, EventLoopGroup}
 import io.netty.channel.nio.NioEventLoopGroup
@@ -13,7 +14,7 @@ import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 class NodeServer(peerSet : PeerSet) {
-  private val logger = LoggerFactory.getLogger(classOf[NodeClient])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeClient]) )
 
   protected[net] val bossGroup : EventLoopGroup = new NioEventLoopGroup(1)
   protected[net] val workerGroup : EventLoopGroup = new NioEventLoopGroup()
@@ -42,11 +43,11 @@ class NodeServer(peerSet : PeerSet) {
 
         if (future.cause() != null) { // completed with failure
           val causeDescription = ExceptionUtil.describe( future.cause.getCause )
-          logger.info(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}, ${causeDescription}")
+          logger.error(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}, ${causeDescription}")
         }
 
         if (future.isCancelled) { // completed by cancellation
-          logger.info(s"Canceled to bind port : ${port}")
+          logger.error(s"Canceled to bind port : ${port}")
         }
       }
     })

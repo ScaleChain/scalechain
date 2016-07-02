@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.http
 
+import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{Channel, ChannelOption, EventLoopGroup}
@@ -10,7 +11,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import org.slf4j.LoggerFactory
 
 class ApiServer {
-  private val logger = LoggerFactory.getLogger(classOf[ApiServer])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[ApiServer]) )
   private val bossGroup: EventLoopGroup = new NioEventLoopGroup(1)
   private val workerGroup: EventLoopGroup = new NioEventLoopGroup
 

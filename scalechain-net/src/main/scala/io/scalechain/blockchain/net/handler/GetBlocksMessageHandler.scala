@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
 import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.InvFactory
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
   */
 object GetBlocksMessageHandler {
   val MAX_HASH_PER_REQUEST = 500
-  private lazy val logger = LoggerFactory.getLogger(GetBlocksMessageHandler.getClass)
+  private lazy val logger = Logger( LoggerFactory.getLogger(GetBlocksMessageHandler.getClass) )
 
   /** Handle GetBlocks message.
     *
@@ -50,11 +51,11 @@ object GetBlocksMessageHandler {
     // Step 4 : Pack the block hashes into an Inv message, and reply it to the requester.
     if (filteredBlockHashes.isEmpty) {
       // Do nothing. Nothing to send.
-      logger.info(s"Nothing to send in response to getblocks message.")
+      logger.trace(s"Nothing to send in response to getblocks message.")
     } else {
       val invMessage = InvFactory.createBlockInventories(filteredBlockHashes)
       context.peer.send(invMessage)
-      logger.info(s"Sending inventories in response to getblocks message. ${MessageSummarizer.summarize(invMessage)}")
+      logger.trace(s"Sending inventories in response to getblocks message. ${MessageSummarizer.summarize(invMessage)}")
     }
   }
 }

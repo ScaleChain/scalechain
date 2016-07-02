@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto.codec.TransactionCodec
@@ -19,7 +20,7 @@ import HashSupported._
 
 
 class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoolIndex {
-  private val logger = LoggerFactory.getLogger(classOf[TemporaryTransactionPoolIndex])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TemporaryTransactionPoolIndex]) )
 
   directoryPath.mkdir()
 
@@ -51,7 +52,7 @@ class TemporaryCoinsView(coinsView : CoinsView, tempTxPoolIndex : TemporaryTrans
   * Created by kangmo on 6/9/16.
   */
 class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockMining])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockMining]) )
 
   /*
     /** Calculate the (encoded) difficulty bits that should be in the block header.

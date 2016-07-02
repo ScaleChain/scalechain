@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage.index
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.storage.TransactionLocator
@@ -28,7 +29,7 @@ object DatabaseTablePrefixes {
   * This class is used by CassandraBlockStorage.
   */
 class BlockDatabase(db : KeyValueDatabase) {
-  val logger = LoggerFactory.getLogger(classOf[BlockDatabase])
+  val logger = Logger( LoggerFactory.getLogger(classOf[BlockDatabase]) )
 
   import DatabaseTablePrefixes._
 

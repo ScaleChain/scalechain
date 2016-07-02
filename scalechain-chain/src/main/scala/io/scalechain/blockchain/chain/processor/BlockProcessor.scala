@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
@@ -27,7 +28,7 @@ object BlockProcessor extends BlockProcessor(Blockchain.get)
   *
   */
 class BlockProcessor(val chain : Blockchain) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockProcessor])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockProcessor]) )
 
 
 

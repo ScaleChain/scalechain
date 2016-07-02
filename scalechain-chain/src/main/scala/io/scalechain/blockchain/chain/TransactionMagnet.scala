@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.{ErrorCode, ChainException}
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory
   *                      Otherwise, txPoolStorage is the 'storage' parameter.
   */
 class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex) {
-  private val logger = LoggerFactory.getLogger(classOf[TransactionMagnet])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionMagnet]) )
 
   protected [chain] var chainEventListener : Option[ChainEventListener] = None
 

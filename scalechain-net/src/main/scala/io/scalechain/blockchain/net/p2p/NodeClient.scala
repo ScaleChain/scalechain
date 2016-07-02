@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory
   * Simple SSL chat client.
   */
 class NodeClient(peerSet : PeerSet) extends AutoCloseable {
-  private val logger = LoggerFactory.getLogger(classOf[NodeClient])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeClient]) )
 
   protected[net] val group : EventLoopGroup = new NioEventLoopGroup()
 

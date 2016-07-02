@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.slf4j.LoggerFactory
@@ -17,7 +18,7 @@ case class BlockLocatorHashes(hashes : List[Hash])
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
 class BlockLocator(chain : Blockchain) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockLocator])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockLocator]) )
 
   /** Get the summary of block hashes that this node has.
     * We will use these hashes to create the GetBlocks request.

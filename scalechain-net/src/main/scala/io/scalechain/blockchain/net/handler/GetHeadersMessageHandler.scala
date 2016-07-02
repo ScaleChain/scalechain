@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.{ErrorCode, NetException}
 import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory
   *
   */
 object GetHeadersMessageHandler {
-  private lazy val logger = LoggerFactory.getLogger(GetHeadersMessageHandler.getClass)
+  private lazy val logger = Logger( LoggerFactory.getLogger(GetHeadersMessageHandler.getClass) )
 
   /** Handle GetHeaders message.
     *

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel.{Channel, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory
   * Handles a client-side channel.
   */
 class NodeClientHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[ProtocolMessage] {
-  private val logger = LoggerFactory.getLogger(classOf[NodeClientHandler])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeClientHandler]) )
 
   var messageHandler : ProtocolMessageHandler = null
 

@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import java.net.{SocketAddress, InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.group.{ChannelGroupFuture, ChannelGroupFutureListener, ChannelGroup, DefaultChannelGroup}
@@ -36,7 +37,7 @@ object PeerSet {
   * As a stream is materialized using Akka actors, multiple threads can run at the same time trying to access the peer set.
   */
 class PeerSet {
-  private val logger = LoggerFactory.getLogger(classOf[PeerSet])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[PeerSet]) )
 
   /**
     * A channel group that has all connected channels.
@@ -99,20 +100,21 @@ class PeerSet {
 
   /**
     * Send a message to all connected peers.
+ *
     * @param message The message to send.
     */
   def sendToAll(message : ProtocolMessage): Unit = {
     val messageString = MessageSummarizer.summarize(message)
 
     if (channels.size > 0) {
-      logger.info(s"Sending to all peers : ${messageString}")
+      logger.trace(s"Sending to all peers : ${messageString}")
 
       channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
         def operationComplete(future:ChannelGroupFuture) {
           assert( future.isDone )
           val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
           if (future.isSuccess) { // completed successfully
-            logger.info(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
+            logger.debug(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
           }
 
           if (future.cause() != null) { // completed with failure
@@ -128,11 +130,11 @@ class PeerSet {
               s"An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
             }.mkString("\n")
 
-            logger.info(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}" )
+            logger.debug(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}" )
           }
 
           if (future.isCancelled) { // completed by cancellation
-            logger.info(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
+            logger.debug(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
           }
         }
       })
@@ -145,6 +147,7 @@ class PeerSet {
   /**
     * Remove a peer that matches the remote address.
     * Called when the connection to the peer closes.
+ *
     * @param remoteAddress The remote address of the peer to remove.
     */
   def remove(remoteAddress : SocketAddress): Unit = {
@@ -158,7 +161,7 @@ class PeerSet {
         }
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
         case embeddedSocketAddress : SocketAddress => {
-          if ( embeddedSocketAddress .toString == "embedded") {
+          if ( embeddedSocketAddress.toString == "embedded") {
             peerByAddress.remove(new InetSocketAddress(1000) )
           } else {
             val message = s"The remote address of the channel to remove was not the type EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
@@ -167,7 +170,7 @@ class PeerSet {
           }
         }
         case _ => {
-          val message = s"The remote address of the channel to remove was not the type InetSocketAddress. Remote Address : ${remoteAddress}"
+          val message = s"The remote address of the channel to remove was not the type InetSocketAddress or EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
           logger.error(message)
           throw new ChainException(ErrorCode.InternalError, message )
         }

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 3/23/16.
   */
 trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with OrphanBlockIndex with OrphanTransactionIndex {
-  private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockStorage]) )
   protected[storage] val blockDatabase : BlockDatabase
 
   def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator]
@@ -169,7 +170,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
           // We put a block as a best block only if we have the block data as long as the header.
         } else {
           // case 1.2 : the same block header already exists.
-          logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
+          logger.trace("A block header is put onto the block database twice. block hash : {}", blockHash)
 
           // blockIndex hits an assertion if the block header is changed for the same block hash.
           // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
@@ -180,7 +181,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
         }
       } else {
         // case 2 : the previous block header was not found.
-        logger.warn("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
+        logger.trace("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
       }
     }
   }

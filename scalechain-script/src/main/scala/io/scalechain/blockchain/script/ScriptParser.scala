@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.script
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Script
 import io.scalechain.blockchain.script.ops.{ScriptOpWithoutCode, OpCond, ScriptOp}
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException, ScriptParseException}
@@ -30,12 +31,11 @@ case class ParseResult(scriptOpList : ScriptOpList, foundFenceOp : ScriptOp, byt
  * @param rawScript The raw bytes of script that we did not parse yet.
  */
 object ScriptParser {
-  val logger = LoggerFactory.getLogger(ScriptParser.getClass)
+  val logger = Logger( LoggerFactory.getLogger(ScriptParser.getClass) )
 
   /** Parse a given raw script in a byte array to get the list of ScriptOp(s)
    *
    * @param script The input script.
-   *
    * @return The list of ScriptOp(s).
    */
   def parse(script : Script): ScriptOpList  = {
@@ -61,7 +61,6 @@ object ScriptParser {
     *
     * Throw a parse exception with UnexpectedEndOfScript code if we did not meet any of fenceScriptOps
     * and we reached at the end of the script.
-    *
     * @return The list of ScriptOp(s).
     */
   def parseUntil(script : Script, offset : Int, fenceScriptOps : ScriptOp*): ParseResult  = {

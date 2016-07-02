@@ -2,6 +2,7 @@ package io.scalechain.blockchain.cli
 
 import java.util
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
@@ -34,7 +35,7 @@ object CoinMiner {
 
 
 class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
-  private val logger = LoggerFactory.getLogger(classOf[CoinMiner])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[CoinMiner]) )
 
   // For every 10 seconds, create a new block template for mining a block.
   // This means that transactions received within the time window may not be put into the mined block.
@@ -46,6 +47,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
   /**
     * Check if we can start mining.
+ *
     * @return true if we can mine; false otherwise.
     */
   def canMine() : Boolean = {
@@ -134,6 +136,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                 val blockHashThreshold = Hash(blockHeaderThreshold)
                 if (blockHashThreshold.value.length != 32) {
                   logger.error(s"scalechain.mining.header_hash_threshold should be 32 bytes. The specified value has ${blockHashThreshold.value.length} bytes")
+
                 }
 
                 val newBlockHeader = blockHeader.copy(nonce = nonce)
@@ -148,7 +151,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                     chain.putBlock(Hash(newBlockHash.value), block)
                     peerCommunicator.propagateBlock(block)
                     blockFound = true
-                    logger.info(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
+                    logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
                   }
                 }
               } else {

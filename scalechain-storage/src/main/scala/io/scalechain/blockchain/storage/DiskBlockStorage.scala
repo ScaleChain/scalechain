@@ -2,6 +2,7 @@ package io.scalechain.blockchain.storage
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
@@ -73,7 +74,7 @@ object DiskBlockStorage {
   */
 
 class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockStorage {
-  private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[DiskBlockStorage]) )
 
   directoryPath.mkdir()
 
@@ -157,7 +158,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
           } else {
             // case 1.2 block info with a block locator was found
             // The block already exists. Do not put it once more.
-            logger.warn("The block already exists. block hash : {}", blockHash)
+            logger.trace("The block already exists. block hash : {}", blockHash)
 
             List()
           }
@@ -194,7 +195,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             // case 2.2 : no block info was found, previous block header does not exists.
             // Actually the code execution should never come to here, because we have checked if the block is an orphan block
             // before invoking putBlock method.
-            logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
+            logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
 
             List()
           }
