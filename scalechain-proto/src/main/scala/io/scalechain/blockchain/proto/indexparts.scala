@@ -52,16 +52,14 @@ case class TransactionCount( count : Int) extends ProtocolMessage
   */
 case class BlockHeight( height : Long ) extends ProtocolMessage
 
-/** The transaction descriptor kept for each transaction.
-  * ScaleChain does not use mempool, but keeps transactions on rocksdb.
-  * So, if a transaction was put input a block on the best blockchain, we keep the file record locator of the transaction stored on disk.
-  * If a transaction was not put into a block on the best blockchain, we keep the serialized transaction as part of a value in rocksdb.
+/** The transaction descriptor kept for each transaction stored in a block.
+  * Transactions in the transaction pool don't store transaction descriptors, but they are kept in the transaction pool.
   *
-  * @param transactionLocatorOption Some(file record locator) pointing to an on-disk serialized transaction in a block if the transaction is stored in a block. None if it is stored in the on-disk transaction pool.
+  * @param transactionLocator The file record locator pointing to an on-disk serialized transaction
   * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
   *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
   */
-case class TransactionDescriptor( transactionLocatorOption : Option[FileRecordLocator], outputsSpentBy : List[Option[InPoint]] ) extends ProtocolMessage
+case class TransactionDescriptor( transactionLocator : FileRecordLocator, outputsSpentBy : List[Option[InPoint]] ) extends ProtocolMessage
 
 
 /** A descriptor for an orphan block. Used as the value of the (key:block hash, value:orphan block) index.
@@ -75,5 +73,18 @@ case class OrphanBlockDescriptor( block : Block ) extends ProtocolMessage
   * @param transaction
   */
 case class OrphanTransactionDescriptor(
-    transaction : Transaction
+  transaction : Transaction
+) extends ProtocolMessage
+
+
+/**
+  * An entry in the transaction pool. Transactions that are not kept in any block on the best blockchain are kept in the transaction pool.
+  *
+  * @param transaction The transaction in the transaction pool.
+  * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
+  *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
+  */
+case class TransactionPoolEntry(
+  transaction : Transaction,
+  outputsSpentBy : List[Option[InPoint]]
 ) extends ProtocolMessage

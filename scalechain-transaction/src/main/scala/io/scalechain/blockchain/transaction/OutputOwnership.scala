@@ -115,14 +115,6 @@ sealed trait OutputOwnership extends ProtocolMessage {
     */
   def isValid(): Boolean
 
-  /** Check if an ownership owns a transaction output.
-    *
-    * @param output The transaction output to check.
-    * @return true if the ownership has owns the output. false otherwise.
-    */
-  def owns(output : TransactionOutput) : Boolean
-
-
   /** The locking script that this output ownership can unlock.
     *
     * @return The locking script.
@@ -158,16 +150,6 @@ case class CoinAddress(version:Byte, publicKeyHash : ByteArray) extends OutputOw
     } else {
       true
     }
-  }
-
-  /** Check if an ownership owns a transaction output.
-    *
-    * @param output The transaction output to check.
-    * @return true if the ownership has owns the output. false otherwise.
-    */
-  def owns(output : TransactionOutput) : Boolean = {
-    val outputOwners : List[CoinAddress] = LockingScriptAnalyzer.extractAddresses(output.lockingScript)
-    outputOwners.contains(this)
   }
 
   /** Return the address in base58 encoding format.
@@ -208,16 +190,6 @@ case class ParsedPubKeyScript(scriptOps : ScriptOpList) extends OutputOwnership 
   def isValid(): Boolean = {
     // TOOD : Check if the scriptOps is one of the pubKeyScript patters for standard transactions.
     true
-  }
-
-  /** Check if an ownership owns a transaction output.
-    *
-    * @param output The transaction output to check.
-    * @return true if the ownership has owns the output. false otherwise.
-    */
-  def owns(output : TransactionOutput) : Boolean = {
-    val parsedScriptOpsList : ScriptOpList = ScriptParser.parse(output.lockingScript)
-    scriptOps == parsedScriptOpsList
   }
 
   /** Encode the parsed public key script into a byte array to get a locking script.

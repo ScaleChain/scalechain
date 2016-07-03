@@ -122,11 +122,20 @@ Check if a port is open.
 exec 6<>/dev/tcp/cassandra-1/9042
 ```
 
+### Restart machines
+```
+docker-machine regenerate-certs swarm-master swarm-worker-01 swarm-worker-02 swarm-worker-03
+docker-machine restart swarm-master swarm-worker-01 swarm-worker-02 swarm-worker-03
+```
+
 ### Stop/Remove machines
 ```
+docker-machine regenerate-certs swarm-master swarm-worker-01 swarm-worker-02 swarm-worker-03
 docker-machine stop swarm-master swarm-worker-01 swarm-worker-02 swarm-worker-03
 docker-machine rm swarm-master swarm-worker-01 swarm-worker-02 swarm-worker-03
 ```
+
+
 
 # Rerefernces
 ### Docker Swarm on a local sandbox.

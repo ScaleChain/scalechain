@@ -12,6 +12,43 @@ case class AppendBlockResult(blockLocator : FileRecordLocator, headerLocator : F
 
 object BlockWriter {
   private class RecordFileChangedWhileWritingBlock extends Exception
+
+  /**
+    *
+    * Note :
+    * - Need to keep appendBlockInternal consistent with BlockWriter.getTxLocators.
+    * - Whenever the block format changes, we need to apply the change to both methods.
+    *
+    * @param blockLocator The locator of the block, where points to the on-disk location.
+    * @param block The block data.
+    * @return The list of transaction locators for each transaction in the block.
+    */
+  def getTxLocators(blockLocator : FileRecordLocator, block : Block) : List[TransactionLocator] = {
+    // Step 1 : Calculate the size of block header
+    val blockHeaderSize = BlockHeaderCodec.serialize(block.header).length
+
+    // Step 2 : Calculate the size of transaction count
+    val transactionCountSize = TransactionCountCodec.serialize(TransactionCount(block.transactions.size)).length
+
+    // Step 3 : Calculate the transaction offset for the first transaction
+    var transactionOffset = blockLocator.recordLocator.offset + blockHeaderSize + transactionCountSize
+
+    // Step 4 : Calculate transaction locator of each transaction.
+    val txLocators =
+      for( transaction <- block.transactions;
+           transactionSize = TransactionCodec.serialize(transaction).length
+      ) yield {
+        val txLocator = blockLocator.copy(
+          recordLocator = blockLocator.recordLocator.copy(
+            offset = transactionOffset,
+            size = transactionSize
+          )
+        )
+        transactionOffset += transactionSize
+        TransactionLocator(transaction.hash, txLocator)
+      }
+    txLocators
+  }
 }
 
 /** Write a block on the disk block storage.
@@ -50,6 +87,9 @@ class BlockWriter(storage : BlockRecordStorage) {
   }
 
   /** An internal version of the appendBlock. Throws an exception if a new record file was created between appending a block header and appending transactions.
+    *
+    * Need to keep appendBlockInternal consistent with BlockWriter.getTxLocators.
+    * - Whenever the block format changes, we need to apply the change to both methods.
     *
     * @param block The block to append
     * @throws BlockWriter.RecordFileChangedWhileWritingBlock A new record file was created between appending a block header and appending transactions.
@@ -104,3 +144,4 @@ class BlockWriter(storage : BlockRecordStorage) {
     AppendBlockResult(blockLocator, blockHeaderLocator, txLocators)
   }
 }
+

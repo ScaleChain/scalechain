@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.api.command
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.util.StackUtil
-import io.scalechain.blockchain.{ErrorCode, ExceptionWithErrorCode}
+import io.scalechain.blockchain.{RpcException, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
 trait RpcCommand {
-  private val logger = LoggerFactory.getLogger(classOf[RpcCommand])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[RpcCommand]) )
 
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]]
   def help() : String
@@ -16,9 +17,22 @@ trait RpcCommand {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
-        logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
-        val rpcError = RpcCommand.ERROR_MAP(e.code)
-        Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+        if (e.isInstanceOf[RpcException] ) {
+          // We had an invalid RPC call such as missing mandatory parameters.
+          // do not log anything about this, because the cause of this exception is not ScaleChain server, but users calling RPCs.
+        } else {
+          logger.error(s"ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
+        }
+        RpcCommand.ERROR_MAP.get(e.code) match {
+          case Some(rpcError) => {
+            Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+          }
+          case _ => {
+            val rpcError = RpcError.RPC_INTERNAL_ERROR
+            logger.error(s"No mapping to RPC error for exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
+            Left(RpcError( rpcError.code, rpcError.messagePrefix, e.getMessage))
+          }
+        }
       }
       // In case any error happens, return as RpcError.
       case e : Exception => {
@@ -47,6 +61,8 @@ object RpcCommand {
     ErrorCode.DecodeFailure  -> RpcError.RPC_DESERIALIZATION_ERROR,
     // used by getblockheight.
     // TODO : Bitcoin Compatibility : Need to use the same RPC error when the height parameter has an invalid value.
-    ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMS
+    ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.InvalidTransactionOutPoint -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.ParentTransactionNotFound -> RpcError.RPC_INVALID_PARAMETER
   )
 }

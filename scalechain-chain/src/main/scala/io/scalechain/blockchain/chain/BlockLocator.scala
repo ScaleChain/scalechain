@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.transaction.ChainEnvironment
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
 
@@ -16,6 +18,8 @@ case class BlockLocatorHashes(hashes : List[Hash])
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
 class BlockLocator(chain : Blockchain) {
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockLocator]) )
+
   /** Get the summary of block hashes that this node has.
     * We will use these hashes to create the GetBlocks request.
     *
@@ -81,20 +85,28 @@ class BlockLocator(chain : Blockchain) {
       // res9: Int = 2
 
       val matchedHashOption : Option[Hash] = locatorHashes.hashes.view.filter { hash =>
-        chain.hasBlock( hash )
+        val blockInfoOption = chain.getBlockInfo( hash )
+        // The block info exists, and the block is on the best block chain(nextBlockHash is defined)
+        blockInfoOption.isDefined && blockInfoOption.get.nextBlockHash.isDefined
       }.headOption
 
       // Step 2 : Construct a list of hashes from the matching hash until the hashStop matches, or 500 hashes are constructed.
       // If no hash matched, start from the genesis block.
       val startingHash = matchedHashOption.getOrElse(env.GenesisBlockHash)
 
-      val Some((blockInfo, _)) = chain.getBlock(startingHash)
+      val blockInfo = chain.getBlockInfo(startingHash).get
+      // The block should be on the best blockchain.
+      assert(blockInfo.nextBlockHash.isDefined)
 
+      val bestBlockHeight = chain.getBestBlockHeight()
       var blockHeight = blockInfo.height
+      if ( blockHeight > bestBlockHeight) {
+        logger.error(s"Invalid block height. Block hash : ${startingHash}, info : ${blockInfo}, best height : ${bestBlockHeight}")
+        assert(false)
+      }
 
       var addedHashes = 0
       var lastHash : Hash = null
-      val bestBlockHeight = chain.getBestBlockHeight()
 
       do {
         // TODO : BUGBUG : Make sure that getBlockHash returns a block hash even though the blockchain has the header of the block only without any transaction data.
@@ -102,7 +114,7 @@ class BlockLocator(chain : Blockchain) {
         listBuf.append( lastHash )
         addedHashes += 1
         blockHeight += 1
-      } while( blockHeight < bestBlockHeight && addedHashes < maxHashCount && lastHash != hashStop )
+      } while( blockHeight <= bestBlockHeight && addedHashes < maxHashCount && lastHash != hashStop )
 
       listBuf.toList
     }

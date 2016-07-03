@@ -66,20 +66,6 @@ class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with Trans
     ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A).isValid shouldBe true
   }
 
-  "owns" should "return true for the transaction output it owns" in {
-    val pubKeyScript = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
-    val output = TransactionOutput(1L, pubKeyScript.lockingScript())
-    pubKeyScript.owns(output) shouldBe true
-  }
-
-  "owns" should "return false for the transaction output it does NOT own" in {
-    val pubKeyScript1 = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
-    val pubKeyScript2 = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_B)
-    // pubKeyScript1 owns the output.
-    val output = TransactionOutput(1L, pubKeyScript1.lockingScript())
-    pubKeyScript2.owns(output) shouldBe false
-  }
-
   "stringKey" should "return hex representation of the locking script" in {
     val pubKeyScript = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
     pubKeyScript.stringKey shouldBe HexUtil.hex(pubKeyScript.lockingScript().data)

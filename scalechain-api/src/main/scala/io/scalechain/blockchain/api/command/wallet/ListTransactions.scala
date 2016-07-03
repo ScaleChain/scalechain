@@ -7,7 +7,7 @@ import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import io.scalechain.blockchain.proto.{Transaction, HashFormat, Hash}
 import io.scalechain.wallet.Wallet
-import io.scalechain.wallet.TransactionDescriptor
+import io.scalechain.wallet.WalletTransactionDescriptor
 import spray.json.DefaultJsonProtocol._
 
 /*
@@ -47,7 +47,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class ListTransactionsResult( transactionDescs : List[TransactionDescriptor] ) extends RpcResult
+case class ListTransactionsResult( transactionDescs : List[WalletTransactionDescriptor] ) extends RpcResult
 
 
 /** ListTransactions: returns the most recent transactions that affect the wallet.
@@ -90,7 +90,7 @@ object ListTransactions extends RpcCommand {
 
       // None means to list transactions from all accounts in the wallet.
       val accountOption = if (account == "*") None else Some(account)
-      val transactionDescs : List[TransactionDescriptor] = Wallet.get.listTransactions(
+      val transactionDescs : List[WalletTransactionDescriptor] = Wallet.get.listTransactions(
         Blockchain.get, accountOption, count, skip, includeWatchOnly
       )
 

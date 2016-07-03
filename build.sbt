@@ -5,9 +5,10 @@ version in ThisBuild := "0.4"
 scalaVersion in ThisBuild := "2.11.8"
 
 libraryDependencies in ThisBuild ++= Seq(
-    "io.netty" % "netty-all" % "4.0.36.Final",
+    "io.netty" % "netty-all" % "4.1.1.Final",
     "io.spray" % "spray-json_2.11" % "1.3.2",
-    "org.slf4j" % "slf4j-api" % "1.7.13",
+    "ch.qos.logback" %  "logback-classic" % "1.1.7",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
     "org.scalatest" %% "scalatest" % "2.2.6",
     "org.scalacheck"%% "scalacheck" % "1.12.5",
 // latest :    

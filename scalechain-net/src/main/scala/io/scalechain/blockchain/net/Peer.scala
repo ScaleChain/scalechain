@@ -3,18 +3,71 @@ package io.scalechain.blockchain.net
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
-import io.netty.channel.Channel
-import io.scalechain.blockchain.proto.{ProtocolMessage, Version}
+import com.typesafe.scalalogging.Logger
+import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
+import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
+import io.scalechain.util.StackUtil
+import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
 
 
 /** Represents a connected peer.
   *
   * @param channel The netty channel where we send messages.
-  * @param versionOption The version we got from the peer. This is set to some value only if we received the Version message.
   */
-case class Peer(private val channel : Channel, var versionOption : Option[Version] = None, var pongReceived : Option[Int] = None) {
-  private val logger = LoggerFactory.getLogger(classOf[Peer])
+case class Peer(private val channel : Channel) {
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Peer]) )
+
+  /**
+    * The version we got from the peer. This is set to some value only if we received the Version message.
+    */
+  var versionOption : Option[Version] = None
+  var pongReceived : Option[Int] = None
+
+  /**
+    * Update version received from the peer.
+ *
+    * @param version
+    */
+  def updateVersion(version : Version) : Unit = {
+    versionOption = Some(version)
+  }
+
+  /**
+    * Keep block hashes requested using getblocks message.
+    * Only keep up to 4 block hashes in the cache.
+    */
+  //protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
+  var requestedBlockHashOption : Option[Hash] = None
+  /**
+    * Keep a block as requested using getblocks message.
+ *
+    * @param blockHash The hash of block requested using getblocks message.
+    */
+  def blockRequested(blockHash : Hash) : Unit = {
+    requestedBlockHashOption = Some(blockHash)
+  }
+
+  /**
+    * Check if a block was requested using getblocks message.
+ *
+    * @param blockHash The block hash to check.
+    * @return true if the block was requested; false otherwise.
+    */
+  def isBlockRequested(blockHash : Hash) = {
+    requestedBlockHashOption == Some(blockHash)
+  }
+
+  def requestedBlock() = requestedBlockHashOption
+
+  /**
+    * Clear all requested blocks.
+    */
+  def clearRequestedBlock() = {
+    requestedBlockHashOption = None
+  }
+
+
 
   /** Return if this peer is live.
     *
@@ -22,16 +75,30 @@ case class Peer(private val channel : Channel, var versionOption : Option[Versio
     */
   def isLive : Boolean = {
     // TODO : Implement this based on the time we received pong from this peer.
+    channel.isOpen && channel.isActive
     // Check if the time we received pong is within a threshold.
     //assert(false)
-    true
+//    true
   }
 
   def send(message : ProtocolMessage) = {
     val messageString = MessageSummarizer.summarize(message)
-    logger.info(s"Sending to peer : ${channel.remoteAddress}, ${messageString}")
+    channel.writeAndFlush(message).addListener(new ChannelFutureListener() {
+      def operationComplete(future:ChannelFuture) {
+        assert( future.isDone )
+        if (future.isSuccess) { // completed successfully
+          logger.debug(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
+        }
 
-    channel.writeAndFlush(message)
+        if (future.cause() != null) { // completed with failure
+          logger.debug(s"Failed to send to peer : ${channel.remoteAddress}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+        }
+
+        if (future.isCancelled) { // completed by cancellation
+          logger.debug(s"Canceled to send to peer : ${channel.remoteAddress}, ${messageString}")
+        }
+      }
+    })
   }
 }
 
@@ -65,11 +132,11 @@ case class PeerInfo(
                      version : Option[Int], // 70001
                      // The user agent this node sends in its version message.
                      // This string will have been sanitized to prevent corrupting the JSON results. May be an empty string
-                     subver : Option[String] // "/Satoshi:0.8.6/"
+                     subver : Option[String], // "/Satoshi:0.8.6/"
                      // Set to true if this node connected to us; set to false if we connected to this node
                      //  inbound : Boolean, // false
                      // The height of the remote node’s block chain when it connected to us as reported in its version message
-                     //  startingheight : Long, // 315280
+                     startingheight : Option[Long] // 315280
                      // The ban score we’ve assigned the node based on any misbehavior it’s made.
                      // By default, Bitcoin Core disconnects when the ban score reaches 100
                      //  banscore : Int,  // 0
@@ -96,7 +163,8 @@ object PeerInfo {
       id=peerIndex,
       addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
       version=peer.versionOption.map(_.version),
-      subver=peer.versionOption.map(_.userAgent)
+      subver=peer.versionOption.map(_.userAgent),
+      startingheight = peer.versionOption.map(_.startHeight)
     )
   }
 }

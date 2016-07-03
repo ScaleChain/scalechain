@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.http
 
+import com.typesafe.scalalogging.Logger
 import io.netty.buffer.{Unpooled, ByteBuf}
 import io.netty.channel.{SimpleChannelInboundHandler, ChannelHandlerContext, ChannelFutureListener}
 import io.netty.handler.codec.DecoderResult
@@ -7,8 +8,10 @@ import io.netty.handler.codec.http.HttpHeaders.Names._
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http._
-import io.netty.util.CharsetUtil
+import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.scalechain.blockchain.api.RequestHandler
+import io.scalechain.util.{StackUtil, ExceptionUtil}
+import org.slf4j.LoggerFactory
 import collection.convert.wrapAll._
 import java.util
 
@@ -20,6 +23,9 @@ object ApiServerHandler {
 }
 
 class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
+  private val logger = Logger( LoggerFactory.getLogger(classOf[ApiServerHandler]) )
+
+
   private var request: HttpRequest = null
   /** Buffer that stores the response content */
   private final val requestData: StringBuilder = new StringBuilder
@@ -84,7 +90,8 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-    cause.printStackTrace
+    val causeDescription = ExceptionUtil.describe( cause.getCause )
+    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     ctx.close
   }
 }

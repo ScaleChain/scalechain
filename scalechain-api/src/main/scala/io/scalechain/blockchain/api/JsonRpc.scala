@@ -14,7 +14,7 @@ import io.scalechain.blockchain.net.PeerInfo
 import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.util.StringUtil
 import io.scalechain.wallet.UnspentCoinDescriptor
-import io.scalechain.wallet.TransactionDescriptor
+import io.scalechain.wallet.WalletTransactionDescriptor
 import org.apache.http.protocol.ExecutionContext
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
@@ -35,7 +35,7 @@ object RpcResultJsonFormat {
 
   implicit val implicitGetBlockResult = jsonFormat9(GetBlockResult.apply)
 
-  implicit val implicitPeerInfoResult = jsonFormat4(PeerInfo.apply)
+  implicit val implicitPeerInfoResult = jsonFormat5(PeerInfo.apply)
 
 
   import RawTransactionInputJsonFormat._
@@ -47,7 +47,7 @@ object RpcResultJsonFormat {
 
   implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
 
-  implicit val implicitTransactionDescriptor         = jsonFormat14(TransactionDescriptor.apply)
+  implicit val implicitTransactionDescriptor         = jsonFormat14(WalletTransactionDescriptor.apply)
 
   implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoinDescriptor.apply)
 

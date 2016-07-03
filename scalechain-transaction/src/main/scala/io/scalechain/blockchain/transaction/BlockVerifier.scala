@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
@@ -71,7 +72,7 @@ object BlockVerifier {
   * Created by kangmo on 3/15/16.
   */
 class BlockVerifier(block : Block) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockVerifier])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockVerifier]) )
 
   def verify(chainView : BlockchainView) : Unit = {
     // (1) verify the hash of the block is within the difficulty level
@@ -107,7 +108,7 @@ class BlockVerifier(block : Block) {
 
     // For every 2000 blocks, print statistics.
     if (blockCount % 2000 == 0) {
-      logger.info(s"[${blockCount}] block verifier statistics : ${BlockVerifier.statistics()}" )
+      logger.trace(s"[${blockCount}] block verifier statistics : ${BlockVerifier.statistics()}" )
     }
 
     // throw new BlockVerificationException

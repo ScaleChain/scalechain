@@ -1,32 +1,27 @@
 package io.scalechain.blockchain.net
 
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.SimpleChannelInboundHandler
+import com.typesafe.scalalogging.Logger
+import io.netty.channel._
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.handler.ssl.SslHandler
+import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.netty.util.concurrent.GlobalEventExecutor
+import io.scalechain.blockchain.net.message.VersionFactory
 import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 
 import java.net.InetAddress
 
-object NodeServerHandler {
-  // TODO : Investiate why we need the channel group.
-  val channels : ChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-}
-
 /**
   * Handles a server-side channel.
   */
 class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[ProtocolMessage] {
-  private val logger = LoggerFactory.getLogger(classOf[NodeServerHandler])
-
-  import NodeServerHandler._
+  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeServerHandler]) )
 
   var messageHandler : ProtocolMessageHandler = null
 
@@ -37,7 +32,8 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
     ctx.pipeline().get(classOf[SslHandler]).handshakeFuture().addListener(
       new GenericFutureListener[Future[Channel]]() {
         override def operationComplete(future : Future[Channel])  {
-          logger.info(s"Connection accepted from ${ctx.channel().remoteAddress()}")
+          val remoteAddress = ctx.channel().remoteAddress()
+          logger.info(s"Connection accepted from ${remoteAddress}")
           /*
           ctx.writeAndFlush(
             "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n")
@@ -46,30 +42,57 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
               ctx.pipeline().get(classOf[SslHandler]).engine().getSession().getCipherSuite() +
             " cipher suite.\n")
           */
-          channels.add(ctx.channel())
+
+          assert(messageHandler == null)
+          val peer = peerSet.add(ctx.channel())
+          messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
+
+          // Upon successful connection, send the version message.
+          peer.send( VersionFactory.create )
+
+          ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
+            def operationComplete(future:ChannelFuture) {
+              assert( future.isDone )
+
+              peerSet.remove(remoteAddress)
+
+              if (future.isSuccess) { // completed successfully
+                logger.info(s"Connection closed. Remote address : ${remoteAddress}")
+              }
+
+              if (future.cause() != null) { // completed with failure
+                val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+                logger.warn(s"Failed to close connection. Remote address : ${remoteAddress}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+              }
+
+              if (future.isCancelled) { // completed by cancellation
+                logger.warn(s"Canceled to close connection. Remote address : ${remoteAddress}")
+              }
+            }
+          })
+
         }
-      })
+      }
+    )
   }
 
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
-    if (messageHandler == null ) {
-      val peer = peerSet.add(context.channel())
-      messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
-    }
-
+    assert(messageHandler != null)
     // Process the received message, and send message to peers if necessary.
     messageHandler.handle(message)
 
-/*
-    // Close the connection if the client has sent 'bye'.
-    if ("bye".equals(msg.toLowerCase())) {
-      ctx.close()
-    }
-*/
+    /*
+        // Close the connection if the client has sent 'bye'.
+        if ("bye".equals(msg.toLowerCase())) {
+          ctx.close()
+        }
+    */
   }
 
   override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {
-    cause.printStackTrace()
-    ctx.close()
+    val causeDescription = ExceptionUtil.describe( cause.getCause )
+    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
+    // TODO : BUGBUG : Need to close connection when an exception is thrown?
+    //    ctx.close()
   }
 }

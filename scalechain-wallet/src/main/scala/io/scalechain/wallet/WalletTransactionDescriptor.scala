@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.Hash
 
 /** Describes details on a transaction.
   */
-case class TransactionDescriptor(
+case class WalletTransactionDescriptor(
   involvesWatchonly : Boolean,       // true,
   // The account which the payment was credited to or debited from.
   // May be an empty string (“”) for the default account

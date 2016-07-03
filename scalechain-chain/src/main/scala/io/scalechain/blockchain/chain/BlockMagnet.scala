@@ -1,9 +1,10 @@
 package io.scalechain.blockchain.chain
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.{BlockHeader, Transaction, Block, BlockInfo}
-import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.storage.{TransactionLocator, BlockWriter, BlockStorage}
 import io.scalechain.blockchain.transaction.ChainBlock
 import org.slf4j.LoggerFactory
 
@@ -15,17 +16,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * Created by kangmo on 6/9/16.
   */
 class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockMagnet])
-
-  var chainEventListener : Option[ChainEventListener] = None
-
-  /** Set an event listener of the blockchain.
-    *
-    * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
-    */
-  def setEventListener( listener : ChainEventListener ): Unit = {
-    chainEventListener = Some(listener)
-  }
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockMagnet]) )
 
   /**
     * Detach a block from the best blockchain.
@@ -37,15 +28,15 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     // Detach each transaction in reverse order.
     // TODO : Optimize : Iterate a list in reverse order without reversing it.
     block.transactions.reverse foreach { transaction : Transaction =>
-      if (transaction.inputs(0).isCoinBaseInput()) {
-        // The coin base input does not spend any previous output. Do nothing.
-      } else {
-        txMagnet.detachTransaction(transaction)
-      }
+      txMagnet.detachTransaction(transaction)
     }
 
-    // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onDetachBlock( ChainBlock(blockInfo.height, block ) ) )
+    storage.delBlockHashByHeight(blockInfo.height)
+
+    val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
+    assert(!prevBlockHash.isAllZero()) // The genesis block can't be detached
+    // Unlink the next block hash.
+    storage.updateNextBlockHash(prevBlockHash, None)
   }
 
   /**
@@ -57,15 +48,11 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
   @tailrec
   protected[chain] final def detachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
     if (beforeFirstHeader == last.blockHeader) {
-      // The base case. Just unlink the next block hash of the before the first block to detach.
-      storage.updateNextBlockHash(beforeFirstHeader.hash, None)
+      // The base case.
     } else {
       // Construct the detachedBlocks so that it has detached blocks. Order : from oldest to newest
       detachedBlocks.prepend(lastBlock)
       detachBlock(last, lastBlock)
-
-      // Unlink the next block hash.
-      storage.updateNextBlockHash(last.blockHeader.hash, None)
 
       // Get the block before the last one, continue iteration.
       val Some((beforeLastInfo, beforeLastBlock)) = storage.getBlock(last.blockHeader.hashPrevBlock)
@@ -73,35 +60,57 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     }
   }
 
-
   /**
     * Attach a block to the best blockchain.
     *
     * @param block The block to attach
     */
   protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+    val blockHash = block.header.hash
     // Check if the block is valid.
     BlockProcessor.validateBlock(block)
 
-    block.transactions foreach { transaction : Transaction =>
+    assert(blockInfo.blockHeader == block.header)
+
+    val txLocators : List[TransactionLocator] = BlockWriter.getTxLocators(blockInfo.blockLocatorOption.get, block)
+
+    // TODO : BUGBUG : Optimize : length on List is slow.
+    assert(txLocators.length == block.transactions.length)
+
+    // TODO : BUGBUG : P0 : Need to check with a temporary transaction pool.
+/*
+    // Before attaching a block, check if we can attach each transaction first without affecting the transaction database.
+    // If any error such as double spending is detected, an exception is raised.
+    for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
+      val transactionHash = transaction.hash
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = true)
+    }
+*/
+    val chainBlockOption = Some(ChainBlock(blockInfo.height, block))
+    var transactionIndex = -1
+    for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
+      transactionIndex += 1
+
       val transactionHash = transaction.hash
 
-      if (transaction.inputs(0).isCoinBaseInput()) {
-        // The coin base input does not spend any previous output. Do nothing.
-      } else {
-        txMagnet.attachTransaction(transactionHash, transaction)
-        // Step 5 : Remove the transaction from the disk pool.
-        txPool.removeTransactionFromPool(transactionHash)
-      }
+      // Step 5 : Remove the transaction from the disk pool.
+      txPool.removeTransactionFromPool(transactionHash)
 
-      // Add UTXO : set all outputs are unspent for the newly attached transaction.
-      txMagnet.markAllOutputsUnspent(transactionHash)
+      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = false, chainBlockOption, Some(transactionIndex) )
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.
 
-    // For each transaction in the block, sync with wallet.
-    chainEventListener.map( _.onAttachBlock( ChainBlock(blockInfo.height, block ) ) )
+    // Put the index for block hash by height
+    storage.putBlockHashByHeight(blockInfo.height, blockHash)
+
+    val prevBlockHash = blockInfo.blockHeader.hashPrevBlock
+    if (prevBlockHash.isAllZero()) {
+      // the genesis block. do nothing. genesis blocks are not reorganized, but can be attached when the block is put for the first time.
+    } else {
+      // Link the next block hash.
+      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
+    }
   }
 
   /**
@@ -156,12 +165,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
       attachBlock( readBlockInfo, readBlock )
 
-      // Link the next block hash.
-      storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
-
-      // Update the block height index.
-      storage.putBlockHashByHeight(blockInfo.height, blockHash)
-
       prevBlockHash = blockHash
     }
 
@@ -214,7 +217,6 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
               // This can happen, as the newly attached block might have the same transaction. Do nothing.
             } else {
               txPool.addTransactionToPool(transactionHash, transaction)
-              chainEventListener.map(_.onNewTransaction(transaction))
             }
           } catch {
             case e : ChainException => {

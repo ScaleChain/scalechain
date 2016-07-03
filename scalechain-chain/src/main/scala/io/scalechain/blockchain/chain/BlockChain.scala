@@ -2,13 +2,14 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.{BlockInfoFactory, BlockStorage, Storage, DiskBlockStorage, GenesisBlock}
+import io.scalechain.blockchain.storage._
 import io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.transaction._
@@ -103,24 +104,30 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   *
   */
 class Blockchain(storage : BlockStorage) extends BlockchainView  {
-  private val logger = LoggerFactory.getLogger(classOf[Blockchain])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
-  var chainEventListener : Option[ChainEventListener] = None
-
-  val txMagnet = new TransactionMagnet(storage)
+  val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
 
   val blockOrphanage = new BlockOrphanage(storage)
   val txOrphanage = new TransactionOrphanage(storage)
 
+  /**
+    * Create the block mining, which knows how to select transactions from the transaction pool.
+ *
+    * @return The created block mining.
+    */
+  def createBlockMining() : BlockMining = {
+    new BlockMining(storage, txPool, this)
+  }
+
   /** Set an event listener of the blockchain.
     *
     * @param listener The listener that wants to be notified for new blocks, invalidated blocks, and transactions comes into and goes out from the transaction pool.
     */
   def setEventListener( listener : ChainEventListener ): Unit = {
-    chainEventListener = Some(listener)
-    blockMagnet.setEventListener(listener)
+    txMagnet.setEventListener(listener)
   }
 
   /** The descriptor of the best block.
@@ -156,23 +163,29 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     *
     */
   def putBlock(blockHash : Hash, block:Block) : Boolean = {
+
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     synchronized {
       if (storage.hasBlock(blockHash)) {
-        logger.info(s"Duplicate block was ignored. Block hash : ${blockHash}")
+        logger.trace(s"Duplicate block was ignored. Block hash : ${blockHash}")
         false
       } else {
 
         // Case 1. If it is the genesis block, set the genesis block as the current best block.
         if (block.header.hashPrevBlock.isAllZero()) {
           assert(theBestBlock == null)
+
           storage.putBlock(block)
-          storage.putBlockHashByHeight(0, blockHash)
 
-          setBestBlock(blockHash, storage.getBlockInfo(blockHash).get )
+          val blockInfo = storage.getBlockInfo(blockHash).get
 
-          chainEventListener.map(_.onAttachBlock(ChainBlock( height = 0, block)))
+          // Attach the block. ChainEventListener is invoked in this method.
+          // TODO : BUGBUG : Before attaching a block, we need to test if all transactions in the block can be attached.
+          // - If any of them are not attachable, the blockchain remains in an inconsistent state because only part of transactions are attached.
+          blockMagnet.attachBlock(blockInfo, block)
+
+          setBestBlock(blockHash, blockInfo )
 
           true
         } else { // Case 2. Not a genesis block.
@@ -186,35 +199,28 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
           val prevBlockHash = prevBlockDesc.get.blockHeader.hash
 
           storage.putBlock(block)
-          storage.updateNextBlockHash(prevBlockHash, Some(blockHash))
           val blockInfo = storage.getBlockInfo(blockHash).get
 
           // Case 2.A : The previous block of the new block is the current best block.
           if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
-            // Step 2.A.1 : Update the best block
-            storage.putBlockHashByHeight(blockInfo.height, blockHash)
+            // Step 2.A.1 : Attach the block. ChainEventListener is invoked in this method.
+            blockMagnet.attachBlock(blockInfo, block)
 
+            // Step 2.A.2 : Update the best block
             setBestBlock( blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
-
-            // Step 2.A.2 : Remove transactions in the block from the disk-pool.
-            block.transactions.foreach { transaction =>
-              storage.delTransactionFromPool(transaction.hash)
-            }
-
-            chainEventListener.map(_.onAttachBlock(ChainBlock(height = blockInfo.height, block)))
-
             logger.info(s"Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
             true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
             if (blockInfo.chainWork > theBestBlock.chainWork) {
-              logger.warn(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The new Best (${blockInfo.blockHeader.hash},${blockInfo})")
+              logger.info(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The new Best (${blockInfo.blockHeader.hash},${blockInfo})")
 
               // Step 3.B.2 : Reorganize the blocks.
               // transaction handling, orphan block handling is done in this method.
               blockMagnet.reorganize(originalBestBlock = theBestBlock, newBestBlock = blockInfo)
+
 
               // Step 3.B.3 : Update the best block
               setBestBlock(blockHash, blockInfo)
@@ -222,7 +228,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
               // TODO : Update best block in wallet (so we can detect restored wallets)
               true
             } else {
-              logger.warn(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
+              logger.info(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
               false
             }
           }
@@ -230,21 +236,49 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       }
     }
   }
-/*
-  /**
-    * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
-    *
-    * Note : the next block hash is not updated.
-    *
-    * @param blockHash The hash of the block header.
-    * @param blockHeader The block header.
-    */
-  def putBlockHeader(blockHash : Hash, blockHeader:BlockHeader) : Unit = {
-    // TODO : Implement
-    logger.warn("Headers-first IBD is not supported yet.")
-    assert(false)
-  }
-*/
+
+  /*
+    /** Put transactions into the transaction index.
+      * Key : transaction hash
+      * Value : FileRecordLocator for the transaction.
+      *
+      * @param transactions The list of transactions to put.
+      */
+    def putTransactions(transactions : List[(Transaction, TransactionLocator)]) : Unit = {
+      for ( (transaction, txLocatorDesc) <- transactions) {
+
+        // We may already have a transaction descriptor for the transaction.
+        val txDescOption = storage.getTransactionDescriptor(txLocatorDesc.txHash)
+        // Keep the outputs spent by if it already exists.
+        val outpusSpentBy = txDescOption.map( _.outputsSpentBy).getOrElse( List.fill(transaction.outputs.length)(None) )
+        val txDesc =
+          TransactionDescriptor(
+            Some(txLocatorDesc.txLocator),
+            outpusSpentBy
+          )
+
+        storage.putTransactionDescriptor(txLocatorDesc.txHash, txDesc)
+
+        assert( txLocatorDesc.txHash == transaction.hash )
+      }
+    }
+  */
+
+  /*
+    /**
+      * Put a block header. The logic is almost identical to the putBlock method except the block reorganization part.
+      *
+      * Note : the next block hash is not updated.
+      *
+      * @param blockHash The hash of the block header.
+      * @param blockHeader The block header.
+      */
+    def putBlockHeader(blockHash : Hash, blockHeader:BlockHeader) : Unit = {
+      // TODO : Implement
+      logger.warn("Headers-first IBD is not supported yet.")
+      assert(false)
+    }
+  */
   /** Put a transaction we received from peers into the disk-pool.
     *
     * @param transaction The transaction to put into the disk-pool.
@@ -255,9 +289,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       try {
         // Step 1 : Add transaction to the transaction pool.
         txPool.addTransactionToPool(txHash, transaction)
+
         // TODO : BUGBUG : Need to commit the RocksDB transaction.
-        // Step 2 : Notify event listeners that a new transaction was added.
-        chainEventListener.map(_.onNewTransaction(transaction))
 
       } finally {
         // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.
@@ -284,8 +317,10 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The best block height.
     */
   def getBestBlockHeight() : Long = {
-    assert(theBestBlock != null)
-    theBestBlock.height
+    synchronized {
+      assert(theBestBlock != null)
+      theBestBlock.height
+    }
   }
 
   /** Return the hash of block on the tip of the best blockchain.
@@ -293,7 +328,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The best block hash.
     */
   def getBestBlockHash() : Option[Hash] = {
-    storage.getBestBlockHash()
+    synchronized {
+      storage.getBestBlockHash()
+    }
   }
 
 
@@ -305,13 +342,15 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The hash of the block header.
     */
   def getBlockHash(blockHeight : Long) : Hash = {
-    val blockHashOption = storage.getBlockHashByHeight(blockHeight)
-    // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
-    if (blockHashOption.isEmpty) {
+    synchronized {
 
-      throw new ChainException( ErrorCode.InvalidBlockHeight)
+      val blockHashOption = storage.getBlockHashByHeight(blockHeight)
+      // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
+      if (blockHashOption.isEmpty) {
+        throw new ChainException(ErrorCode.InvalidBlockHeight)
+      }
+      blockHashOption.get
     }
-    blockHashOption.get
   }
 
   /**
@@ -321,7 +360,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
   def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
-    storage.getBlockInfo(blockHash)
+    synchronized {
+      storage.getBlockInfo(blockHash)
+    }
   }
 
 
@@ -334,7 +375,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if the block exists; false otherwise.
     */
   def hasBlock(blockHash : Hash) : Boolean = {
-    storage.hasBlock(blockHash)
+    synchronized {
+      storage.hasBlock(blockHash)
+    }
   }
 
   /** Get a block searching by the header hash.
@@ -345,7 +388,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The searched block.
     */
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
-    storage.getBlock(blockHash)
+    synchronized {
+      storage.getBlock(blockHash)
+    }
   }
 
 
@@ -355,7 +400,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The block header.
     */
   def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    storage.getBlockHeader(blockHash)
+    synchronized {
+      storage.getBlockHeader(blockHash)
+    }
   }
 
   /** Return a transaction that matches the given transaction hash.
@@ -366,18 +413,20 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
   def getTransaction(txHash : Hash) : Option[Transaction] = {
-    // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
+    synchronized {
+      // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
-    // Step 1 : Search block database.
-    val dbTransactionOption = storage.getTransaction( txHash )
+      // Step 1 : Search block database.
+      val dbTransactionOption = storage.getTransaction(txHash)
 
-    // Step 3 : TODO : Run validation.
+      // Step 3 : TODO : Run validation.
 
-    //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
-    //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
-    //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+      //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
+      //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+      //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
-    dbTransactionOption
+      dbTransactionOption
+    }
   }
 
   /** Check if the transaction exists either in a block on the best blockchain or on the transaction pool.
@@ -386,7 +435,9 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if we have the transaction; false otherwise.
     */
   def hasTransaction(txHash : Hash) : Boolean = {
-    storage.getTransactionDescriptor(txHash).isDefined
+    synchronized {
+      storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
+    }
   }
 
   /** Return a transaction output specified by a give out point.
@@ -395,21 +446,27 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The transaction output we found.
     */
   def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
-    // Coinbase outpoints should never come here
-    assert( !outPoint.transactionHash.isAllZero() )
+    synchronized {
+      // Coinbase outpoints should never come here
+      assert(!outPoint.transactionHash.isAllZero())
 
-    val transaction = getTransaction(outPoint.transactionHash)
-    if (transaction.isEmpty) {
-      throw new ChainException(ErrorCode.InvalidOutPoint, "The transaction was not found : " + outPoint.transactionHash)
+      val transaction = getTransaction(outPoint.transactionHash)
+      if (transaction.isEmpty) {
+        val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
+        logger.error(message)
+        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
+      }
+
+      val outputs = transaction.get.outputs
+
+      if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
+        val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
+        logger.error(message)
+        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
+      }
+
+      outputs(outPoint.outputIndex)
     }
-
-    val outputs = transaction.get.outputs
-
-    if( outPoint.outputIndex >= outputs.length) {
-      throw new ChainException(ErrorCode.InvalidOutPoint, s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}")
-    }
-
-    outputs(outPoint.outputIndex)
   }
 }
 

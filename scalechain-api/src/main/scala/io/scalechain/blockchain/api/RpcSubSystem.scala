@@ -111,9 +111,9 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     */
   def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
     // TODO : BUGBUG : allowHighFees is not used.
-    peerCommunicator.propagateTransaction(transaction)
-
     chain.putTransaction(transaction.hash, transaction)
+
+    peerCommunicator.propagateTransaction(transaction)
   }
 
   /** Get the list of information on each peer.

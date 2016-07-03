@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{TransactionDescriptor, Hash, Transaction}
+import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.proto.{TransactionPoolEntry, TransactionDescriptor, Hash, Transaction}
 import io.scalechain.blockchain.storage.BlockStorage
 import org.slf4j.LoggerFactory
 
@@ -8,20 +9,22 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 6/9/16.
   */
 class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(classOf[TransactionPool])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPool]) )
 
   def getTransactionsFromPool() : List[(Hash, Transaction)] = {
-    storage.getTransactionsFromPool()
+    storage.getTransactionsFromPool().map{ case (hash, transactionPoolEntry) =>
+      (hash, transactionPoolEntry.transaction)
+    }
   }
 
   /**
     * Add a transaction to disk pool.
     *
     * Assumption : The transaction was pointing to a transaction record location, which points to a transaction written while the block was put into disk.
+    * Caution : This method should be called with Blockchain.get.synchronized, because this method updates the spending in-points of transactions.
     *
     * @param txHash The hash of the transaction to add.
     * @param transaction The transaction to add to the disk-pool.
-    *
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
   def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
@@ -31,7 +34,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     } else {
       // Step 02 : Check if the transaction exists in a block in the best blockchain.
       val txDescOption = storage.getTransactionDescriptor(txHash)
-      if (txDescOption.isDefined && txDescOption.get.transactionLocatorOption.isDefined ) {
+      if (txDescOption.isDefined ) {
         logger.info(s"A duplicate transaction in on a block was discarded. Hash : ${txHash}")
       } else {
         // Step 03 : CheckTransaction - check values in the transaction.
@@ -44,22 +47,14 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
 
         // Step 07 : IsStandard - Check if the transaction is a standard one.
 
-        // Step 08 : Check for double-spends with existing transactions,
-        txMagnet.attachTransactionInputs(txHash, transaction)
+        // Step 08 : Check the transaction fee.
 
-        // Step 09 : Check the transaction fee.
+        // Step 09 : Check for double-spends with existing transactions
+        // First, check only without affecting the transaction database. If something is wrong such as double spending issues, an exception is raised.
+        txMagnet.attachTransaction(txHash, transaction, None, checkOnly = true)
 
-        // Step 10 : Add to the disk-pool
-        storage.putTransactionToPool(txHash, transaction)
-
-        // Step 11 : Add the transaction descriptor without the transactionLocatorOption.
-        //          The transaction descriptor is necessary to mark the outputs of the transaction either spent or unspent.
-        val txDesc =
-          TransactionDescriptor(
-            transactionLocatorOption = None,
-            List.fill(transaction.outputs.length)(None) )
-
-        storage.putTransactionDescriptor(txHash, txDesc)
+        // Step 09 : Add to the disk-pool
+        txMagnet.attachTransaction(txHash, transaction, None, checkOnly = false)
 
         logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
       }

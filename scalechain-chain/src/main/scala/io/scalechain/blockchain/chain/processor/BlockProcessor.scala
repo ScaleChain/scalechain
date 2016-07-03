@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
@@ -27,7 +28,7 @@ object BlockProcessor extends BlockProcessor(Blockchain.get)
   *
   */
 class BlockProcessor(val chain : Blockchain) {
-  private val logger = LoggerFactory.getLogger(classOf[BlockProcessor])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockProcessor]) )
 
 
 
@@ -143,14 +144,18 @@ class BlockProcessor(val chain : Blockchain) {
       val dependentChildren : List[Hash] = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
-        assert(dependentChild.isDefined)
 
-        // add to the transaction pool.
-        acceptBlock(dependentChildHash, dependentChild.get)
-        // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
-        acceptedChildren.append(dependentChildHash)
-        // delete the orphan
-        chain.blockOrphanage.delOrphan(dependentChild.get)
+        if (dependentChild.isDefined) {
+          // add to the transaction pool.
+          acceptBlock(dependentChildHash, dependentChild.get)
+          // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
+          acceptedChildren.append(dependentChildHash)
+          // delete the orphan
+          chain.blockOrphanage.delOrphan(dependentChild.get)
+        } else {
+          // When two threads invoke acceptchildren at the same time, an orphan block might not exist because it was deleted by another thread.
+          // Ex> When two peers send the same block to this node at the same time, this method can be called at the same time by two different threads
+        }
       }
       chain.blockOrphanage.removeDependenciesOn(parentTxHash)
       i += 1

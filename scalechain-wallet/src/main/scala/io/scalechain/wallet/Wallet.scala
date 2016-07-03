@@ -2,7 +2,8 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.{TransactionAnalyzer, ChainEventListener}
+import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
@@ -38,7 +39,7 @@ case class WalletOutputWithInfo(
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
-  private val logger = LoggerFactory.getLogger(classOf[Wallet])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[Wallet]) )
 
   val store = new WalletStore(walletFolder)
 
@@ -127,10 +128,10 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @return
     */
   protected [wallet] def getWalletTransactions(accountOption : Option[String]) : Set[WalletTransaction] = {
-    getTransactionHashes(accountOption).map { transactionHash : Hash =>
+    getTransactionHashes(accountOption).map { transactionHash: Hash =>
       store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
     }.filter(_.isDefined) // Filter out None values.
-     .map(_.get) // Get rid of the Option wrapper.
+      .map(_.get) // Get rid of the Option wrapper.
   }
 
   /**
@@ -197,7 +198,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                                                    negativeFeeOption : Option[scala.math.BigDecimal],
                                                    outputOwnershipsFilterOption : Option[List[OutputOwnership]],
                                                    includeWatchOnly  : Boolean
-                                                 ) : Option[TransactionDescriptor] = {
+                                                 ) : Option[WalletTransactionDescriptor] = {
 
     /**
       *  category should be set to one of the following values:
@@ -254,7 +255,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         None
       } else {
         Some(
-          TransactionDescriptor(
+          WalletTransactionDescriptor(
             involvesWatchonly = involvesWatchonly,
             account = accountOption.get,
             // TODO : BUGBUG : According to the specification, this should be the "paying" address.
@@ -306,59 +307,86 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                         count           : Int,
                         skip            : Long,
                         includeWatchOnly: Boolean
-                      ) : List[TransactionDescriptor] = {
+                      ) : List[WalletTransactionDescriptor] = {
 
-    // 1. Get transactions
-    val transactions : List[WalletTransaction] = getWalletTransactions(accountOption).toList
+    // The blockchain might be in progress of block reorganization.
+    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
+    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
+    //
+    // (1) the list of transactions
+    // (2) the list of transaction outputs.
+    // (3) the flag whether an output was spent or not
+    Blockchain.get.synchronized {
 
-    // 2. Sort transactions by recency in descending order. Recent transactions come first. (newest to oldest)
-    val recentTransactions : List[WalletTransaction] = transactions.sortWith(isMoreRecentThan)
+      // 1. Get transactions
+      val transactions: List[WalletTransaction] = getWalletTransactions(accountOption).toList
 
-    val outputOwnershipsFilterOption = accountOption.map { account =>
-      store.getOutputOwnerships(Some(account))
-    }
+      // 2. Sort transactions by recency in descending order. Recent transactions come first. (newest to oldest)
+      val recentTransactions: List[WalletTransaction] = transactions.sortWith(isMoreRecentThan)
 
-    var transactionIndex = 0L
-    // 3. For each transaction,
-    val transactionDescriptors = (
-      recentTransactions.flatMap { walletTransaction : WalletTransaction =>
-        // 3. Calculate the transaction fee.
-        // TODO : Optimize : We are searching transaction outputs pointed by inputs of this transaction twice.
-        // A. first time -> to calculate fee.
-        // B. second time -> within getTransactionDescriptor
+      val outputOwnershipsFilterOption = accountOption.map { account =>
+        store.getOutputOwnerships(Some(account))
+      }
 
-        // The fee paid as a negative bitcoins value.
-        // We will calculate the fee only if it is necenssary
-        lazy val negativeFee =
-          if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
-            scala.math.BigDecimal(0)
+      var transactionIndex = 0L
+      // 3. For each transaction,
+      val transactionDescriptors = (
+        recentTransactions.flatMap { walletTransaction: WalletTransaction =>
+          // 3. Calculate the transaction fee.
+          // TODO : Optimize : We are searching transaction outputs pointed by inputs of this transaction twice.
+          // A. first time -> to calculate fee.
+          // B. second time -> within getTransactionDescriptor
+
+          // The fee paid as a negative bitcoins value.
+          // We will calculate the fee only if it is necenssary
+          lazy val negativeFee =
+            if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
+              scala.math.BigDecimal(0)
+            } else {
+              -TransactionAnalyzer.calculateFee(blockchainView, walletTransaction.transaction)
+            }
+
+          /*
+              lazy val spentOutputs : List[TransactionOutput] = walletTransaction.transaction.inputs.map { transactionInput : TransactionInput =>
+                blockchainView.getTransactionOutput(OutPoint(
+                  Hash( transactionInput.outputTransactionHash.value ),
+                  transactionInput.outputIndex.toInt
+                ))
+              }.filter(_.isDefined).map(_.get) // Remove None values, get rid Option wrapper.
+
+              lazy val spendingAddresses = spentOutputs.flatMap{ transactionOutput =>
+                LockingScriptAnalyzer.extractAddresses(transactionOutput.lockingScript))
+              }
+          */
+          // TODO : BUGBUG : if getTransactionDescriptor returns None, we count it as skipped.
+          val sendingTransactions = if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
+            List(None)
           } else {
-            -TransactionAnalyzer.calculateFee(blockchainView, walletTransaction.transaction)
+            // 3.2 For each input, check if any UTXO owned by output ownership in the wallet is related. (category = send)
+            var inputIndex = -1
+            walletTransaction.transaction.inputs.map { transactionInput =>
+              inputIndex += 1
+              if (transactionIndex >= skip && transactionIndex < skip + count) {
+                // Returns Option[TransactionDescriptor]
+                val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Left(transactionInput), inputIndex, /*None No paying address,*/ Some(negativeFee), outputOwnershipsFilterOption, includeWatchOnly)
+                if (transactionDesc.isDefined) {
+                  transactionIndex += 1
+                }
+                transactionDesc
+              } else {
+                None
+              }
+            }
           }
 
-        /*
-            lazy val spentOutputs : List[TransactionOutput] = walletTransaction.transaction.inputs.map { transactionInput : TransactionInput =>
-              blockchainView.getTransactionOutput(OutPoint(
-                Hash( transactionInput.outputTransactionHash.value ),
-                transactionInput.outputIndex.toInt
-              ))
-            }.filter(_.isDefined).map(_.get) // Remove None values, get rid Option wrapper.
-
-            lazy val spendingAddresses = spentOutputs.flatMap{ transactionOutput =>
-              LockingScriptAnalyzer.extractAddresses(transactionOutput.lockingScript))
-            }
-        */
-        // TODO : BUGBUG : if getTransactionDescriptor returns None, we count it as skipped.
-        val sendingTransactions = if ( walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
-          List(None)
-        } else {
-          // 3.2 For each input, check if any UTXO owned by output ownership in the wallet is related. (category = send)
-          var inputIndex = -1
-          walletTransaction.transaction.inputs.map { transactionInput =>
-            inputIndex += 1
+          // 3.3 For each output, check if any UTXO owned by output ownership in the wallet is related. (category = receive)
+          var outputIndex = -1
+          val receivingTransactions = walletTransaction.transaction.outputs.map { transactionOutput =>
+            outputIndex += 1
             if (transactionIndex >= skip && transactionIndex < skip + count) {
               // Returns Option[TransactionDescriptor]
-              val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Left(transactionInput), inputIndex, /*None No paying address,*/ Some(negativeFee), outputOwnershipsFilterOption, includeWatchOnly )
+              //            val payingAddressOption = spendingAddresses.headOption
+              val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Right(transactionOutput), outputIndex, /*payingAddressOption,*/ None, outputOwnershipsFilterOption, includeWatchOnly)
               if (transactionDesc.isDefined) {
                 transactionIndex += 1
               }
@@ -367,32 +395,15 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
               None
             }
           }
+
+          sendingTransactions ::: receivingTransactions
         }
+      ).filter(_.isDefined) // Filter out any None values.
+      .map(_.get) // Get rid of the Option wrapper from Option[TransactionDescriptor]
 
-        // 3.3 For each output, check if any UTXO owned by output ownership in the wallet is related. (category = receive)
-        var outputIndex = -1
-        val receivingTransactions = walletTransaction.transaction.outputs.map { transactionOutput =>
-          outputIndex += 1
-          if (transactionIndex >= skip && transactionIndex < skip + count) {
-            // Returns Option[TransactionDescriptor]
-            //            val payingAddressOption = spendingAddresses.headOption
-            val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Right(transactionOutput), outputIndex, /*payingAddressOption,*/ None, outputOwnershipsFilterOption, includeWatchOnly )
-            if (transactionDesc.isDefined) {
-              transactionIndex += 1
-            }
-            transactionDesc
-          } else {
-            None
-          }
-        }
-
-        sendingTransactions ::: receivingTransactions
-      }
-    ).filter( _.isDefined ) // Filter out any None values.
-     .map( _.get ) // Get rid of the Option wrapper from Option[TransactionDescriptor]
-
-    // Change the order oldest to newest.
-    transactionDescriptors.reverse
+      // Change the order oldest to newest.
+      transactionDescriptors.reverse
+    }
   }
 
   /** Get an iterator for UTXOs.
@@ -437,7 +448,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       // TODO : BUGBUG : Extract redeem script.
       val redeemScriptOption   : Option[String] = None
 
-      val confirmations = walletOutput.walletOutput.blockindex.map( getConfirmations(blockchainView, _) ).getOrElse(0L)
+      val confirmations = walletOutput.walletOutput.blockindex.map( getConfirmations(blockchainView, _, Some(walletOutput.outPoint) ) ).getOrElse(0L)
       val env = ChainEnvironment.get
       Some(
         UnspentCoinDescriptor(
@@ -461,11 +472,11 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param blockHeight The height of a block, where the transaction exists.
     * @return
     */
-  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long) = {
+  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long, outPointOption : Option[OutPoint] = None) = {
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
-      logger.error(s"best=${blockchainView.getBestBlockHeight()} blockHeight= ${blockHeight}")
+      logger.error(s"Negative confirmation. best=${blockchainView.getBestBlockHeight()}, blockHeight= ${blockHeight}, outpoint = ${outPointOption}")
       assert( false )
     }
     confirmations
@@ -490,29 +501,39 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                    addressesOption     : Option[List[CoinAddress]]
                  ) : List[UnspentCoinDescriptor] = {
 
-    // TODO : BUGBUG : Need to consider ParsedPubKeyScript
-    val allAddresses = store.getOutputOwnerships(None).map{case address:CoinAddress => address}
+    // The blockchain might be in progress of block reorganization.
+    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
+    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
+    //
+    // (1) the list of transactions
+    // (2) the list of transaction outputs.
+    // (3) the flag whether an output was spent or not
+    Blockchain.get.synchronized {
 
-    val addressesFilter =
-      if (addressesOption.isDefined) {
-        addressesOption.get
-      } else {
-        allAddresses
-      }
+      // TODO : BUGBUG : Need to consider ParsedPubKeyScript
+      val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
 
-    addressesFilter.flatMap { coinAddress =>
-      // Wallet Store : Iterate UTXOs for a specific coin address
-      getTransactionOutputs(Some(coinAddress))
-        .filter(!_.walletOutput.spent) // filter only unspent.
-        .map { walletOutput =>
+      val addressesFilter =
+        if (addressesOption.isDefined) {
+          addressesOption.get
+        } else {
+          allAddresses
+        }
+
+      addressesFilter.flatMap { coinAddress =>
+        // Wallet Store : Iterate UTXOs for a specific coin address
+        getTransactionOutputs(Some(coinAddress))
+          .filter(!_.walletOutput.spent) // filter only unspent.
+          .map { walletOutput =>
           getUnspentCoinDescription(
             blockchainView, Some(coinAddress), walletOutput
           )
         }
-    }.filter( _.isDefined ) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
-     .map( _.get )     // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
-     .filter( _.confirmations >= minimumConfirmations )
-     .filter( _.confirmations <= maximumConfirmations )
+      }.filter(_.isDefined) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
+        .map(_.get) // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
+        .filter(_.confirmations >= minimumConfirmations)
+        .filter(_.confirmations <= maximumConfirmations)
+    }
   }
 
   /** Import a watch-only address into the wallet.
@@ -614,6 +635,28 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     }
   }
 
+  /**
+    * Among the given output ownerships, get a list of output ownerships in the wallet database.
+    *
+    * @param outputOwnerships The output ownerships to check if they exist in the wallet database.
+    * @return The filtered list of output ownerships that are in the wallet database.
+    */
+  protected[wallet] def getWalletOutputOwnerships(outputOwnerships : List[OutputOwnership]) : List[OutputOwnership] = {
+    outputOwnerships.filter { ownership : OutputOwnership =>
+      store.ownershipExists(ownership)
+    }
+  }
+
+  /**
+    * Given a locking script, get a list of output ownerships in the wallet database.
+    *
+    * @param lockingScript The locking script to check to produce any possible output ownerships that matches ones in the wallet database.
+    * @return The filtered list of output ownerships that are in the wallet database.
+    */
+  protected[wallet] def getWalletOutputOwnerships(lockingScript : LockingScript) : List[OutputOwnership] = {
+    val outputOwnerships : List[OutputOwnership] = LockingScriptAnalyzer.extractPossibleOutputOwnerships(lockingScript)
+    getWalletOutputOwnerships(outputOwnerships)
+  }
 
   /** Invoked whenever a new transaction comes into a mempool.
     * This method is not invoked for transactions that are included in a block.
@@ -623,8 +666,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The newly found transaction.
     * @see ChainEventListener
     */
-  def onNewTransaction(transaction : Transaction): Unit = {
-    registerTransaction(store.getOutputOwnerships(None), transaction, None, None)
+  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
+    registerTransaction(store.getOutputOwnerships(None), transaction, chainBlock, transactionIndex)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -642,37 +685,6 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     unregisterTransaction(store.getOutputOwnerships(None), transaction)
   }
 
-  /** Invoked whenever a new block is added to the best blockchain.
-    *
-    * @param chainBlock The block added to the best blockchain.
-    */
-  def onAttachBlock(chainBlock:ChainBlock) : Unit = {
-    var transactionIndex = -1
-    val allOutputOwnerships = store.getOutputOwnerships(None)
-    chainBlock.block.transactions foreach { transaction =>
-      transactionIndex += 1
-      registerTransaction(
-        allOutputOwnerships,
-        transaction,
-        Some(chainBlock),
-        Some(transactionIndex)
-      )
-    }
-  }
-
-  /** Invoked whenever a block is removed from the best blockchain during the block reorganization.
-    *
-    * @param chainBlock The block to remove from the best blockchain.
-    */
-  def onDetachBlock(chainBlock:ChainBlock) : Unit = {
-    // Unregister transaction in reverse order.
-    // TODO : OPTIMIZE : Without reversing transactions, find out a way to iterate a list in reverse order.
-    val allOutputOwnerships = store.getOutputOwnerships(None)
-    chainBlock.block.transactions.reverse foreach { transaction =>
-      unregisterTransaction( allOutputOwnerships, transaction )
-    }
-  }
-
   /** Register a transaction into the wallet database.
     * 1. Put each UTXO if any output ownership owns it.
     * 2. Mark a UTXO in the wallet database spent if this transaction spends it.
@@ -687,76 +699,74 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
     */
   protected[wallet] def registerTransaction(ownerships: List[OutputOwnership], transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-
-    synchronized {
+    Blockchain.get.synchronized {
       //println(s"registerTransaction=${transaction}")
-
 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
+
+      logger.trace(s"[Wallet register tx:${transactionHash}] started.")
 
       val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
       // If the transaction is related to the output
       var isTransactionRelated = false
 
-      ownerships foreach { ownership =>
-        var isTransactionRelatedToTheOwnership = false
-        // Step 2 : Put each UTXO if the output ownership owns it.
-        var outputIndex = -1
-        transaction.outputs foreach { transactionOutput =>
-          outputIndex += 1
+      // Step 2 : Put each UTXO if the output ownership owns it.
+      var outputIndex = -1
+      transaction.outputs foreach { transactionOutput =>
+        outputIndex += 1
 
-          if (ownership.owns(transactionOutput)) {
-            /*
-                      println("registerTransaction detected output ownership.")
-                      ownership match {
-                        case addr : CoinAddress => println(s"addr : ${addr.base58}")
-                        case e : ParsedPubKeyScript => println(s"pubkey : ${e}")
-                      }
-            */
+        val outPoint = OutPoint(transactionHash, outputIndex)
 
-            val outPoint = OutPoint(transactionHash, outputIndex)
-            //println(s"registerTransaction outPoint=> ${outPoint}")
-            // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
+        val walletOutputOwnerships = getWalletOutputOwnerships(transactionOutput.lockingScript)
+        walletOutputOwnerships foreach { ownership : OutputOwnership =>
+          store.putTransactionHash(ownership, transactionHash)
+          store.putTransactionOutPoint(ownership, outPoint)
 
-            val walletOutputOption = store.getWalletOutput(outPoint)
-
-            val blockHeightOption = chainBlock.map( _.height )
-
-            if (walletOutputOption.isEmpty) {
-//            if (true) {
-              // A transaction can be registered more than once. Ex> when added to a mempool, when a block is attached.
-              // So, we need to put the output only if the output does not exist yet.
-              // Otherwise, we may overwrite the "spent" flag from true to false.
-
-              store.putTransactionOutPoint(ownership, outPoint)
-
-              val walletOutput = WalletOutput(
-                blockindex  = blockHeightOption,
-                // Whether this output is in the generation transaction.
-                // TODO : BUGBUG : Need to check the outputIndex as well to see if an
-                coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
-                spent = false,
-                transactionOutput = transactionOutput
-              )
-              store.putWalletOutput(outPoint, walletOutput)
-
-              logger.info(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
-            } else {
-              store.putWalletOutput(outPoint,
-                walletOutputOption.get.copy(
-                  blockindex = blockHeightOption)
-              )
-
-              logger.info(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}point : ${outPoint}")
-            }
-            isTransactionRelated = true
-            isTransactionRelatedToTheOwnership = true
-
-          }
+          //println(s"registerTransaction outPoint=> ${outPoint}")
+          // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
         }
 
+        if (walletOutputOwnerships.isEmpty) {
+          // Do nothing, the transaction output is not related to the output ownerships in the wallet.
+        } else {
+          isTransactionRelated = true
+
+          val blockHeightOption = chainBlock.map( _.height )
+
+          val walletOutputOption = store.getWalletOutput(outPoint)
+
+          if (walletOutputOption.isEmpty) {
+            // A transaction can be registered more than once. Ex> when added to a mempool, when a block is attached.
+            // So, we need to put the output only if the output does not exist yet.
+            // Otherwise, we may overwrite the "spent" flag from true to false.
+
+            val walletOutput = WalletOutput(
+              blockindex  = blockHeightOption,
+              // Whether this output is in the generation transaction.
+              // TODO : BUGBUG : Need to check the outputIndex as well to see if an
+              coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
+              spent = false,
+              transactionOutput = transactionOutput
+            )
+            store.putWalletOutput(outPoint, walletOutput)
+
+            logger.debug(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
+          } else {
+            store.putWalletOutput(outPoint,
+              walletOutputOption.get.copy(
+                blockindex = blockHeightOption)
+            )
+
+            logger.debug(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}. outpoint : ${outPoint}")
+          }
+        }
+      }
+
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // do nothing
+      } else {
         var inputIndex = -1
         // Step 3 : Mark a UTXO spent if this transaction spends it.
         transaction.inputs foreach { transactionInput =>
@@ -769,27 +779,22 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             transactionInput.outputIndex.toInt)
 
           val walletOutputOption = store.getWalletOutput(spentOutput)
+          if (walletOutputOption.isDefined) {
+            val walletOutputOwnerships = getWalletOutputOwnerships(walletOutputOption.get.transactionOutput.lockingScript)
+            assert(!walletOutputOwnerships.isEmpty)
 
-          if (walletOutputOption.isDefined) { // We have the output in our wallet.
-            if (ownership.owns(walletOutputOption.get.transactionOutput)) {
-              // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-              val found = store.markWalletOutputSpent(spentOutput, true)
-              assert(found)
-
-              isTransactionRelated = true
-              isTransactionRelatedToTheOwnership = true
-
-              logger.info(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+            walletOutputOwnerships foreach { ownership: OutputOwnership =>
+              store.putTransactionHash(ownership, transactionHash)
             }
-          } else { // The output was not found.
-            // TODO : Make sure we always have the wallet output for an ownership even though the system crashes.
-          }
-        }
 
-        // Step 4 : Wallet Store : Put a transaction into the output ownership.
-        if (isTransactionRelatedToTheOwnership) {
-          //println(s"putTxHash:${ownership}, ${transactionHash}")
-          store.putTransactionHash(ownership, transactionHash)
+            // We have the output in our wallet.
+            // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
+            if ( store.markWalletOutputSpent(spentOutput, true) ) {
+              logger.debug(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+            }
+
+            isTransactionRelated = true
+          }
         }
       }
 
@@ -820,34 +825,49 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The transaction to register.
     */
   protected[wallet] def unregisterTransaction(ownerships: List[OutputOwnership], transaction : Transaction): Unit = {
-    synchronized {
+    Blockchain.get.synchronized {
       val currentTime = System.currentTimeMillis()
 
       // Step 1 : Calulate the transaction hash.
       val transactionHash = transaction.hash
 
+      logger.trace(s"[Wallet unregister tx:${transactionHash}] started.")
+
+      // TODO : BUGBUG : When the JVM crashes while executing registerTransaction, related keys may exists on wallet indexes without the WalletTransaction being put into the wallet index.
       // If the transaction is related to the output
+
       var isTransactionRelated = false
+
       var outputIndex = -1
+      // Step 2 : Remove each UTXO if the output ownership owns it.
+      transaction.outputs foreach { transactionOutput =>
+        outputIndex += 1
+        val outPoint = OutPoint(transactionHash, outputIndex)
 
-      ownerships foreach { ownership =>
-        var isTransactionRelatedToTheOwnership = false
-        // Step 2 : Remove each UTXO if the output ownership owns it.
-        transaction.outputs foreach { transactionOutput =>
-          outputIndex += 1
-          if (ownership.owns(transactionOutput)) {
-            val outPoint = OutPoint(transactionHash, outputIndex)
-            // Step 2.1 : Wallet Store : Remove a transaction from the output ownership by transaction hash.
-            store.delTransactionOutPoint(ownership, outPoint)
-            store.delWalletOutput(outPoint)
-            isTransactionRelated = true
-            isTransactionRelatedToTheOwnership = true
+        val walletOutputOwnerships = getWalletOutputOwnerships(transactionOutput.lockingScript)
 
-            logger.info(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
-          }
+        walletOutputOwnerships foreach { ownership: OutputOwnership =>
+          // Step 2.1 : Wallet Store : Remove a transaction from the output ownership by transaction hash.
+          store.delTransactionOutPoint(ownership, outPoint)
+          // Step 2.2 : Wallet Store : Remove a transaction from the output ownership.
+          store.delTransactionHash(ownership, transactionHash)
         }
 
-        var inputIndex = -1
+        if (walletOutputOwnerships.isEmpty) {
+          // Do nothing, the transaction output is not related to the output ownerships in the wallet.
+        } else {
+          store.delWalletOutput(outPoint)
+
+          logger.debug(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
+
+          isTransactionRelated = true
+        }
+      }
+
+      var inputIndex = -1
+      if (transaction.inputs(0).isCoinBaseInput()) {
+        // Do nothing
+      } else {
         // Step 3 : Mark a UTXO unspent if this transaction spends it.
         transaction.inputs foreach { transactionInput =>
           // TODO : Check if the transaction input is generation transaction input?
@@ -858,31 +878,33 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             Hash( transactionInput.outputTransactionHash.value ),
             transactionInput.outputIndex.toInt)
 
-          // Step 4 : Wallet Store : Mark a UTXO unspent searching by OutPoint.
-          if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
-            isTransactionRelated = true
-            isTransactionRelatedToTheOwnership = true
+          val walletOutputOption = store.getWalletOutput(spentOutput)
 
-            logger.info(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
-          } else {
-            // We should not have the output in our wallet database.
-            assert( store.getWalletOutput(spentOutput).isEmpty )
+          if (walletOutputOption.isDefined) {
+
+            val walletOutputOwnerships = getWalletOutputOwnerships(walletOutputOption.get.transactionOutput.lockingScript)
+            assert(!walletOutputOwnerships.isEmpty)
+
+            walletOutputOwnerships foreach { ownership: OutputOwnership =>
+              store.delTransactionHash(ownership, transactionHash)
+            }
+
+            // Step 4 : Wallet Store : Mark a UTXO unspent searching by OutPoint.
+            if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
+              logger.debug(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+            }
+
+            isTransactionRelated = true
           }
         }
-
-        // Step 4 : Wallet Store : Remove a transaction from the output ownership.
-        if (isTransactionRelatedToTheOwnership) {
-          store.delTransactionHash(ownership, transactionHash)
-        }
       }
-
       // Step 5 : Wallet Store : Remove a transaction.
       if (isTransactionRelated) {
         store.delWalletTransaction(transactionHash)
       } else {
-        assert(store.getWalletTransaction(transactionHash).isEmpty)
+        assert( store.getWalletTransaction(transactionHash).isEmpty )
       }
-   }
+    }
   }
 
   /** Close the wallet.

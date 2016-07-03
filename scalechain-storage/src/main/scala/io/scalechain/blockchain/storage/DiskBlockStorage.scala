@@ -2,10 +2,12 @@ package io.scalechain.blockchain.storage
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.storage.index.{CassandraDatabase, BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
+import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
@@ -72,7 +74,7 @@ object DiskBlockStorage {
   */
 
 class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockStorage {
-  private val logger = LoggerFactory.getLogger(classOf[DiskBlockStorage])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[DiskBlockStorage]) )
 
   directoryPath.mkdir()
 
@@ -129,7 +131,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
-  def putBlock(blockHash : Hash, block : Block) : Boolean = {
+  def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
@@ -156,7 +158,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
           } else {
             // case 1.2 block info with a block locator was found
             // The block already exists. Do not put it once more.
-            logger.warn("The block already exists. block hash : {}", blockHash)
+            logger.trace("The block already exists. block hash : {}", blockHash)
 
             List()
           }
@@ -193,18 +195,13 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
             // case 2.2 : no block info was found, previous block header does not exists.
             // Actually the code execution should never come to here, because we have checked if the block is an orphan block
             // before invoking putBlock method.
-            logger.warn("An orphan block was discarded while saving a block. block hash : {}", block.header)
+            logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
 
             List()
           }
         }
 
-      if (!txLocators.isEmpty) {
-        // case 1.1 and case 2.1 has newly stored transactions.
-        blockDatabase.putTransactions(block.transactions zip txLocators)
-      }
-
-      isNewBlock
+      txLocators
     }
   }
 
@@ -219,28 +216,12 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
-      val txDescriptorOption = blockDatabase.getTransactionDescriptor(transactionHash)
-      txDescriptorOption.map { txDesc: TransactionDescriptor =>
-        txDesc.transactionLocatorOption match {
-          // The transaction was written as part of a block.
-          case Some(txLocator) => blockRecordStorage.readRecord(txLocator)(TransactionCodec)
-          // The transaction is in the pool.
-          case None => getTransactionFromPool(transactionHash).get
-        }
+      val txDescriptorOption = getTransactionDescriptor(transactionHash)
+      if (txDescriptorOption.isDefined) { // The transaction is in a block on the best blockchain.
+        Some( blockRecordStorage.readRecord(txDescriptorOption.get.transactionLocator)(TransactionCodec) )
+      } else {
+        getTransactionFromPool(transactionHash).map(_.transaction)
       }
-    }
-  }
-
-  /** Remove a transaction from the block storage.
-    *
-    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
-    *
-    * @param transactionHash The hash of the transaction to remove from the blockchain.
-    */
-  def removeTransaction(transactionHash : Hash) : Unit = {
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      blockDatabase.delTransaction(transactionHash)
     }
   }
 

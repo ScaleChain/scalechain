@@ -56,26 +56,6 @@ class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with Before
     CoinAddress(env.ScriptAddressVersion, bytes("0" * 42)).isValid shouldBe false
   }
 
-  "owns" should "return true for the transaction output it owns" in {
-    val privateKey = PrivateKey.generate
-    val publicKeyScript = ParsedPubKeyScript.from(privateKey)
-    val address = CoinAddress.from(privateKey)
-
-    val output = TransactionOutput(1L, publicKeyScript.lockingScript())
-    address.owns(output) shouldBe true
-
-  }
-
-  "owns" should "return false for the transaction output it does NOT own" in {
-    val privateKey = PrivateKey.generate
-    val publicKeyScript = ParsedPubKeyScript.from(privateKey)
-    // Generate an address from a new private key.
-    val address = CoinAddress.from(PrivateKey.generate())
-
-    val output = TransactionOutput(1L, publicKeyScript.lockingScript())
-    address.owns(output) shouldBe false
-  }
-
   "base58" should "return base58 representation of the address" in {
     val privateKey = PrivateKey.generate
     val address = CoinAddress.from(privateKey)

@@ -11,7 +11,7 @@ trait ChainEventListener {
     *
     * @param transaction The newly found transaction.
     */
-  def onNewTransaction(transaction : Transaction)
+  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])
 
   /** Called whenever a new transaction is removed from the disk-pool without being added to a block.
     * This also means the transaction does not exist in any block, as the disk-pool has transactions
@@ -20,16 +20,4 @@ trait ChainEventListener {
     * @param transaction The transaction removed from the disk-pool.
     */
   def onRemoveTransaction(transaction : Transaction)
-
-  /** Invoked whenever a new block is attached to the best blockchain.
-    *
-    * @param chainBlock The block added to the best blockchain.
-    */
-  def onAttachBlock(chainBlock:ChainBlock) : Unit
-
-  /** Invoked whenever a block is detached from the best blockchain during the block reorganization.
-    *
-    * @param chainBlock The block to remove from the best blockchain.
-    */
-  def onDetachBlock(chainBlock:ChainBlock) : Unit
 }

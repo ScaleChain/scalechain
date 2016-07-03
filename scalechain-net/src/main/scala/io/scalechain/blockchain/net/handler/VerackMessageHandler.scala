@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.{Verack, ProtocolMessage}
 import org.slf4j.LoggerFactory
 
@@ -7,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Verack message.
   */
 object VerackMessageHandler {
-  private lazy val logger = LoggerFactory.getLogger(VerackMessageHandler.getClass)
+  private lazy val logger = Logger( LoggerFactory.getLogger(VerackMessageHandler.getClass) )
 
   /** Handle Verack message.
     *

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net
 
 import java.net.{InetAddress, InetSocketAddress}
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{HexUtil, StringUtil}
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 5/22/16.
   */
 class PeerCommunicator(peerSet : PeerSet) {
-  private val logger = LoggerFactory.getLogger(classOf[PeerCommunicator])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[PeerCommunicator]) )
 
   /*
     protected[net] def sendToAny(message : ProtocolMessage): Unit = {
@@ -21,12 +22,7 @@ class PeerCommunicator(peerSet : PeerSet) {
   */
 
   protected[net] def sendToAll(message : ProtocolMessage): Unit = {
-    peerSet.peers() foreach { case (address: InetSocketAddress, peer : Peer) =>
-
-      val messageString = MessageSummarizer.summarize(message)
-      logger.info(s"Sending to one of all peers : ${address}, ${messageString}")
-      peer.send(message)
-    }
+    peerSet.sendToAll(message)
   }
 
   /** Propagate a newly mined block to the peers. Called by a miner, whenever a new block was mined.
@@ -64,5 +60,25 @@ class PeerCommunicator(peerSet : PeerSet) {
     }
 
     peerInfosIter.toList
+  }
+
+  /**
+    * Get the peer which has highest best block height.
+ *
+    * @return Some(best PeerInfo) if there is any connected peer; None otherwise.
+    */
+  def getBestPeer() : Option[PeerInfo] = {
+    val peerInfos = getPeerInfos
+    if (peerInfos.isEmpty) {
+      None
+    } else {
+      def betterPeer(peer1 : PeerInfo, peer2 : PeerInfo) : PeerInfo = {
+        if (peer1.startingheight.getOrElse(0L) > peer2.startingheight.getOrElse(0L))
+          peer1
+        else
+          peer2
+      }
+      Some( peerInfos.reduceLeft(betterPeer) )
+    }
   }
 }

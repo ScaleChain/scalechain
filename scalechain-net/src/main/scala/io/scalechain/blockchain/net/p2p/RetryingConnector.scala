@@ -1,9 +1,13 @@
 package io.scalechain.blockchain.net.p2p
 
+import com.typesafe.scalalogging.Logger
 import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.net.message.VersionFactory
 import io.scalechain.blockchain.net.{Peer, NodeClient, PeerSet}
 import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}
 import io.scalechain.util.HexUtil._
+import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
@@ -12,7 +16,7 @@ import scala.annotation.tailrec
   * Created by kangmo on 5/26/16.
   */
 class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
-  private val logger = LoggerFactory.getLogger(classOf[RetryingConnector])
+  private val logger = Logger( LoggerFactory.getLogger(classOf[RetryingConnector]) )
 
   def connect(address : String, port : Int) : Unit = {
     // TODO : BUGBUG : Need to call nodeClient.close when the connection closes?
@@ -26,10 +30,32 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
           logger.info(s"Sending version message to ${channel.remoteAddress()}")
 
           // Upon successful connection, send the version message.
-          val versionMessage = Version(70002, BigInt("1"), 1454059080L, NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInt("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInt("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
+          channel.writeAndFlush( VersionFactory.create )
 
-          channel.writeAndFlush(versionMessage)
+          future.channel().closeFuture.addListener( new ChannelFutureListener() {
+            def operationComplete(future:ChannelFuture) {
+              assert( future.isDone )
 
+              if (future.isSuccess) { // completed successfully
+                logger.info(s"Connection closed. Remote address : ${channel.remoteAddress()}")
+              }
+
+              if (future.cause() != null) { // completed with failure
+                val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+                logger.warn(s"Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+              }
+
+              if (future.isCancelled) { // completed by cancellation
+                logger.warn(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
+              }
+/*
+              logger.info(s"Connection to ${address}:${port} closed. Will reconnect in a second.")
+              Thread.sleep(retryIntervalSeconds*1000)
+              // Retry connection.
+              connect(address, port)
+*/
+            }
+          })
         } else {
           channel.close()
           nodeClient.close()

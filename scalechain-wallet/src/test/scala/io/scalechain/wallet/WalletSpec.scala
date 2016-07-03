@@ -3,7 +3,7 @@ package io.scalechain.wallet
 import java.io.File
 
 import io.scalechain.blockchain.TransactionVerificationException
-import io.scalechain.blockchain.chain.{TransactionWithName, OutputWithOutPoint, ChainSampleData}
+import io.scalechain.blockchain.chain.{Blockchain, TransactionWithName, OutputWithOutPoint, ChainSampleData}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.HashSupported._
@@ -34,6 +34,8 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDa
 
   var wallet  : Wallet = null
   var storage : DiskBlockStorage = null
+  var chain : Blockchain = null
+
   val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
   val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
   override def beforeEach() {
@@ -44,6 +46,10 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDa
 
     storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
     DiskBlockStorage.theBlockStorage = storage
+
+    chain = new Blockchain(storage)
+    Blockchain.theBlockchain = chain
+
     wallet = Wallet.create(testPathForWallet)
 
     super.beforeEach()
@@ -56,6 +62,7 @@ class WalletSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDa
     wallet.close()
 
     storage = null
+    chain = null
     wallet  = null
 
     FileUtils.deleteDirectory(testPathForWallet)

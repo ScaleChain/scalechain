@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
 import io.scalechain.blockchain.script.HashSupported._
@@ -10,28 +11,13 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionPool with OrphanBlockIndex with OrphanTransactionIndex {
-  private val logger = LoggerFactory.getLogger(classOf[BlockStorage])
+trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with OrphanBlockIndex with OrphanTransactionIndex {
+  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockStorage]) )
   protected[storage] val blockDatabase : BlockDatabase
 
-  def putBlock(blockHash : Hash, block : Block) : Boolean
+  def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator]
   def getTransaction(transactionHash : Hash) : Option[Transaction]
   def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
-
-  // TODO : Add test case
-  def getTransactionDescriptor(txHash : Hash) : Option[TransactionDescriptor] = {
-    // TODO : Rethink synchonization.
-    synchronized {
-      blockDatabase.getTransactionDescriptor(txHash)
-    }
-  }
-
-  // TODO : Add test case
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor) = {
-    synchronized {
-      blockDatabase.putTransactionDescriptor(txHash, transactionDescriptor)
-    }
-  }
 
   /** Get the block hash at the given height on the best blockchain.
     *
@@ -39,7 +25,6 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     * @return The hash of the block at the height on the best blockchain.
     */
   def getBlockHashByHeight(height : Long) : Option[Hash] = {
-    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.getBlockHashByHeight(height)
   }
 
@@ -49,8 +34,16 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     * @param hash The hash of the block.
     */
   def putBlockHashByHeight(height : Long, hash : Hash) : Unit = {
-    // TODO : BUGBUG : Need to add synchronization?
     blockDatabase.putBlockHashByHeight(height, hash)
+  }
+
+  /**
+    * Del the block hash by height.
+    *
+    * @param height the height of the block to delete.
+    */
+  def delBlockHashByHeight(height : Long) : Unit = {
+    blockDatabase.delBlockHashByHeight(height)
   }
 
   /** Update the hash of the next block.
@@ -73,15 +66,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
     blockDatabase.getBlockInfo(hash).get.nextBlockHash
   }
 
-  /** Remove a transaction from the block storage.
-    *
-    * We need to remove a transaction that are stored in a block which is not in the best block chain any more.
-    *
-    * @param transactionHash The hash of the transaction to remove from the blockchain.
-    */
-  def removeTransaction(transactionHash : Hash) : Unit
-
-  def putBlock(block : Block) : Boolean = {
+  def putBlock(block : Block) : List[TransactionLocator] = {
     putBlock(block.header.hash, block)
   }
 
@@ -90,8 +75,8 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
   }
 
   def hasBlock(blockHash : Hash) : Boolean = {
-    // TODO : Optimize : We don't need to deserialize a block to see if it exists on our database.
-    getBlock(blockHash).isDefined
+    val blockInfo = blockDatabase.getBlockInfo(blockHash)
+    blockInfo.isDefined && blockInfo.get.blockLocatorOption.isDefined
   }
 
   def hasTransaction(transactionHash : Hash) : Boolean = {
@@ -185,7 +170,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
           // We put a block as a best block only if we have the block data as long as the header.
         } else {
           // case 1.2 : the same block header already exists.
-          logger.warn("A block header is put onto the block database twice. block hash : {}", blockHash)
+          logger.trace("A block header is put onto the block database twice. block hash : {}", blockHash)
 
           // blockIndex hits an assertion if the block header is changed for the same block hash.
           // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
@@ -196,7 +181,7 @@ trait BlockStorage extends SharedKeyValueDatabase with BlockIndex with Transacti
         }
       } else {
         // case 2 : the previous block header was not found.
-        logger.warn("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
+        logger.trace("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
       }
     }
   }

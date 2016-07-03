@@ -40,12 +40,12 @@ class BlockSampleData extends BlockBuildingTestTrait {
 
   object Tx {
     val GEN01 = generationTransaction( "GenTx.BLK01", CoinAmount(50), Addr1.address )
-    val GEN02 = generationTransaction( "GenTx.BLK01", CoinAmount(50), Addr1.address )
-    val GEN03a = generationTransaction( "GenTx.BLK02", CoinAmount(50), Addr1.address )
-    val GEN04a = generationTransaction( "GenTx.BLK03", CoinAmount(50), Addr1.address )
-    val GEN05a = generationTransaction( "GenTx.BLK04", CoinAmount(50), Addr1.address )
-    val GEN03b = generationTransaction( "GenTx.BLK02a", CoinAmount(50), Addr1.address )
-    val GEN04b = generationTransaction( "GenTx.BLK03a", CoinAmount(50), Addr1.address )
+    val GEN02 = generationTransaction( "GenTx.BLK02", CoinAmount(50), Addr1.address )
+    val GEN03a = generationTransaction( "GenTx.BLK03", CoinAmount(50), Addr1.address )
+    val GEN04a = generationTransaction( "GenTx.BLK04", CoinAmount(50), Addr1.address )
+    val GEN05a = generationTransaction( "GenTx.BLK05", CoinAmount(50), Addr1.address )
+    val GEN03b = generationTransaction( "GenTx.BLK03b", CoinAmount(50), Addr1.address )
+    val GEN04b = generationTransaction( "GenTx.BLK04b", CoinAmount(50), Addr1.address )
 
     val TX02 = normalTransaction(
       "TX02",
@@ -118,7 +118,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
     // UTXO : TX02 : 2
     // UTXO : TX04a : 0
 
-    // TX04b can't go into the transaction pool when the BLK04 becomes the best block,
+    // TX04b can't go into the transaction pool when the BLK04a becomes the best block,
     // as it depends on the output GEN03b created on the branch b.
     val TX04b = normalTransaction(
       "TX04b",
@@ -134,7 +134,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
 
     // TX04b2 goes to the transaction pool, as it depends on the unpent output, (TX02,2)
     val TX04b2 = normalTransaction(
-      "TX04b",
+      "TX04b2",
       spendingOutputs = List( getOutput(TX02,2) ),
       newOutputs = List(
         NewOutput(CoinAmount(9), Addr2.address)
@@ -160,6 +160,7 @@ class BlockSampleData extends BlockBuildingTestTrait {
 
   object Block {
     val BLK01  = doMining( newBlock(env.GenesisBlockHash,  List(Tx.GEN01)), 4)
+    // BUGBUG : Need to spend the outputs of GEN01 after the coinbase maturity (=two confirmations in the testnet) is met.
     val BLK02  = doMining( newBlock(BLK01.header.hash,     List(Tx.GEN02, Tx.TX02)), 4)
     val BLK03a = doMining( newBlock(BLK02.header.hash,     List(Tx.GEN03a, Tx.TX03, Tx.TX03a)), 4)
     val BLK04a = doMining( newBlock(BLK03a.header.hash,    List(Tx.GEN04a, Tx.TX04, Tx.TX04a)), 4)
