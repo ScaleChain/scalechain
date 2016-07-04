@@ -1,11 +1,13 @@
 package io.scalechain.blockchain.api.command
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
 import io.scalechain.blockchain.api.command.rawtx._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.{ByteArray, HexUtil}
+import org.slf4j.LoggerFactory
 
 
 // [API layer] Convert a block to a specific block format.
@@ -13,6 +15,7 @@ object BlockFormatter {
   /** Get the GetBlockResult case class instance from a block.
     *
     * Used by : getblock RPC.
+    *
     * @param block The block to format.
     * @return The GetBlockResult instance.
     */
@@ -67,6 +70,7 @@ object TransactionDecoder {
   /** Decodes multiple transactions from a hex string.
     *
     * Note : This method uses parseMany, which is
+    *
     * @param serializedTransactions The hex string that has multiple(or single) transactions to decode.
     * @return A list of transactions.
     */
@@ -110,7 +114,7 @@ object BlockDecoder {
 
 // [API layer] Convert a transaction into a specific transaction format.
 object TransactionFormatter {
-
+  private lazy val logger = Logger( LoggerFactory.getLogger(TransactionFormatter.getClass) )
   /** Get a serialized version of a transaction.
     *
     * Used by : sign raw transaction
@@ -165,10 +169,26 @@ object TransactionFormatter {
     * Used by getrawtransaction RPC.
     *
     * @param transaction The transaction to convert.
+    * @param bestBlockHeight The height of the best block. Used for calculating block confirmations.
+    * @param blockInfoOption Some(blockInfo) if the transaction is included in a block; None otherwise.
     * @return The converted RawTransaction instance.
     */
-  def getRawTransaction(transaction : Transaction) : RawTransaction = {
+  def getRawTransaction(transaction : Transaction, bestBlockHeight : Long, blockInfoOption : Option[BlockInfo]) : RawTransaction = {
     val serializedTransaction = getSerializedTranasction(transaction)
+
+    val confirmations =
+      if (blockInfoOption.isDefined) {
+        if (bestBlockHeight >= blockInfoOption.get.height) {
+          // If the block is the best block, we can say, 1 confirmation.
+          bestBlockHeight - blockInfoOption.get.height + 1L
+        } else {
+          logger.error(s"The best block height(${bestBlockHeight}) is less than the block height${blockInfoOption.get.height} which has a transaction.")
+          assert(false)
+          0L
+        }
+      } else {
+        0L
+      }
 
     RawTransaction(
       hex      = serializedTransaction,
@@ -176,7 +196,11 @@ object TransactionFormatter {
       version  = transaction.version,
       locktime = transaction.lockTime,
       vin      = convertTransactionInputs(transaction.inputs),
-      vout     = convertTransactionOutputs(transaction.outputs)
+      vout     = convertTransactionOutputs(transaction.outputs),
+      blockhash  = blockInfoOption.map(_.blockHeader.hash),
+      confirmations = confirmations,
+      time     = blockInfoOption.map(_.blockHeader.timestamp),
+      blocktime     = blockInfoOption.map(_.blockHeader.timestamp)
     )
   }
 

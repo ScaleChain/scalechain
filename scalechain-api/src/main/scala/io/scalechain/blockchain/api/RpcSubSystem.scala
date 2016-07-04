@@ -60,6 +60,26 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
   }
 
 
+  /**
+    * Return the block height of the best block.
+    *
+    * Used by getrawtransaction RPC to get the confirmation of the block which has a transaction.
+    * @return The height of the best block.
+    */
+  def getBestBlockHeight() : Long = {
+    chain.getBestBlockHeight()
+  }
+
+  /**
+    * Get the block info of the block which has the given transaction.
+    *
+    * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
+    * @return Some(block info) if the transaction is included in a block; None otherwise.
+    */
+  def getTransactionBlockInfo(txHash : Hash) : Option[BlockInfo] = {
+    chain.getTransactionBlockInfo(txHash)
+  }
+
   /** Get a transaction searching by the transaction hash.
     *
     * Used by : gettransaction RPC.

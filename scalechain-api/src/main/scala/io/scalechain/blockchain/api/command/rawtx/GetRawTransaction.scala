@@ -122,18 +122,18 @@ case class RawTransaction(
   // An array of objects each describing an output vector (vout) for this transaction.
   // Output objects will have the same order within the array as they have in the transaction,
   // so the first output listed will be output 0
-  vout          : List[RawTransactionOutput]
+  vout          : List[RawTransactionOutput],
   // If the transaction has been included in a block on the local best block chain,
   // this is the hash of that block encoded as hex in RPC byte order
-//  blockhash     : Option[Hash],   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
+  blockhash     : Option[Hash],   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
   // If the transaction has been included in a block on the local best block chain,
   // this is how many confirmations it has. Otherwise, this is 0
-//  confirmations : Long,   // 88192,
+  confirmations : Long,   // 88192,
   // If the transaction has been included in a block on the local best block chain,
   // this is the block header time of that block (may be in the future)
-//  time          : Option[Long],   // 1398734825,
+  time          : Option[Long],   // 1398734825,
   // This field is currently identical to the time field described above
-//  blocktime     : Option[Long]    // 1398734825
+  blocktime     : Option[Long]    // 1398734825
 ) extends RpcResult
 
 /** GetRawTransaction: gets a hex-encoded serialized transaction or a JSON object describing the transaction.
@@ -162,17 +162,19 @@ case class RawTransaction(
   */
 object GetRawTransaction extends RpcCommand {
   def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
+    //handlingException {
       val txHashString : String                = request.params.get[String]("TXID", 0)
       val verbose      : scala.math.BigDecimal = request.params.getOption[scala.math.BigDecimal]("Verbose", 1).getOrElse(scala.math.BigDecimal(0))
 
       val txHash = Hash ( HexUtil.bytes(txHashString) )
 
       val transactionOption = RpcSubSystem.get.getTransaction(txHash)
+      val bestBlockHeight : Long = RpcSubSystem.get.getBestBlockHeight()
+      val blockInfoOption = RpcSubSystem.get.getTransactionBlockInfo(txHash)
 
       val rawTransactionOption = transactionOption.map{ transaction =>
         if (verbose != 0 ) {
-          TransactionFormatter.getRawTransaction(transaction)
+          TransactionFormatter.getRawTransaction(transaction, bestBlockHeight, blockInfoOption)
         } else {
           StringResult( TransactionFormatter.getSerializedTranasction(transaction) )
         }
@@ -183,7 +185,7 @@ object GetRawTransaction extends RpcCommand {
       // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
 
       Right(rawTransactionOption)
-    }
+    //}
   }
   def help() : String =
     """getrawtransaction "txid" ( verbose )

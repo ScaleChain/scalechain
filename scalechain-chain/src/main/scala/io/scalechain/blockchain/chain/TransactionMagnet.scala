@@ -265,11 +265,10 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     *
     * @param transactionHash The hash of the transaction to attach.
     * @param transaction The transaction to attach.
-    * @param txLocatorOption Some(locator) if the transaction is stored in a block on the best blockchain; None if the transaction should be stored in a mempool.
     * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
-    *
+    * @param txLocatorOption Some(locator) if the transaction is stored in a block on the best blockchain; None if the transaction should be stored in a mempool.
     */
-  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, txLocatorOption : Option[FileRecordLocator], checkOnly : Boolean, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None) : Unit = {
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean, txLocatorOption : Option[FileRecordLocator] = None, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None) : Unit = {
     // Step 1 : Attach each transaction input
     if (transaction.inputs(0).isCoinBaseInput()) {
       // Nothing to do for the coinbase inputs.
@@ -282,9 +281,12 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     } else {
       // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
       if (txLocatorOption.isDefined) {
+        // If the txLocator is defined, the block height should also be defined.
+        assert( chainBlock.isDefined )
         txDescIndex.putTransactionDescriptor(transactionHash,
           TransactionDescriptor(
             transactionLocator = txLocatorOption.get,
+            blockHeight = chainBlock.get.height,
             List.fill(transaction.outputs.length)(None)
           )
         )

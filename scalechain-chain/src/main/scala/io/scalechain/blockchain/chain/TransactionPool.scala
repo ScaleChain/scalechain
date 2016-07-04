@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto.{TransactionPoolEntry, TransactionDescriptor, Hash, Transaction}
+import io.scalechain.blockchain.proto.{TransactionPoolEntry, Hash, Transaction}
 import io.scalechain.blockchain.storage.BlockStorage
 import org.slf4j.LoggerFactory
 
@@ -51,10 +51,10 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
 
         // Step 09 : Check for double-spends with existing transactions
         // First, check only without affecting the transaction database. If something is wrong such as double spending issues, an exception is raised.
-        txMagnet.attachTransaction(txHash, transaction, None, checkOnly = true)
+        txMagnet.attachTransaction(txHash, transaction, checkOnly = true)
 
         // Step 09 : Add to the disk-pool
-        txMagnet.attachTransaction(txHash, transaction, None, checkOnly = false)
+        txMagnet.attachTransaction(txHash, transaction, checkOnly = false)
 
         logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
       }

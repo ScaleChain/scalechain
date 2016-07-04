@@ -13,6 +13,7 @@ class TransactionDescriptorCodecSpec extends CodecSuite with ProtoTestData {
 
   val txDesc1 = TransactionDescriptor(
     transactionLocator = FileRecordLocator( 1, RecordLocator(2,3)  ),
+    1234,
     outputsSpentBy = List( None, Some(InPoint(DUMMY_HASH1, 1)), None )
   )
 
