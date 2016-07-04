@@ -8,7 +8,7 @@ import io.scalechain.blockchain.chain.{BlockSampleData, Blockchain}
 import io.scalechain.blockchain.proto.{Transaction, Hash}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.{ChainBlock, TransactionTestDataTrait}
 import org.apache.commons.io.FileUtils
 import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
 import HashSupported._

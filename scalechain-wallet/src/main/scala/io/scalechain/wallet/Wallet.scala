@@ -565,7 +565,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       blockchainView.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
         chainBlock.block.transactions foreach { transaction =>
           tranasctionIndex += 1
-          registerTransaction(List(outputOwnership), transaction, Some(chainBlock), Some(tranasctionIndex))
+          registerTransaction(transaction, Some(chainBlock), Some(tranasctionIndex))
         }
       }
     }
@@ -667,7 +667,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @see ChainEventListener
     */
   def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-    registerTransaction(store.getOutputOwnerships(None), transaction, chainBlock, transactionIndex)
+    registerTransaction(transaction, chainBlock, transactionIndex)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -682,7 +682,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @see ChainEventListener
     */
   def onRemoveTransaction(transaction : Transaction): Unit = {
-    unregisterTransaction(store.getOutputOwnerships(None), transaction)
+    unregisterTransaction(transaction)
   }
 
   /** Register a transaction into the wallet database.
@@ -690,7 +690,6 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * 2. Mark a UTXO in the wallet database spent if this transaction spends it.
     * 3. Put the transaction as a wallet transaction if it is related to any output ownership.
     *
-    * @param ownerships The list of output ownerships to check.
     * @param transaction The transaction to register.
     * @param chainBlock Some(block) if the transaction is included in a block; None otherwise.
     * @param transactionIndex An Additional value for sorting transactions by recency.
@@ -698,7 +697,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                               None if the block is in the mempool.
 
     */
-  protected[wallet] def registerTransaction(ownerships: List[OutputOwnership], transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
+  protected[wallet] def registerTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
     Blockchain.get.synchronized {
       //println(s"registerTransaction=${transaction}")
 
@@ -752,14 +751,14 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             )
             store.putWalletOutput(outPoint, walletOutput)
 
-            logger.debug(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
+            logger.trace(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
           } else {
             store.putWalletOutput(outPoint,
               walletOutputOption.get.copy(
                 blockindex = blockHeightOption)
             )
 
-            logger.debug(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}. outpoint : ${outPoint}")
+            logger.trace(s"[Wallet register tx:${transactionHash}] updated the blockindex from ${walletOutputOption.get.blockindex} to ${blockHeightOption}. outpoint : ${outPoint}")
           }
         }
       }
@@ -790,7 +789,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             // We have the output in our wallet.
             // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
             if ( store.markWalletOutputSpent(spentOutput, true) ) {
-              logger.debug(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+              logger.trace(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
 
             isTransactionRelated = true
@@ -821,10 +820,9 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * 2. Mark a UTXO in the wallet database unspent if this transaction spends it.
     * 3. Remove the transaction from the wallet database if it is related to any output ownership.
     *
-    * @param ownerships The list of output ownerships to check.
     * @param transaction The transaction to register.
     */
-  protected[wallet] def unregisterTransaction(ownerships: List[OutputOwnership], transaction : Transaction): Unit = {
+  protected[wallet] def unregisterTransaction(transaction : Transaction): Unit = {
     Blockchain.get.synchronized {
       val currentTime = System.currentTimeMillis()
 
@@ -858,7 +856,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         } else {
           store.delWalletOutput(outPoint)
 
-          logger.debug(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
+          logger.trace(s"[Wallet unregister tx:${transactionHash}] del outpoint : ${outPoint}")
 
           isTransactionRelated = true
         }
@@ -891,7 +889,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
             // Step 4 : Wallet Store : Mark a UTXO unspent searching by OutPoint.
             if (store.markWalletOutputSpent(spentOutput, false)) { // returns true if the output was found in the wallet database.
-              logger.debug(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
+              logger.trace(s"[Wallet unregister tx:${transactionHash}] set output unspent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
 
             isTransactionRelated = true

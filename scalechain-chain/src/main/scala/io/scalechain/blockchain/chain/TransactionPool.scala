@@ -67,7 +67,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     *
     * @param txHash The hash of the transaction to remove.
     */
-  protected[chain] def removeTransactionFromPool(txHash : Hash) : Unit = {
+  def removeTransactionFromPool(txHash : Hash) : Unit = {
     // Note : We should not touch the TransactionDescriptor.
     storage.delTransactionFromPool(txHash)
   }
