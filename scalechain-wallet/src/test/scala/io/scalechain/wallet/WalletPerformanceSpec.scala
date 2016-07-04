@@ -12,7 +12,7 @@ import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{CoinAmount, ChainBlock, TransactionTestDataTrait}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory
-import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
+import org.scalatest._
 import io.scalechain.blockchain.script.HashSupported._
 
 import scala.collection.mutable.ListBuffer
