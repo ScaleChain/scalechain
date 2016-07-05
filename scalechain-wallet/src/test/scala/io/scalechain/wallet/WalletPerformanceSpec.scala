@@ -6,22 +6,24 @@ import java.io.File
 import io.scalechain.blockchain.chain.BlockSampleData.Block._
 import io.scalechain.blockchain.chain.BlockSampleData.Tx._
 import io.scalechain.blockchain.chain.BlockSampleData._
-import io.scalechain.blockchain.chain.{BlockSampleData, Blockchain}
+import io.scalechain.blockchain.chain.{TransactionWithName, BlockSampleData, Blockchain}
 import io.scalechain.blockchain.proto.{Hash, Transaction}
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.{CoinAmount, ChainBlock, TransactionTestDataTrait}
+import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
+import io.scalechain.blockchain.transaction._
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory
 import org.scalatest._
 import io.scalechain.blockchain.script.HashSupported._
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
   * Created by kangmo on 7/4/16.
   */
-@Ignore
+
 class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
@@ -131,7 +133,147 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
     println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
   }
 
-  "perftest" should "measure performance on putting transactions only" in {
+  def prepareTestTransactions(txCount : Long) : ListBuffer[(Hash, Transaction)] = {
+    val generationAddress = wallet.newAddress("generation")
+    val generationTx = generationTransaction( "GenTx.BLK01", CoinAmount(50), generationAddress )
+
+    // Prepare test data.
+    val transactions = new ListBuffer[(Hash, Transaction)]()
+
+    var mergedCoin = getOutput(generationTx,0)
+
+    var testLoopCount = txCount
+
+    transactions.append((generationTx.transaction.hash, generationTx.transaction))
+
+    while(testLoopCount > 0) {
+      val accountName = s"${Random.nextInt}"
+      val newAddress1 = wallet.newAddress(accountName)
+      val newAddress2 = wallet.newAddress(accountName)
+      val newAddress3 = wallet.newAddress(accountName)
+
+      val coin1Amount = Random.nextInt(10)
+      val coin2Amount = Random.nextInt(18)
+      val splitTx = normalTransaction(
+        s"splitTx-${testLoopCount}",
+        spendingOutputs = List( mergedCoin ),
+        newOutputs = List(
+          NewOutput(CoinAmount(coin1Amount), newAddress1),
+          NewOutput(CoinAmount(coin2Amount), newAddress2),
+          NewOutput(CoinAmount(50-coin1Amount-coin2Amount), newAddress3)
+        )
+      )
+
+      transactions.append((splitTx.transaction.hash, splitTx.transaction))
+
+      val mergeTx = normalTransaction(
+        s"mergeTx-${testLoopCount}",
+        spendingOutputs = List( getOutput(splitTx,0), getOutput(splitTx,1), getOutput(splitTx,2) ),
+        newOutputs = List(
+          NewOutput(CoinAmount(50), newAddress3)
+        )
+      )
+
+      transactions.append((mergeTx.transaction.hash, mergeTx.transaction))
+
+      mergedCoin = getOutput(mergeTx, 0)
+
+      testLoopCount -= 2
+    }
+
+    transactions
+  }
+
+  "single thread perf test" should "measure performance by adding transactions to the pool" in {
+    import BlockSampleData._
+    import BlockSampleData.Block._
+    import BlockSampleData.Tx._
+
+
+    import ch.qos.logback.classic.Logger
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    root.setLevel(ch.qos.logback.classic.Level.WARN);
+
+    wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
+
+    //    val TEST_LOOP_COUNT = 100000
+
+    println("Preparing Performance test data.")
+
+//    val TEST_LOOP_COUNT = 2
+    val TEST_LOOP_COUNT = 30000
+    var testLoop = TEST_LOOP_COUNT
+
+    val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
+
+    {
+      println("Performance test started. Add Transaction.")
+      val startTimestamp = System.currentTimeMillis()
+
+      transactions foreach { case (hash, tx) =>
+        chain.txPool.addTransactionToPool(hash, tx)
+      }
+
+      val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
+      println(s"Elapsed second : ${elapsedSecond}")
+      val totalTransactions = TEST_LOOP_COUNT
+      println(s"Total transactions : ${totalTransactions}")
+      println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
+    }
+/*
+    val signedTransactions =
+      {
+        println("Performance test started. Sign Transaction.")
+        val startTimestamp = System.currentTimeMillis()
+
+        var index = -1
+        val signedTransactions =
+          // Drop the generation transaction, unable to sign the generation transaction
+          transactions.drop(1).map { case (hash, tx) =>
+            index += 1
+            println(s"singing ${index}")
+            Wallet.get.signTransaction(
+              tx,
+              Blockchain.get,
+              List(),
+              None,
+              SigHash.ALL)
+          }
+
+        val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
+        println(s"Elapsed second : ${elapsedSecond}")
+        val totalTransactions = TEST_LOOP_COUNT
+        println(s"Total transactions : ${totalTransactions}")
+        println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
+
+        signedTransactions
+      }
+
+
+    {
+      println("Performance test started. Verify Transaction.")
+      val startTimestamp = System.currentTimeMillis()
+
+      signedTransactions foreach { signedTx =>
+
+        assert(signedTx.complete)
+        new TransactionVerifier(signedTx.transaction).verify(chain)
+      }
+
+      val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
+      println(s"Elapsed second : ${elapsedSecond}")
+      val totalTransactions = TEST_LOOP_COUNT
+      println(s"Total transactions : ${totalTransactions}")
+      println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
+    }
+
+*/
+  }
+
+
+  "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
     import BlockSampleData._
     import BlockSampleData.Block._
     import BlockSampleData.Tx._
@@ -152,63 +294,59 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
     val TEST_LOOP_COUNT = 30000
     var testLoop = TEST_LOOP_COUNT
 
-    var mergedCoin = getOutput(GEN01,0)
+    val generationTxs = List(GEN01, GEN02, GEN03a, GEN04a, GEN05a)
+    var transactionsMap = scala.collection.mutable.Map[Int, ListBuffer[(Hash, Transaction)]]()
 
-    chain.txPool.addTransactionToPool(GEN01.transaction.hash, GEN01.transaction)
-
-    // Prepare test data.
-    val transactions = new ListBuffer[(Hash, Transaction)]()
-    while(testLoop > 0) {
-      val accountName = s"${Random.nextInt}"
-      val newAddress1 = BlockSampleData.generateAddress(accountName).address
-      wallet.importOutputOwnership(chain, accountName, newAddress1, rescanBlockchain = false)
-      val newAddress2 = BlockSampleData.generateAddress(accountName).address
-      wallet.importOutputOwnership(chain, accountName, newAddress2, rescanBlockchain = false)
-      val newAddress3 = BlockSampleData.generateAddress(accountName).address
-      wallet.importOutputOwnership(chain, accountName, newAddress3, rescanBlockchain = false)
-
-      val coin1Amount = Random.nextInt(10)
-      val coin2Amount = Random.nextInt(18)
-      val splitTx = normalTransaction(
-        s"splitTx-${testLoop}",
-        spendingOutputs = List( mergedCoin ),
-        newOutputs = List(
-          NewOutput(CoinAmount(coin1Amount), newAddress1),
-          NewOutput(CoinAmount(coin2Amount), newAddress2),
-          NewOutput(CoinAmount(50-coin1Amount-coin2Amount), newAddress3)
-        )
-      )
-
-      transactions.append((splitTx.transaction.hash, splitTx.transaction))
-
-      val mergeTx = normalTransaction(
-        s"mergeTx-${testLoop}",
-        spendingOutputs = List( getOutput(splitTx,0), getOutput(splitTx,1), getOutput(splitTx,2) ),
-        newOutputs = List(
-          NewOutput(CoinAmount(50), newAddress3)
-        )
-      )
-
-      transactions.append((mergeTx.transaction.hash, mergeTx.transaction))
-
-      mergedCoin = getOutput(mergeTx, 0)
-
-      testLoop -= 1
+    /*
+    val prepareThreads = generationTxs.map{ genTx =>
+      chain.txPool.addTransactionToPool(genTx.transaction.hash, genTx.transaction)
+      new Thread() {
+        override def run(): Unit = {
+          val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
+          transactionsMap(genTx) = transactions
+        }
+      }
     }
+
+    prepareThreads foreach { _.start } // Start all preparation threads
+    prepareThreads foreach { _.join }  // join all preparation threads
+*/
+
+    val threadCount = 4
+    0 until threadCount foreach { i =>
+      val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
+      transactionsMap(i) = transactions
+    }
+
+
+    val threads =
+      (0 until threadCount).map { i =>
+        new Thread() {
+          override def run(): Unit = {
+            val transactions = transactionsMap(i)
+            var addedCount = 0
+            transactions foreach { case (hash, tx) =>
+              chain.txPool.addTransactionToPool(hash, tx)
+              addedCount += 1
+            }
+            println(s"Added ${addedCount} transactions.")
+          }
+        }
+      }
 
 
     println("Performance test started.")
     val startTimestamp = System.currentTimeMillis()
 
-    transactions foreach { case (hash, tx) =>
-      chain.txPool.addTransactionToPool(hash, tx)
-    }
+    threads foreach { _.start } // Start all threads
+    threads foreach { _.join }  //
 
     val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-    println(s"Elasped second : ${elapsedSecond}")
-    val totalTransactions = TEST_LOOP_COUNT
+    println(s"Elapsed second : ${elapsedSecond}")
+    val totalTransactions = TEST_LOOP_COUNT * threadCount
     println(s"Total transactions : ${totalTransactions}")
     println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
   }
+
 
 }
