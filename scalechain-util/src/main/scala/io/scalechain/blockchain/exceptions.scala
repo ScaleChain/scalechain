@@ -96,7 +96,7 @@ object ErrorCode {
   // Net Layer
   // HeadersMessageHandler
   val NonContinuousBlockHeaders      = ErrorCode("non_continuous_block_headers")
-
+  val NoCoinForBlockSigning          = ErrorCode("no_coin_for_block_signing")
 }
 
 

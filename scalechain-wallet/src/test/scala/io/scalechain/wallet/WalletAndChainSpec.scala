@@ -27,8 +27,8 @@ class WalletAndChainSpec extends FlatSpec with BeforeAndAfterEach with Transacti
   var storage: DiskBlockStorage = null
   var chain: Blockchain = null
 
-  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
+  val testPathForWallet = new File("./target/unittests-WalletAndChainSpec-wallet/")
+  val testPathForStorage = new File("./target/unittests-WalletAndChainSpec-storage/")
 
   override def beforeEach() {
     FileUtils.deleteDirectory(testPathForWallet)
@@ -87,6 +87,7 @@ class WalletAndChainSpec extends FlatSpec with BeforeAndAfterEach with Transacti
   }
 
   "blockchain" should "reorganize blocks" in {
+
     import BlockSampleData._
     import BlockSampleData.Block._
     import BlockSampleData.Tx._
@@ -139,8 +140,6 @@ class WalletAndChainSpec extends FlatSpec with BeforeAndAfterEach with Transacti
       GEN03a, TX03, TX03a
     ).map(_.transaction.hash)
     listPoolTransactionHashes().toSet shouldBe Set()
-
-
 
 
     chain.putBlock(BLK04a.header.hash, BLK04a) // chain work = 4 + 4 + 4 + 4

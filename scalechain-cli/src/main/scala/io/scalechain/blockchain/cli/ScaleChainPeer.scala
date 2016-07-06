@@ -8,11 +8,12 @@ import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
+import io.scalechain.blockchain.net.message.PrivateVersionFactory
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage._
-import io.scalechain.blockchain.transaction.{SigHash, PrivateKey, ChainEnvironment}
+import io.scalechain.blockchain.transaction.{CoinAddress, SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{HexUtil, Config}
 import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
@@ -29,11 +30,11 @@ object ScaleChainPeer {
   case class Parameters(
                          peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          peerPort: Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         p2pInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.p2p.port"),
-                         apiInboundPort: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.api.port"),
-                         miningAccount: String = io.scalechain.util.Config.scalechain.getString("scalechain.mining.account"),
-                         network: String = io.scalechain.util.Config.scalechain.getString("scalechain.network.name"),
-                         maxBlockSize: Int = io.scalechain.util.Config.scalechain.getInt("scalechain.mining.max_block_size"),
+                         p2pInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.p2p.port"),
+                         apiInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.api.port"),
+                         miningAccount: String = io.scalechain.util.Config.getString("scalechain.mining.account"),
+                         network: String = io.scalechain.util.Config.getString("scalechain.network.name"),
+                         maxBlockSize: Int = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
                          minerInitialDelayMS: Int = 20000,
                          minerHashDelayMS : Int = 200
                        )
@@ -83,7 +84,7 @@ object ScaleChainPeer {
     }
   }
 
-  protected[cli] def initializeNetLayer(params: Parameters): PeerCommunicator = {
+  protected[cli] def initializeNetLayer(params: Parameters, wallet: Wallet): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) = {
       def getLocalAddresses() : List[String] = {
@@ -126,10 +127,12 @@ object ScaleChainPeer {
         List(PeerAddress(params.peerAddress.get, params.peerPort.get))
       } else {
         // Otherwise, connect to peers listed in the configuration file.
-        io.scalechain.util.Config.scalechain.getConfigList("scalechain.p2p.peers").asScala.toList.map { peer =>
+        io.scalechain.util.Config.getConfigList("scalechain.p2p.peers").asScala.toList.map { peer =>
           PeerAddress(peer.getString("address"), peer.getInt("port"))
         }
       }
+
+    BlockSigner.setWallet( wallet )
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
@@ -175,15 +178,16 @@ object ScaleChainPeer {
 
     assert( chain.getBestBlockHash().isDefined )
 
-    // Step 6 : Net Layer : Initialize peer to peer communication system, and
-    // return the peer communicator that knows how to propagate blocks and transactions to peers.
-    val peerCommunicator: PeerCommunicator = initializeNetLayer(params)
-
-    // Step 7 : Wallet Layer : set the wallet as an event listener of the blockchain.
+    // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
     val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create(walletPath)
     chain.setEventListener(wallet)
+
+    // Step 7 : Net Layer : Initialize peer to peer communication system, and
+    // return the peer communicator that knows how to propagate blocks and transactions to peers.
+
+    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.

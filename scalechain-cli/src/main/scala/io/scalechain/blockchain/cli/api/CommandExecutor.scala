@@ -3,9 +3,9 @@ import io.scalechain.util.Config
 
 case class Parameters(
   host : String = "localhost",
-  port : Int = Config.scalechain.getInt("scalechain.api.port"),
-  user : String = Config.scalechain.getString("scalechain.api.user"),
-  password : String = Config.scalechain.getString("scalechain.api.password"),
+  port : Int = Config.getInt("scalechain.api.port"),
+  user : String = Config.getString("scalechain.api.user"),
+  password : String = Config.getString("scalechain.api.password"),
   command : String = null,
   args : Array[String] = Array())
 

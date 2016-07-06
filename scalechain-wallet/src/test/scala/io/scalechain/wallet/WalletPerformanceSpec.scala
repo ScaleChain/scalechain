@@ -6,7 +6,7 @@ import java.io.File
 import io.scalechain.blockchain.chain.BlockSampleData.Block._
 import io.scalechain.blockchain.chain.BlockSampleData.Tx._
 import io.scalechain.blockchain.chain.BlockSampleData._
-import io.scalechain.blockchain.chain.{TransactionWithName, BlockSampleData, Blockchain}
+import io.scalechain.blockchain.chain.{NewOutput, TransactionWithName, BlockSampleData, Blockchain}
 import io.scalechain.blockchain.proto.{Hash, Transaction}
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
@@ -36,8 +36,8 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
   var storage: DiskBlockStorage = null
   var chain: Blockchain = null
 
-  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
+  val testPathForWallet = new File("./target/unittests-WalletPerformanceSpec-wallet/")
+  val testPathForStorage = new File("./target/unittests-WalletPerformanceSpec-storage/")
 
   override def beforeEach() {
     FileUtils.deleteDirectory(testPathForWallet)
@@ -202,8 +202,8 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
 
     println("Preparing Performance test data.")
 
-//    val TEST_LOOP_COUNT = 2
-    val TEST_LOOP_COUNT = 30000
+    val TEST_LOOP_COUNT = 2
+//    val TEST_LOOP_COUNT = 30000
     var testLoop = TEST_LOOP_COUNT
 
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)

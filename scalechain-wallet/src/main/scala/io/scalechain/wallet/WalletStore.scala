@@ -280,7 +280,7 @@ class WalletStore(walletFolder : File) extends AutoCloseable {
     if (addressOption.isEmpty) {
       getOutputOwnerships(None).flatMap{ outputOwnership : OutputOwnership =>
         getPrivateKeys(Some(outputOwnership))
-      }.toList
+      }
     } else {
       val ownershipDescriptorOption:Option[OwnershipDescriptor] =
         db.getObject(OWNERSHIP_DESC, addressOption.get)(OutputOwnershipCodec, OwnershipDescriptorCodec)

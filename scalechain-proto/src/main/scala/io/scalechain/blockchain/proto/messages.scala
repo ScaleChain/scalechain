@@ -30,6 +30,7 @@ extends ProtocolMessage {
   override def toString = s"""Version($version, ${bint(services)}, ${timestamp}L, $destAddress, $sourceAddress, ${bint(nonce)}, \"${userAgent}\", $startHeight, $relay)"""
 }
 
+
 /** Verack ; The verack message is sent in reply to version.
  * This message consists of only a message header with the command string "verack".
  */

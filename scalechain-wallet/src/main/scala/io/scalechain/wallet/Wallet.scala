@@ -612,6 +612,20 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
   }
 
 
+  /** Get an iterator private keys for an address or all accounts.
+    *
+    * TODO : Add test
+    *
+    * Category : [Account -> Output Ownerships] - Search
+    *
+    * @param addressOption Some(address) to get private keys for an address. A Multisig address may have multiple keys for it.
+    *                      None to get private keys for all accounts.
+    */
+  def getPrivateKeys(addressOption : Option[OutputOwnership]) : List[PrivateKey] = {
+    store.getPrivateKeys(addressOption)
+  }
+
+
   /** Returns the current address for receiving payments to this account.
     * Create one if not existent.
     *
