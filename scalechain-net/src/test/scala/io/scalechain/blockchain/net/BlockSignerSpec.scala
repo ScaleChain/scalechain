@@ -27,8 +27,8 @@ class BlockSignerSpec extends FlatSpec with BeforeAndAfterEach with TransactionT
   var chain: Blockchain = null
   var data : WalletBasedBlockSampleData = null
 
-  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
+  val testPathForWallet = new File("./target/unittests-BlockSignerSpec-wallet/")
+  val testPathForStorage = new File("./target/unittests-BlockSignerSpec-storage/")
 
   override def beforeEach() {
     FileUtils.deleteDirectory(testPathForWallet)

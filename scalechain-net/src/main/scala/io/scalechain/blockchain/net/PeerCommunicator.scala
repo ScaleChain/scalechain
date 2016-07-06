@@ -81,4 +81,13 @@ class PeerCommunicator(peerSet : PeerSet) {
       Some( peerInfos.reduceLeft(betterPeer) )
     }
   }
+
+  def getPermissionedAddresses() : List[String] = {
+    val addresses : List[Option[String]] = peerSet.all().map{ peer : Peer =>
+      peer.privateVersionOption.map(_.blockSigningAddress)
+    }.toList
+
+    // Convert List[Option[String]] to List[String], filtering out any None
+    addresses.filter(_.isDefined).map(_.get)
+  }
 }

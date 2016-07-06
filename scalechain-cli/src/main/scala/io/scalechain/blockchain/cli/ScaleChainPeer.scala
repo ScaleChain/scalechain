@@ -4,7 +4,6 @@ import java.io.File
 import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
 import java.util
 
-import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
@@ -132,7 +131,11 @@ object ScaleChainPeer {
         }
       }
 
-    BlockSigner.setWallet( wallet )
+    if (Config.isPrivate) {
+      BlockSigner.setWallet( wallet )
+      val signingAddress = BlockSigner.signingAddress()
+      PrivateVersionFactory.setBlockSigningAddress(signingAddress)
+    }
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,

@@ -29,7 +29,7 @@ class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait 
     chain.putBlock(BLK02.header.hash, BLK02)
     chain.putBlock(BLK03.header.hash, BLK03)
 
-    bm = chain.createBlockMining()
+    bm = new BlockMining(chain.txDescIndex, chain.txPool, chain)
 
   }
 
@@ -61,7 +61,7 @@ class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait 
       TX04_04 // fee 12
     )
 
-    bm.selectTransactions(GEN04.transaction, inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
+    bm.selectTransactions(GEN04.transaction, List(), inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
   }
 
   /*
@@ -98,7 +98,7 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
       TX04_05_05  // fee 0
     )
 
-    bm.selectTransactions(GEN04.transaction, inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
+    bm.selectTransactions(GEN04.transaction, List(), inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
   }
 
   /*
@@ -127,7 +127,7 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
       TX04_02 // fee 2
     )
 
-    bm.selectTransactions(GEN04.transaction, inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
+    bm.selectTransactions(GEN04.transaction, List(), inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
   }
 
 
@@ -152,6 +152,45 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
       TX04_03 // fee 4
     )
 
-    bm.selectTransactions(GEN04.transaction, inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
+    bm.selectTransactions(GEN04.transaction, List(), inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
   }
+
+
+  "selectTransactions" should "include signing transactions first" in {
+
+    // Improve test case : Use signing transactions that are independent, and having low fees.
+    val signingTransactions = List(
+      TX04_01,
+      TX04_02
+    )
+
+    val inputTransactions = List(
+      TX04_05_05,
+      TX04_05_04,
+      TX04_05_03,
+      TX04_05_02,
+      TX04_05_01,
+      TX04_04,
+      TX04_03
+    )
+
+    val expectedTransactions = List(
+      GEN04,
+      // Signing transactions
+      TX04_01, // fee 1
+      TX04_02, // fee 2
+      // TX04_03 ~ TX04_04 => These are dependent transactions, should be sorted by dependency.
+      TX04_03, // fee 4
+      TX04_04, // fee 12
+      // TX04_05_0X => These are independent transactions, should be sorted by fee in descending order.
+      TX04_05_01, // fee 8
+      TX04_05_02, // fee 6
+      TX04_05_03, // fee 4
+      TX04_05_04, // fee 2
+      TX04_05_05  // fee 0
+    )
+
+    bm.selectTransactions(GEN04.transaction, signingTransactions.map(_.transaction), inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
+  }
+
 }

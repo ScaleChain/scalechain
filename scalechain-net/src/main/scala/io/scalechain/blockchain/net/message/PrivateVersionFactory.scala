@@ -15,6 +15,7 @@ object PrivateVersionFactory {
     blockSigningAddress = Some(address)
   }
   def create() : PrivateVersion = {
+    assert(blockSigningAddress.isDefined)
     PrivateVersion(BlockSigner.signingAddress.base58())
   }
 }

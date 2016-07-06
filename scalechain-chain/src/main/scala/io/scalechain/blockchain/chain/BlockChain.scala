@@ -5,6 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
+import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
@@ -113,14 +114,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   val blockOrphanage = new BlockOrphanage(storage)
   val txOrphanage = new TransactionOrphanage(storage)
 
-  /**
-    * Create the block mining, which knows how to select transactions from the transaction pool.
- *
-    * @return The created block mining.
-    */
-  def createBlockMining() : BlockMining = {
-    new BlockMining(storage, txPool, this)
-  }
+  def txDescIndex : TransactionDescriptorIndex = storage
 
   /** Set an event listener of the blockchain.
     *

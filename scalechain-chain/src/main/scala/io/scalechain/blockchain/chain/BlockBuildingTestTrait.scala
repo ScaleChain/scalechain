@@ -66,7 +66,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
                            ) : TransactionWithName = {
     val transaction = TransactionBuilder.newBuilder(availableOutputs)
       // Need to put a random number so that we have different transaction id for the generation transaction.
-      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-current, ScaleChain by Kwanho, Chanwoo, Kangmo."))
+      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo."))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
@@ -150,7 +150,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
   }
 
   def mineBlock(chain : Blockchain) = {
-    val blockMining = chain.createBlockMining()
+    val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)
     val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)
