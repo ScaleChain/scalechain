@@ -2,7 +2,7 @@ package io.scalechain.blockchain.net
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.{NewOutput, BlockSampleData, Blockchain}
+import io.scalechain.blockchain.chain.{TransactionWithName, NewOutput, BlockSampleData, Blockchain}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction._
@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
 import HashSupported._
 
+import scala.collection.mutable.ListBuffer
 
 
 class BlockSignerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
@@ -113,4 +114,29 @@ class BlockSignerSpec extends FlatSpec with BeforeAndAfterEach with TransactionT
   "extractSignedBlockHash" should "return None if the transaction is not a block signing transaction" in {
     BlockSigner.extractSignedBlockHash(chain, data.Tx.TX03.transaction) shouldBe None
   }
+
+  "extractSingingAddresses" should "return the list of addresses that signed the transactions with previous block hash" in {
+    val prevBlockHash = data.Block.BLK02.header.hash
+    val signingTx1 =  BlockSigner.signBlock(chain, prevBlockHash, data.Addr1.address)
+    val signingTx2 =  BlockSigner.signBlock(chain, prevBlockHash, data.Addr2.address)
+    val invalidSigningTx = BlockSigner.signBlock(chain, env.GenesisBlockHash, data.Addr3.address) // The hash does not match the previous hash. Addr3 should not be included in the signing addresses.
+
+    val transactions = List(data.Tx.GEN03a.transaction, signingTx1, signingTx2, invalidSigningTx).map( TransactionWithName("a", _))
+
+    val block = data.newBlock(prevBlockHash, transactions )
+    BlockSigner.extractSingingAddresses(chain, block) shouldBe List(data.Addr1.address, data.Addr2.address).map(_.base58)
+  }
+
+  "extractSingingAddresses(recursive)" should "return the list of addresses that signed the transactions with previous block hash" in {
+    val prevBlockHash = data.Block.BLK02.header.hash
+    val signingTx1 =  BlockSigner.signBlock(chain, prevBlockHash, data.Addr1.address)
+    val signingTx2 =  BlockSigner.signBlock(chain, prevBlockHash, data.Addr2.address)
+    val invalidSigningTx = BlockSigner.signBlock(chain, env.GenesisBlockHash, data.Addr3.address) // The hash does not match the previous hash. Addr3 should not be included in the signing addresses.
+
+    val transactions = List(signingTx1, signingTx2, invalidSigningTx)
+    val addresses = new ListBuffer[String]()
+    BlockSigner.extractSingingAddresses(chain, prevBlockHash, transactions, addresses)
+    addresses.toList shouldBe List(data.Addr1.address, data.Addr2.address).map(_.base58)
+  }
+
 }

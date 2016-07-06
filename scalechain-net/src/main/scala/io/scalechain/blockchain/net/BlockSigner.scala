@@ -11,6 +11,9 @@ import io.scalechain.blockchain.chain.TransactionBuilder
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction._
 
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+
 case class SignedBlock(blockHash : Hash, address: String)
 
 /**
@@ -22,6 +25,7 @@ object BlockSigner {
 
   /**
     * Set the wallet for signing a transaction that has a block hash in it.
+    *
     * @param wallet The wallet for signing a transaction that has a block hash in it.
     */
   def setWallet(wallet : Wallet) : Unit = {
@@ -33,6 +37,7 @@ object BlockSigner {
 
   /**
     * Get the address used for signing blocks.
+    *
     * @return The address used for signing blocks. Actually the private key of the address is used for signing blocks.
     */
   def signingAddress() = {
@@ -42,6 +47,7 @@ object BlockSigner {
 
   /**
     * Create and sign a transaction that has the block hash in an output with OP_RETURN.
+    *
     * @param chainView
     * @param blockHash
     * @return
@@ -49,7 +55,14 @@ object BlockSigner {
   def signBlock(chainView : BlockchainView, blockHash : Hash) : Transaction = {
     assert(wallet != null)
 
-    val unspentOutputs : List[UnspentCoinDescriptor] = wallet.listUnspent(chainView, 0, Long.MaxValue, Some(List(blockSigningAddress)))
+    signBlock(chainView, blockHash, blockSigningAddress)
+  }
+
+
+  protected[net] def signBlock(chainView : BlockchainView, blockHash : Hash, signingAdress : CoinAddress) : Transaction = {
+    assert(wallet != null)
+
+    val unspentOutputs : List[UnspentCoinDescriptor] = wallet.listUnspent(chainView, 0, Long.MaxValue, Some(List(signingAdress)))
     if (unspentOutputs.isEmpty) {
       throw new NetException(ErrorCode.NoCoinForBlockSigning)
     }
@@ -59,11 +72,11 @@ object BlockSigner {
     val blockSignature = BlockSignatureCodec.serialize( BlockSignature( BlockSignature.MAGIC, blockHash) )
 
     val unsignedTransaction = TransactionBuilder
-                                .newBuilder(chainView)
-                                .addInput(OutPoint(outputToSpend.txid, outputToSpend.vout))
-                                .addOutput(blockSignature)
-                                .addOutput(CoinAmount(outputToSpend.amount), blockSigningAddress)
-                                .build()
+      .newBuilder(chainView)
+      .addInput(OutPoint(outputToSpend.txid, outputToSpend.vout))
+      .addOutput(blockSignature)
+      .addOutput(CoinAmount(outputToSpend.amount), blockSigningAddress)
+      .build()
 
     assert( unsignedTransaction.outputs.length == 2)
 
@@ -76,6 +89,7 @@ object BlockSigner {
 
   /**
     * Extract the signing address from the transaction. The output pointed by the first input has the address.
+    *
     * @param chainView
     * @param transaction
     * @return
@@ -132,6 +146,45 @@ object BlockSigner {
         }
       } else {
         None
+      }
+    }
+  }
+
+  /**
+    * Extract signing addresses from transactions that have the previous block hash of a given block.
+    *
+    * A block has transactions in the following order.
+    * 1. The generation transaction
+    * 2. Transactions that have the previous block hash in the first output with OpReturn.
+    * 3. Normal transactions.
+    *
+    * @param chainView The view of the blockchain to get the coins.
+    * @param block The block to extract signing addresses
+    * @return
+    */
+  def extractSingingAddresses(chainView : BlockchainView, block : Block) : List[String] = {
+    assert(block.transactions(0).inputs(0).isCoinBaseInput())
+    val addresses = new ListBuffer[String]()
+
+    // Skip the head(generation transaction), and start iteration from the tail of the transactions list.
+    extractSingingAddresses(chainView, block.header.hashPrevBlock, block.transactions.tail, addresses)
+    addresses.toList
+  }
+
+
+  @tailrec
+  protected[net] final def extractSingingAddresses(chainView : BlockchainView, hashPrevBlock : Hash, transactions : List[Transaction], addresses : ListBuffer[String]) : Unit = {
+    val signedBlockHash = extractSignedBlockHash(chainView, transactions.head)
+
+    if (signedBlockHash.isEmpty) { // base case
+      // do nothing
+    } else {
+      val signedHash = signedBlockHash.get
+      if (signedHash.blockHash == hashPrevBlock) {
+        addresses.append(signedHash.address)
+        extractSingingAddresses(chainView, hashPrevBlock, transactions.tail, addresses)
+      } else {
+        // base case : do nothing.
       }
     }
   }
