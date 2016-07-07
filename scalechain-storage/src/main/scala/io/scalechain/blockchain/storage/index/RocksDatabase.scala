@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.storage.Storage
-import org.rocksdb.{RocksIterator, Options, RocksDB}
+import org.rocksdb._
 
 /**
   * A KeyValueDatabase implementation using RocksDB.
@@ -14,7 +14,23 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  private val options = new Options().setCreateIfMissing(true).setCreateMissingColumnFamilies(true);
+  private val options =
+    new Options()
+      .setCreateIfMissing(true)
+      .setCreateMissingColumnFamilies(true)
+      .setAllowOsBuffer(true)
+      .setWriteBufferSize(256 * 1024 * 1024)
+      .setMaxWriteBufferNumber(4)
+      .setMinWriteBufferNumberToMerge(2)
+      .setMaxOpenFiles(5000)
+//      .setCompressionType(CompressionType.SNAPPY_COMPRESSION)
+//      .getEnv().setBackgroundThreads(6, RocksEnv.COMPACTION_POOL)
+//      .getEnv().setBackgroundThreads(2, RocksEnv.FLUSH_POOL)
+      .setMaxBackgroundCompactions(6) // how many cores to allocate to compaction?
+      .setMaxBackgroundFlushes(2)
+      .setCompactionStyle(CompactionStyle.LEVEL)
+//      .setTargetFileSizeBase(options.maxBytesForLevelBase() / 10)
+
   private val db = RocksDB.open(options, path.getAbsolutePath)
 
 

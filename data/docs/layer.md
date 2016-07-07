@@ -10,9 +10,9 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 +------------------------------------------------+
 |                   API                          |
 +------------------------------------------------+
-|                   Wallet                       |
-+------------------------------------------------+
 |                   Net                          |
++------------------------------------------------+
+|                   Wallet                       |
 +------------------------------------------------+
 |                   Chain                        |
 +------------------------------------------------+
@@ -36,13 +36,13 @@ A jar package containing all CLI(command line interface) utilities such as DumpC
 ## API
 The Json-RPC API layer. 100% Compatible with Bitcoin.
 
-## Wallet
-The wallet layer. Contains all features related to a wallet, creating transactions, signing transactions,
-creating accounts, creating addresses an account etc.
-
 ## Net
 The P2P networking layer. 100% Compatible with Bitcoin. 
 To make the protocol compatible, we use Akka Streams and implement codecs on Codec|Proto layer to convert on-the-wire format to case classes and vice versa.
+
+## Wallet
+The wallet layer. Contains all features related to a wallet, creating transactions, signing transactions,
+creating accounts, creating addresses an account etc.
 
 ## Chain
 The chain layer is responsible for maintaining the best block chain. 
@@ -53,6 +53,7 @@ The ScaleChain transaction layer. Implements signing a raw transaction, verifyin
 
 ## Storage
 The storage layer. Knows how to store blocks and transactions. It knows how to search blocks by hash or transactions by hash.
+
 ## Script
 The script layer. Implements all bitcoin script commands.
 

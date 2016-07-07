@@ -43,7 +43,7 @@ object RpcResultJsonFormat {
   implicit val implicitRawScriptPubKey               = jsonFormat1(RawScriptPubKey.apply)
   implicit val implicitRawTransactionOutput          = jsonFormat3(RawTransactionOutput.apply)
   implicit val implicitDecodedRawTransaction         = jsonFormat5(DecodedRawTransaction.apply)
-  implicit val implicitRawTransaction                = jsonFormat6(RawTransaction.apply)
+  implicit val implicitRawTransaction                = jsonFormat10(RawTransaction.apply)
 
   implicit val implicitSignRawTransactionResult      = jsonFormat2(SignRawTransactionResult.apply)
 

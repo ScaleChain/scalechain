@@ -960,4 +960,26 @@ String Response : {
     val S = new WalletSampleData(wallet)
     // TODO : Implement test case
   }
+
+  "getPrivateKeys" should "return an empty list if the address was imported" in {
+    val S = new WalletSampleData(wallet)
+    wallet.importOutputOwnership(
+      S.TestBlockchainView,
+      "test1",
+      S.Alice.Addr1.address,
+      rescanBlockchain = false)
+
+    val keys = wallet.getPrivateKeys(Some(S.Alice.Addr1.address))
+    keys.length shouldBe 0
+  }
+
+  "getPrivateKeys" should "return a list that has a private key if the address was generated" in {
+    val addr1 = wallet.newAddress("test1")
+
+    val addr1_privateKeys = wallet.getPrivateKeys(Some(addr1))
+
+    addr1_privateKeys.length shouldBe 1
+    CoinAddress.from(addr1_privateKeys.head) shouldBe addr1
+  }
+
 }

@@ -55,23 +55,23 @@ object ScaleChainBuild extends Build {
 			base = file("scalechain-chain"))
 			.dependsOn(util, storage, transaction)
 
+	lazy val wallet =
+		Project(
+			id = "scalechain-wallet",
+			base = file("scalechain-wallet"))
+			.dependsOn(util, chain, storage, transaction)
+
 	lazy val net =
 		Project(
 			id = "scalechain-net",
 			base = file("scalechain-net"))
-		.dependsOn(util, proto, proto_codec, script, chain, transaction)
+		.dependsOn(util, proto, proto_codec, script, chain, transaction, wallet)
 
 	lazy val api =
 		Project(
 			id = "scalechain-api",
 			base = file("scalechain-api"))
 				.dependsOn(util, net, transaction, wallet)
-
-	lazy val wallet =
-		Project(
-			id = "scalechain-wallet",
-			base = file("scalechain-wallet"))
-		.dependsOn(util, chain, storage, transaction)
 
 	lazy val cli =
 		Project(

@@ -23,7 +23,7 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
     if (message != null) {
       val encodedBits = encode(message)
 
-      println(s"encodedBits=${HexUtil.hex(encodedBits.toByteArray)}")
+//      println(s"encodedBits=${HexUtil.hex(encodedBits.toByteArray)}")
       encodedBits shouldBe payloadBits
     }
   }
@@ -55,6 +55,7 @@ trait EnvelopeTestSuite[T] extends PayloadTestSuite[T] {
   def envelopeBits() = BitVector.view(envelopeHeader) ++ payloadBits
 
   "envelope" should "be correctly encoded" in {
+//    println(s"encoded111 : ${HexUtil.hex(envelopeCodec.encode(envelope).require.toByteArray)}")
     envelopeCodec.encode(envelope).require shouldBe envelopeBits
   }
 

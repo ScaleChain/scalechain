@@ -56,10 +56,11 @@ case class BlockHeight( height : Long ) extends ProtocolMessage
   * Transactions in the transaction pool don't store transaction descriptors, but they are kept in the transaction pool.
   *
   * @param transactionLocator The file record locator pointing to an on-disk serialized transaction
+  * @param blockHeight The height of the block where the transaction belongs to. Whenever blocks are reorganized, transaction descriptors are completely removed and reconstructed, so we can depend on the block height(8 bytes) instead of the block hash(32 bytes).
   * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
   *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
   */
-case class TransactionDescriptor( transactionLocator : FileRecordLocator, outputsSpentBy : List[Option[InPoint]] ) extends ProtocolMessage
+case class TransactionDescriptor( transactionLocator : FileRecordLocator, blockHeight : Long, outputsSpentBy : List[Option[InPoint]] ) extends ProtocolMessage
 
 
 /** A descriptor for an orphan block. Used as the value of the (key:block hash, value:orphan block) index.

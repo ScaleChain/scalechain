@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.script.ScriptSerializer
+import io.scalechain.blockchain.script.ops.{OpPush, OpReturn}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction._
@@ -101,6 +103,21 @@ class TransactionBuilder(coinsView : CoinsView) {
   def addOutput(amount : CoinAmount, outputOwnership : OutputOwnership) : TransactionBuilder = {
     val output = TransactionOutput( amount.coinUnits, outputOwnership.lockingScript() )
     newOutputs.append( output )
+    this
+  }
+
+  /**
+    * Add an output whose locking script only contains the given bytes prefixed with OP_RETURN.
+    *
+    * Used by the block signer to create a transaction that contains the block hash to sign.
+    * @param data
+    * @return
+    */
+  def addOutput(data : Array[Byte]) : TransactionBuilder = {
+    val lockingScriptOps = List( OpReturn(), OpPush.from(data) )
+    val lockingScriptData = ScriptSerializer.serialize(lockingScriptOps)
+    val output = TransactionOutput( 0L, LockingScript(lockingScriptData))
+    newOutputs.append(output)
     this
   }
 

@@ -10,11 +10,11 @@ object TransactionSampleData extends TransactionSampleData
   * Created by kangmo on 6/30/16.
   */
 class TransactionSampleData extends BlockBuildingTestTrait {
-  val Addr1 = generateAddress("Address1")
+  val Addr1 = generateAccountAddress("Address1")
   // address 1
-  val Addr2 = generateAddress("Address2")
+  val Addr2 = generateAccountAddress("Address2")
   // address 2
-  val Addr3 = generateAddress("Address3")
+  val Addr3 = generateAccountAddress("Address3")
 
   // address 3
 

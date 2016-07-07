@@ -64,18 +64,18 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
   private val blockIndex = new TestBlockIndex()
 
   object Alice {
-    val Addr1 = generateAddress("Alice") // for receiving from others
-    val Addr2 = generateAddress("Alice") // for receiving changes
+    val Addr1 = generateAccountAddress("Alice") // for receiving from others
+    val Addr2 = generateAccountAddress("Alice") // for receiving changes
   }
 
   object Bob {
-    val Addr1 = generateAddress("Bob") // for receiving from others
-    val Addr2 = generateAddress("Bob") // for receiving changes
+    val Addr1 = generateAccountAddress("Bob") // for receiving from others
+    val Addr2 = generateAccountAddress("Bob") // for receiving changes
   }
 
   object Carry {
-    val Addr1 = generateAddress("Carry") // for receiving from others
-    val Addr2 = generateAddress("Carry") // for receiving changes
+    val Addr1 = generateAccountAddress("Carry") // for receiving from others
+    val Addr2 = generateAccountAddress("Carry") // for receiving changes
   }
 
 

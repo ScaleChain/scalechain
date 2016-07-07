@@ -354,6 +354,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   }
 
   /**
+    * Get the block info of a block searching by a block hash.
+    *
     * Used by BlockLocator to get the info of the given block.
     *
     * @param blockHash The hash of the block to get the info of it.
@@ -426,6 +428,19 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
       //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
       dbTransactionOption
+    }
+  }
+
+  /**
+    * Get the block info of the block which has the given transaction.
+    *
+    * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
+    * @return Some(block info) if the transaction is included in a block; None otherwise.
+    */
+  def getTransactionBlockInfo(txHash : Hash ) : Option[BlockInfo] = {
+    storage.getTransactionDescriptor(txHash).map{ txDesc : TransactionDescriptor =>
+      val blockHash = getBlockHash(txDesc.blockHeight)
+      getBlockInfo(blockHash).get
     }
   }
 

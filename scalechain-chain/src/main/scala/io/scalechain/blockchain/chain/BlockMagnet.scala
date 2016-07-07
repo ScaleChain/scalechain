@@ -87,6 +87,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     }
 */
     val chainBlockOption = Some(ChainBlock(blockInfo.height, block))
+    val blockHeightOption = Some(blockInfo.height)
     var transactionIndex = -1
     for ( ( txLocator : TransactionLocator, transaction: Transaction) <- (txLocators zip block.transactions)) {
       transactionIndex += 1
@@ -96,7 +97,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
       // Step 5 : Remove the transaction from the disk pool.
       txPool.removeTransactionFromPool(transactionHash)
 
-      txMagnet.attachTransaction(transactionHash, transaction, Some(txLocator.txLocator), checkOnly = false, chainBlockOption, Some(transactionIndex) )
+      txMagnet.attachTransaction(transactionHash, transaction, checkOnly = false, Some(txLocator.txLocator), chainBlockOption, Some(transactionIndex) )
     }
 
     // TODO : Check if the generation transaction's output amount is less than or equal to the reward + sum of fees for all transactions in the block.

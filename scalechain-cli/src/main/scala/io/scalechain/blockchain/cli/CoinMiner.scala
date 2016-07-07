@@ -51,7 +51,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     * @return true if we can mine; false otherwise.
     */
   def canMine() : Boolean = {
-    val peerCount = io.scalechain.util.Config.scalechain.getConfigList("scalechain.p2p.peers").asScala.toArray.length
+    val peerCount = io.scalechain.util.Config.getConfigList("scalechain.p2p.peers").asScala.toArray.length
     if (peerCount == 1) {
       // regression test mode with only one node.
       true
@@ -137,8 +137,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
                 // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
                 val blockHeaderThreshold =
-                  if (io.scalechain.util.Config.scalechain.hasPath("scalechain.mining.header_hash_threshold"))
-                    io.scalechain.util.Config.scalechain.getString("scalechain.mining.header_hash_threshold")
+                  if (io.scalechain.util.Config.hasPath("scalechain.mining.header_hash_threshold"))
+                    io.scalechain.util.Config.getString("scalechain.mining.header_hash_threshold")
                   else "00F0000000000000000000000000000000000000000000000000000000000000"
 
                 val blockHashThreshold = Hash(blockHeaderThreshold)

@@ -34,9 +34,9 @@ object BlockSampleData extends BlockSampleData
   */
 class BlockSampleData extends BlockBuildingTestTrait {
 
-  val Addr1 = generateAddress("Address1") // address 1
-  val Addr2 = generateAddress("Address2") // address 2
-  val Addr3 = generateAddress("Address3") // address 3
+  val Addr1 = generateAccountAddress("Address1") // address 1
+  val Addr2 = generateAccountAddress("Address2") // address 2
+  val Addr3 = generateAccountAddress("Address3") // address 3
 
   object Tx {
     val GEN01 = generationTransaction( "GenTx.BLK01", CoinAmount(50), Addr1.address )

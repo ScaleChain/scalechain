@@ -18,11 +18,13 @@ case class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
 
 case class TransactionWithName(name:String, transaction:Transaction)
 
+case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
+
 /**
   * Created by kangmo on 6/14/16.
   */
 trait BlockBuildingTestTrait extends TransactionTestDataTrait {
-  def generateAddress(account:String) : AddressData = {
+  def generateAccountAddress(account:String) : AddressData = {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     addressData
@@ -83,7 +85,6 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
   }
 
-  case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
 
   /** Create a new normal transaction
     *
