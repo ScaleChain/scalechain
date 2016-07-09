@@ -206,7 +206,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : Ke
     * @param transactionHash
     * @return
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {
@@ -226,7 +226,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : Ke
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
     // TODO : Refactor : Remove synchronized.
     // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
     this.synchronized {

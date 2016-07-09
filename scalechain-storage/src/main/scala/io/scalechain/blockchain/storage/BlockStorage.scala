@@ -15,8 +15,8 @@ trait BlockStorage extends BlockDatabase with BlockIndex with TransactionDescrip
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockStorage]) )
 
   def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : List[TransactionLocator]
-  def getTransaction(transactionHash : Hash) : Option[Transaction]
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)]
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction]
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)]
 
   def close() : Unit
 

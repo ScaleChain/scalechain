@@ -40,7 +40,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
     blocks.get(blockHash)
   }
 
@@ -52,7 +52,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     transactions.get(transactionHash)
   }
 }
