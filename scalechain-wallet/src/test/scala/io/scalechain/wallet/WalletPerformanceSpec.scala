@@ -37,6 +37,7 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
   var chain: Blockchain = null
 
   val testPathForWallet = new File("./target/unittests-WalletPerformanceSpec-wallet/")
+//  val testPathForWallet = new File("./target/unittests-WalletPerformanceSpec-storage/")
   val testPathForStorage = new File("./target/unittests-WalletPerformanceSpec-storage/")
 
   override def beforeEach() {
@@ -202,8 +203,8 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
 
     println("Preparing Performance test data.")
 
-    val TEST_LOOP_COUNT = 2
-//    val TEST_LOOP_COUNT = 30000
+//    val TEST_LOOP_COUNT = 2
+    val TEST_LOOP_COUNT = 10000
     var testLoop = TEST_LOOP_COUNT
 
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
