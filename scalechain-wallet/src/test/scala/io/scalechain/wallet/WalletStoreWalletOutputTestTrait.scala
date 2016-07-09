@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, WalletException}
 import org.scalatest._
 
@@ -8,7 +9,7 @@ import org.scalatest._
   */
 trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestDataTrait with ShouldMatchers{
   var store : WalletStore
-
+  implicit var db : KeyValueDatabase
 
   "putWalletOutput" should "put a wallet output." in {
     store.putWalletOutput(OUTPOINT1, WALLET_OUTPUT1)

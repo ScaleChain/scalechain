@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.scalatest._
 
 /**
@@ -7,7 +8,7 @@ import org.scalatest._
   */
 trait WalletStoreWalletTransactionTestTrait extends FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with ShouldMatchers{
   var store : WalletStore
-
+  implicit var db : KeyValueDatabase
 
   "putWalletTransaction" should "put a wallet transaction." in {
     store.putWalletTransaction(TXHASH1, WALLET_TX1)

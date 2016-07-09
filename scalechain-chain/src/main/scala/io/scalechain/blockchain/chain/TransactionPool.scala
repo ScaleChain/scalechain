@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.{TransactionPoolEntry, Hash, Transaction}
 import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 
 /**
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
 class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPool]) )
 
-  def getTransactionsFromPool() : List[(Hash, Transaction)] = {
+  def getTransactionsFromPool()(implicit db : KeyValueDatabase) : List[(Hash, Transaction)] = {
     storage.getTransactionsFromPool().map{ case (hash, transactionPoolEntry) =>
       (hash, transactionPoolEntry.transaction)
     }
@@ -27,7 +28,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     * @param transaction The transaction to add to the disk-pool.
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def addTransactionToPool(txHash : Hash, transaction : Transaction) : Unit = {
+  def addTransactionToPool(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     // Step 01 : Check if the transaction exists in the disk-pool.
     if ( storage.getTransactionFromPool(txHash).isDefined ) {
       logger.info(s"A duplicate transaction in the pool was discarded. Hash : ${txHash}")
@@ -51,7 +52,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
 
         // Step 09 : Check for double-spends with existing transactions
         // First, check only without affecting the transaction database. If something is wrong such as double spending issues, an exception is raised.
-        txMagnet.attachTransaction(txHash, transaction, checkOnly = true)
+        //txMagnet.attachTransaction(txHash, transaction, checkOnly = true)
 
         // Step 09 : Add to the disk-pool
         txMagnet.attachTransaction(txHash, transaction, checkOnly = false)
@@ -67,7 +68,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     *
     * @param txHash The hash of the transaction to remove.
     */
-  def removeTransactionFromPool(txHash : Hash) : Unit = {
+  def removeTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     // Note : We should not touch the TransactionDescriptor.
     storage.delTransactionFromPool(txHash)
   }

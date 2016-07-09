@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.transaction._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
@@ -24,6 +25,8 @@ case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
   * Created by kangmo on 6/14/16.
   */
 trait BlockBuildingTestTrait extends TransactionTestDataTrait {
+  implicit val db : KeyValueDatabase
+
   def generateAccountAddress(account:String) : AddressData = {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
@@ -149,8 +152,11 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     CoinAddress.from(PrivateKey.generate)
   }
 
-  def mineBlock(chain : Blockchain) = {
-    val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)
+  def mineBlock(chain : Blockchain)(implicit db : KeyValueDatabase) = {
+    assert(db.isInstanceOf[RocksDatabase])
+    val rocksDB = db.asInstanceOf[RocksDatabase]
+
+    val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
     val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)

@@ -7,6 +7,7 @@ import io.scalechain.blockchain.chain.{Blockchain, TransactionWithName, OutputWi
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.{BlockStorage, Storage, DiskBlockStorage}
 import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
@@ -24,49 +25,25 @@ import scala.collection.SortedSet
   * Created by kangmo on 5/12/16.
   */
 //@Ignore
-class WalletSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  Storage.initialize()
+  val testPath = new File("./target/unittests-WalletSpec-storage/")
 
-  val TEST_RECORD_FILE_SIZE = 1024 * 1024
-
-  var wallet  : Wallet = null
-  var storage : DiskBlockStorage = null
-  var chain : Blockchain = null
-
-  val testPathForWallet = new File("./target/unittests-WalletSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-WalletSpec-storage/")
+  implicit var keyValueDB : KeyValueDatabase = null
   override def beforeEach() {
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
-    testPathForWallet.mkdir()
-    testPathForStorage.mkdir()
-
-    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
-    DiskBlockStorage.theBlockStorage = storage
-
-    chain = new Blockchain(storage)
-    Blockchain.theBlockchain = chain
-
-    wallet = Wallet.create(testPathForWallet)
 
     super.beforeEach()
+
+    keyValueDB = db
   }
 
   override def afterEach() {
+
     super.afterEach()
 
-    storage.close()
-    wallet.close()
-
-    storage = null
-    chain = null
-    wallet  = null
-
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
+    keyValueDB = null
   }
 
   ////////////////////////////////////////////////////////////////////////////////

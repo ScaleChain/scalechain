@@ -2,11 +2,10 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.BlockSampleData.Block._
-import io.scalechain.blockchain.chain.BlockSampleData.Tx
-import io.scalechain.blockchain.chain.{BlockSampleData, Blockchain}
+import io.scalechain.blockchain.chain.BlockSampleData
 import io.scalechain.blockchain.proto.{Transaction, Hash}
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{ChainBlock, TransactionTestDataTrait}
 import org.apache.commons.io.FileUtils
@@ -15,53 +14,24 @@ import HashSupported._
 /**
   * Test if Wallet returns expected data during block reorganization.
   */
-class WalletAndChainSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
-
+class WalletAndChainSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
   this: Suite =>
 
-  Storage.initialize()
+  val testPath = new File("./target/unittests-WalletAndChainSpec-storage/")
 
-  val TEST_RECORD_FILE_SIZE = 1024 * 1024
-
-  var wallet: Wallet = null
-  var storage: DiskBlockStorage = null
-  var chain: Blockchain = null
-
-  val testPathForWallet = new File("./target/unittests-WalletAndChainSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-WalletAndChainSpec-storage/")
-
+  implicit var keyValueDB : KeyValueDatabase = null
   override def beforeEach() {
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
-    testPathForWallet.mkdir()
-    testPathForStorage.mkdir()
-
-    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
-    DiskBlockStorage.theBlockStorage = storage
-
-    chain = new Blockchain(storage)
-    Blockchain.theBlockchain = chain
-
-    wallet = Wallet.create(testPathForWallet)
-    chain.setEventListener(wallet)
-
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
     super.beforeEach()
+
+    keyValueDB = db
   }
 
   override def afterEach() {
+
     super.afterEach()
 
-    storage.close()
-    wallet.close()
-
-    storage = null
-    chain = null
-    wallet = null
-
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
+    keyValueDB = null
   }
 
   /**
@@ -87,10 +57,10 @@ class WalletAndChainSpec extends FlatSpec with BeforeAndAfterEach with Transacti
   }
 
   "blockchain" should "reorganize blocks" in {
-
-    import BlockSampleData._
-    import BlockSampleData.Block._
-    import BlockSampleData.Tx._
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
     wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)

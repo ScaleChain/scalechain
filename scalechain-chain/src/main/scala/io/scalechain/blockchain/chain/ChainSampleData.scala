@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
 
@@ -59,7 +60,7 @@ class TestBlockIndex extends BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends BlockBuildingTestTrait {
+class ChainSampleData(chainEventListener: Option[ChainEventListener])(implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
 
   private val blockIndex = new TestBlockIndex()
 

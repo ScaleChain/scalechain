@@ -1,15 +1,15 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import HashSupported._
 
-object TransactionSampleData extends TransactionSampleData
 
 /**
   * Created by kangmo on 6/30/16.
   */
-class TransactionSampleData extends BlockBuildingTestTrait {
+class TransactionSampleData()(implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
   val Addr1 = generateAccountAddress("Address1")
   // address 1
   val Addr2 = generateAccountAddress("Address2")

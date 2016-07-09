@@ -15,13 +15,16 @@ class BlockDatabaseWithRocks extends BlockDatabaseTestTrait with BeforeAndAfterE
 
   Storage.initialize()
 
-  var db : BlockDatabase = null
+  var blockDb : BlockDatabase = null
+  implicit var db : KeyValueDatabase = null
 
   override def beforeEach() {
 
     val testPath = new File("./target/unittests-BlockDatabaseWithRocks")
     FileUtils.deleteDirectory( testPath )
-    db = new BlockDatabase( new RocksDatabase( testPath ) )
+    db = new RocksDatabase(testPath)
+    blockDb = new BlockDatabase() {}
+
 
     super.beforeEach()
   }
@@ -30,5 +33,7 @@ class BlockDatabaseWithRocks extends BlockDatabaseTestTrait with BeforeAndAfterE
     super.afterEach()
 
     db.close()
+    db = null
+    blockDb = null
   }
 }

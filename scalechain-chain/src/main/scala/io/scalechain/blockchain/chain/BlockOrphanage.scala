@@ -4,13 +4,14 @@ import io.scalechain.blockchain.proto.{BlockHeader, OrphanBlockDescriptor, Block
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.BlockStorage
 import HashSupported._
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 
 import scala.annotation.tailrec
 
 /**
   * Created by kangmo on 6/9/16.
   */
-class BlockOrphanage(storage : BlockStorage) {
+class BlockOrphanage(storage : BlockStorage)(protected[chain] implicit val db : RocksDatabase) {
   /** Check if we have the given block as an orphan.
     *
     * @param blockHash The hash of the block to check.
@@ -38,6 +39,7 @@ class BlockOrphanage(storage : BlockStorage) {
 
   /**
     * Get an orphan block.
+    *
     * @param blockHash The hash of the orphan block.
     * @return Some(block) if the orphan was found; None otherwise.
     */

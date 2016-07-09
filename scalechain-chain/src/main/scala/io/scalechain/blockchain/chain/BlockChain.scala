@@ -5,7 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
-import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, RocksDatabase, KeyValueDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto._
@@ -25,11 +25,11 @@ import scala.util.control.TailCalls.TailRec
 
 object Blockchain {
   var theBlockchain : Blockchain = null
-  def create(storage : BlockStorage) = {
-    theBlockchain = new Blockchain(storage)
+  def create(db : RocksDatabase, storage : BlockStorage) = {
+    theBlockchain = new Blockchain(storage)(db)
 
     // Load any in memory structur required by the Blockchain class from the on-disk storage.
-    new BlockchainLoader(theBlockchain, storage).load()
+    new BlockchainLoader(theBlockchain, storage)(db).load()
     theBlockchain
   }
   def get() = {
@@ -39,7 +39,7 @@ object Blockchain {
 }
 
 
-class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
+class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(protected[chain] implicit val db : KeyValueDatabase) {
 
   def load() : Unit = {
     val bestBlockHashOption = storage.getBestBlockHash()
@@ -104,7 +104,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain(storage : BlockStorage) extends BlockchainView  {
+class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : RocksDatabase) extends BlockchainView  {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
   val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
@@ -115,6 +115,28 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   val txOrphanage = new TransactionOrphanage(storage)
 
   def txDescIndex : TransactionDescriptorIndex = storage
+
+  def withTransaction[T]( block : KeyValueDatabase => T) : T = {
+    this.synchronized {
+      val transactingRocksDB = new TransactingRocksDatabase(db)
+
+      transactingRocksDB.beginTransaction()
+
+      val returnValue =
+        try {
+          block(transactingRocksDB)
+        } catch {
+          case t : Throwable => {
+            transactingRocksDB.abortTransaction()
+            throw t
+          }
+        }
+
+      transactingRocksDB.commitTransaction()
+      returnValue
+    }
+  }
+
 
   /** Set an event listener of the blockchain.
     *
@@ -156,7 +178,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if the newly accepted block became the new best block.
     *
     */
-  def putBlock(blockHash : Hash, block:Block) : Boolean = {
+  def putBlock(blockHash : Hash, block:Block)(implicit db : KeyValueDatabase) : Boolean = {
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
@@ -277,7 +299,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     *
     * @param transaction The transaction to put into the disk-pool.
     */
-  def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
+  def putTransaction(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     synchronized {
       // TODO : BUGBUG : Need to start a RocksDB transaction.
       try {

@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
@@ -15,8 +16,8 @@ import org.slf4j.LoggerFactory
 
 object Wallet {
   private var theWallet : Wallet = null
-  def create( walletPath : File) : Wallet = {
-    theWallet = new Wallet(walletPath)
+  def create( db : KeyValueDatabase ) : Wallet = {
+    theWallet = new Wallet()(db)
     theWallet
   }
 
@@ -38,10 +39,10 @@ case class WalletOutputWithInfo(
                                )
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
-class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
+class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends ChainEventListener {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Wallet]) )
 
-  val store = new WalletStore(walletFolder)
+  val store = new WalletStore()
 
   /** signs a transaction.
     *
@@ -680,8 +681,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The newly found transaction.
     * @see ChainEventListener
     */
-  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-    registerTransaction(transaction, chainBlock, transactionIndex)
+  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase): Unit = {
+    registerTransaction(transaction, chainBlock, transactionIndex)(db)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -695,8 +696,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The transaction removed from the mempool.
     * @see ChainEventListener
     */
-  def onRemoveTransaction(transaction : Transaction): Unit = {
-    unregisterTransaction(transaction)
+  def onRemoveTransaction(transaction : Transaction)(implicit db : KeyValueDatabase): Unit = {
+    unregisterTransaction(transaction)(db)
   }
 
   /** Register a transaction into the wallet database.
@@ -711,7 +712,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                               None if the block is in the mempool.
 
     */
-  protected[wallet] def registerTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
+  protected[wallet] def registerTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase) : Unit = {
     Blockchain.get.synchronized {
       //println(s"registerTransaction=${transaction}")
 
@@ -763,6 +764,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
               spent = false,
               transactionOutput = transactionOutput
             )
+
             store.putWalletOutput(outPoint, walletOutput)
 
             logger.trace(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
@@ -803,6 +805,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             // We have the output in our wallet.
             // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
             if ( store.markWalletOutputSpent(spentOutput, true) ) {
+
               logger.trace(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
 
@@ -836,7 +839,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @param transaction The transaction to register.
     */
-  protected[wallet] def unregisterTransaction(transaction : Transaction): Unit = {
+  protected[wallet] def unregisterTransaction(transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     Blockchain.get.synchronized {
       val currentTime = System.currentTimeMillis()
 
@@ -917,12 +920,5 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         assert( store.getWalletTransaction(transactionHash).isEmpty )
       }
     }
-  }
-
-  /** Close the wallet.
-    *
-    */
-  def close() : Unit = {
-    store.close
   }
 }

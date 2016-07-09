@@ -3,6 +3,7 @@ package io.scalechain.blockchain.cli
 import java.util
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.util.Config
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.{SignedBlockMining, PeerInfo, PeerCommunicator}
@@ -22,8 +23,8 @@ case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize
 object CoinMiner {
   var theCoinMiner : CoinMiner = null
 
-  def create(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) = {
-    theCoinMiner = new CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)
+  def create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) = {
+    theCoinMiner = new CoinMiner(indexDb, minerAccount, wallet, chain, peerCommunicator, params)
     theCoinMiner.start()
     theCoinMiner
   }
@@ -35,7 +36,7 @@ object CoinMiner {
 }
 
 
-class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
+class CoinMiner(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[CoinMiner]) )
 
   // For every 10 seconds, create a new block template for mining a block.
@@ -47,13 +48,13 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     if (Config.isPrivate) {
       null
     } else {
-      new BlockMining(chain.txDescIndex, chain.txPool, chain)
+      new BlockMining(chain.txDescIndex, chain.txPool, chain)(indexDb)
     }
 
 
   val signedBlockMining =
     if (Config.isPrivate) {
-      new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)
+      new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)(indexDb)
     } else {
       null
     }
@@ -180,7 +181,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                       // Step 5 : When a block is found, create the block and put it on the blockchain.
                       // Also propate the block to the peer to peer network.
                       val block = blockTemplate.get.createBlock(newBlockHeader, nonce)
-                      chain.putBlock(Hash(newBlockHash.value), block)
+                      chain.withTransaction { implicit transactingDB =>
+                        chain.putBlock(Hash(newBlockHash.value), block)
+                      }
                       peerCommunicator.propagateBlock(block)
                       blockFound = true
                       logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")

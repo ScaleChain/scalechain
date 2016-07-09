@@ -4,11 +4,12 @@ import io.scalechain.blockchain.proto.{OrphanTransactionDescriptor, Transaction,
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.BlockStorage
 import HashSupported._
+import io.scalechain.blockchain.storage.index.RocksDatabase
 
 /**
   * Created by kangmo on 6/9/16.
   */
-class TransactionOrphanage(storage : BlockStorage) {
+class TransactionOrphanage(storage : BlockStorage)(protected[chain] implicit val db : RocksDatabase) {
   /**
     * Remove a transaction from the indexes maintaining the orphans.
     *

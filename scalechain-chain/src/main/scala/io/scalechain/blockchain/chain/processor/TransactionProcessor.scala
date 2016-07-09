@@ -47,7 +47,9 @@ class TransactionProcessor(val chain : Blockchain) {
     */
   def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
     // TODO : Need to check if the validity of the transation?
-    chain.putTransaction(txHash, transaction)
+    chain.withTransaction { implicit transactingDB =>
+      chain.putTransaction(txHash, transaction)
+    }
   }
 
   /**
@@ -62,6 +64,7 @@ class TransactionProcessor(val chain : Blockchain) {
     var i = -1;
     do {
       val parentTxHash = if (acceptedChildren.length == 0) initialParentTxHash else acceptedChildren(i)
+
       val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
@@ -94,7 +97,9 @@ class TransactionProcessor(val chain : Blockchain) {
           // The orphan tranasction was already deleted. nothing to do.
         }
       }
+
       chain.txOrphanage.removeDependenciesOn(parentTxHash)
+
       i += 1
     } while( i < acceptedChildren.length)
 
@@ -109,6 +114,8 @@ class TransactionProcessor(val chain : Blockchain) {
     * @param transaction The orphan transaction.
     */
   def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
-    chain.txOrphanage.putOrphan(txHash, transaction)
+    chain.withTransaction { implicit transactingDB =>
+      chain.txOrphanage.putOrphan(txHash, transaction)
+    }
   }
 }

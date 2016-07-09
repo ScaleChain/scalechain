@@ -8,6 +8,7 @@ import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter, ScriptParser, ScriptBytes}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.script.ops._
+import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock, Storage}
 import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.{ByteArray, HexUtil}
@@ -110,8 +111,9 @@ object DumpChain {
 
     val blockStoragePath = new File("./target/tempblockstorage/")
     blockStoragePath.mkdir()
+    implicit val db = new RocksDatabase(blockStoragePath)
     val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
-    val chain = Blockchain.create(storage)
+    val chain = Blockchain.create(db, storage)
     chain.putBlock( GenesisBlock.HASH, GenesisBlock.BLOCK )
 
     var blockHeight = 0

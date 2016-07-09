@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import java.io.File
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -41,12 +41,13 @@ class TransactionPoolSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
 
   val testPath = new File("./target/unittests-TransactionPoolSpec")
 
+  implicit var db : KeyValueDatabase = null
+
   override def beforeEach() {
 
     FileUtils.deleteDirectory(testPath)
-    pool = new TransactionPoolIndex {
-      val keyValueDB = new RocksDatabase(testPath)
-    }
+    pool = new TransactionPoolIndex {}
+    db = new RocksDatabase(testPath)
 
     super.beforeEach()
   }
@@ -54,7 +55,9 @@ class TransactionPoolSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
   override def afterEach() {
     super.afterEach()
 
-    pool.keyValueDB.close()
+    db.close()
+    db = null
+
     FileUtils.deleteDirectory(testPath)
   }
 

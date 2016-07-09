@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ChainException, ErrorCode, RpcException}
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.script.HashSupported
@@ -18,9 +19,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
 
   val testPath = new File("./target/unittests-TransactionPoolSpec/")
 
-  import BlockSampleData._
-  import BlockSampleData.Tx._
-  import BlockSampleData.Block._
+  implicit var keyValueDB : KeyValueDatabase = null
 
   var p : TransactionPool = null
 
@@ -29,6 +28,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
 
     super.beforeEach()
 
+    keyValueDB = db
     // put the genesis block
     chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
@@ -37,11 +37,17 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
 
   override def afterEach() {
     p = null
+    keyValueDB = null
 
     super.afterEach()
   }
 
   "addTransactionToPool" should "add non-orphan transactions spending UTXOs" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
     p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
@@ -60,6 +66,11 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "add transactions even though there are some orphans depending on them" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
 
@@ -97,6 +108,11 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "throw an exception for an orphan transaction" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
     val thrown = the [ChainException] thrownBy {
       p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
     }
@@ -104,6 +120,11 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "throw an exception for a double spending non-orphan transaction" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
     p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
@@ -116,6 +137,11 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "removeTransactionFromPool" should "remove transactions from a pool" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
     p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)

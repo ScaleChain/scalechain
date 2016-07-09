@@ -19,8 +19,9 @@ class TransactingRocksDatabaseSpec extends KeyValueDatabaseTestTrait with KeyVal
 
     val testPath = new File("./target/unittests-TransactingRocksDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    txDb = new TransactingRocksDatabase( testPath )
-    db = txDb
+    val rocksDB = new RocksDatabase(testPath)
+    db = rocksDB
+    txDb = new TransactingRocksDatabase( rocksDB )
     txDb.beginTransaction()
     super.beforeEach()
   }

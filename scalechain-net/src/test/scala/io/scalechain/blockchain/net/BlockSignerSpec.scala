@@ -6,7 +6,7 @@ import io.scalechain.blockchain.chain.{TransactionWithName, NewOutput, BlockSamp
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction._
-import io.scalechain.wallet.{WalletBasedBlockSampleData, Wallet}
+import io.scalechain.wallet.{WalletTestTrait, WalletBasedBlockSampleData, Wallet}
 import org.apache.commons.io.FileUtils
 import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
 import HashSupported._
@@ -14,38 +14,17 @@ import HashSupported._
 import scala.collection.mutable.ListBuffer
 
 
-class BlockSignerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class BlockSignerSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
   Storage.initialize()
 
-  val TEST_RECORD_FILE_SIZE = 1024 * 1024
-
-  var wallet: Wallet = null
-  var storage: DiskBlockStorage = null
-  var chain: Blockchain = null
   var data : WalletBasedBlockSampleData = null
-
-  val testPathForWallet = new File("./target/unittests-BlockSignerSpec-wallet/")
-  val testPathForStorage = new File("./target/unittests-BlockSignerSpec-storage/")
+  val testPath = new File("./target/unittests-BlockSignerSpec-storage/")
 
   override def beforeEach() {
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
-    testPathForWallet.mkdir()
-    testPathForStorage.mkdir()
-
-    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
-    DiskBlockStorage.theBlockStorage = storage
-
-    chain = new Blockchain(storage)
-    Blockchain.theBlockchain = chain
-
-    wallet = Wallet.create(testPathForWallet)
-    chain.setEventListener(wallet)
-
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
+    super.beforeEach()
 
     // Set the wallet to the block signer.
     BlockSigner.setWallet(wallet)
@@ -69,22 +48,13 @@ class BlockSignerSpec extends FlatSpec with BeforeAndAfterEach with TransactionT
       chain.putTransaction(initialTx.transaction.hash, initialTx.transaction)
     }
 
-    super.beforeEach()
   }
 
   override def afterEach() {
     super.afterEach()
 
-    storage.close()
-    wallet.close()
-
-    storage = null
-    chain = null
-    wallet = null
     data = null
 
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
   }
 
 

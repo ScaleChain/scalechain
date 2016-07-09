@@ -3,11 +3,10 @@ package io.scalechain.wallet
 import java.io.File
 
 
-import io.scalechain.blockchain.chain.BlockSampleData.Block._
-import io.scalechain.blockchain.chain.BlockSampleData.Tx._
-import io.scalechain.blockchain.chain.BlockSampleData._
+import io.scalechain.blockchain.chain.BlockSampleData
 import io.scalechain.blockchain.chain.{NewOutput, TransactionWithName, BlockSampleData, Blockchain}
 import io.scalechain.blockchain.proto.{Hash, Transaction}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
@@ -24,61 +23,32 @@ import scala.util.Random
   * Created by kangmo on 7/4/16.
   */
 
-class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  Storage.initialize()
+  val testPath = new File("./target/unittests-WalletPerformanceSpec-storage/")
 
-  val TEST_RECORD_FILE_SIZE = 1024 * 1024
-
-  var wallet: Wallet = null
-  var storage: DiskBlockStorage = null
-  var chain: Blockchain = null
-
-  val testPathForWallet = new File("./target/unittests-WalletPerformanceSpec-wallet/")
-//  val testPathForWallet = new File("./target/unittests-WalletPerformanceSpec-storage/")
-  val testPathForStorage = new File("./target/unittests-WalletPerformanceSpec-storage/")
-
+  implicit var keyValueDB : KeyValueDatabase = null
   override def beforeEach() {
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
-    testPathForWallet.mkdir()
-    testPathForStorage.mkdir()
-
-    storage = new DiskBlockStorage(testPathForStorage, TEST_RECORD_FILE_SIZE)
-    DiskBlockStorage.theBlockStorage = storage
-
-    chain = new Blockchain(storage)
-    Blockchain.theBlockchain = chain
-
-    wallet = Wallet.create(testPathForWallet)
-    chain.setEventListener(wallet)
-
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
     super.beforeEach()
+
+    keyValueDB = db
   }
 
   override def afterEach() {
+
     super.afterEach()
 
-    storage.close()
-    wallet.close()
-
-    storage = null
-    chain = null
-    wallet = null
-
-    FileUtils.deleteDirectory(testPathForWallet)
-    FileUtils.deleteDirectory(testPathForStorage)
+    keyValueDB = null
   }
 
-
   "perftest" should "measure performance on register transaction" ignore {
-    import BlockSampleData._
-    import BlockSampleData.Block._
-    import BlockSampleData.Tx._
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
 
 
     import ch.qos.logback.classic.Logger
@@ -135,6 +105,11 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
   }
 
   def prepareTestTransactions(txCount : Long) : ListBuffer[(Hash, Transaction)] = {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     val generationAddress = wallet.newAddress("generation")
     val generationTx = generationTransaction( "GenTx.BLK01", CoinAmount(50), generationAddress )
 
@@ -186,10 +161,10 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
   }
 
   "single thread perf test" should "measure performance by adding transactions to the pool" in {
-    import BlockSampleData._
-    import BlockSampleData.Block._
-    import BlockSampleData.Tx._
-
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
@@ -199,13 +174,23 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
     wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)
     wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
 
-    //    val TEST_LOOP_COUNT = 100000
-
-    println("Preparing Performance test data.")
-
-//    val TEST_LOOP_COUNT = 2
+    //    val TEST_LOOP_COUNT = 2
     val TEST_LOOP_COUNT = 10000
     var testLoop = TEST_LOOP_COUNT
+
+    println("Warming up.")
+
+    {
+      val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
+
+      transactions foreach { case (hash, tx) =>
+        chain.withTransaction { implicit transactingDatabase =>
+          chain.txPool.addTransactionToPool(hash, tx)(transactingDatabase)
+        }
+      }
+    }
+
+    println("Preparing Performance test data.")
 
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
@@ -214,7 +199,9 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
       val startTimestamp = System.currentTimeMillis()
 
       transactions foreach { case (hash, tx) =>
-        chain.txPool.addTransactionToPool(hash, tx)
+        chain.withTransaction { implicit transactingDatabase =>
+          chain.txPool.addTransactionToPool(hash, tx)(transactingDatabase)
+        }
       }
 
       val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
@@ -222,6 +209,8 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
       val totalTransactions = TEST_LOOP_COUNT
       println(s"Total transactions : ${totalTransactions}")
       println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
+
+
     }
 /*
     val signedTransactions =
@@ -275,10 +264,10 @@ class WalletPerformanceSpec extends FlatSpec with BeforeAndAfterEach with Transa
 
 
   "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
-    import BlockSampleData._
-    import BlockSampleData.Block._
-    import BlockSampleData.Tx._
-
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]

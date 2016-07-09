@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain.processor
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 import org.slf4j.LoggerFactory
@@ -74,7 +75,9 @@ class BlockProcessor(val chain : Blockchain) {
     * @param block the block to put as an orphan block.
     */
   def putOrphan(block : Block) : Unit = {
-    chain.blockOrphanage.putOrphan(block)
+    chain.withTransaction { transactingDB =>
+      chain.blockOrphanage.putOrphan(block)
+    }
   }
 
   /**
@@ -127,7 +130,9 @@ class BlockProcessor(val chain : Blockchain) {
     // Step 5. Need to check the lock time of all transactions.
     // Step 6. Need to check block hashes for checkpoint blocks.
     // Step 7. Write the block on the block database, reorganize blocks if necessary.
-    chain.putBlock(blockHash, block)
+    chain.withTransaction { implicit transactingDB =>
+      chain.putBlock(blockHash, block)
+    }
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.
@@ -141,6 +146,7 @@ class BlockProcessor(val chain : Blockchain) {
     var i = -1;
     do {
       val parentTxHash = if (acceptedChildren.length == 0) initialParentBlockHash else acceptedChildren(i)
+
       val dependentChildren : List[Hash] = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
@@ -158,6 +164,7 @@ class BlockProcessor(val chain : Blockchain) {
         }
       }
       chain.blockOrphanage.removeDependenciesOn(parentTxHash)
+
       i += 1
     } while( i < acceptedChildren.length)
 

@@ -12,6 +12,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage._
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.{CoinAddress, SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{HexUtil, Config}
 import io.scalechain.util.HexUtil._
@@ -164,19 +165,21 @@ object ScaleChainPeer {
     val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
 
+    val indexDb : RocksDatabase = new RocksDatabase(blockStoragePath)
+
     val storage: BlockStorage =
       // Initialize the block storage.
       // TODO : Investigate when to call storage.close.
-      DiskBlockStorage.create(blockStoragePath)
+      DiskBlockStorage.create(blockStoragePath, indexDb)
 
 
     // Step 5 : Chain Layer : Initialize blockchain.
     // BUGBUG : Need to change the folder name according to the production env.
-    val chain = Blockchain.create(storage)
+    val chain = Blockchain.create(indexDb, storage)
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
-      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
+      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)(indexDb)
     }
 
     assert( chain.getBestBlockHash().isDefined )
@@ -184,7 +187,7 @@ object ScaleChainPeer {
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
     val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
-    val wallet = Wallet.create(walletPath)
+    val wallet = Wallet.create(indexDb)
     chain.setEventListener(wallet)
 
     // Step 7 : Net Layer : Initialize peer to peer communication system, and
@@ -200,6 +203,6 @@ object ScaleChainPeer {
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
 
-    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator, minerParams)
+    CoinMiner.create(indexDb, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
   }
 }

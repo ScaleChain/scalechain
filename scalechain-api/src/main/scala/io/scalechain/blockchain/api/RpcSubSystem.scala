@@ -64,6 +64,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     * Return the block height of the best block.
     *
     * Used by getrawtransaction RPC to get the confirmation of the block which has a transaction.
+    *
     * @return The height of the best block.
     */
   def getBestBlockHeight() : Long = {
@@ -116,7 +117,9 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
       Some(SubmitBlockResult.DUPLICATE)
     } else {
       peerCommunicator.propagateBlock(block)
-      chain.putBlock(Hash( blockHash.value) , block)
+      chain.withTransaction { implicit transactingDB =>
+        chain.putBlock(Hash(blockHash.value), block)
+      }
       None
     }
   }
@@ -130,8 +133,10 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     * @return
     */
   def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
-    // TODO : BUGBUG : allowHighFees is not used.
-    chain.putTransaction(transaction.hash, transaction)
+    chain.withTransaction { implicit transactingDB =>
+      // TODO : BUGBUG : allowHighFees is not used.
+      chain.putTransaction(transaction.hash, transaction)
+    }
 
     peerCommunicator.propagateTransaction(transaction)
   }

@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
 import io.scalechain.blockchain.proto.codec.{TransactionPoolEntryCodec, TransactionCodec, OneByteCodec, HashCodec}
 import io.scalechain.blockchain.proto.{TransactionPoolEntry, Transaction, OneByte, Hash}
 import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes._
-import io.scalechain.blockchain.storage.index.{DatabaseTablePrefixes, SharedKeyValueDatabase}
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, DatabaseTablePrefixes}
 import io.scalechain.util.HexUtil._
 import io.scalechain.util.Using._
 
@@ -18,7 +18,7 @@ object TransactionPoolIndex {
   * Provides index operations for disk-pool, which keeps transactions on-disk instead of mempool.
   * c.f. Orphan transactions are not stored in the disk-pool.
   */
-trait TransactionPoolIndex extends SharedKeyValueDatabase {
+trait TransactionPoolIndex {
   import TransactionPoolIndex._
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
@@ -29,8 +29,8 @@ trait TransactionPoolIndex extends SharedKeyValueDatabase {
     * @param txHash The hash of the transaction to add.
     * @param transactionPoolEntry The transaction to add.
     */
-  def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry) : Unit = {
-    keyValueDB.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
+  def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry)(implicit db : KeyValueDatabase) : Unit = {
+    db.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
   }
 
   /** Get a transaction from the transaction pool.
@@ -38,8 +38,8 @@ trait TransactionPoolIndex extends SharedKeyValueDatabase {
     * @param txHash The hash of the transaction to get.
     * @return The transaction which matches the given transaction hash.
     */
-  def getTransactionFromPool(txHash : Hash) : Option[TransactionPoolEntry] = {
-    keyValueDB.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
+  def getTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Option[TransactionPoolEntry] = {
+    db.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
   }
 
 
@@ -47,9 +47,9 @@ trait TransactionPoolIndex extends SharedKeyValueDatabase {
     *
     * @return List of transactions in the pool. List of (transaction hash, transaction) pair.
     */
-  def getTransactionsFromPool() : List[(Hash, TransactionPoolEntry)] = {
+  def getTransactionsFromPool()(implicit db : KeyValueDatabase) : List[(Hash, TransactionPoolEntry)] = {
     (
-      using(keyValueDB.seekPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
+      using(db.seekPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
         _.toList
       }
     ).map{ case (CStringPrefixed(_, txHash), transactionPoolEntry ) => (txHash, transactionPoolEntry) }
@@ -59,8 +59,8 @@ trait TransactionPoolIndex extends SharedKeyValueDatabase {
     *
     * @param txHash The hash of the transaction to remove.
     */
-  def delTransactionFromPool(txHash : Hash) : Unit = {
-    keyValueDB.delPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash )
+  def delTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+    db.delPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash )
   }
 
 }

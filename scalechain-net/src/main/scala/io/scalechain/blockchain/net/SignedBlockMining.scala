@@ -4,11 +4,11 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.chain.{TransactionBuilder, BlockMining, TransactionPool}
 import io.scalechain.blockchain.proto.{Hash, Transaction, CoinbaseData}
-import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.transaction.{BlockchainView, CoinAmount, CoinAddress, CoinsView}
 import org.slf4j.LoggerFactory
 
-class SignedBlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, chainView : BlockchainView) extends BlockMining(txDescIndex, transactionPool, chainView){
+class SignedBlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, chainView : BlockchainView)(implicit keyValueDB : RocksDatabase) extends BlockMining(txDescIndex, transactionPool, chainView)(keyValueDB){
   private val logger = Logger(LoggerFactory.getLogger(classOf[SignedBlockMining]))
 
   /** Get the template for creating a block containing a list of transactions.

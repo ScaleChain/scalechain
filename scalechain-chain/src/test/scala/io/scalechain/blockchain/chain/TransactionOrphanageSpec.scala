@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import org.scalatest._
 import HashSupported._
@@ -16,9 +17,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
   val testPath = new File("./target/unittests-TransactionOrphangeSpec/")
 
-  import BlockSampleData._
-  import BlockSampleData.Tx._
-  import BlockSampleData.Block._
+  implicit var keyValueDB : KeyValueDatabase = null
 
   var o : TransactionOrphanage = null
   override def beforeEach() {
@@ -26,6 +25,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
     super.beforeEach()
 
+    keyValueDB = db
     // put the genesis block
     chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
@@ -35,16 +35,28 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   override def afterEach() {
     super.afterEach()
 
+    keyValueDB = null
+    o = null
     // finalize a test.
   }
 
   "putOrphan" should "put an orphan" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.hasOrphan(TX02.transaction.hash) shouldBe true
   }
 
 
   "delOrphan" should "del orphans matching the given hashes" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04a.transaction.hash, TX04a.transaction )
@@ -60,10 +72,20 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "getOrphan" should "return None for a non-existent orphan" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.getOrphan(TX02.transaction.hash) shouldBe None
   }
 
   "getOrphan" should "return Some(orphan) for an orphan" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
 
@@ -72,10 +94,20 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "hasOrphan" should "return false for a non-existent orphan" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.hasOrphan(TX02.transaction.hash) shouldBe false
   }
 
   "hasOrphan" should "return true for an orphan" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.hasOrphan(TX02.transaction.hash) shouldBe true
   }
@@ -88,6 +120,11 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
     *            ↘ → → → → TX04
     */
   "getOrphansDependingOn" should "be able to put dependent orphans first" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
@@ -100,6 +137,11 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
 
   "getOrphansDependingOn" should "be able to put depending orphans first" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
@@ -111,6 +153,10 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "removeDependenciesOn" should "remove dependencies on a transaction" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
@@ -140,6 +186,11 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
 

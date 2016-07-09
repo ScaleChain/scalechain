@@ -2,6 +2,7 @@ package io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.test.TestData
 import TestData._
 import org.scalatest._
@@ -11,6 +12,7 @@ import org.scalatest._
   */
 trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
   var storage : BlockStorage
+  implicit var db : KeyValueDatabase
 
   "getBlockHeight" should "return -1 for the hash with all zero values" in {
     storage.getBlockHeight(ALL_ZERO_HASH) shouldBe None

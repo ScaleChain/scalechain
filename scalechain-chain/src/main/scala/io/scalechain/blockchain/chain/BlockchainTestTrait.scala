@@ -5,6 +5,7 @@ import java.lang.ref.WeakReference
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -22,14 +23,18 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
   var storage : DiskBlockStorage = null
   var chain : Blockchain = null
 
+  implicit var db : KeyValueDatabase = null
+
   override def beforeEach() {
     // initialize a test.
 
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
+    val rocksDB = new RocksDatabase(testPath)
+    db = rocksDB
     storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
-    chain = new Blockchain(storage)
+    chain = new Blockchain(storage)(rocksDB)
     Blockchain.theBlockchain = chain
 
     super.beforeEach()
@@ -39,10 +44,12 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
     super.afterEach()
 
     // finalize a test.
+    db.close()
     storage.close()
 
     storage = null
-    chain = null
+    chain   = null
+    db      = null
     Blockchain.theBlockchain = null
 
     FileUtils.deleteDirectory(testPath)

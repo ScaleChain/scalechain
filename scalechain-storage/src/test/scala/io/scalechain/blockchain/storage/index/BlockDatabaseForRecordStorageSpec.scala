@@ -21,11 +21,17 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
   Storage.initialize()
 
-  var db : BlockDatabaseForRecordStorage = null
+  implicit var db : RocksDatabase = null
+  var blockDb : BlockDatabaseForRecordStorage = null
+
+  val testPath = new File("./target/unittests-BlockDatabaseSpec")
+
   override def beforeEach() {
-    val testPath = new File("./target/unittests-BlockDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new BlockDatabaseForRecordStorage( new RocksDatabase( testPath ) )
+    testPath.mkdir()
+
+    blockDb = new BlockDatabaseForRecordStorage {}
+    db = new RocksDatabase( testPath )
 
     super.beforeEach()
   }
@@ -34,6 +40,8 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
     super.afterEach()
 
     db.close()
+    db = null
+    FileUtils.deleteDirectory( testPath )
   }
 
 
@@ -78,7 +86,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
   "putBlockFileInfo/getBlockFileInfo" should "successfully put/get data" in {
     val FILE_NUMBER = FileNumber(1)
-    db.getBlockFileInfo(FILE_NUMBER) shouldBe None
+    blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe None
 
     val blockFileInfo = BlockFileInfo(
       blockCount = 10,
@@ -89,8 +97,8 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       lastBlockTimestamp = 9876543210L
     )
 
-    db.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
-    db.getBlockFileInfo(FILE_NUMBER) shouldBe Some(blockFileInfo)
+    blockDb.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
+    blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe Some(blockFileInfo)
 
     // Update block file info with more blocks
     val newBlockFileInfo = blockFileInfo.copy(
@@ -100,16 +108,16 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       lastBlockTimestamp = blockFileInfo.lastBlockTimestamp + 2000
     )
 
-    db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo)
-    db.getBlockFileInfo(FILE_NUMBER) shouldBe Some(newBlockFileInfo)
+    blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo)
+    blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe Some(newBlockFileInfo)
   }
 
 
   "putBlockFileInfo/getBlockFileInfo" should "successfully put/get data with two blocks" in {
     val FILE_NUMBER_1 = FileNumber(1)
     val FILE_NUMBER_2 = FileNumber(2)
-    db.getBlockFileInfo(FILE_NUMBER_1) shouldBe None
-    db.getBlockFileInfo(FILE_NUMBER_2) shouldBe None
+    blockDb.getBlockFileInfo(FILE_NUMBER_1) shouldBe None
+    blockDb.getBlockFileInfo(FILE_NUMBER_2) shouldBe None
 
     val blockFileInfo1 = BlockFileInfo(
       blockCount = 10,
@@ -129,17 +137,17 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       lastBlockTimestamp = 9976543210L
     )
 
-    db.putBlockFileInfo(FILE_NUMBER_1, blockFileInfo1)
-    db.putBlockFileInfo(FILE_NUMBER_2, blockFileInfo2)
+    blockDb.putBlockFileInfo(FILE_NUMBER_1, blockFileInfo1)
+    blockDb.putBlockFileInfo(FILE_NUMBER_2, blockFileInfo2)
 
-    db.getBlockFileInfo(FILE_NUMBER_1) shouldBe Some(blockFileInfo1)
-    db.getBlockFileInfo(FILE_NUMBER_2) shouldBe Some(blockFileInfo2)
+    blockDb.getBlockFileInfo(FILE_NUMBER_1) shouldBe Some(blockFileInfo1)
+    blockDb.getBlockFileInfo(FILE_NUMBER_2) shouldBe Some(blockFileInfo2)
   }
 
 
   "putBlockFileInfo" should "hit an assertion if the new block info is incorrect." in {
     val FILE_NUMBER = FileNumber(1)
-    db.getBlockFileInfo(FILE_NUMBER) shouldBe None
+    blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe None
 
     val blockFileInfo = BlockFileInfo(
       blockCount = 10,
@@ -150,12 +158,12 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
       lastBlockTimestamp = 9876543210L
     )
 
-    db.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
-    db.getBlockFileInfo(FILE_NUMBER) shouldBe Some(blockFileInfo)
+    blockDb.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
+    blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe Some(blockFileInfo)
 
     // Can't put the same block info twice.
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
+      blockDb.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
     }
 
     val newBlockFileInfo = blockFileInfo.copy(
@@ -167,7 +175,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // First block height can't be changed.
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           firstBlockHeight = blockFileInfo.firstBlockHeight + 1
         )
       )
@@ -175,7 +183,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // First block timestamp can't be changed.
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           firstBlockTimestamp = blockFileInfo.firstBlockTimestamp + 1
         )
       )
@@ -183,7 +191,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // Block count should not be decreased.
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           blockCount = blockFileInfo.blockCount - 1
         )
       )
@@ -191,7 +199,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // Block count should increase
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           blockCount = blockFileInfo.blockCount
         )
       )
@@ -199,7 +207,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // File size should not be decreased
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           fileSize = blockFileInfo.fileSize -1
         )
       )
@@ -207,7 +215,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
 
     // File size should increase
     intercept[AssertionError] {
-      db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
+      blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           fileSize = blockFileInfo.fileSize
         )
       )
@@ -238,32 +246,32 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers wit
     val FILE_NUMBER_1 = FileNumber(1)
     val FILE_NUMBER_2 = FileNumber(2)
 
-    db.getLastBlockFile() shouldBe None
+    blockDb.getLastBlockFile() shouldBe None
 
-    db.putLastBlockFile(FILE_NUMBER_1)
-    db.getLastBlockFile() shouldBe Some(FILE_NUMBER_1)
+    blockDb.putLastBlockFile(FILE_NUMBER_1)
+    blockDb.getLastBlockFile() shouldBe Some(FILE_NUMBER_1)
 
-    db.putLastBlockFile(FILE_NUMBER_2)
-    db.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
+    blockDb.putLastBlockFile(FILE_NUMBER_2)
+    blockDb.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
   }
 
   "putLastBlockFile" should "fail with incorrect data" in {
     val FILE_NUMBER_1 = FileNumber(1)
     val FILE_NUMBER_2 = FileNumber(2)
 
-    db.getLastBlockFile() shouldBe None
+    blockDb.getLastBlockFile() shouldBe None
 
-    db.putLastBlockFile(FILE_NUMBER_2)
-    db.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
+    blockDb.putLastBlockFile(FILE_NUMBER_2)
+    blockDb.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
 
     // The file number should increase.
     intercept[AssertionError] {
-      db.putLastBlockFile(FILE_NUMBER_1)
+      blockDb.putLastBlockFile(FILE_NUMBER_1)
     }
 
     // The file number should increase.
     intercept[AssertionError] {
-      db.putLastBlockFile(FILE_NUMBER_2)
+      blockDb.putLastBlockFile(FILE_NUMBER_2)
     }
   }
 }

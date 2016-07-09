@@ -19,6 +19,16 @@ import io.scalechain.blockchain.storage.Storage
 class LevelDatabase(path : File) extends KeyValueDatabase {
   assert( Storage.initialized )
 
+  def beginTransaction() : Unit = {
+    // No transaction supported. do nothing.
+  }
+  def commitTransaction() : Unit = {
+    // No transaction supported. do nothing.
+  }
+  def abortTransaction() : Unit = {
+    // No transaction supported. do nothing.
+  }
+
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
   private val options = new Options()
