@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinsView
 import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint}
@@ -45,7 +46,7 @@ class TransactionOutputSet extends CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
     val outputOption = outputsByOutPoint.get(outPoint)
     if (outputOption.isEmpty) {
       throw new ChainException( ErrorCode.InvalidTransactionOutPoint )

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain.processor
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash}
@@ -8,12 +9,12 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
-object TransactionProcessor extends TransactionProcessor(Blockchain.get)
+object TransactionProcessor extends TransactionProcessor(Blockchain.get)(Blockchain.get.db)
 
 /** Processes a received transaction.
   *
   */
-class TransactionProcessor(val chain : Blockchain) {
+class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionProcessor]) )
 
   /** See if a transaction exists. Checks orphan transactions as well.
@@ -48,7 +49,7 @@ class TransactionProcessor(val chain : Blockchain) {
   def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
     // TODO : Need to check if the validity of the transation?
     chain.withTransaction { implicit transactingDB =>
-      chain.putTransaction(txHash, transaction)
+      chain.putTransaction(txHash, transaction)(transactingDB)
     }
   }
 
@@ -114,8 +115,6 @@ class TransactionProcessor(val chain : Blockchain) {
     * @param transaction The orphan transaction.
     */
   def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
-    chain.withTransaction { implicit transactingDB =>
-      chain.txOrphanage.putOrphan(txHash, transaction)
-    }
+    chain.txOrphanage.putOrphan(txHash, transaction)
   }
 }

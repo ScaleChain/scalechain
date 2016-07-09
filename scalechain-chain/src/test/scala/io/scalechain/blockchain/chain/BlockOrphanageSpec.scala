@@ -30,7 +30,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
     keyValueDB = db
 
     // put the genesis block
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)(chain.db)
+    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
     o = chain.blockOrphanage
   }

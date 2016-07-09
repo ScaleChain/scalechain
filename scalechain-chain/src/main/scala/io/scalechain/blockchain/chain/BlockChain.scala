@@ -39,7 +39,7 @@ object Blockchain {
 }
 
 
-class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(protected[chain] implicit val db : KeyValueDatabase) {
+class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : KeyValueDatabase) {
 
   def load() : Unit = {
     val bestBlockHashOption = storage.getBestBlockHash()
@@ -104,7 +104,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(protected[chain
   * the block chain later when a new block is created.
   *
   */
-class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : RocksDatabase) extends BlockchainView  {
+class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends BlockchainView  {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
   val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
@@ -158,7 +158,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHash
     * @param blockInfo
     */
-  protected[chain] def setBestBlock(blockHash : Hash, blockInfo : BlockInfo) : Unit = {
+  protected[chain] def setBestBlock(blockHash : Hash, blockInfo : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
     theBestBlock = blockInfo
     storage.putBestBlockHash(blockHash)
   }
@@ -322,7 +322,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  def getIterator(height : Long) : Iterator[ChainBlock] = {
+  def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
     // TODO : Implement
     assert(false)
     null
@@ -332,7 +332,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     *
     * @return The best block height.
     */
-  def getBestBlockHeight() : Long = {
+  def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long = {
     synchronized {
       assert(theBestBlock != null)
       theBestBlock.height
@@ -343,7 +343,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     *
     * @return The best block hash.
     */
-  def getBestBlockHash() : Option[Hash] = {
+  def getBestBlockHash()(implicit db : KeyValueDatabase) : Option[Hash] = {
     synchronized {
       storage.getBestBlockHash()
     }
@@ -357,7 +357,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHeight The height of the block.
     * @return The hash of the block header.
     */
-  def getBlockHash(blockHeight : Long) : Hash = {
+  def getBlockHash(blockHeight : Long)(implicit db : KeyValueDatabase) : Hash = {
     synchronized {
 
       val blockHashOption = storage.getBlockHashByHeight(blockHeight)
@@ -377,7 +377,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHash The hash of the block to get the info of it.
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
-  def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
+  def getBlockInfo(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
     synchronized {
       storage.getBlockInfo(blockHash)
     }
@@ -392,7 +392,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHash The hash of the block header to check.
     * @return true if the block exists; false otherwise.
     */
-  def hasBlock(blockHash : Hash) : Boolean = {
+  def hasBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
     synchronized {
       storage.hasBlock(blockHash)
     }
@@ -405,7 +405,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
     synchronized {
       storage.getBlock(blockHash)
     }
@@ -417,7 +417,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param blockHash The hash of the block header.
     * @return The block header.
     */
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
+  def getBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[BlockHeader] = {
     synchronized {
       storage.getBlockHeader(blockHash)
     }
@@ -430,7 +430,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param txHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  def getTransaction(txHash : Hash) : Option[Transaction] = {
+  def getTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     synchronized {
       // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
@@ -453,7 +453,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
     * @return Some(block info) if the transaction is included in a block; None otherwise.
     */
-  def getTransactionBlockInfo(txHash : Hash ) : Option[BlockInfo] = {
+  def getTransactionBlockInfo(txHash : Hash )(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
     storage.getTransactionDescriptor(txHash).map{ txDesc : TransactionDescriptor =>
       val blockHash = getBlockHash(txDesc.blockHeight)
       getBlockInfo(blockHash).get
@@ -465,7 +465,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param txHash The hash of the transaction to check the existence.
     * @return true if we have the transaction; false otherwise.
     */
-  def hasTransaction(txHash : Hash) : Boolean = {
+  def hasTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
     synchronized {
       storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
     }
@@ -476,7 +476,7 @@ class Blockchain(storage : BlockStorage)(protected[chain] implicit val db : Rock
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
     synchronized {
       // Coinbase outpoints should never come here
       assert(!outPoint.transactionHash.isAllZero())

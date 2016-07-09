@@ -25,7 +25,7 @@ case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
   * Created by kangmo on 6/14/16.
   */
 trait BlockBuildingTestTrait extends TransactionTestDataTrait {
-  implicit val db : KeyValueDatabase
+  protected implicit val db : KeyValueDatabase
 
   def generateAccountAddress(account:String) : AddressData = {
     val addressData = generateAddress()

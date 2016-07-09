@@ -8,7 +8,6 @@ import io.scalechain.blockchain.chain.{NewOutput, TransactionWithName, BlockSamp
 import io.scalechain.blockchain.proto.{Hash, Transaction}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory

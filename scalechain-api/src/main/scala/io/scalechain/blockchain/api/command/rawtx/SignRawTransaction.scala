@@ -3,7 +3,7 @@ package io.scalechain.blockchain.api.command.rawtx
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.transaction.{UnspentTransactionOutput, PrivateKey, SigHash}
-import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
+import io.scalechain.blockchain.transaction.SignedTransaction
 import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
 import io.scalechain.blockchain.api.command.{TransactionEncoder, TransactionDecoder, RpcCommand}
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
@@ -108,7 +108,7 @@ object SignRawTransaction extends RpcCommand {
           Blockchain.get,
           dependencies.getOrElse(List()),
           privateKeys,
-          sigHash)
+          sigHash)(Blockchain.get.db)
 
       val signedRawTranasction = TransactionEncoder.encodeTransaction(signedTransaction.transaction)
 

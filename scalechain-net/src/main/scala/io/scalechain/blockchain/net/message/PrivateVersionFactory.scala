@@ -16,7 +16,7 @@ object PrivateVersionFactory {
   }
   def create() : PrivateVersion = {
     assert(blockSigningAddress.isDefined)
-    PrivateVersion(BlockSigner.signingAddress.base58())
+    PrivateVersion(new BlockSigner()(Blockchain.get.db).signingAddress.base58())
   }
 }
 

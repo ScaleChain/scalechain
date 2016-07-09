@@ -11,7 +11,6 @@ RPC_PORT=$[$1+$RPC_PORT_BASE]
 
 echo "Deleting all test files."
 rm -rf target/*-$P2P_PORT
-rm -rf target/request-*
 
 echo "Using P2P port $P2P_PORT, RPC port $RPC_PORT"
 echo "SBT_OPTS=$JAVA_OPTIONS"
@@ -24,6 +23,6 @@ EXCEPTION_FILE="target/ex$1.log"
 rm $LOG_FILE
 rm $EXCEPTION_FILE
 
-SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS" | tee $LOG_FILE | grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler" | tee $EXCEPTION_FILE 2>&1
-#SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS" | tee $LOG_FILE 
+#SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS" | tee $LOG_FILE | grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler" | tee $EXCEPTION_FILE 2>&1
+SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS" | tee $LOG_FILE 
 

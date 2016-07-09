@@ -6,6 +6,7 @@ import io.scalechain.blockchain.proto.OutPoint
 import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.proto.TransactionInput
 import io.scalechain.blockchain.proto.TransactionOutput
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.blockchain.transaction.CoinsView
 
@@ -17,11 +18,12 @@ case class TransactionWithFee(transaction : Transaction, fee : CoinAmount)
 object TransactionFeeCalculator {
   /**
     * Calculate fee. Sum(input values) = Sum(output values)
+    *
     * @param coinsView The coins view to get the UTXO.
     * @param tx The transaction to calculate the fee.
     * @return The amount of the fee.
     */
-  def fee(coinsView : CoinsView, tx : Transaction) : CoinAmount = {
+  def fee(coinsView : CoinsView, tx : Transaction)(implicit db : KeyValueDatabase) : CoinAmount = {
     val totalInputAmount = tx.inputs.foldLeft(0L) { (acc : Long, input : TransactionInput) =>
       acc + coinsView.getTransactionOutput( OutPoint( input.outputTransactionHash, input.outputIndex.toInt) ).value
     }
@@ -43,7 +45,7 @@ class DescendingTransactionFeeComparator extends Comparator[TransactionWithFee] 
   */
 class TransactionPriorityQueue(coinsView : CoinsView) {
   val queue = new PriorityQueue( new DescendingTransactionFeeComparator() )
-  def enqueue(tx : Transaction) = {
+  def enqueue(tx : Transaction)(implicit db : KeyValueDatabase) = {
     queue.add(TransactionWithFee(tx, TransactionFeeCalculator.fee(coinsView, tx) ))
   }
   def dequeue() : Option[Transaction] = {

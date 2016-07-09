@@ -3,6 +3,7 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.blockchain.script.{ScriptValue, ScriptSerializer, TransactionSignature}
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{TransactionSignException, ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.SigHash.SigHash
@@ -22,17 +23,18 @@ object SigHash extends Enumeration {
   val SINGLE_OR_ANYONECANPAY = new Val(nextId, "SINGLE|ANYONECANPAY")
 }
 
+/** The result of signing a transaction.
+  *
+  * @param transaction the transaction with signatures.
+  * @param complete true if transaction is fully signed; false if more signatures are required
+  */
+case class SignedTransaction(transaction : Transaction, complete : Boolean)
+
 /**
   * Created by kangmo on 5/13/16.
   */
-object TransactionSigner {
+class TransactionSigner()(implicit db : KeyValueDatabase) {
 
-  /** The result of signing a transaction.
-    *
-    * @param transaction the transaction with signatures.
-    * @param complete true if transaction is fully signed; false if more signatures are required
-    */
-  case class SignedTransaction(transaction : Transaction, complete : Boolean)
 
   /** Sign an input of a transaction with the list of given private keys.
     *

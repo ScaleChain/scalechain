@@ -73,7 +73,7 @@ object DiskBlockStorage {
   * @param directoryPath The path where database files are located.
   */
 
-class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(protected [storage] implicit val db : KeyValueDatabase) extends BlockStorage with BlockDatabaseForRecordStorage {
+class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : KeyValueDatabase) extends BlockStorage with BlockDatabaseForRecordStorage {
   private val logger = Logger( LoggerFactory.getLogger(classOf[DiskBlockStorage]) )
 
   directoryPath.mkdir()

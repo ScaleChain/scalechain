@@ -6,6 +6,7 @@ import io.scalechain.blockchain.api.domain._
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Transaction, Hash, HashFormat}
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.{ByteArray}
 import spray.json.DefaultJsonProtocol._
 import io.scalechain.blockchain.transaction.TransactionVerifier
@@ -71,7 +72,8 @@ object SendRawTransaction extends RpcCommand {
       // If the transaction already exists, the tx hash is put into the txHashes list as Left(hash)
       // If the transaction successfully sent, the tx hash is put into the txHashes list as Right(hash)
       val txHashes : List[ Either[Hash,Hash] ] = transactions.map { tx: Transaction =>
-        new TransactionVerifier(tx).verify(Blockchain.get)
+
+        RpcSubSystem.get.verifyTransaction(tx)
 
         // Step 2 : Check if the transaction already exists.
         val txHash = tx.hash

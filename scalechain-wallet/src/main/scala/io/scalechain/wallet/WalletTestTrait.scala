@@ -15,7 +15,7 @@ trait WalletTestTrait extends BlockchainTestTrait with ChainTestTrait{
   override def beforeEach() {
     super.beforeEach()
 
-    wallet = Wallet.create(db)
+    wallet = Wallet.create()
     chain.setEventListener(wallet)
 
     chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net.message
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.HexUtil._
 
 /**
@@ -9,6 +10,8 @@ import io.scalechain.util.HexUtil._
   */
 object VersionFactory {
   def create() : Version = {
+    implicit val db : KeyValueDatabase = Blockchain.get.db
+
     // ScaleChain uses Long type for the block height, but the Version.startHeight is encoded in 32bit little endian integer.
     // If we create two blocks a second, it takes about 15 years to fill up
     val bestBlockHeight = Blockchain.get.getBestBlockHeight()

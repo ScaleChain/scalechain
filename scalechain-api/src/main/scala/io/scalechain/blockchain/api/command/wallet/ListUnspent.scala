@@ -84,7 +84,7 @@ object ListUnspent extends RpcCommand {
 
       val unspentCoins : List[UnspentCoinDescriptor] = Wallet.get.listUnspent(
         Blockchain.get, minimumConfirmations, maximumConfirmations, coinAddressesOption
-      )
+      )(Blockchain.get.db)
 
       // unspentCoins is a list of objects each describing an unspent output. May be empty
       // item of the list : An object describing a particular unspent output belonging to this wallet

@@ -84,7 +84,7 @@ object ScaleChainPeer {
     }
   }
 
-  protected[cli] def initializeNetLayer(params: Parameters, wallet: Wallet): PeerCommunicator = {
+  protected[cli] def initializeNetLayer(params: Parameters, indexDb : RocksDatabase, wallet: Wallet): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) = {
       def getLocalAddresses() : List[String] = {
@@ -133,8 +133,9 @@ object ScaleChainPeer {
       }
 
     if (Config.isPrivate) {
-      BlockSigner.setWallet( wallet )
-      val signingAddress = BlockSigner.signingAddress()
+      val signer = new BlockSigner()(indexDb)
+      signer.setWallet( wallet )
+      val signingAddress = signer.signingAddress()
       PrivateVersionFactory.setBlockSigningAddress(signingAddress)
     }
 
@@ -166,6 +167,7 @@ object ScaleChainPeer {
     Storage.initialize()
 
     val indexDb : RocksDatabase = new RocksDatabase(blockStoragePath)
+    implicit val db : KeyValueDatabase = indexDb
 
     val storage: BlockStorage =
       // Initialize the block storage.
@@ -179,7 +181,7 @@ object ScaleChainPeer {
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
-      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)(indexDb)
+      chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
     }
 
     assert( chain.getBestBlockHash().isDefined )
@@ -187,13 +189,13 @@ object ScaleChainPeer {
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
     val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
-    val wallet = Wallet.create(indexDb)
+    val wallet = Wallet.create()
     chain.setEventListener(wallet)
 
     // Step 7 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
 
-    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, wallet)
+    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, indexDb, wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.

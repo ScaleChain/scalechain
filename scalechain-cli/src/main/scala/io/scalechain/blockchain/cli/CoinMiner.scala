@@ -24,7 +24,7 @@ object CoinMiner {
   var theCoinMiner : CoinMiner = null
 
   def create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) = {
-    theCoinMiner = new CoinMiner(indexDb, minerAccount, wallet, chain, peerCommunicator, params)
+    theCoinMiner = new CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
     theCoinMiner.start()
     theCoinMiner
   }
@@ -36,8 +36,10 @@ object CoinMiner {
 }
 
 
-class CoinMiner(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
+class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[CoinMiner]) )
+
+  implicit val db : KeyValueDatabase = rocksDB
 
   // For every 10 seconds, create a new block template for mining a block.
   // This means that transactions received within the time window may not be put into the mined block.
@@ -48,13 +50,13 @@ class CoinMiner(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet,
     if (Config.isPrivate) {
       null
     } else {
-      new BlockMining(chain.txDescIndex, chain.txPool, chain)(indexDb)
+      new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
     }
 
 
   val signedBlockMining =
     if (Config.isPrivate) {
-      new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)(indexDb)
+      new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
     } else {
       null
     }
@@ -181,8 +183,8 @@ class CoinMiner(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet,
                       // Step 5 : When a block is found, create the block and put it on the blockchain.
                       // Also propate the block to the peer to peer network.
                       val block = blockTemplate.get.createBlock(newBlockHeader, nonce)
-                      chain.withTransaction { implicit transactingDB =>
-                        chain.putBlock(Hash(newBlockHash.value), block)
+                      chain.withTransaction { transactingDB =>
+                        chain.putBlock(Hash(newBlockHash.value), block)(transactingDB)
                       }
                       peerCommunicator.propagateBlock(block)
                       blockFound = true

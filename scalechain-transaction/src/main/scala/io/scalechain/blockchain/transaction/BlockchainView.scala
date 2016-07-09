@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
 /** A block in a best blockchain.
   * Has all data of a block and also additional information such as the height of a block.
@@ -22,7 +23,7 @@ trait CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput
 }
 
 /** The read-only view of the best blockchain.
@@ -35,7 +36,7 @@ trait BlockchainView extends CoinsView {
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  def getIterator(height : Long) : Iterator[ChainBlock]
+  def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock]
 
   /** Return the block height of the best block.
     *
@@ -43,7 +44,7 @@ trait BlockchainView extends CoinsView {
     *
     * @return The best block height.
     */
-  def getBestBlockHeight() : Long
+  def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long
 
   /** Return a transaction that matches the given transaction hash.
     *
@@ -52,7 +53,7 @@ trait BlockchainView extends CoinsView {
     * @param transactionHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction]
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction]
 
 }
 

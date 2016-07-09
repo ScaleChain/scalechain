@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
 
-object BlockProcessor extends BlockProcessor(Blockchain.get)
+object BlockProcessor extends BlockProcessor(Blockchain.get)(Blockchain.get.db)
 
 /** Process a received block.
   *
@@ -28,7 +28,7 @@ object BlockProcessor extends BlockProcessor(Blockchain.get)
   *    - If the parent of the block is the current best block(=the tip of the best blockchain), put the block on top of the current best block.
   *
   */
-class BlockProcessor(val chain : Blockchain) {
+class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockProcessor]) )
 
 
@@ -75,9 +75,7 @@ class BlockProcessor(val chain : Blockchain) {
     * @param block the block to put as an orphan block.
     */
   def putOrphan(block : Block) : Unit = {
-    chain.withTransaction { transactingDB =>
-      chain.blockOrphanage.putOrphan(block)
-    }
+    chain.blockOrphanage.putOrphan(block)
   }
 
   /**
@@ -131,7 +129,7 @@ class BlockProcessor(val chain : Blockchain) {
     // Step 6. Need to check block hashes for checkpoint blocks.
     // Step 7. Write the block on the block database, reorganize blocks if necessary.
     chain.withTransaction { implicit transactingDB =>
-      chain.putBlock(blockHash, block)
+      chain.putBlock(blockHash, block)(transactingDB)
     }
   }
 

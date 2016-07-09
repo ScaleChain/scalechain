@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.wallet
 
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
@@ -48,7 +49,8 @@ object GetAccount extends RpcCommand {
 
       val coinAddress = CoinAddress.from(address)
 
-      val accountNameOption : Option[String] = Wallet.get.getAccount(coinAddress)
+
+      val accountNameOption : Option[String] = Wallet.get.getAccount(coinAddress)(Blockchain.get.db)
       Right(Some(StringResult(accountNameOption.getOrElse(""))))
     }
   }

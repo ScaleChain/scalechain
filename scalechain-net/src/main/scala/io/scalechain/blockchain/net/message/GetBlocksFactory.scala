@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net.message
 
 import io.scalechain.blockchain.chain.{BlockLocator, Blockchain, BlockLocatorHashes}
 import io.scalechain.blockchain.proto.{GetBlocks, Hash, BlockInfo}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 /**
@@ -15,6 +16,8 @@ object GetBlocksFactory {
     */
   def create(blockHashToGet : Hash) : GetBlocks = {
     val env = ChainEnvironment.get
+    implicit val db : KeyValueDatabase = Blockchain.get.db
+
     val locator = new BlockLocator(Blockchain.get)
     val blockLocatorHashes = locator.getLocatorHashes().hashes
     GetBlocks(env.DefaultBlockVersion, blockLocatorHashes, blockHashToGet)

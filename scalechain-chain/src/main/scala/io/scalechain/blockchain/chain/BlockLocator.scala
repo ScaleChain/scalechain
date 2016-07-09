@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.slf4j.LoggerFactory
 
@@ -17,7 +18,7 @@ case class BlockLocatorHashes(hashes : List[Hash])
   *
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
-class BlockLocator(chain : Blockchain) {
+class BlockLocator(chain : Blockchain)(implicit db : KeyValueDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockLocator]) )
 
   /** Get the summary of block hashes that this node has.
@@ -73,6 +74,7 @@ class BlockLocator(chain : Blockchain) {
     val env = ChainEnvironment.get
     val listBuf = new ListBuffer[Hash]()
 
+    // TODO : Optimize : Can we remove the chain.synchronized, as putBlock is atomic? ( May require using a RocksDB snapshot )
     chain.synchronized {
       // Step 1 : Find any matching hash from the list of locator hashes
       // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.

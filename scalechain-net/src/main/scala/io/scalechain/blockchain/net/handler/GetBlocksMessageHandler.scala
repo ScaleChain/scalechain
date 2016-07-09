@@ -5,6 +5,7 @@ import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLoca
 import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.proto.{GetBlocks, ProtocolMessage, GetData}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,6 +23,8 @@ object GetBlocksMessageHandler {
     */
   def handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit = {
     // TODO : Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
+
+    implicit val db : KeyValueDatabase = Blockchain.get.db
 
     // Step 1 : Get the list of block hashes to send.
     val locator = new BlockLocator(Blockchain.get)

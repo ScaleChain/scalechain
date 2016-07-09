@@ -72,7 +72,7 @@ object ImportAddress extends RpcCommand {
         account,
         coinOwnership,
         rescanBlockchain
-      )
+      )(Blockchain.get.db)
 
       // None is converted to JsNull, so we will have { result : null .. } within the response json.
       Right(None)

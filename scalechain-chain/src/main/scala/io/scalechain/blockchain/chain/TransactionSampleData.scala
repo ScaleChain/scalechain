@@ -9,7 +9,7 @@ import HashSupported._
 /**
   * Created by kangmo on 6/30/16.
   */
-class TransactionSampleData()(implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
+class TransactionSampleData()(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
   val Addr1 = generateAccountAddress("Address1")
   // address 1
   val Addr2 = generateAccountAddress("Address2")

@@ -26,7 +26,7 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
 
     keyValueDB = db
     // put the genesis block
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)(chain.db)
+    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
     bm = chain.blockMagnet
   }

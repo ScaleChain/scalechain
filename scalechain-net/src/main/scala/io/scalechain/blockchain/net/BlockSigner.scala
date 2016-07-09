@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import io.scalechain.blockchain.proto.codec.BlockSignatureCodec
 import io.scalechain.blockchain.script.{ScriptValue, ScriptParser}
 import io.scalechain.blockchain.script.ops.{OpPush, OpReturn}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.SigHash
 import io.scalechain.blockchain.transaction.SigHash._
 import io.scalechain.blockchain.{ErrorCode, NetException}
@@ -19,7 +20,7 @@ case class SignedBlock(blockHash : Hash, address: String)
 /**
   * Created by kangmo on 7/6/16.
   */
-object BlockSigner {
+class BlockSigner()(implicit db : KeyValueDatabase) {
   protected[net] var wallet : Wallet = null
   protected[net] var blockSigningAddress : CoinAddress = null
 

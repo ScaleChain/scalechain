@@ -9,15 +9,16 @@ import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
-import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
+import io.scalechain.blockchain.transaction.TransactionSigner
+import io.scalechain.blockchain.transaction.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
 import org.slf4j.LoggerFactory
 
 object Wallet {
   private var theWallet : Wallet = null
-  def create( db : KeyValueDatabase ) : Wallet = {
-    theWallet = new Wallet()(db)
+  def create() : Wallet = {
+    theWallet = new Wallet()
     theWallet
   }
 
@@ -39,7 +40,7 @@ case class WalletOutputWithInfo(
                                )
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
-class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends ChainEventListener {
+class Wallet() extends ChainEventListener {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Wallet]) )
 
   val store = new WalletStore()
@@ -63,15 +64,15 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
                       dependencies  : List[UnspentTransactionOutput],
                       privateKeys   : Option[List[PrivateKey]],
                       sigHash       : SigHash
-                     ) : SignedTransaction = {
+                     )(implicit db : KeyValueDatabase) : SignedTransaction = {
 
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
       val privateKeysFromWallet = store.getPrivateKeys(None)
 
-      TransactionSigner.sign(transaction, chainView, dependencies, privateKeysFromWallet, sigHash )
+      new TransactionSigner().sign(transaction, chainView, dependencies, privateKeysFromWallet, sigHash )
     } else {
-      TransactionSigner.sign(transaction, chainView, dependencies, privateKeys.get, sigHash )
+      new TransactionSigner().sign(transaction, chainView, dependencies, privateKeys.get, sigHash )
     }
   }
 
@@ -84,7 +85,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param address The coin address to calculate the amount of received coins.
     * @param minConfirmations The number of confirmations to filter the UTXO.
     */
-  def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long) : CoinAmount = {
+  def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long)(implicit db : KeyValueDatabase) : CoinAmount = {
     // TODO : BUGBUG : We are counting outputs that an address is just one of multiple addresses in multisig outputs.
 //    println(s"getReceivedByAddress(${address.base58})")
 
@@ -116,7 +117,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     *
     * @param accountOption The account to get transactions related to an account
     */
-  protected[wallet] def getTransactionHashes(accountOption : Option[String]) : Set[Hash] = {
+  protected[wallet] def getTransactionHashes(accountOption : Option[String])(implicit db : KeyValueDatabase) : Set[Hash] = {
     store.getOutputOwnerships(accountOption).flatMap { ownership : OutputOwnership =>
       store.getTransactionHashes(Some(ownership))
     }.toSet
@@ -128,7 +129,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param accountOption
     * @return
     */
-  protected [wallet] def getWalletTransactions(accountOption : Option[String]) : Set[WalletTransaction] = {
+  protected [wallet] def getWalletTransactions(accountOption : Option[String])(implicit db : KeyValueDatabase) : Set[WalletTransaction] = {
     getTransactionHashes(accountOption).map { transactionHash: Hash =>
       store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
     }.filter(_.isDefined) // Filter out None values.
@@ -199,7 +200,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
                                                    negativeFeeOption : Option[scala.math.BigDecimal],
                                                    outputOwnershipsFilterOption : Option[List[OutputOwnership]],
                                                    includeWatchOnly  : Boolean
-                                                 ) : Option[WalletTransactionDescriptor] = {
+                                                 )(implicit db : KeyValueDatabase) : Option[WalletTransactionDescriptor] = {
 
     /**
       *  category should be set to one of the following values:
@@ -308,8 +309,9 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
                         count           : Int,
                         skip            : Long,
                         includeWatchOnly: Boolean
-                      ) : List[WalletTransactionDescriptor] = {
+                      )(implicit db : KeyValueDatabase) : List[WalletTransactionDescriptor] = {
 
+    // TODO : remove synchronized, use RocksDB snapshot
     // The blockchain might be in progress of block reorganization.
     // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
     // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
@@ -415,7 +417,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for UTXOs.
     */
-  protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
+  protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership])(implicit db : KeyValueDatabase) : List[WalletOutputWithInfo] = {
     store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
 
       //println(s"getTransactionOutPoints : ${outPoint}")
@@ -442,7 +444,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
   protected [wallet] def getUnspentCoinDescription( blockchainView : BlockchainView,
                                                     addressOption  : Option[CoinAddress],
                                                     walletOutput   : WalletOutputWithInfo
-                                                  ) : Option[UnspentCoinDescriptor] = {
+                                                  )(implicit db : KeyValueDatabase) : Option[UnspentCoinDescriptor] = {
     if ( walletOutput.walletOutput.spent ) {
       None
     } else {
@@ -473,7 +475,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param blockHeight The height of a block, where the transaction exists.
     * @return
     */
-  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long, outPointOption : Option[OutPoint] = None) = {
+  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long, outPointOption : Option[OutPoint] = None)(implicit db : KeyValueDatabase) = {
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
@@ -500,7 +502,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
                    minimumConfirmations: Long,
                    maximumConfirmations: Long,
                    addressesOption     : Option[List[CoinAddress]]
-                 ) : List[UnspentCoinDescriptor] = {
+                 )(implicit db : KeyValueDatabase) : List[UnspentCoinDescriptor] = {
 
     // The blockchain might be in progress of block reorganization.
     // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
@@ -551,7 +553,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
      account : String,
      outputOwnership : OutputOwnership,
      rescanBlockchain : Boolean
-  ): Unit = {
+  )(implicit db : KeyValueDatabase) : Unit = {
 
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
     store.putOutputOwnership(account, outputOwnership)
@@ -581,7 +583,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param address The coin address, which is attached to the account.
     * @return The found account.
     */
-  def getAccount(address : CoinAddress) : Option[String] = {
+  def getAccount(address : CoinAddress)(implicit db : KeyValueDatabase) : Option[String] = {
 
     store.getAccount(address)
   }
@@ -593,7 +595,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     *
     * @return the new address for receiving payments.
     */
-  def newAddress(account: String) : CoinAddress = {
+  def newAddress(account: String)(implicit db : KeyValueDatabase) : CoinAddress = {
     // Step 1 : Generate a random number and a private key.
     val privateKey : PrivateKey = PrivateKey.generate
 
@@ -622,7 +624,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param addressOption Some(address) to get private keys for an address. A Multisig address may have multiple keys for it.
     *                      None to get private keys for all accounts.
     */
-  def getPrivateKeys(addressOption : Option[OutputOwnership]) : List[PrivateKey] = {
+  def getPrivateKeys(addressOption : Option[OutputOwnership])(implicit db : KeyValueDatabase) : List[PrivateKey] = {
     store.getPrivateKeys(addressOption)
   }
 
@@ -636,7 +638,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     *
     * @return The coin address for receiving payments.
     */
-  def getReceivingAddress(account:String) : CoinAddress = {
+  def getReceivingAddress(account:String)(implicit db : KeyValueDatabase) : CoinAddress = {
     val addressOption : Option[OutputOwnership] = store.getReceivingAddress(account)
     if ( addressOption.isEmpty ) { // The account does not have any receiving address.
       // Create a new address and set it as the receiving address of the account.
@@ -656,7 +658,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param outputOwnerships The output ownerships to check if they exist in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected[wallet] def getWalletOutputOwnerships(outputOwnerships : List[OutputOwnership]) : List[OutputOwnership] = {
+  protected[wallet] def getWalletOutputOwnerships(outputOwnerships : List[OutputOwnership])(implicit db : KeyValueDatabase) : List[OutputOwnership] = {
     outputOwnerships.filter { ownership : OutputOwnership =>
       store.ownershipExists(ownership)
     }
@@ -668,7 +670,7 @@ class Wallet()(protected[wallet] implicit val db : KeyValueDatabase) extends Cha
     * @param lockingScript The locking script to check to produce any possible output ownerships that matches ones in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected[wallet] def getWalletOutputOwnerships(lockingScript : LockingScript) : List[OutputOwnership] = {
+  protected[wallet] def getWalletOutputOwnerships(lockingScript : LockingScript)(implicit db : KeyValueDatabase) : List[OutputOwnership] = {
     val outputOwnerships : List[OutputOwnership] = LockingScriptAnalyzer.extractPossibleOutputOwnerships(lockingScript)
     getWalletOutputOwnerships(outputOwnerships)
   }

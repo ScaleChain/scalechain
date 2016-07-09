@@ -27,7 +27,7 @@ class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoo
 
 }
 
-class TemporaryCoinsView(coinsView : CoinsView)(implicit val db : KeyValueDatabase) extends CoinsView {
+class TemporaryCoinsView(coinsView : CoinsView) extends CoinsView {
 
   val tempTranasctionPoolIndex = new TransactionPoolIndex {}
 
@@ -37,7 +37,7 @@ class TemporaryCoinsView(coinsView : CoinsView)(implicit val db : KeyValueDataba
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
     // Find from the temporary transaction pool index first, and then find from the transactions in a block.
     tempTranasctionPoolIndex.getTransactionFromPool(outPoint.transactionHash).map(_.transaction.outputs(outPoint.outputIndex)).getOrElse {
       // This is called by TransactionPriorityQueue, which already checked if the transaction is attachable.
@@ -207,7 +207,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
         newlySelectedTransaction = txQueue.dequeue()
 
-        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
+//        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
 
         if (newlySelectedTransaction.isDefined) {
           val newTx = newlySelectedTransaction.get

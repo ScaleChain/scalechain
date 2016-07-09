@@ -6,6 +6,8 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.DiskBlockStorage
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.transaction.TransactionVerifier
 import spray.json.JsObject
 import HashSupported._
 /**
@@ -15,7 +17,7 @@ object RpcSubSystem {
   var theRpcSubSystem : RpcSubSystem = null
 
   def create(chain : Blockchain, peerCommunicator: PeerCommunicator) = {
-    theRpcSubSystem = new RpcSubSystem(chain, peerCommunicator)
+    theRpcSubSystem = new RpcSubSystem(chain, peerCommunicator)(chain.db)
     theRpcSubSystem
   }
 
@@ -25,7 +27,7 @@ object RpcSubSystem {
   }
 }
 
-class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
+class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(implicit db : KeyValueDatabase) {
 
   /** Get the hash of a block specified by the block height on the best blockchain.
     *
@@ -117,8 +119,8 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
       Some(SubmitBlockResult.DUPLICATE)
     } else {
       peerCommunicator.propagateBlock(block)
-      chain.withTransaction { implicit transactingDB =>
-        chain.putBlock(Hash(blockHash.value), block)
+      chain.withTransaction { transactingDB =>
+        chain.putBlock(Hash(blockHash.value), block)(transactingDB)
       }
       None
     }
@@ -133,9 +135,10 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     * @return
     */
   def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
-    chain.withTransaction { implicit transactingDB =>
+    // TODO : BUGBUG : Remove synchronization on chain.
+    chain.withTransaction { transactingDB =>
       // TODO : BUGBUG : allowHighFees is not used.
-      chain.putTransaction(transaction.hash, transaction)
+      chain.putTransaction(transaction.hash, transaction)(transactingDB)
     }
 
     peerCommunicator.propagateTransaction(transaction)
@@ -149,6 +152,12 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator) {
     */
   def getPeerInfos() : List[PeerInfo] = {
     peerCommunicator.getPeerInfos()
+  }
+
+  def verifyTransaction( transaction : Transaction ) : Unit = {
+    implicit val db : KeyValueDatabase = Blockchain.get.db
+
+    new TransactionVerifier(transaction).verify(Blockchain.get)
   }
 }
 

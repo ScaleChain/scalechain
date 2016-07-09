@@ -26,7 +26,7 @@ class SignedBlockMining(txDescIndex : TransactionDescriptorIndex, transactionPoo
     }
 
     val signingTransactions = validTransactions.filter { tx =>
-      val signedBlockHash = BlockSigner.extractSignedBlockHash(chainView, tx)
+      val signedBlockHash = new BlockSigner().extractSignedBlockHash(chainView, tx)
 
       signedBlockHash.isDefined && // the signed block hash should exist
       signedBlockHash.get.blockHash == hashPrevBlock && // the hash in the transaction should match the previous block hash
@@ -38,7 +38,7 @@ class SignedBlockMining(txDescIndex : TransactionDescriptorIndex, transactionPoo
       None
     } else {
       val nonSigningTransactions = validTransactions.filter { tx =>
-        BlockSigner.extractSignedBlockHash(chainView, tx).isEmpty
+        new BlockSigner().extractSignedBlockHash(chainView, tx).isEmpty
       }
 
       val generationTranasction =

@@ -60,7 +60,7 @@ class TestBlockIndex extends BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(chainEventListener: Option[ChainEventListener])(implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
+class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
 
   private val blockIndex = new TestBlockIndex()
 
@@ -81,19 +81,19 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(implicit v
 
 
   object TestBlockchainView extends BlockchainView {
-    def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
       availableOutputs.getTransactionOutput(outPoint)
     }
-    def getIterator(height : Long) : Iterator[ChainBlock] = {
+    def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
       // unused.
       assert(false)
       null
     }
-    def getBestBlockHeight() : Long = {
+    def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long = {
       blockIndex.bestBlockHeight
     }
 
-    def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+    def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
       blockIndex.getTransaction( transactionHash )
     }
   }

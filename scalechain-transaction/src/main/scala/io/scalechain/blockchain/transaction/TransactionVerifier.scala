@@ -6,13 +6,14 @@ import io.scalechain.blockchain.script.ops.{OpEqual, OpHash160, OpPush, OpPushDa
 import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.Utils
 
 /** Check if inputs of a transaction successfully unlocks the locking script attached to the UTXO, which the input references.
  *
   * @param spendingTransaction The transaction that has inputs with unlocking scripts.
  */
-class TransactionVerifier(spendingTransaction : Transaction) {
+class TransactionVerifier(spendingTransaction : Transaction)(implicit db : KeyValueDatabase) {
   /** Check if a transaction's input successfully unlocks the locking script attached to the UTXO, which the input references.
    *
    * @param inputIndex Among multiple transaction inputs in the spending transaction, which one are we going to verify?
@@ -84,7 +85,7 @@ object NormalTransactionVerifier {
   * @param transaction (for debugging) When an exception is thrown, we attach this transaction to create a MergedScript instance, which is logged for debugging Script execution.
   * @param inputIndex (for debugging) When an exception is thrown, this is necessary to create a MergedScript.
   */
-class NormalTransactionVerifier(transactionInput : NormalTransactionInput, transaction : Transaction, inputIndex : Int) {
+class NormalTransactionVerifier(transactionInput : NormalTransactionInput, transaction : Transaction, inputIndex : Int)(implicit db : KeyValueDatabase) {
 
   /** Convert any exception happened within the body to TransactionVerificationException
     *
@@ -280,7 +281,7 @@ class NormalTransactionVerifier(transactionInput : NormalTransactionInput, trans
 
 }
 
-class GenerationTransactionVerifier(transaction : GenerationTransactionInput) {
+class GenerationTransactionVerifier(transaction : GenerationTransactionInput)(implicit db : KeyValueDatabase) {
   /** Verify that 100 blocks are created after the generation transaction was created.
     * Generation transactions do not reference any UTXO, as it creates UTXO from the scratch.
     * So, we don't have to verify the locking script and unlocking script, but we need to make sure that at least 100 blocks are created
