@@ -21,14 +21,18 @@ trait SerializeParseUtil[T] {
   def serialize(obj : T) : Array[Byte] = {
 
     val bitVector = codec.encode(obj).require
+
     val len : Int = bitVector.length.toInt
     // Make sure we have bit length aligned to bytes.
     assert((len & 0x00000007) == 0)
     val byteLen = len >> 3
     //
     val serializedBytes = new Array[Byte](byteLen)
-    for (i <- 0 until byteLen) {
+
+    var i = 0
+    while (i < byteLen) {
       serializedBytes(i) = bitVector.getByte(i)
+      i += 1
     }
     serializedBytes
 
