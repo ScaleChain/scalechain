@@ -32,7 +32,15 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     */
   def commitTransaction() : Unit = {
     assert(writeBatch != null)
-//    println(s"Committing a transaction. Write count : ${writeBatch.count}")
+/*
+    putCache foreach { case (key, value) =>
+      writeBatch.put(key.array(), value)
+    }
+    delCache foreach { case (key, value) =>
+      writeBatch.remove(key.array())
+    }
+*/
+    //    println(s"Committing a transaction. Write count : ${writeBatch.count}")
     val writeOptions = new WriteOptions()
     // BUGBUG : Need to set to true?
     writeOptions.setSync(false)

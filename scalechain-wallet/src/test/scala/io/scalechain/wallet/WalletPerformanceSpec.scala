@@ -5,14 +5,18 @@ import java.io.File
 
 import io.scalechain.blockchain.chain.BlockSampleData
 import io.scalechain.blockchain.chain.{NewOutput, TransactionWithName, BlockSampleData, Blockchain}
-import io.scalechain.blockchain.proto.{Hash, Transaction}
+import io.scalechain.blockchain.proto.codec.{TransactionCodec, HashCodec}
+import io.scalechain.blockchain.proto.{TransactionPoolEntry, Hash, Transaction}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
+import io.scalechain.blockchain.storage.{TransactionPoolIndex, DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction._
+import io.scalechain.test.PerformanceTestTrait
+import io.scalechain.util.GlobalStopWatch
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory
 import org.scalatest._
 import io.scalechain.blockchain.script.HashSupported._
+import scodec.bits.BitVector
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -22,7 +26,7 @@ import scala.util.Random
   * Created by kangmo on 7/4/16.
   */
 
-class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
@@ -70,37 +74,32 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
 
 
 //    val TEST_LOOP_COUNT = 100000
-    val TEST_LOOP_COUNT = 5000
+    implicit val TEST_LOOP_COUNT = 5000
     var testLoop = TEST_LOOP_COUNT
 
     println("Performance test started.")
-    val startTimestamp = System.currentTimeMillis()
-    while(testLoop > 0) {
-      // register all
-      var txIndex : Int = -1
-      transactions.map(_.transaction) foreach { tx : Transaction =>
-        val txHash = tx.hash
-        txIndex += 1
+    measure("register transaction") {
+      while(testLoop > 0) {
+        // register all
+        var txIndex : Int = -1
+        transactions.map(_.transaction) foreach { tx : Transaction =>
+          val txHash = tx.hash
+          txIndex += 1
 
-        // registerTransaction is called in addTransactionToPool
-        //wallet.registerTransaction(tx, Some(ChainBlock(10, BLK05a)), Some(txIndex))
-        chain.txPool.addTransactionToPool(txHash, tx)
+          // registerTransaction is called in addTransactionToPool
+          //wallet.registerTransaction(tx, Some(ChainBlock(10, BLK05a)), Some(txIndex))
+          chain.txPool.addTransactionToPool(txHash, tx)
+        }
+
+        // unregister all
+        reverseTransactions.map(_.transaction) foreach { tx : Transaction =>
+          val txHash = tx.hash
+          chain.txPool.removeTransactionFromPool(txHash)
+          wallet.unregisterTransaction(txHash, tx)
+        }
+        testLoop -= 1
       }
-
-
-      // unregister all
-      reverseTransactions.map(_.transaction) foreach { tx : Transaction =>
-        val txHash = tx.hash
-        chain.txPool.removeTransactionFromPool(txHash)
-        wallet.unregisterTransaction(tx)
-      }
-      testLoop -= 1
     }
-    val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-    println(s"Elasped second : ${elapsedSecond}")
-    val totalTransactions = (TEST_LOOP_COUNT * transactions.length)
-    println(s"Total transactions : ${totalTransactions}")
-    println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
   }
 
   def prepareTestTransactions(txCount : Long) : ListBuffer[(Hash, Transaction)] = {
@@ -129,7 +128,7 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
 
       val coin1Amount = Random.nextInt(10)
       val coin2Amount = Random.nextInt(18)
-      val splitTx = normalTransaction(
+      val splitTxOrg = normalTransaction(
         s"splitTx-${testLoopCount}",
         spendingOutputs = List( mergedCoin ),
         newOutputs = List(
@@ -138,6 +137,9 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
           NewOutput(CoinAmount(50-coin1Amount-coin2Amount), newAddress3)
         )
       )
+//      val splitTx = splitTxOrg.copy(transaction = splitTxOrg.transaction.copy(version=coin1Amount))
+
+      val splitTx = splitTxOrg
 
       transactions.append((splitTx.transaction.hash, splitTx.transaction))
 
@@ -154,9 +156,90 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
       mergedCoin = getOutput(mergeTx, 0)
 
       testLoopCount -= 2
+
+      if (testLoopCount == (testLoopCount >> 10 << 10)) {
+        println (s"${testLoopCount} transactions remaining")
+      }
     }
 
     transactions
+  }
+
+  "encoding/decoding key/value" should "measure performance" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
+    import ch.qos.logback.classic.Logger
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    root.setLevel(ch.qos.logback.classic.Level.WARN);
+
+    wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
+
+    println("Preparing Performance test data.")
+
+    implicit val TEST_LOOP_COUNT = 10000
+    val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
+
+    val hashes = new ListBuffer[Array[Byte]]()
+    measureWithSize("encode hash") {
+      var totalSize = 0
+
+      transactions foreach { case (txHash, tx) =>
+        val rawHash : Array[Byte] = HashCodec.serialize(txHash)
+        val prefixedRawHash = Array('A'.toByte) ++ rawHash
+        hashes.append(prefixedRawHash)
+        totalSize += rawHash.length
+      }
+
+      totalSize
+    }
+
+
+    var prefixSum = 0
+    measureWithSize("decode hash") {
+      var totalSize = 0
+
+      hashes foreach { prefixedRawHash =>
+        val rawPrefix = prefixedRawHash.take(1)
+        val rawHash = prefixedRawHash.drop(1)
+        prefixSum += HashCodec.parse(rawHash).value(0).toInt
+        totalSize += prefixedRawHash.length
+      }
+
+      totalSize
+    }
+
+
+    val rawTransactions = new ListBuffer[Array[Byte]]()
+    measureWithSize("encode transaction") {
+      var totalSize = 0
+
+      transactions foreach { case (txHash, tx) =>
+        //val rawTx: Array[Byte] = TransactionCodec.serialize(tx)
+        val rawTx = TransactionCodec.serialize(tx)
+        rawTransactions.append(rawTx)
+        totalSize += rawTx.length
+      }
+      totalSize
+    }
+
+    var sum : Long = 0
+    measureWithSize("decode transaction") {
+      var totalSize = 0
+      rawTransactions foreach { rawTx =>
+        sum += TransactionCodec.parse(rawTx).outputs(0).value
+        totalSize += rawTx.length
+      }
+      totalSize
+    }
+
+    println(s"Prefix sum ${prefixSum}, Version sum ${sum}")
+
+
   }
 
   "single thread perf test" should "measure performance by adding transactions to the pool" in {
@@ -174,11 +257,10 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
     wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
 
     //    val TEST_LOOP_COUNT = 2
-    val TEST_LOOP_COUNT = 10000
+    implicit val TEST_LOOP_COUNT = 10000
     var testLoop = TEST_LOOP_COUNT
-
+/*
     println("Warming up.")
-
     {
       val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
@@ -188,29 +270,32 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
         }
       }
     }
-
+*/
     println("Preparing Performance test data.")
 
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
-    {
-      println("Performance test started. Add Transaction.")
-      val startTimestamp = System.currentTimeMillis()
 
-      transactions foreach { case (hash, tx) =>
-        chain.withTransaction { implicit transactingDatabase =>
-          chain.txPool.addTransactionToPool(hash, tx)(transactingDatabase)
+    measure("single thread Add Transaction") {
+      val poolIndex = new TransactionPoolIndex {}
+      transactions foreach { case (txHash, tx) =>
+        chain.withTransaction { transactingDatabase =>
+          /*
+                  GlobalStopWatch.measure("put-to-pool") {
+                    poolIndex.putTransactionToPool(
+                      txHash,
+                      TransactionPoolEntry(tx, List.fill(tx.outputs.length)(None))
+                    )(transactingDatabase)
+                  }
+                  GlobalStopWatch.measure("put-to-wallet") {
+                    wallet.onNewTransaction(txHash, tx, None, None)
+                  }
+          */
+          chain.txPool.addTransactionToPool(txHash, tx)(transactingDatabase)
         }
       }
-
-      val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-      println(s"Elapsed second : ${elapsedSecond}")
-      val totalTransactions = TEST_LOOP_COUNT
-      println(s"Total transactions : ${totalTransactions}")
-      println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
-
-
     }
+
 /*
     val signedTransactions =
       {
@@ -323,19 +408,11 @@ class WalletPerformanceSpec extends FlatSpec with WalletTestTrait with BeforeAnd
         }
       }
 
+    implicit val totalTransactions = TEST_LOOP_COUNT * threadCount
 
-    println("Performance test started.")
-    val startTimestamp = System.currentTimeMillis()
-
-    threads foreach { _.start } // Start all threads
-    threads foreach { _.join }  //
-
-    val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-    println(s"Elapsed second : ${elapsedSecond}")
-    val totalTransactions = TEST_LOOP_COUNT * threadCount
-    println(s"Total transactions : ${totalTransactions}")
-    println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
+    measure("multithread add transaction") {
+      threads foreach { _.start } // Start all threads
+      threads foreach { _.join }  //
+    }
   }
-
-
 }

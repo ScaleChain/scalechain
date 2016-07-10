@@ -28,8 +28,13 @@ object Hash {
   */
 case class Hash(value : ByteArray) extends ProtocolMessage {
   def isAllZero() = {
-    (0 until value.length).forall { i =>
-      value(i) == 0
+    if (value(value.length-1) == 0) { // Optimize : In most cases The last byte of hash is non zero.
+      (0 until value.length).forall { i =>
+        //println(s"check isAllZero(i) = ${i}")
+        value(i) == 0
+      }
+    } else {
+      false
     }
   }
 

@@ -3,5 +3,5 @@
 //////////////////////////////////////////////////////////////////////////
 
 libraryDependencies ++= Seq(
-  "org.scodec" %% "scodec-core" % "1.10.0"
+  "org.scodec" %% "scodec-core" % "1.10.2"
 )

@@ -3,6 +3,7 @@ package io.scalechain.wallet
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.{ErrorCode, WalletException}
 import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
@@ -13,6 +14,7 @@ import io.scalechain.blockchain.transaction.TransactionSigner
 import io.scalechain.blockchain.transaction.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
+import io.scalechain.util.GlobalStopWatch
 import org.slf4j.LoggerFactory
 
 object Wallet {
@@ -27,7 +29,6 @@ object Wallet {
     theWallet
   }
 }
-
 
 /** The WalletOutput with additional information such as OutPoint.
   *
@@ -555,6 +556,12 @@ class Wallet() extends ChainEventListener {
      rescanBlockchain : Boolean
   )(implicit db : KeyValueDatabase) : Unit = {
 
+    // TODO : Need to support ParsedPubKeyScript.
+    if (outputOwnership.isInstanceOf[ParsedPubKeyScript]) {
+      logger.warn("Public key scripts are not supported for importaddress RPC.")
+      throw new WalletException(ErrorCode.UnsupportedFeature)
+    }
+
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
     store.putOutputOwnership(account, outputOwnership)
 
@@ -568,7 +575,7 @@ class Wallet() extends ChainEventListener {
       blockchainView.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
         chainBlock.block.transactions foreach { transaction =>
           tranasctionIndex += 1
-          registerTransaction(transaction, Some(chainBlock), Some(tranasctionIndex))
+          registerTransaction(transaction.hash, transaction, Some(chainBlock), Some(tranasctionIndex))
         }
       }
     }
@@ -683,8 +690,8 @@ class Wallet() extends ChainEventListener {
     * @param transaction The newly found transaction.
     * @see ChainEventListener
     */
-  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase): Unit = {
-    registerTransaction(transaction, chainBlock, transactionIndex)(db)
+  def onNewTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase): Unit = {
+    registerTransaction(transactionHash, transaction, chainBlock, transactionIndex)(db)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -698,8 +705,8 @@ class Wallet() extends ChainEventListener {
     * @param transaction The transaction removed from the mempool.
     * @see ChainEventListener
     */
-  def onRemoveTransaction(transaction : Transaction)(implicit db : KeyValueDatabase): Unit = {
-    unregisterTransaction(transaction)(db)
+  def onRemoveTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase): Unit = {
+    unregisterTransaction(transactionHash, transaction)(db)
   }
 
   /** Register a transaction into the wallet database.
@@ -714,16 +721,11 @@ class Wallet() extends ChainEventListener {
                               None if the block is in the mempool.
 
     */
-  protected[wallet] def registerTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase) : Unit = {
+  protected[wallet] def registerTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase) : Unit = {
     Blockchain.get.synchronized {
       //println(s"registerTransaction=${transaction}")
 
-      // Step 1 : Calulate the transaction hash.
-      val transactionHash = transaction.hash
-
       logger.trace(s"[Wallet register tx:${transactionHash}] started.")
-
-      val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
       // If the transaction is related to the output
       var isTransactionRelated = false
@@ -736,20 +738,22 @@ class Wallet() extends ChainEventListener {
         val outPoint = OutPoint(transactionHash, outputIndex)
 
         val walletOutputOwnerships = getWalletOutputOwnerships(transactionOutput.lockingScript)
-        walletOutputOwnerships foreach { ownership : OutputOwnership =>
-          store.putTransactionHash(ownership, transactionHash)
-          store.putTransactionOutPoint(ownership, outPoint)
-
-          //println(s"registerTransaction outPoint=> ${outPoint}")
-          // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
-        }
 
         if (walletOutputOwnerships.isEmpty) {
           // Do nothing, the transaction output is not related to the output ownerships in the wallet.
         } else {
+
+          walletOutputOwnerships foreach { ownership: OutputOwnership =>
+            store.putTransactionHash(ownership, transactionHash)
+            store.putTransactionOutPoint(ownership, outPoint)
+
+            //println(s"registerTransaction outPoint=> ${outPoint}")
+            // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
+          }
+
           isTransactionRelated = true
 
-          val blockHeightOption = chainBlock.map( _.height )
+          val blockHeightOption = chainBlock.map(_.height)
 
           val walletOutputOption = store.getWalletOutput(outPoint)
 
@@ -759,7 +763,7 @@ class Wallet() extends ChainEventListener {
             // Otherwise, we may overwrite the "spent" flag from true to false.
 
             val walletOutput = WalletOutput(
-              blockindex  = blockHeightOption,
+              blockindex = blockHeightOption,
               // Whether this output is in the generation transaction.
               // TODO : BUGBUG : Need to check the outputIndex as well to see if an
               coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
@@ -781,6 +785,7 @@ class Wallet() extends ChainEventListener {
         }
       }
 
+
       if (transaction.inputs(0).isCoinBaseInput()) {
         // do nothing
       } else {
@@ -792,7 +797,7 @@ class Wallet() extends ChainEventListener {
 
           // Step 3 : Block Store : Get the transaction output the input is spending.
           val spentOutput = OutPoint(
-            Hash( transactionInput.outputTransactionHash.value ),
+            Hash(transactionInput.outputTransactionHash.value),
             transactionInput.outputIndex.toInt)
 
           val walletOutputOption = store.getWalletOutput(spentOutput)
@@ -806,7 +811,7 @@ class Wallet() extends ChainEventListener {
 
             // We have the output in our wallet.
             // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-            if ( store.markWalletOutputSpent(spentOutput, true) ) {
+            if (store.markWalletOutputSpent(spentOutput, true)) {
 
               logger.trace(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
@@ -818,6 +823,8 @@ class Wallet() extends ChainEventListener {
 
       // Step 5 : Add a transaction.
       if (isTransactionRelated) {
+        val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
+
         val walletTransaction = WalletTransaction(
           blockHash         = chainBlock.map( _.block.header.hash ),
           blockIndex        = chainBlock.map( _.height ),
@@ -841,12 +848,9 @@ class Wallet() extends ChainEventListener {
     *
     * @param transaction The transaction to register.
     */
-  protected[wallet] def unregisterTransaction(transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
+  protected[wallet] def unregisterTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     Blockchain.get.synchronized {
       val currentTime = System.currentTimeMillis()
-
-      // Step 1 : Calulate the transaction hash.
-      val transactionHash = transaction.hash
 
       logger.trace(s"[Wallet unregister tx:${transactionHash}] started.")
 

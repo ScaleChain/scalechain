@@ -103,6 +103,8 @@ object BitcoinMessageEnvelope {
   def checksum(payload : BitVector) : Checksum = {
     // OPTIMIZE : Directly calculate hash from the BitVector
     val hash = HashFunctions.hash256(payload.toByteArray)
+    //val hash = HashFunctions.hash256(payload.toByteBuffer.array())
+
     Checksum(hash.value.slice(0,Checksum.VALUE_SIZE))
   }
 

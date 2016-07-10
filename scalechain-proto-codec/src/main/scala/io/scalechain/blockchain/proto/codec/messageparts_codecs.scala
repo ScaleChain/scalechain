@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
+import java.nio.ByteBuffer
+
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
@@ -17,6 +19,21 @@ trait SerializeParseUtil[T] {
   val codec : Codec[T]
 
   def serialize(obj : T) : Array[Byte] = {
+
+    val bitVector = codec.encode(obj).require
+    val len : Int = bitVector.length.toInt
+    // Make sure we have bit length aligned to bytes.
+    assert((len & 0x00000007) == 0)
+    val byteLen = len >> 3
+    //
+    val serializedBytes = new Array[Byte](byteLen)
+    for (i <- 0 until byteLen) {
+      serializedBytes(i) = bitVector.getByte(i)
+    }
+    serializedBytes
+
+    //    codec.encode(obj).require.toByteArray
+    /*
     codec.encode(obj) match {
       case Attempt.Successful(bitVector) => {
         bitVector.toByteArray
@@ -25,8 +42,7 @@ trait SerializeParseUtil[T] {
         //println(s"error : ${err.toString}")
         throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
       }
-    }
-
+    }*/
   }
 
   def parse(data: Array[Byte]) : T = {
@@ -180,6 +196,7 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
     */
   private def isGenerationTransaction(txInput : TransactionInput) = {
     // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
+    //println(s"${txInput.outputIndex}")
     txInput.outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
   }
 
@@ -201,7 +218,7 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
   private def generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput = {
     txInput match {
       case generationTxInput : GenerationTransactionInput => {
-        assert(isGenerationTransaction(txInput))
+        //assert(isGenerationTransaction(txInput))
         // Covert back to NormalTransactionInput
         NormalTransactionInput(
           generationTxInput.outputTransactionHash,
@@ -210,7 +227,7 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
           generationTxInput.sequenceNumber)
       }
       case normalTxInput : NormalTransactionInput => {
-        assert(!isGenerationTransaction(txInput))
+        //assert(!isGenerationTransaction(txInput))
         normalTxInput
       }
     }

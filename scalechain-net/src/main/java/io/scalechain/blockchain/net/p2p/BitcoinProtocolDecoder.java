@@ -52,7 +52,7 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
         BitVector inputMessage = null;
-        /*
+/*
         if (msg.hasArray()) { // view as a byte array if possible.
             inputMessage = BitVector$.MODULE$.view(msg.array());
         } else if (msg.nioBufferCount() > 0) { // view as nio buffer if possible.

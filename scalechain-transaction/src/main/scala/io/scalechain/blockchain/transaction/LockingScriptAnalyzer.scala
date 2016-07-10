@@ -81,6 +81,8 @@ object LockingScriptAnalyzer {
     // Step 2 : try to extract coin addresses from it.
     val addresses = extractAddresses(scriptOperations)
 
-    addresses ::: List(ParsedPubKeyScript(scriptOperations))
+    // TODO : Need to return ParsedPubKeyScript.
+    // ParsedPubKeyScript is not supported for an output ownership. Check Wallet.importOutputOwnership
+    addresses //::: List(ParsedPubKeyScript(scriptOperations))
   }
 }

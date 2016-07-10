@@ -109,7 +109,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
 
     val transactionHash = getTxHash(transactionWithName)
     blockIndex.addTransaction( transactionHash, transactionWithName.transaction)
-    chainEventListener.map(_.onNewTransaction(transactionWithName.transaction, None, None))
+    chainEventListener.map(_.onNewTransaction(transactionHash, transactionWithName.transaction, None, None))
     //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
@@ -121,6 +121,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
     block.transactions foreach { transaction =>
       transactionIndex += 1
       chainEventListener.map(_.onNewTransaction(
+        transaction.hash,
         transaction,
         Some( ChainBlock(blockHeight, block) ),
         Some( transactionIndex )

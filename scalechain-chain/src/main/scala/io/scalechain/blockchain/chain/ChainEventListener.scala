@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.{Hash, Transaction}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainBlock
 
@@ -12,7 +12,7 @@ trait ChainEventListener {
     *
     * @param transaction The newly found transaction.
     */
-  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase)
+  def onNewTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase)
 
   /** Called whenever a new transaction is removed from the disk-pool without being added to a block.
     * This also means the transaction does not exist in any block, as the disk-pool has transactions
@@ -20,5 +20,5 @@ trait ChainEventListener {
     *
     * @param transaction The transaction removed from the disk-pool.
     */
-  def onRemoveTransaction(transaction : Transaction)(implicit db : KeyValueDatabase)
+  def onRemoveTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase)
 }

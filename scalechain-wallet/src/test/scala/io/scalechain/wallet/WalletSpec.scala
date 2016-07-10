@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import java.io.File
 
-import io.scalechain.blockchain.TransactionVerificationException
+import io.scalechain.blockchain.{ErrorCode, WalletException, TransactionVerificationException}
 import io.scalechain.blockchain.chain.{Blockchain, TransactionWithName, OutputWithOutPoint, ChainSampleData}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
@@ -852,7 +852,20 @@ String Response : {
     wallet.getReceivingAddress("test1") shouldBe S.Alice.Addr1.address
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  "importOutputOwnership" should "throw an exception if ParsedPubKeyScript was provided" in {
+    val S = new WalletSampleData(wallet)(db)
+    val e = the[WalletException] thrownBy {
+      val parsedPubKeyScript = ParsedPubKeyScript.from(S.Alice.Addr1.address.lockingScript())
+      wallet.importOutputOwnership(
+        S.TestBlockchainView,
+        "test1",
+        parsedPubKeyScript,
+        rescanBlockchain = false)
+    }
+    e.code shouldBe ErrorCode.UnsupportedFeature
+  }
+
+    ////////////////////////////////////////////////////////////////////////////////
   // Methods for getaccount RPC
   ////////////////////////////////////////////////////////////////////////////////
 

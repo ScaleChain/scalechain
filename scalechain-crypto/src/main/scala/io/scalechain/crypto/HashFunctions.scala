@@ -27,7 +27,6 @@ case class Hash256(bytes:Array[Byte]) extends HashValue {
   override val value = bytes
 }
 
-
 /**
  * Created by kangmo on 11/11/15.
  */
@@ -38,8 +37,8 @@ object HashFunctions {
    * @return
    */
   def sha1(input: Array[Byte]) : SHA1 = {
-    val md = MessageDigest.getInstance("SHA-1")
-    SHA1( md.digest(input) )
+    val sha1md = MessageDigest.getInstance("SHA-1")
+    SHA1( sha1md.digest(input) )
   }
 
   /**
@@ -48,8 +47,8 @@ object HashFunctions {
    * @return
    */
   def sha256(input: Array[Byte]) : SHA256 = {
-    val md = MessageDigest.getInstance("SHA-256")
-    SHA256( md.digest(input) )
+    val sha256md = MessageDigest.getInstance("SHA-256")
+    SHA256( sha256md.digest(input) )
   }
 
   /**
