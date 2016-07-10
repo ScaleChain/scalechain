@@ -32,7 +32,7 @@ object BlockFileInfoCodec extends MessagePartCodec[BlockFileInfo]{
 
 object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
   val codec : Codec[BlockInfo] = {
-    ("height" | int32L) ::
+    ("height" | int64L) ::
     ("chainWork" | int64L) ::
     ("nextBlockHash" | optional(bool(8), HashCodec.codec)) ::
     ("transactionCount" | int32L) ::
@@ -97,11 +97,3 @@ object TransactionPoolEntryCodec extends MessagePartCodec[TransactionPoolEntry] 
     ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
   }.as[TransactionPoolEntry]
 }
-
-/*
-object ABCCodec extends MessagePartCodec[ABC] {
-  val codec : Codec[ABC] = {
-    ("field" |   ... ) ::
-  }.as[ABC]
-}
-*/

@@ -17,7 +17,7 @@ case class BlockFileInfo(
 ) extends ProtocolMessage
 
 case class BlockInfo(
-  height : Int,
+  height : Long,
   // The total (estimated) number of hash calculations from the genesis block.
   chainWork : Long, // TODO : BUGBUG : Make sure that the 64 bit integer value is enough for the chainwork.
   nextBlockHash : Option[Hash],

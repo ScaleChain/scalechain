@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+import "message-parts.proto";
+
+package blockchain.proto.protobuf;
+option java_package = "io.scalechain.blockchain.proto.protobuf";
+option optimize_for = SPEED;
+
+message PrivateVersion {
+    required string blockSigningAddress = 1;
+}
+
+message BlockSignature {
+    required bytes magic = 1;
+    required Hash blockHash = 2;
+}

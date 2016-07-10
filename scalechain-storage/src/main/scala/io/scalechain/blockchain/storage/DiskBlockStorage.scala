@@ -81,7 +81,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : Ke
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath, maxFileSize)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
-  protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Int, blockTimestamp : Long): Unit = {
+  protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Long, blockTimestamp : Long): Unit = {
     val lastFileNumber = FileNumber(headerLocator.fileIndex)
 
     // Are we writing at the beginning of the file?

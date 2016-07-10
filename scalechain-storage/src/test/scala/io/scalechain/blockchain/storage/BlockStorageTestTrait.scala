@@ -21,8 +21,8 @@ trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
   "getBlockHeight" should "return the height of the block" in {
     storage.putBlockHeader(block1.header)
     storage.putBlockHeader(block2.header)
-    storage.getBlockHeight(blockHash1) shouldBe Some(0)
-    storage.getBlockHeight(blockHash2) shouldBe Some(1)
+    storage.getBlockHeight(blockHash1) shouldBe Some(0L)
+    storage.getBlockHeight(blockHash2) shouldBe Some(1L)
   }
 
 

@@ -14,11 +14,11 @@ protected[storage] object BlockInfoFactory {
     */
   def create(prevBlockInfoOption : Option[BlockInfo], blockHeader : BlockHeader, blockHash : Hash, transactionCount : Int, blockLocatorOption : Option[FileRecordLocator]) : BlockInfo = {
 
-    val prevBlockHeight = prevBlockInfoOption.map(_.height).getOrElse(-1)
+    val prevBlockHeight = prevBlockInfoOption.map(_.height).getOrElse(-1L)
     val prevBlockChainWork = prevBlockInfoOption.map(_.chainWork).getOrElse(0L)
 
     io.scalechain.blockchain.proto.BlockInfo(
-      height = prevBlockHeight + 1,
+      height = prevBlockHeight + 1L,
       transactionCount = transactionCount,
       chainWork = prevBlockChainWork + HashEstimation.getHashCalculations(blockHash.value.array),
       nextBlockHash = None,

@@ -79,7 +79,7 @@ trait BlockDatabase {
     ))
   }
 
-  def getBlockHeight(hash : Hash)(implicit db : KeyValueDatabase) : Option[Int] = {
+  def getBlockHeight(hash : Hash)(implicit db : KeyValueDatabase) : Option[Long] = {
     getBlockInfo(hash).map(_.height)
   }
 

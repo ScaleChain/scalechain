@@ -95,7 +95,7 @@ trait MessagePartCodec[T <: ProtocolMessage] extends SerializeParseUtil[T] {
 
 object HashCodec extends MessagePartCodec[Hash] {
   val codec : Codec[Hash] = {
-    ("hash" | FixedByteArray.reverseCodec(32))
+    ("value" | FixedByteArray.reverseCodec(32))
   }.as[Hash]
 }
 

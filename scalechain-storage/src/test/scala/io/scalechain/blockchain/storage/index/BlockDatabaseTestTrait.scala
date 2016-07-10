@@ -42,7 +42,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTest
 
     blockDb.putBlockInfo(TestData.blockHash, blockInfo)
     blockDb.getBlockInfo(TestData.blockHash) shouldBe Some(blockInfo)
-    blockDb.getBlockHeight(TestData.blockHash) shouldBe Some(1)
+    blockDb.getBlockHeight(TestData.blockHash) shouldBe Some(1L)
 
     val newBlockInfo = blockInfo.copy(
       transactionCount = 10,
