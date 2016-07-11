@@ -117,24 +117,22 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends Blockch
   def txDescIndex : TransactionDescriptorIndex = storage
 
   def withTransaction[T]( block : KeyValueDatabase => T) : T = {
-    this.synchronized {
-      val transactingRocksDB = new TransactingRocksDatabase(db)
+    val transactingRocksDB = new TransactingRocksDatabase(db)
 
-      transactingRocksDB.beginTransaction()
+    transactingRocksDB.beginTransaction()
 
-      val returnValue =
-        try {
-          block(transactingRocksDB)
-        } catch {
-          case t : Throwable => {
-            transactingRocksDB.abortTransaction()
-            throw t
-          }
+    val returnValue =
+      try {
+        block(transactingRocksDB)
+      } catch {
+        case t : Throwable => {
+          transactingRocksDB.abortTransaction()
+          throw t
         }
+      }
 
-      transactingRocksDB.commitTransaction()
-      returnValue
-    }
+    transactingRocksDB.commitTransaction()
+    returnValue
   }
 
 
@@ -332,7 +330,7 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends Blockch
     *
     * @return The best block height.
     */
-  def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long = {
+  def getBestBlockHeight() : Long = {
     synchronized {
       assert(theBestBlock != null)
       theBestBlock.height

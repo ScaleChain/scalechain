@@ -47,6 +47,7 @@ trait NetworkProtocol {
 class BitcoinProtocol extends NetworkProtocol {
   val codecs = Seq(
     VersionCodec,
+    PrivateVersionCodec,
     VerackCodec,
     AddrCodec,
     InvCodec,

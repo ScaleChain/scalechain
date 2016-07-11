@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb._
+import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 
@@ -77,6 +78,26 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
       .setMaxBackgroundFlushes(1)
 //      .setCompactionStyle(CompactionStyle.LEVEL)
 //            .setMaxTotalWalSize(1024 * 1024 * 1024)
+
+  /*
+  protected[storage] var bloomFilter = new BloomFilter(10);
+
+  var tableOptions : BlockBasedTableConfig = new BlockBasedTableConfig()
+  tableOptions.setBlockCacheSize(64 * SizeUnit.KB)
+    .setFilter(bloomFilter)
+    .setCacheIndexAndFilterBlocks(true)
+    */
+    /*
+    .setCacheNumShardBits(6)
+    .setBlockSizeDeviation(5)
+    .setBlockRestartInterval(10)
+    .setHashIndexAllowCollision(false)
+    .setBlockCacheCompressedSize(64 * SizeUnit.KB)
+    .setBlockCacheCompressedNumShardBits(10)
+    */
+
+  //options.setTableFormatConfig(tableOptions);
+
 
   options.getEnv().setBackgroundThreads(3, Env.COMPACTION_POOL)
     .setBackgroundThreads(1, Env.FLUSH_POOL)
@@ -154,10 +175,15 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
     if (db != null) {
       assert(options != null)
       db.close
-      options.dispose
+      options.close
+  //      bloomFilter.close
     }
 
     db = null
     options = null
+    /*
+    bloomFilter = null
+    tableOptions = null
+    */
   }
 }

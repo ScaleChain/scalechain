@@ -165,7 +165,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     transactions
   }
 
-  "encoding/decoding key/value" should "measure performance" in {
+  "encoding/decoding key/value" should "measure performance" ignore {
     val data = new BlockSampleData()
     import data._
     import data.Block._

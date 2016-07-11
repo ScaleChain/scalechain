@@ -44,7 +44,7 @@ trait BlockchainView extends CoinsView {
     *
     * @return The best block height.
     */
-  def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long
+  def getBestBlockHeight() : Long
 
   /** Return a transaction that matches the given transaction hash.
     *

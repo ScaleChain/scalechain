@@ -3,8 +3,10 @@ package io.scalechain.blockchain.net.handler
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.net.{IncompleteBlock, IncompleteBlockCache, BlockSigner, BlockSigningHistory}
 import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage, Addr}
+import io.scalechain.util.Config
 import org.slf4j.LoggerFactory
 import io.scalechain.blockchain.script.HashSupported._
 
@@ -13,6 +15,10 @@ import io.scalechain.blockchain.script.HashSupported._
   */
 object BlockMessageHandler {
   private lazy val logger = Logger( LoggerFactory.getLogger(BlockMessageHandler.getClass) )
+
+  // More than half of the peers should sign the block.
+  val RequiredSigningTransactions = Config.peerAddresses().length / 2 + 1
+
 
   /** Handle Block message.
     *
@@ -36,51 +42,85 @@ object BlockMessageHandler {
     } else if (BlockProcessor.hasOrphan(blockHash)) {
       logger.trace(s"[P2P] Duplicate orphan block was received. Hash : ${blockHash}")
     } else {
-      // TODO : Add the block as a known inventory of the node that sent it.
-      // pfrom->AddInventoryKnown(inv);
-      BlockProcessor.validateBlock(block)
-      // TODO : Increase DoS score of the peer if the block was invalid.
-      // TODO : Make sure we do not hit any issue even though an exception is thrown by validateBlock.
 
-      if (BlockProcessor.hasNonOrphan(block.header.hashPrevBlock)) { // Case 1 : Non-Orphan block.
+      val shouldProcessBlock =
+        if (Config.isPrivate && (Blockchain.get.getBestBlockHeight >= Config.InitialSetupBlocks) ) {
+          val incompleteBlockOption : Option[IncompleteBlock] =
+            if (BlockSigningHistory.didSignOn(block.header.hashPrevBlock)) {
+              // Already signed.
+              logger.trace(s"[Block Handler] An already signed block. Block Hash : ${blockHash}")
+              IncompleteBlockCache.getBlock(blockHash)
+            } else {
+              logger.trace(s"[Block Handler] Creating and propagating a signing transaction. Block Hash : ${blockHash}")
+              val signingTx = BlockSigner.get.signBlock(Blockchain.get, blockHash)
+              context.communicator.sendToAll( signingTx )
+              BlockSigningHistory.signedOn(block.header.hashPrevBlock)
+              IncompleteBlockCache.addBlock(blockHash, block)
+              val incompleteBlock = IncompleteBlockCache.addSigningTransaction(blockHash, signingTx)
+              Some(incompleteBlock)
+            }
+          if (incompleteBlockOption.isDefined) {
+            val enough = incompleteBlockOption.get.hasEnoughSigningTransactions( RequiredSigningTransactions )
+            if (enough) {
+              logger.trace(s"[Block Handler] A block with enough signing transactions found. Delegating to BlockMessageHandler. Block Hash : ${blockHash}")
+            } else {
+              logger.trace(s"[Block Handler] A block with signing transactions found. But need more signing transactions. Current Transactions : ${incompleteBlockOption.get.signingTxs.size}, Required : ${BlockMessageHandler.RequiredSigningTransactions}, Block Hash : ${blockHash}")
+            }
+            enough
+          } else {
+            false
+          }
+        } else {
+          true
+        }
+
+      if (shouldProcessBlock) {
+        // TODO : Add the block as a known inventory of the node that sent it.
+        // pfrom->AddInventoryKnown(inv);
+        BlockProcessor.validateBlock(block)
+        // TODO : Increase DoS score of the peer if the block was invalid.
+        // TODO : Make sure we do not hit any issue even though an exception is thrown by validateBlock.
+
+        if (BlockProcessor.hasNonOrphan(block.header.hashPrevBlock)) { // Case 1 : Non-Orphan block.
         // Step 1.1 : Store the block to the blockchain. Do block reorganization if necessary.
         val acceptedAsNewBestBlock = BlockProcessor.acceptBlock(blockHash, block)
 
-        // Step 1.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
-        val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(blockHash)
+          // Step 1.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
+          val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(blockHash)
 
-        val newBlockHashes = if (acceptedAsNewBestBlock) {
-          blockHash :: newlyBestBlockHashes
-        } else {
-          newlyBestBlockHashes
-        }
+          val newBlockHashes = if (acceptedAsNewBestBlock) {
+            blockHash :: newlyBestBlockHashes
+          } else {
+            newlyBestBlockHashes
+          }
 
-        if (newBlockHashes.isEmpty) {
-          // Do nothing. Nothing to send.
-          logger.info(s"A block was ignored, as there is an orphan block being requested. ${blockHash}")
-        } else {
-          // Step 1.3 : Relay the newly added blocks to peers as an inventory
-          val invMessage = InvFactory.createBlockInventories(newBlockHashes)
-          context.communicator.sendToAll(invMessage)
-          logger.trace(s"Propagating newly accepted blocks : ${invMessage} ")
-        }
-      } else { // Case 2 : Orphan block
-        if (context.peer.requestedBlock().isDefined ) {
-          // Do not process orphan blocks. We already requested parents of an orphan root.
-          logger.info(s"A block was ignored, as there is an orphan block being requested. ${blockHash}")
-        } else {
-          // Step 2.1 : Put the orphan block
-          // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
-          BlockProcessor.putOrphan(block)
+          if (newBlockHashes.isEmpty) {
+            // Do nothing. Nothing to send.
+            logger.info(s"A block was ignored, as there is an orphan block being requested. ${blockHash}")
+          } else {
+            // Step 1.3 : Relay the newly added blocks to peers as an inventory
+            val invMessage = InvFactory.createBlockInventories(newBlockHashes)
+            context.communicator.sendToAll(invMessage)
+            logger.trace(s"Propagating newly accepted blocks : ${invMessage} ")
+          }
+        } else { // Case 2 : Orphan block
+          if (context.peer.requestedBlock().isDefined ) {
+            // Do not process orphan blocks. We already requested parents of an orphan root.
+            logger.info(s"A block was ignored, as there is an orphan block being requested. ${blockHash}")
+          } else {
+            // Step 2.1 : Put the orphan block
+            // BUGBUG : An attacker can fill up my disk with lots of orphan blocks.
+            BlockProcessor.putOrphan(block)
 
-          // Step 2.2 : Request the peer to send the root parent of the orphan block.
-          val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
+            // Step 2.2 : Request the peer to send the root parent of the orphan block.
+            val orphanRootHash : Hash = BlockProcessor.getOrphanRoot(blockHash)
 
-          val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
-          context.peer.send(getBlocksMessage)
-          context.peer.blockRequested(orphanRootHash)
-          logger.info(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
-          logger.trace(s"Requesting inventories of parents of the orphan. Orphan root: ${orphanRootHash} ")
+            val getBlocksMessage = GetBlocksFactory.create(orphanRootHash)
+            context.peer.send(getBlocksMessage)
+            context.peer.blockRequested(orphanRootHash)
+            logger.info(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
+            logger.trace(s"Requesting inventories of parents of the orphan. Orphan root: ${orphanRootHash} ")
+          }
         }
       }
     }

@@ -89,7 +89,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
       assert(false)
       null
     }
-    def getBestBlockHeight()(implicit db : KeyValueDatabase) : Long = {
+    def getBestBlockHeight() : Long = {
       blockIndex.bestBlockHeight
     }
 

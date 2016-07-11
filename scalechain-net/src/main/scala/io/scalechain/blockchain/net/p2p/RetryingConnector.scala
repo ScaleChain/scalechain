@@ -63,12 +63,12 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
           channel.close()
           nodeClient.close()
           logger.info(s"Connection to ${address}:${port} failed. ")
-/*
+
           // TODO : Do we need to check future.isCanceled()?
           logger.info(s"Connection to ${address}:${port} failed. Will try in a second.")
           Thread.sleep(retryIntervalSeconds*1000)
           connect(address, port)
-*/
+
         }
       }
     })

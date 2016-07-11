@@ -17,6 +17,22 @@ import scala.collection.mutable.ListBuffer
 
 case class SignedBlock(blockHash : Hash, address: String)
 
+object BlockSigner{
+  var theBlockSigner : BlockSigner = null
+  def create(wallet : Wallet)(implicit db : KeyValueDatabase) : BlockSigner = {
+    if (theBlockSigner != null) {
+      theBlockSigner
+    } else {
+      theBlockSigner = new BlockSigner()
+      theBlockSigner.setWallet(wallet)
+      theBlockSigner
+    }
+  }
+
+  def get() = theBlockSigner
+  val BlockSigningAccount = "block-signing"
+}
+
 /**
   * Created by kangmo on 7/6/16.
   */
@@ -32,7 +48,7 @@ class BlockSigner()(implicit db : KeyValueDatabase) {
   def setWallet(wallet : Wallet) : Unit = {
     assert(wallet != null)
     // Get the block signing address from wallet and set it to the block signer.
-    blockSigningAddress = wallet.getReceivingAddress("block-signing")
+    blockSigningAddress = wallet.getReceivingAddress(BlockSigner.BlockSigningAccount)
     this.wallet = wallet
   }
 

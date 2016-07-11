@@ -36,8 +36,8 @@ class BlockSignerSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterE
 
     // transfer a coin to the signing address.
     {
-      chain.putBlock(data.Block.BLK01.header.hash, data.Block.BLK01)
-      chain.putBlock(data.Block.BLK02.header.hash, data.Block.BLK02)   // 1 confirm => GEN01 is immature
+      chain.putBlock(data.Block.BLK01.header.hash,  data.Block.BLK01)
+      chain.putBlock(data.Block.BLK02.header.hash,  data.Block.BLK02)   // 1 confirm => GEN01 is immature
       chain.putBlock(data.Block.BLK03a.header.hash, data.Block.BLK03a) // 2 confirm => GEN01 is mature.
 
       val initialTx = data.normalTransaction(
@@ -59,7 +59,6 @@ class BlockSignerSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterE
     data = null
 
   }
-
 
   "signingAddress" should "return the same address" in {
     val signer1 = new BlockSigner()(db)

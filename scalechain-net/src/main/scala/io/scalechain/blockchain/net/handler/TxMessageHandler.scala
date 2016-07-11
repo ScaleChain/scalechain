@@ -2,10 +2,12 @@ package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
+import io.scalechain.blockchain.net.{IncompleteBlockCache, BlockSigner}
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Transaction}
+import io.scalechain.util.Config
 import org.slf4j.LoggerFactory
 import io.scalechain.blockchain.script.HashSupported._
 
@@ -15,7 +17,7 @@ import io.scalechain.blockchain.script.HashSupported._
 object TxMessageHandler {
   private lazy val logger = Logger( LoggerFactory.getLogger(TxMessageHandler.getClass) )
 
-  val chain = Blockchain.get
+
 
   /** Handle Transaction message.
     *
@@ -38,6 +40,25 @@ object TxMessageHandler {
         if (TransactionProcessor.exists(transactionHash)) {
           logger.trace(s"The transaction already exists. ${transaction}")
         } else {
+
+          if (Config.isPrivate && (Blockchain.get.getBestBlockHeight >= Config.InitialSetupBlocks)) {
+            val blockSignature = BlockSigner.get.extractSignedBlockHash(Blockchain.get, transaction)
+            if (blockSignature.isDefined) {
+              val permissionedAddresses = context.communicator.getPermissionedAddresses()
+              if ( permissionedAddresses.contains(blockSignature.get.address) ) {
+                val incompleteBlock = IncompleteBlockCache.addSigningTransaction(blockSignature.get.blockHash, transaction)
+                if (incompleteBlock.hasEnoughSigningTransactions(BlockMessageHandler.RequiredSigningTransactions)) {
+                  BlockMessageHandler.handle(context, incompleteBlock.block.get)
+                  logger.trace(s"[Transaction Handler] A block with enough signing transactions found. Delegating to BlockMessageHandler. Block Hash : ${blockSignature.get.blockHash}")
+                } else {
+                  logger.trace(s"[Transaction Handler] A block with signing transactions found. But need more signing transactions. Current Transactions : ${incompleteBlock.signingTxs.size}, Required : ${BlockMessageHandler.RequiredSigningTransactions}, Block Hash : ${blockSignature.get.blockHash}")
+                }
+              } else {
+                logger.warn(s"[Transaction Handler] A signing transaction was signed by permission-less address. Signed By Address : ${blockSignature.get.address}, Permissioned Addresses : ${permissionedAddresses}")
+              }
+            }
+          }
+
           // Try to put the transaction into the disk-pool
           TransactionProcessor.putTransaction(transactionHash, transaction)
 

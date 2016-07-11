@@ -3,20 +3,21 @@ package io.scalechain.blockchain.cli
 import java.util
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.net.handler.BlockMessageHandler
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
-import io.scalechain.util.Config
+import io.scalechain.util.{PeerAddress, NetUtil, Config, Utils}
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
-import io.scalechain.blockchain.net.{SignedBlockMining, PeerInfo, PeerCommunicator}
+import io.scalechain.blockchain.net.{BlockSigner, SignedBlockMining, PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.Utils
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 import scala.util.Random
 
-case class CoinMinerParams(InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
+case class CoinMinerParams(P2PPort : Int, InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
 /**
   * Created by kangmo on 3/15/16.
   */
@@ -33,33 +34,59 @@ object CoinMiner {
     assert(theCoinMiner != null)
     theCoinMiner
   }
+
+  // For every 10 seconds, create a new block template for mining a block.
+  // This means that transactions received within the time window may not be put into the mined block.
+  val MINING_TRIAL_WINDOW_MILLIS = 10000
+
+
+  @tailrec
+  final def getPeerIndexInternal(p2pPort : Int, index : Int, peers : List[PeerAddress]) : Option[Int] = {
+    if (peers.isEmpty) { // base case
+      None
+    } else {
+      val localAddresses = NetUtil.getLocalAddresses()
+      val peerAddress = peers.head
+      if ( localAddresses.contains(peerAddress.address) && peerAddress.port == p2pPort) { // Found a match.
+        Some(index)
+      } else {
+        getPeerIndexInternal(p2pPort, index + 1, peers.tail)
+      }
+    }
+  }
+
+  /**
+    * Return the peer index of the peers array in the scalechain.conf file.
+    * For eaxmple, in case we have the following list of peers,
+    * and the node ip address is 127.0.0.1 with p2p port 7645,
+    * the peer index is 2
+    *
+    *   p2p {
+    *     port = 7643
+    *     peers = [
+    *       { address:"127.0.0.1", port:"7643" }, # index 0
+    *       { address:"127.0.0.1", port:"7644" }, # index 1
+    *       { address:"127.0.0.1", port:"7645" }, # index 2
+    *       { address:"127.0.0.1", port:"7646" }, # index 3
+    *       { address:"127.0.0.1", port:"7647" }  # index 4
+    *     ]
+    *   }
+    *
+    * @return The peer index from [0, peer count-1)
+    */
+  def getPeerIndex(p2pPort : Int) : Option[Int] = {
+    val peerAddresses : List[PeerAddress] = Config.peerAddresses()
+    getPeerIndexInternal(p2pPort, 0, peerAddresses)
+  }
+
 }
 
 
 class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[CoinMiner]) )
 
+  import CoinMiner._
   implicit val db : KeyValueDatabase = rocksDB
-
-  // For every 10 seconds, create a new block template for mining a block.
-  // This means that transactions received within the time window may not be put into the mined block.
-  val MINING_TRIAL_WINDOW_MILLIS = 10000
-  val PREMINE_BLOCKS = 5;
-
-  val blockMining =
-    if (Config.isPrivate) {
-      null
-    } else {
-      new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
-    }
-
-
-  val signedBlockMining =
-    if (Config.isPrivate) {
-      new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
-    } else {
-      null
-    }
 
   /**
     * Check if we can start mining.
@@ -67,7 +94,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     * @return true if we can mine; false otherwise.
     */
   def canMine() : Boolean = {
-    val peerCount = io.scalechain.util.Config.getConfigList("scalechain.p2p.peers").asScala.toArray.length
+    val peerCount = Config.peerAddresses.length
     if (peerCount == 1) {
       // regression test mode with only one node.
       true
@@ -79,7 +106,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
       val peerInfos = peerCommunicator.getPeerInfos()
       // Do we have enough number of peers? (At least more than half)
-      if ( peerInfos.length >= maxPeerConnections / 2 ) {
+      if ( peerInfos.length > maxPeerConnections / 2 ) {
         // Did we receive starting height for all peers?
         if ( peerInfos.filter( _.startingheight.isDefined ).length == peerInfos.length ) {
           val bestPeer = peerCommunicator.getBestPeer.get
@@ -95,8 +122,36 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
       }
     }
   }
-  def start() : Unit = {
 
+  /**
+    * Check if it is my turn to mine coins.
+    *
+    * Turn rules for private blockchains :
+    *   Until INITIAL_SETUP_BLOCKS are mined, each node take turns to mine coins to get the coins to sign blocks.
+    *   After INITIAL_SETUP_BLOCKS, each node mines blocks and signs blocks without any turns.
+    *
+    * Turn rules for public blockchains :
+    *   Each node mines blocks without any turns. Also no block signing.
+    *
+    * @return
+    */
+  def isMyTurn() : Boolean = {
+    if (Config.isPrivate) {
+      val bestBlockHeight = chain.getBestBlockHeight()
+      if (bestBlockHeight < Config.InitialSetupBlocks) {
+        val peerCount = Config.peerAddresses().length
+        val peerIndex = getPeerIndex(params.P2PPort).get
+        println(s"bestBlockHeight=${bestBlockHeight}, peerCount=${peerCount}, peerIndex=${peerIndex}")
+        (bestBlockHeight % peerCount) == peerIndex
+      } else {
+        true
+      }
+    } else { // If public blockchain, no turns. Each node can mine without any turn.
+      true
+    }
+  }
+
+  def start() : Unit = {
     val thread = new Thread {
       override def run {
         logger.info(s"Miner started. Params : ${params}")
@@ -117,38 +172,40 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           val bestBlockHeight = chain.getBestBlockHeight()
 
           // Step 1 : Set the minder's coin address to receive block mining reward.
-          // The mined coin goes to minerAccount if the best block height is less than 128.
+          // The mined coin goes to minerAccount if the best block height is less than INITIAL_SETUP_BLOCKS.
           val minerAddress =
-            if (bestBlockHeight < 128)
-              wallet.getReceivingAddress(minerAccount)
+            if (bestBlockHeight < Config.InitialSetupBlocks) {
+              if (bestBlockHeight < Config.peerAddresses.length * 2 ) {
+                wallet.getReceivingAddress(BlockSigner.BlockSigningAccount)
+              } else {
+                wallet.getReceivingAddress(minerAccount)
+              }
+            }
             else
               wallet.getReceivingAddress("internal")
 
-
-          var sleep = true
-          if (params.InitialDelayMS % 100 == 76) {
-            if ( bestBlockHeight < 10 ) {
-              sleep = false
-            }
-          }
-          if (sleep) {
+          if (bestBlockHeight >= Config.InitialSetupBlocks) {
             Thread.sleep(random.nextInt(params.HashDelayMS))
           }
 
-          if (canMine()) {
-            chain.synchronized {
+          println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
+
+          if (canMine && isMyTurn) {
+            //chain.synchronized {
               val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
               // Step 2 : Create the block template
               val bestBlockHash = chain.getBestBlockHash()
               if (bestBlockHash.isDefined) {
 
                 val blockTemplate =
-                  if (Config.isPrivate) {
+                  if (Config.isPrivate && (bestBlockHeight >= Config.InitialSetupBlocks + 1) ) {
                     val permissionedAddresses = peerCommunicator.getPermissionedAddresses()
                     // At least half of the peers should sign a block.
-                    val requiredPermissionedAddressCount = io.scalechain.util.Config.getConfigList("scalechain.p2p.peers").size / 2
+                    val requiredPermissionedAddressCount = BlockMessageHandler.RequiredSigningTransactions
+                    val signedBlockMining = new SignedBlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
                     signedBlockMining.getBlockTemplate(bestBlockHash.get, permissionedAddresses, requiredPermissionedAddressCount, COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
                   } else {
+                    val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
                     Some(blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize))
                   }
 
@@ -197,10 +254,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               } else {
                 logger.error("The best block hash is not defined yet.")
               }
-            }
+            //}
           } else {
-            // If we can't mine, it could take time to catch up other nodes. sleep 10 seconds before checking again.
-            Thread.sleep(10000)
+            Thread.sleep(10)
           }
         }
       }
