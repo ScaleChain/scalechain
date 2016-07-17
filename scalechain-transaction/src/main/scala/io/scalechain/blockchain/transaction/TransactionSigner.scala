@@ -11,6 +11,8 @@ import io.scalechain.crypto.ECKey.ECDSASignature
 import io.scalechain.crypto.{ECKey, Hash256}
 import io.scalechain.util.{HexUtil, ByteArray}
 
+import scala.annotation.tailrec
+
 
 object SigHash extends Enumeration {
   type SigHash = Value
@@ -159,7 +161,8 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The transaction with the newly signed input updated.
     */
-  protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
+  @tailrec
+  final protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
 
     // TODO : List.length is costly. Optimize it by passing an input itself by dropping one item at head for each invocation of this method.
     if (inputIndex >= transaction.inputs.length) { // The base case. We try to sign all inputs.

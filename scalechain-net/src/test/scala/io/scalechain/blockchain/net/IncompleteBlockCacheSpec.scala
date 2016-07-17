@@ -62,13 +62,12 @@ class IncompleteBlockCacheSpec extends FlatSpec with WalletTestTrait with Before
     cache.getBlock(blockHash) shouldBe None
   }
 
-
   "getBlock" should "return an IncompleteBlock if a block was added" in {
     val blockHash = data.Block.BLK02.header.hash
 
     cache.addBlock(blockHash, data.Block.BLK02)
 
-    cache.getBlock(blockHash) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set())
+    cache.getBlock(blockHash) shouldBe Some( IncompleteBlock(Some(data.Block.BLK02), Set()) )
   }
 
   "getBlock" should "return None if a block was added but expired" in {

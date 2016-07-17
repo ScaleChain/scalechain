@@ -6,7 +6,12 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-all",
 			base = file(".")).
-			aggregate(util, crypto, proto, proto_codec, script, transaction, storage, chain, net, api, wallet, cli)
+			aggregate(consensus, util, crypto, proto, proto_codec, script, transaction, storage, chain, net, api, wallet, cli)
+
+	lazy val consensus =
+		Project(
+			id = "scalechain-consensus",
+			base = file("scalechain-consensus"))
 
 	lazy val util =
 		Project(
@@ -65,7 +70,7 @@ object ScaleChainBuild extends Build {
 		Project(
 			id = "scalechain-net",
 			base = file("scalechain-net"))
-		.dependsOn(util, proto, proto_codec, script, chain, transaction, wallet)
+		.dependsOn(util, consensus, proto, proto_codec, script, chain, transaction, wallet)
 
 	lazy val api =
 		Project(

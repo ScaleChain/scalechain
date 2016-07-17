@@ -141,7 +141,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
       if (bestBlockHeight < Config.InitialSetupBlocks) {
         val peerCount = Config.peerAddresses().length
         val peerIndex = getPeerIndex(params.P2PPort).get
-        println(s"bestBlockHeight=${bestBlockHeight}, peerCount=${peerCount}, peerIndex=${peerIndex}")
+        //println(s"bestBlockHeight=${bestBlockHeight}, peerCount=${peerCount}, peerIndex=${peerIndex}")
         (bestBlockHeight % peerCount) == peerIndex
       } else {
         true
@@ -188,7 +188,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             Thread.sleep(random.nextInt(params.HashDelayMS))
           }
 
-          println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
+          //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 
           if (canMine && isMyTurn) {
             //chain.synchronized {

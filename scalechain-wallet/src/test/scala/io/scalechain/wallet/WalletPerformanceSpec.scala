@@ -242,7 +242,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
   }
 
-  "single thread perf test" should "measure performance by adding transactions to the pool" in {
+  "single thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = new BlockSampleData()
     import data._
     import data.Block._
@@ -347,7 +347,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
 
-  "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
+  "multi thread perf test" should "measure performance by adding transactions to the pool" in {
     val data = new BlockSampleData()
     import data._
     import data.Block._
@@ -365,26 +365,10 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
     println("Preparing Performance test data.")
 
-    val TEST_LOOP_COUNT = 30000
+    val TEST_LOOP_COUNT = 10000
     var testLoop = TEST_LOOP_COUNT
 
-    val generationTxs = List(GEN01, GEN02, GEN03a, GEN04a, GEN05a)
     var transactionsMap = scala.collection.mutable.Map[Int, ListBuffer[(Hash, Transaction)]]()
-
-    /*
-    val prepareThreads = generationTxs.map{ genTx =>
-      chain.txPool.addTransactionToPool(genTx.transaction.hash, genTx.transaction)
-      new Thread() {
-        override def run(): Unit = {
-          val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
-          transactionsMap(genTx) = transactions
-        }
-      }
-    }
-
-    prepareThreads foreach { _.start } // Start all preparation threads
-    prepareThreads foreach { _.join }  // join all preparation threads
-*/
 
     val threadCount = 4
     0 until threadCount foreach { i =>
