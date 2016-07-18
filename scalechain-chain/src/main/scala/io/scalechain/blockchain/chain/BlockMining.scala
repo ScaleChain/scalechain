@@ -85,8 +85,26 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     //val difficultyBits = getDifficulty()
     val difficultyBits = 10
 
-    val validTransactions : List[Transaction] = transactionPool.getTransactionsFromPool().map {
+    val validTransactions : List[Transaction] = transactionPool.getTransactionsFromPool().filter{
+      // Because we are concurrently putting transactions into the pool while putting blocks,
+      // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
+      // Skip all transactions that has the transaction descriptor.
+      case (txHash, transaction) =>
+      txDescIndex.getTransactionDescriptor(txHash).isEmpty
+    }.map {
       case (txHash, transaction) => transaction
+    }
+
+    // Remove transactions from the pool if it is in a block as well.
+    transactionPool.getTransactionsFromPool().filter{
+      // Because we are concurrently putting transactions into the pool while putting blocks,
+      // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
+      // Skip all transactions that has the transaction descriptor.
+      case (txHash, transaction) =>
+        // If the transaction descriptor exists, it means the transaction is in a block.
+        txDescIndex.getTransactionDescriptor(txHash).isDefined
+    }.foreach { case (txHash, transaction) =>
+      transactionPool.removeTransactionFromPool(txHash)
     }
 
     val generationTranasction =

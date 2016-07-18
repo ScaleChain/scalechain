@@ -347,7 +347,6 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends Blockch
     }
   }
 
-
   /** Get the hash of a block specified by the block height on the best blockchain.
     *
     * Used by : getblockhash RPC.

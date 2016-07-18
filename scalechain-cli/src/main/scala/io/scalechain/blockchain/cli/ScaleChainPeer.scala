@@ -113,6 +113,9 @@ object ScaleChainPeer {
         Config.peerAddresses
       }
 
+    val nodeIndex = BlockGateway.getPeerIndex(params.p2pInboundPort).get
+    BlockGateway.create(nodeIndex)
+
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
       peerAddresses.filter(! isMyself(_) ))

@@ -4,11 +4,12 @@ import java.util
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.net.handler.BlockMessageHandler
+import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.util.{PeerAddress, NetUtil, Config, Utils}
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
-import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator}
-import io.scalechain.blockchain.proto.{CoinbaseData, Hash, Block}
+import io.scalechain.blockchain.net.{BlockGateway, PeerInfo, PeerCommunicator}
+import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
@@ -41,44 +42,7 @@ object CoinMiner {
   val MINING_TRIAL_WINDOW_MILLIS = 10000
 
 
-  @tailrec
-  final def getPeerIndexInternal(p2pPort : Int, index : Int, peers : List[PeerAddress]) : Option[Int] = {
-    if (peers.isEmpty) { // base case
-      None
-    } else {
-      val localAddresses = NetUtil.getLocalAddresses()
-      val peerAddress = peers.head
-      if ( localAddresses.contains(peerAddress.address) && peerAddress.port == p2pPort) { // Found a match.
-        Some(index)
-      } else {
-        getPeerIndexInternal(p2pPort, index + 1, peers.tail)
-      }
-    }
-  }
 
-  /**
-    * Return the peer index of the peers array in the scalechain.conf file.
-    * For eaxmple, in case we have the following list of peers,
-    * and the node ip address is 127.0.0.1 with p2p port 7645,
-    * the peer index is 2
-    *
-    *   p2p {
-    *     port = 7643
-    *     peers = [
-    *       { address:"127.0.0.1", port:"7643" }, # index 0
-    *       { address:"127.0.0.1", port:"7644" }, # index 1
-    *       { address:"127.0.0.1", port:"7645" }, # index 2
-    *       { address:"127.0.0.1", port:"7646" }, # index 3
-    *       { address:"127.0.0.1", port:"7647" }  # index 4
-    *     ]
-    *   }
-    *
-    * @return The peer index from [0, peer count-1)
-    */
-  def getPeerIndex(p2pPort : Int) : Option[Int] = {
-    val peerAddresses : List[PeerAddress] = Config.peerAddresses()
-    getPeerIndexInternal(p2pPort, 0, peerAddresses)
-  }
 
 }
 
@@ -88,8 +52,6 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
   import CoinMiner._
   implicit val db : KeyValueDatabase = rocksDB
-
-  val bftProxy : ServiceProxy = new ServiceProxy(getPeerIndex(params.P2PPort).get)
 
   /**
     * Check if we can start mining.
@@ -156,9 +118,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
               wallet.getReceivingAddress("internal")
             }
 
-          if (bestBlockHeight >= Config.InitialSetupBlocks) {
-            Thread.sleep(random.nextInt(params.HashDelayMS))
-          }
+          Thread.sleep(random.nextInt(params.HashDelayMS))
 
           //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 
@@ -199,14 +159,22 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   val newBlockHeader = blockHeader.copy(nonce = nonce)
                   val newBlockHash = newBlockHeader.hash
 
-                  if (Hash.isLessThan(newBlockHash, blockHashThreshold)) {
+                  if (true) {
+                  //if (Hash.isLessThan(newBlockHash, blockHashThreshold)) {
+
                     // Check the best block hash once more.
                     if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
                       // Step 5 : When a block is found, create the block and put it on the blockchain.
                       // Also propate the block to the peer to peer network.
                       val block = blockTemplate.get.createBlock(newBlockHeader, nonce)
+                      val blockHeaderHash = block.header.hash
 
                       peerCommunicator.propagateBlock(block)
+
+                      BlockGateway.get.putReceivedBlock(blockHeaderHash, block)
+
+                      BlockGateway.get.broadcastHeader(block.header)
+
                       blockFound = true
                       logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
                     }
