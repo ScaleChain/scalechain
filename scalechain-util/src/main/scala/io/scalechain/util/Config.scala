@@ -1,9 +1,11 @@
 package io.scalechain.util
 
+import java.io.File
+
 import com.typesafe.config.{ConfigFactory}
 import scala.collection.JavaConverters._
 
-object Config extends Config(ConfigFactory.load("scalechain")) {
+object Config extends Config(ConfigFactory.parseFile( new File("config/scalechain.conf"))) {
 }
 
 case class PeerAddress(address : String, port : Int)

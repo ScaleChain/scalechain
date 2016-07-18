@@ -179,8 +179,18 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
         if (serializedBlockSize <= maxBlockSize) {
           // Attach the transaction
-          txMagnet.attachTransaction(signingTx.hash, signingTx, checkOnly = false)
-          selectedTransactions += signingTx
+          val isTxAttachable = try {
+            txMagnet.attachTransaction(signingTx.hash, signingTx, checkOnly = true)
+            true
+          } catch {
+            case e: ChainException => {
+              false
+            } // The transaction can't be attached.
+          }
+
+          if (isTxAttachable) {
+            selectedTransactions += signingTx
+          }
         }
       }
 

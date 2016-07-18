@@ -46,7 +46,7 @@ object BlockMessageHandler {
       val shouldProcessBlock =
         if (Config.isPrivate && (Blockchain.get.getBestBlockHeight >= Config.InitialSetupBlocks) ) {
           val incompleteBlockOption : Option[IncompleteBlock] =
-            if (BlockSigningHistory.didSignOn(block.header.hashPrevBlock)) {
+            if (BlockSigningHistory.didSignOn(blockHash)) {
               // Already signed.
               logger.trace(s"[Block Handler] An already signed block. Block Hash : ${blockHash}")
               IncompleteBlockCache.getBlock(blockHash)
@@ -54,7 +54,7 @@ object BlockMessageHandler {
               logger.trace(s"[Block Handler] Creating and propagating a signing transaction. Block Hash : ${blockHash}")
               val signingTx = BlockSigner.get.signBlock(Blockchain.get, blockHash)
               context.communicator.sendToAll( signingTx )
-              BlockSigningHistory.signedOn(block.header.hashPrevBlock)
+              BlockSigningHistory.signedOn(blockHash)
               IncompleteBlockCache.addBlock(blockHash, block)
               val incompleteBlock = IncompleteBlockCache.addSigningTransaction(blockHash, signingTx)
               Some(incompleteBlock)

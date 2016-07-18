@@ -7,6 +7,7 @@ import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 /**
@@ -269,6 +270,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param txLocatorOption Some(locator) if the transaction is stored in a block on the best blockchain; None if the transaction should be stored in a mempool.
     */
   protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean, txLocatorOption : Option[FileRecordLocator] = None, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None)(implicit db : KeyValueDatabase) : Unit = {
+    //logger.trace(s"Attach Transaction : ${transactionHash}, stack : ${StackUtil.getCurrentStack}")
     // Step 1 : Attach each transaction input
     if (transaction.inputs(0).isCoinBaseInput()) {
       // Nothing to do for the coinbase inputs.
@@ -281,6 +283,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     } else {
       // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
       if (txLocatorOption.isDefined) {
+        //logger.trace(s"[Attach Transaction] Put transaction descriptor : ${transactionHash}")
         // If the txLocator is defined, the block height should also be defined.
         assert( chainBlock.isDefined )
         txDescIndex.putTransactionDescriptor(transactionHash,
@@ -291,6 +294,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           )
         )
       } else {
+        //logger.trace(s"[Attach Transaction] Put into the pool : ${transactionHash}")
         txPoolIndex.putTransactionToPool(
           transactionHash,
           TransactionPoolEntry(

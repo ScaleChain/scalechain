@@ -17,15 +17,15 @@ class BlockSigningHistory(duration: Long, unit: TimeUnit) {
     CacheBuilder.newBuilder().expireAfterWrite(duration, unit).
       build[Hash,String]
 
-  def signedOn(prevBlockHash : Hash) : Unit = {
+  def signedOn(blockHash : Hash) : Unit = {
     synchronized {
-      cache.put(prevBlockHash, "1")
+      cache.put(blockHash, "1")
     }
   }
 
-  def didSignOn(prevBlockHash : Hash) : Boolean = {
+  def didSignOn(blockHash : Hash) : Boolean = {
     synchronized {
-      cache.getIfPresent(prevBlockHash) != null
+      cache.getIfPresent(blockHash) != null
     }
   }
 }

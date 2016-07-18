@@ -97,6 +97,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
       // Step 5 : Remove the transaction from the disk pool.
       txPool.removeTransactionFromPool(transactionHash)
+      //logger.trace(s"[Attach Block] Removed transaction from pool : ${transactionHash}")
 
       txMagnet.attachTransaction(transactionHash, transaction, checkOnly = false, Some(txLocator.txLocator), chainBlockOption, Some(transactionIndex) )
     }

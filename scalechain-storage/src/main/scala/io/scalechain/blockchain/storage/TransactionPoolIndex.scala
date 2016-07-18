@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
 import io.scalechain.blockchain.proto.codec.{TransactionPoolEntryCodec, TransactionCodec, OneByteCodec, HashCodec}
 import io.scalechain.blockchain.proto.{TransactionPoolEntry, Transaction, OneByte, Hash}
@@ -7,6 +8,7 @@ import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes._
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, DatabaseTablePrefixes}
 import io.scalechain.util.HexUtil._
 import io.scalechain.util.Using._
+import org.slf4j.LoggerFactory
 
 object TransactionPoolIndex {
   // A dummy prefix key to list all transactions in the disk-pool.
@@ -19,6 +21,8 @@ object TransactionPoolIndex {
   * c.f. Orphan transactions are not stored in the disk-pool.
   */
 trait TransactionPoolIndex {
+  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPoolIndex]) )
+
   import TransactionPoolIndex._
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
@@ -30,6 +34,8 @@ trait TransactionPoolIndex {
     * @param transactionPoolEntry The transaction to add.
     */
   def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry)(implicit db : KeyValueDatabase) : Unit = {
+    //logger.trace(s"putTransactionDescriptor : ${txHash}")
+
     db.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
   }
 
@@ -39,6 +45,8 @@ trait TransactionPoolIndex {
     * @return The transaction which matches the given transaction hash.
     */
   def getTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Option[TransactionPoolEntry] = {
+    //logger.trace(s"getTransactionFromPool : ${txHash}")
+
     db.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
   }
 
@@ -60,6 +68,8 @@ trait TransactionPoolIndex {
     * @param txHash The hash of the transaction to remove.
     */
   def delTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+    //logger.trace(s"delTransactionFromPool : ${txHash}")
+
     db.delPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash )
   }
 
