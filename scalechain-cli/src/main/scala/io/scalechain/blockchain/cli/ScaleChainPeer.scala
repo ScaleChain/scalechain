@@ -7,7 +7,6 @@ import java.util
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
-import io.scalechain.blockchain.net.message.PrivateVersionFactory
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
@@ -113,12 +112,6 @@ object ScaleChainPeer {
         // Otherwise, connect to peers listed in the configuration file.
         Config.peerAddresses
       }
-
-    if (Config.isPrivate) {
-      val signer = BlockSigner.create(wallet)
-      val signingAddress = signer.signingAddress()
-      PrivateVersionFactory.setBlockSigningAddress(signingAddress)
-    }
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,

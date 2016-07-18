@@ -8,7 +8,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
-import io.scalechain.blockchain.net.message.{PrivateVersionFactory, VersionFactory}
+import io.scalechain.blockchain.net.message.{VersionFactory}
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.{Config, ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
@@ -48,9 +48,6 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
 
           // Upon successful connection, send the version message.
           peer.send( VersionFactory.create )
-          if (Config.isPrivate) {
-            peer.send( PrivateVersionFactory.create )
-          }
 
           ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
             def operationComplete(future:ChannelFuture) {

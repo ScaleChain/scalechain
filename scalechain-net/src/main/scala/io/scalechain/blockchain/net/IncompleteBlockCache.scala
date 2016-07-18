@@ -8,9 +8,15 @@ import io.scalechain.blockchain.proto.{Hash, Block, Transaction}
 import scala.collection.mutable
 
 
-case class IncompleteBlock(block : Option[Block], signingTxs : Set[Transaction]) {
-  def hasEnoughSigningTransactions(requiredSigningTransactions : Int) : Boolean = {
-    block.isDefined && signingTxs.size >= requiredSigningTransactions
+/**
+  * An incomplete block either nodes did not meet consensus, nor the block was not received yet.
+  * The incomplete block is a block that is either not approved by BFT or it is approved, but the block itself was not received.
+  * @param block
+  * @param consensus true if nodes agreed on consensus.
+  */
+case class IncompleteBlock(block : Option[Block], consensus : Boolean) {
+  def metConsensus() : Boolean = {
+    block.isDefined && consensus
   }
 }
 
@@ -31,7 +37,7 @@ class IncompleteBlockCache(duration: Long, unit: TimeUnit) {
       val newIncompleteBlock =
         if (incompleteBlock == null) {
           // The block was not received yet.
-          IncompleteBlock(Some(block), Set())
+          IncompleteBlock(Some(block), false)
         } else {
           incompleteBlock.copy( block = Some(block) )
         }
@@ -40,15 +46,15 @@ class IncompleteBlockCache(duration: Long, unit: TimeUnit) {
     }
   }
 
-  def addSigningTransaction(blockHash : Hash, tx : Transaction) : IncompleteBlock = {
+  def addConsensus(blockHash : Hash) : IncompleteBlock = {
     synchronized {
       val incompleteBlock = cache.getIfPresent(blockHash)
       val newIncompleteBlock =
         if (incompleteBlock == null) {
           // The block was not received yet.
-          IncompleteBlock(None, Set(tx))
+          IncompleteBlock(None, true)
         } else {
-          incompleteBlock.copy( signingTxs = incompleteBlock.signingTxs ++ Set(tx) )
+          incompleteBlock.copy( consensus = true )
         }
       cache.put(blockHash, newIncompleteBlock)
       newIncompleteBlock

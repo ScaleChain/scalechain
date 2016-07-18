@@ -20,7 +20,6 @@ class IncompleteBlockCacheSpec extends FlatSpec with WalletTestTrait with Before
   var data : WalletBasedBlockSampleData = null
   val testPath = new File("./target/unittests-IncompleteBlockCacheSpec-storage/")
 
-  var signer : BlockSigner = null
   var cache : IncompleteBlockCache = null
 
   val CACHE_KEEP_MILLISECONDS = 10
@@ -47,15 +46,15 @@ class IncompleteBlockCacheSpec extends FlatSpec with WalletTestTrait with Before
   "getBlock" should "return an IncompleteBlock if a signing transaction was added" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction)
+    cache.addConsensus(blockHash)
 
-    cache.getBlock(blockHash) shouldBe Some(IncompleteBlock(None, Set(data.Tx.TX03.transaction)))
+    cache.getBlock(blockHash) shouldBe Some(IncompleteBlock(None, true))
   }
 
   "getBlock" should "return None if a signing transaction was added but expired" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction)
+    cache.addConsensus(blockHash)
 
     Thread.sleep(CACHE_KEEP_MILLISECONDS + 10)
 
@@ -67,7 +66,7 @@ class IncompleteBlockCacheSpec extends FlatSpec with WalletTestTrait with Before
 
     cache.addBlock(blockHash, data.Block.BLK02)
 
-    cache.getBlock(blockHash) shouldBe Some( IncompleteBlock(Some(data.Block.BLK02), Set()) )
+    cache.getBlock(blockHash) shouldBe Some( IncompleteBlock(Some(data.Block.BLK02), false) )
   }
 
   "getBlock" should "return None if a block was added but expired" in {
@@ -81,56 +80,53 @@ class IncompleteBlockCacheSpec extends FlatSpec with WalletTestTrait with Before
   }
 
 
-  "addSigningTransaction" should "return an IncompleteBlock without any block" in {
+  "addConsensus" should "return an IncompleteBlock without any block" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX03.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(None, true)
   }
 
   "addBlock" should "return an IncompleteBlock without any signing transaction" in {
     val blockHash = data.Block.BLK02.header.hash
-    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set())
+    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), false)
   }
 
 
   "addBlock" should "return an IncompleteBlock with signing transactions" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX03.transaction))
-    cache.addSigningTransaction(blockHash, data.Tx.TX04.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX03.transaction, data.Tx.TX04.transaction))
-    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set(data.Tx.TX03.transaction, data.Tx.TX04.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(None, true)
+    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), true)
   }
 
-  "addSigningTransaction" should "return an IncompleteBlock with block" in {
+  "addConsensus" should "return an IncompleteBlock with block" in {
     val blockHash = data.Block.BLK02.header.hash
-    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set())
+    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), false)
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set(data.Tx.TX03.transaction))
-    cache.addSigningTransaction(blockHash, data.Tx.TX04.transaction) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set(data.Tx.TX03.transaction, data.Tx.TX04.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(Some(data.Block.BLK02), true)
   }
 
   "addBlock" should "return an IncompleteBlock without any signing transaction if expired" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX03.transaction))
-    cache.addSigningTransaction(blockHash, data.Tx.TX04.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX03.transaction, data.Tx.TX04.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(None, true)
 
     Thread.sleep(CACHE_KEEP_MILLISECONDS + 10)
 
-    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set())
+    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), false)
   }
 
 
-  "addSigningTransaction" should "return an IncompleteBlock with the newly added transaction only if expired" in {
+  "addConsensus" should "return an IncompleteBlock with the newly added transaction only if expired" in {
     val blockHash = data.Block.BLK02.header.hash
 
-    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set())
+    cache.addBlock(blockHash, data.Block.BLK02) shouldBe IncompleteBlock(Some(data.Block.BLK02), false)
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX03.transaction) shouldBe IncompleteBlock(Some(data.Block.BLK02), Set(data.Tx.TX03.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(Some(data.Block.BLK02), true)
 
     Thread.sleep(CACHE_KEEP_MILLISECONDS + 10)
 
-    cache.addSigningTransaction(blockHash, data.Tx.TX04.transaction) shouldBe IncompleteBlock(None, Set(data.Tx.TX04.transaction))
+    cache.addConsensus(blockHash) shouldBe IncompleteBlock(None, true)
   }
 
 }

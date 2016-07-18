@@ -5,7 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue
 
 import com.typesafe.scalalogging.Logger
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
-import io.scalechain.blockchain.proto.{PrivateVersion, Hash, ProtocolMessage, Version}
+import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
 import io.scalechain.util.StackUtil
 import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
@@ -22,7 +22,6 @@ case class Peer(private val channel : Channel) {
     * The version we got from the peer. This is set to some value only if we received the Version message.
     */
   var versionOption : Option[Version] = None
-  var privateVersionOption : Option[PrivateVersion] = None
   var pongReceived : Option[Int] = None
 
   /**
@@ -32,15 +31,6 @@ case class Peer(private val channel : Channel) {
     */
   def updateVersion(version : Version) : Unit = {
     versionOption = Some(version)
-  }
-
-  /**
-    * Update private version received from the peer.
-    *
-    * @param privateVersion The private version received from the peer.
-    */
-  def updatePrivateVersion(privateVersion : PrivateVersion) : Unit = {
-    privateVersionOption = Some(privateVersion)
   }
 
   /**

@@ -100,8 +100,7 @@ class CoinMinerSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers
     *       { address:"127.0.0.1", port:"7643" }, # index 0
     *       { address:"127.0.0.1", port:"7644" }, # index 1
     *       { address:"127.0.0.1", port:"7645" }, # index 2
-    *       { address:"127.0.0.1", port:"7646" }, # index 3
-    *       { address:"127.0.0.1", port:"7647" }  # index 4
+    *       { address:"127.0.0.1", port:"7646" } # index 3
     *     ]
     *   }
     *
@@ -113,8 +112,7 @@ class CoinMinerSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers
     CoinMiner.getPeerIndex(7644) shouldBe Some(1)
     CoinMiner.getPeerIndex(7645) shouldBe Some(2)
     CoinMiner.getPeerIndex(7646) shouldBe Some(3)
-    CoinMiner.getPeerIndex(7647) shouldBe Some(4)
-    CoinMiner.getPeerIndex(7648) shouldBe None
+    CoinMiner.getPeerIndex(7647) shouldBe None
   }
 }
 

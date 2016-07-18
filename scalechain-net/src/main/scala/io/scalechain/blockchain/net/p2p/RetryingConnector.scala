@@ -3,7 +3,7 @@ package io.scalechain.blockchain.net.p2p
 import com.typesafe.scalalogging.Logger
 import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.net.message.{PrivateVersionFactory, VersionFactory}
+import io.scalechain.blockchain.net.message.{VersionFactory}
 import io.scalechain.blockchain.net.{Peer, NodeClient, PeerSet}
 import io.scalechain.blockchain.proto.{IPv6Address, NetworkAddress, Version}
 import io.scalechain.util.HexUtil._
@@ -31,9 +31,7 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
 
           // Upon successful connection, send the version message.
           channel.writeAndFlush( VersionFactory.create )
-          if (Config.isPrivate) {
-            channel.writeAndFlush( PrivateVersionFactory.create )
-          }
+
 
           future.channel().closeFuture.addListener( new ChannelFutureListener() {
             def operationComplete(future:ChannelFuture) {

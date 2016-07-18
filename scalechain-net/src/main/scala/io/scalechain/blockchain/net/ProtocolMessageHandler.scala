@@ -26,9 +26,6 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
       case version: Version => {
         VersionMessageHandler.handle(context, version)
       }
-      case privateVersion: PrivateVersion => {
-        PrivateVersionMessageHandler.handle(context, privateVersion)
-      }
       case ping : Ping => {
         PingMessageHandler.handle(context, ping)
       }

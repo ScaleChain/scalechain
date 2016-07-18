@@ -96,7 +96,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
         .build()
 
     // Select transactions by priority and fee. Also, sort them.
-    val sortedTransactions = selectTransactions(generationTranasction, List(), validTransactions, maxBlockSize)
+    val sortedTransactions = selectTransactions(generationTranasction, validTransactions, maxBlockSize)
 
     new BlockTemplate(difficultyBits, sortedTransactions)
   }
@@ -133,7 +133,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The transactions to put into a block.
     */
-  protected[chain] def selectTransactions(generationTransaction:Transaction, signingTransactions : List[Transaction], transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
+  protected[chain] def selectTransactions(generationTransaction:Transaction, transactions : List[Transaction], maxBlockSize : Int) : List[Transaction] = {
     val candidateTransactions = new ListBuffer[Transaction]()
     candidateTransactions ++= transactions
     val selectedTransactions = new ListBuffer[Transaction]()
@@ -169,30 +169,6 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
       val txQueue = new TransactionPriorityQueue(tempCoinsView)
 
       val txMagnet = new TransactionMagnet(txDescIndex, tempCoinsView.tempTranasctionPoolIndex)
-
-      // Include all signing transactions first.
-      var remainingSigningTxs = signingTransactions
-      while( (serializedBlockSize <= maxBlockSize) && !remainingSigningTxs.isEmpty ) {
-        val signingTx = remainingSigningTxs.head
-        remainingSigningTxs = remainingSigningTxs.tail
-        serializedBlockSize += TransactionCodec.serialize(signingTx).length
-
-        if (serializedBlockSize <= maxBlockSize) {
-          // Attach the transaction
-          val isTxAttachable = try {
-            txMagnet.attachTransaction(signingTx.hash, signingTx, checkOnly = true)
-            true
-          } catch {
-            case e: ChainException => {
-              false
-            } // The transaction can't be attached.
-          }
-
-          if (isTxAttachable) {
-            selectedTransactions += signingTx
-          }
-        }
-      }
 
       var newlySelectedTransaction : Option[Transaction] = None
       do {

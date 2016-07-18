@@ -3,7 +3,7 @@ package io.scalechain.blockchain.net.handler
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.net.{IncompleteBlock, IncompleteBlockCache, BlockSigner, BlockSigningHistory}
+import io.scalechain.blockchain.net.{IncompleteBlock, IncompleteBlockCache}
 import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage, Addr}
 import io.scalechain.util.Config
@@ -42,37 +42,8 @@ object BlockMessageHandler {
     } else if (BlockProcessor.hasOrphan(blockHash)) {
       logger.trace(s"[P2P] Duplicate orphan block was received. Hash : ${blockHash}")
     } else {
-
-      val shouldProcessBlock =
-        if (Config.isPrivate && (Blockchain.get.getBestBlockHeight >= Config.InitialSetupBlocks) ) {
-          val incompleteBlockOption : Option[IncompleteBlock] =
-            if (BlockSigningHistory.didSignOn(blockHash)) {
-              // Already signed.
-              logger.trace(s"[Block Handler] An already signed block. Block Hash : ${blockHash}")
-              IncompleteBlockCache.getBlock(blockHash)
-            } else {
-              logger.trace(s"[Block Handler] Creating and propagating a signing transaction. Block Hash : ${blockHash}")
-              val signingTx = BlockSigner.get.signBlock(Blockchain.get, blockHash)
-              context.communicator.sendToAll( signingTx )
-              BlockSigningHistory.signedOn(blockHash)
-              IncompleteBlockCache.addBlock(blockHash, block)
-              val incompleteBlock = IncompleteBlockCache.addSigningTransaction(blockHash, signingTx)
-              Some(incompleteBlock)
-            }
-          if (incompleteBlockOption.isDefined) {
-            val enough = incompleteBlockOption.get.hasEnoughSigningTransactions( RequiredSigningTransactions )
-            if (enough) {
-              logger.trace(s"[Block Handler] A block with enough signing transactions found. Delegating to BlockMessageHandler. Block Hash : ${blockHash}")
-            } else {
-              logger.trace(s"[Block Handler] A block with signing transactions found. But need more signing transactions. Current Transactions : ${incompleteBlockOption.get.signingTxs.size}, Required : ${BlockMessageHandler.RequiredSigningTransactions}, Block Hash : ${blockHash}")
-            }
-            enough
-          } else {
-            false
-          }
-        } else {
-          true
-        }
+      // TODO : BUGBUG : Use BFT to see if we need to process the block.
+      val shouldProcessBlock = true
 
       if (shouldProcessBlock) {
         // TODO : Add the block as a known inventory of the node that sent it.

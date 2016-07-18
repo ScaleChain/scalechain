@@ -6,11 +6,7 @@ package blockchain.proto.protobuf;
 option java_package = "io.scalechain.blockchain.proto.protobuf";
 option optimize_for = SPEED;
 
-message PrivateVersion {
-    required string blockSigningAddress = 1;
-}
-
-message BlockSignature {
-    required bytes magic = 1;
-    required Hash blockHash = 2;
+message BlockConsensus {
+    required BlockHeader header = 1;
+    required int64       height = 2;
 }
