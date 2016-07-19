@@ -2,7 +2,6 @@ package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
-import io.scalechain.blockchain.net.{TimeBasedCache}
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain

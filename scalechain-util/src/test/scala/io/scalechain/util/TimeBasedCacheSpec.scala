@@ -1,41 +1,29 @@
-package io.scalechain.blockchain.net
+package io.scalechain.util
 
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-import io.scalechain.blockchain.chain.NewOutput
-import io.scalechain.blockchain.proto.Block
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.storage.Storage
-import io.scalechain.blockchain.transaction.{CoinAmount, TransactionTestDataTrait}
-import io.scalechain.wallet.{WalletBasedBlockSampleData, WalletTestTrait}
-import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
-import HashSupported._
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers, Suite}
 
-class TimeBasedCacheSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class TimeBasedCacheSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
   this: Suite =>
 
-  Storage.initialize()
-
-  var data : WalletBasedBlockSampleData = null
   val testPath = new File("./target/unittests-IncompleteBlockCacheSpec-storage/")
 
-  var cache : TimeBasedCache[Block] = null
+  var cache : TimeBasedCache[String] = null
 
   val CACHE_KEEP_MILLISECONDS = 10
 
   override def beforeEach() {
     super.beforeEach()
 
-    data = new WalletBasedBlockSampleData(wallet)
-    cache = new TimeBasedCache[Block](CACHE_KEEP_MILLISECONDS, TimeUnit.MILLISECONDS)
+    cache = new TimeBasedCache[String](CACHE_KEEP_MILLISECONDS, TimeUnit.MILLISECONDS)
   }
 
   override def afterEach() {
     super.afterEach()
 
-    data = null
     cache = null
   }
 
@@ -45,7 +33,7 @@ class TimeBasedCacheSpec extends FlatSpec with WalletTestTrait with BeforeAndAft
   }
 
   "getBlock" should "return an IncompleteBlock if a signing transaction was added" in {
-    val blockHash = data.Block.BLK02.header.hash
+    val blockHash = Hash
 
     cache.put(blockHash, data.Block.BLK02)
 

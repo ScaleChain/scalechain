@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.net
 
+import java.util.concurrent.TimeUnit
+
 import bftsmart.tom.ServiceProxy
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
@@ -7,10 +9,15 @@ import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.proto.{Hash, Block, BlockHeader}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.{Config, NetUtil, PeerAddress}
+import io.scalechain.util._
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
+
+object ConsensualBlockHeaderCache extends TimeBasedCache[Hash, BlockHeader](5, TimeUnit.MINUTES)
+
+object ReceivedBlockCache extends TimeBasedCache[Hash, Block](5, TimeUnit.MINUTES)
+
 
 object BlockGateway {
   var theBlockGateway : BlockGateway = null
