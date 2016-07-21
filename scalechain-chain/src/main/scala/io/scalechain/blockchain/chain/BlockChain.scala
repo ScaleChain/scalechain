@@ -3,18 +3,13 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
 import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, RocksDatabase, KeyValueDatabase, TransactionDescriptorIndex}
-import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
-import io.scalechain.blockchain.chain.mining.BlockTemplate
+import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage._
-import io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.transaction._
-import io.scalechain.util.Utils
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec

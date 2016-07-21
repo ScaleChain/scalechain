@@ -5,6 +5,7 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
@@ -36,6 +37,7 @@ class NodeClient(peerSet : PeerSet) extends AutoCloseable {
        b.group(group)
       .channel(classOf[NioSocketChannel])
       .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
+      .handler(new LoggingHandler(LogLevel.INFO))
       .handler(new NodeClientInitializer(sslCtx, address, port, peerSet))
 
     // Start the connection attempt.

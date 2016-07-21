@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import java.io.File
 import java.lang.ref.WeakReference
 
+import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
@@ -35,6 +36,9 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
     db = rocksDB
     storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
     chain = new Blockchain(storage)(rocksDB)
+    BlockProcessor.theBlockProcessor = null
+    BlockProcessor.create(chain)
+
     Blockchain.theBlockchain = chain
 
     super.beforeEach()

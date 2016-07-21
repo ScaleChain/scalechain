@@ -3,6 +3,7 @@ package io.scalechain.blockchain.cli
 import java.io.{File, ByteArrayInputStream, ByteArrayOutputStream}
 
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter, ScriptParser, ScriptBytes}
@@ -114,6 +115,7 @@ object DumpChain {
     implicit val db = new RocksDatabase(blockStoragePath)
     val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
     val chain = Blockchain.create(db, storage)
+    BlockProcessor.create(chain)
     chain.putBlock( GenesisBlock.HASH, GenesisBlock.BLOCK )
 
     var blockHeight = 0

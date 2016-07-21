@@ -30,7 +30,7 @@ class NodeServer(peerSet : PeerSet) {
     b.group(bossGroup, workerGroup)
       .channel(classOf[NioServerSocketChannel])
       .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
-      .handler(new LoggingHandler(LogLevel.TRACE))
+      .handler(new LoggingHandler(LogLevel.INFO))
       .childHandler(new NodeServerInitializer(sslCtx, peerSet))
 
     //b.bind(port).sync().channel().closeFuture().sync()

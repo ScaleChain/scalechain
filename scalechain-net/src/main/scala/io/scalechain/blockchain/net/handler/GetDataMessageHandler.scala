@@ -42,7 +42,7 @@ object GetDataMessageHandler {
           case InvType.MSG_BLOCK => {
             // Get the block we have. Orphan blocks are not returned.
             // Returns Option[Block]
-            BlockProcessor.getBlock(inventory.hash)
+            BlockProcessor.get.getBlock(inventory.hash)
           }
           case _ => {
             logger.warn(s"Unknown inventory type for the inventory : ${inventory}")

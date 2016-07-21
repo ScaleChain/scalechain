@@ -8,7 +8,7 @@ import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.util.{PeerAddress, NetUtil, Config, Utils}
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
-import io.scalechain.blockchain.net.{BlockGateway, PeerInfo, PeerCommunicator}
+import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.wallet.Wallet
@@ -171,9 +171,9 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
                       peerCommunicator.propagateBlock(block)
 
-                      BlockGateway.get.putReceivedBlock(blockHeaderHash, block)
+                      BlockGateway.putReceivedBlock(blockHeaderHash, block)
 
-                      BlockGateway.get.broadcastHeader(block.header)
+                      BlockBroadcaster.get.broadcastHeader(block.header)
 
                       blockFound = true
                       logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")

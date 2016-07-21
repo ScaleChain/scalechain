@@ -5,6 +5,7 @@ import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
 import java.util
 
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
@@ -113,8 +114,8 @@ object ScaleChainPeer {
         Config.peerAddresses
       }
 
-    val nodeIndex = BlockGateway.getPeerIndex(params.p2pInboundPort).get
-    BlockGateway.create(nodeIndex)
+    val nodeIndex = PeerIndexCalculator.getPeerIndex(params.p2pInboundPort).get
+    BlockBroadcaster.create(nodeIndex)
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
@@ -155,6 +156,7 @@ object ScaleChainPeer {
     // Step 5 : Chain Layer : Initialize blockchain.
     // BUGBUG : Need to change the folder name according to the production env.
     val chain = Blockchain.create(indexDb, storage)
+    BlockProcessor.create(chain)
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {

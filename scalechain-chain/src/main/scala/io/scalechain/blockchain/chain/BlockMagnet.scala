@@ -69,7 +69,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
   protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block)(implicit db : KeyValueDatabase) : Unit = {
     val blockHash = block.header.hash
     // Check if the block is valid.
-    BlockProcessor.validateBlock(block)
+    BlockProcessor.get.validateBlock(block)
 
     assert(blockInfo.blockHeader == block.header)
 

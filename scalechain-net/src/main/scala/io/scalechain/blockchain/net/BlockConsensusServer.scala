@@ -26,7 +26,7 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
     try {
       val blockHeader = BlockHeaderCodec.parse(command)
 
-      BlockGateway.get.putConsensualHeader(blockHeader)
+      BlockGateway.putConsensualHeader(blockHeader)
 
       if (msgCtx != null) {
         if (msgCtx.getConsensusId == -1) {

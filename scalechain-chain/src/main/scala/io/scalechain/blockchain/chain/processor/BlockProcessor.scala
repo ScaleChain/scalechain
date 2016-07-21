@@ -9,7 +9,20 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
 
-object BlockProcessor extends BlockProcessor(Blockchain.get)(Blockchain.get.db)
+object BlockProcessor {
+  protected[chain] var theBlockProcessor : BlockProcessor = null
+  def create(chain : Blockchain) = {
+    if (theBlockProcessor == null) {
+      theBlockProcessor = new BlockProcessor(chain)(chain.db)
+    }
+    theBlockProcessor
+  }
+
+  def get = {
+    assert( theBlockProcessor != null)
+    theBlockProcessor
+  }
+}
 
 /** Process a received block.
   *

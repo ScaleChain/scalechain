@@ -8,10 +8,6 @@ import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block, Transaction}
 import scala.collection.mutable
 
 
-object ConsensualBlockHeaderCache extends TimeBasedCache[BlockHeader](5, TimeUnit.MINUTES)
-
-object ReceivedBlockCache extends TimeBasedCache[Block](5, TimeUnit.MINUTES)
-
 /**
   * Keeps unsigned blocks for a specific time.
   */

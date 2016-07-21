@@ -12,6 +12,8 @@ import org.rocksdb.{RocksDB, WriteOptions, WriteBatchWithIndex}
   * Created by kangmo on 7/9/16.
   */
 class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
+  assert(db != null)
+
   var writeBatch : WriteBatchWithIndex = null
 
   var putCache : scala.collection.mutable.Map[ByteBuffer, Array[Byte]] = null // key, value

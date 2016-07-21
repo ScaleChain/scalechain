@@ -1,12 +1,18 @@
 package io.scalechain.blockchain.net
 
-import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.Hash
+import java.io.File
+
+import io.scalechain.blockchain.chain.{TransactionSampleData, BlockchainTestTrait}
+import io.scalechain.blockchain.proto.{Block, BlockHeader, Hash}
 import io.scalechain.blockchain.proto.Hash._
+import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.transaction.ChainTestTrait
 import io.scalechain.util.HexUtil
 import io.scalechain.util.PeerAddress
 import io.scalechain.util.{PeerAddress, HexUtil}
 import HexUtil._
+import HashSupported._
 
 import org.scalatest._
 
@@ -14,83 +20,300 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class BlockGatewaySpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with ShouldMatchers {
   this: Suite =>
-  import Hash._
+
+  val testPath = new File("./target/unittests-BlockGatewaySpec/")
+
+  implicit var keyValueDB : KeyValueDatabase = null
+
+  var bgate : BlockGateway = null
 
   override def beforeEach() {
-    // set-up code
-    //
+    // initialize a test.
 
     super.beforeEach()
+
+    keyValueDB = db
+    assert(keyValueDB != null)
+
+    chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
+    bgate = new BlockGateway()
   }
 
   override def afterEach() {
     super.afterEach()
-    // tear-down code
-    //
+
+    keyValueDB = null
+    // finalize a test.
+    bgate = null
   }
 
-  "getPeerIndexInternal" should "return None if address does not match" in {
-    val peers = List(
-      PeerAddress("127.0.0.2", 1000),
-      PeerAddress("127.0.0.2", 1001),
-      PeerAddress("127.0.0.2", 1002)
-    )
+  def putConsensualHeader(header : BlockHeader) = bgate.putConsensualHeader(header)
+  def putBlock(block : Block) = bgate.putReceivedBlock(block.header.hash, block)
 
-    BlockGateway.getPeerIndexInternal(1000, 0, peers) shouldBe None
-    BlockGateway.getPeerIndexInternal(1001, 0, peers) shouldBe None
-    BlockGateway.getPeerIndexInternal(1002, 0, peers) shouldBe None
+  "CH(Consensual Header)1 only" should "not be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
   }
 
-  "getPeerIndexInternal" should "return None if port does not match" in {
-    val peers = List(
-      PeerAddress("127.0.0.1", 1000),
-      PeerAddress("127.0.0.1", 1001),
-      PeerAddress("127.0.0.1", 1002)
-    )
+  "Block1 only" should "not be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
 
-    BlockGateway.getPeerIndexInternal(999,  0, peers) shouldBe None
-    BlockGateway.getPeerIndexInternal(1003, 0, peers) shouldBe None
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
   }
 
-  "getPeerIndexInternal" should "return Some(index) if port matches" in {
-    val peers = List(
-      PeerAddress("127.0.0.1", 1000),
-      PeerAddress("127.0.0.1", 1001),
-      PeerAddress("127.0.0.1", 1002)
-    )
+  "CH(Consensual Header)1, Block1" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
 
-    BlockGateway.getPeerIndexInternal(1000, 0, peers) shouldBe Some(0)
-    BlockGateway.getPeerIndexInternal(1001, 0, peers) shouldBe Some(1)
-    BlockGateway.getPeerIndexInternal(1002, 0, peers) shouldBe Some(2)
+    putConsensualHeader(BLK01.header)
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+  }
+
+  "Block1, CH(Consensual Header)1" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putBlock(BLK01)
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+  }
+
+  "CH(Consensual Header)1, Block1, CH2, Block2" should "be attached to the blockchain" in {
+
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "CH(Consensual Header)1, Block1, Block2, CH2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "CH(Consensual Header)1, Block2, Block1, CH2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "CH(Consensual Header)1, Block2, CH2, Block1" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "CH(Consensual Header)1, CH2, Block2, Block1" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "CH(Consensual Header)1, CH2, Block1, Block2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
   }
 
 
+  "Block1, CH(Consensual Header)1, CH2, Block2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
 
-  /**
-    * Assumption :
-    * scalechain.conf has the following configuration.
-    *
-    *   p2p {
-    *     port = 7643
-    *     peers = [
-    *       { address:"127.0.0.1", port:"7643" }, # index 0
-    *       { address:"127.0.0.1", port:"7644" }, # index 1
-    *       { address:"127.0.0.1", port:"7645" }, # index 2
-    *       { address:"127.0.0.1", port:"7646" } # index 3
-    *     ]
-    *   }
-    *
-    * @return The peer index from [0, peer count-1)
-    */
-  "getPeerIndex" should "return None if port does not match" in {
-    BlockGateway.getPeerIndex(7642) shouldBe None
-    BlockGateway.getPeerIndex(7643) shouldBe Some(0)
-    BlockGateway.getPeerIndex(7644) shouldBe Some(1)
-    BlockGateway.getPeerIndex(7645) shouldBe Some(2)
-    BlockGateway.getPeerIndex(7646) shouldBe Some(3)
-    BlockGateway.getPeerIndex(7647) shouldBe None
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
   }
+
+  "Block1, CH(Consensual Header)1, Block2, CH2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "Block1, Block2, CH(Consensual Header)1, CH2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  /*
+  "Block1, Block2, CH2, CH(Consensual Header)1" should "be attached to the blockchain" in {
+    // This case does not happen. BFT algorithm ensures that CH1 always comes before CH2.
+  }
+  */
+
+  /*
+  "Block1, CH2, Block2, CH(Consensual Header)1" should "be attached to the blockchain" in {
+    // This case does not happen. BFT algorithm ensures that CH1 always comes before CH2.
+  }
+  */
+
+  /*
+  "Block1, CH2, CH(Consensual Header)1, Block2" should "be attached to the blockchain" in {
+    // This case does not happen. BFT algorithm ensures that CH1 always comes before CH2.
+  }
+  */
+
+  /*
+  "CH2(Consensual Header), CH1, ... " should "be attached to the blockchain" in {
+
+  }
+  */
+
+  "Block2, CH(Consensual Header)1, Block1, CH2" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK01.header.hash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  "Block2, CH(Consensual Header)1, CH2, Block1" should "be attached to the blockchain" in {
+    val data = new TransactionSampleData()
+    import data.Block._
+
+    putBlock(BLK02)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK01.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putConsensualHeader(BLK02.header)
+    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+
+    putBlock(BLK01)
+    chain.getBestBlockHash() shouldBe Some(BLK02.header.hash)
+  }
+
+  /*
+  "Block2, CH2, CH(Consensual Header)1, Block1" should "be attached to the blockchain" in {
+    // This case does not happen. BFT algorithm ensures that CH1 always comes before CH2.
+  }
+  */
+
+  "Block2, Block1, CH(Consensual Header)1, CH2" should "be attached to the blockchain" in {
+
+  }
+
+  /*
+  "Block2, Block1, CH2, CH(Consensual Header)1" should "be attached to the blockchain" in {
+    // This case does not happen. BFT algorithm ensures that CH1 always comes before CH2.
+  }
+  */
+
 }
 
