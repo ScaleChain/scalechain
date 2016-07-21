@@ -24,7 +24,11 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
 
   override def appExecuteOrdered(command: Array[Byte], msgCtx: MessageContext): Array[Byte] = {
     try {
+      logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
+
       val blockHeader = BlockHeaderCodec.parse(command)
+
+      logger.trace(s"appExecuteOrdered : received block header : ${blockHeader}")
 
       BlockGateway.putConsensualHeader(blockHeader)
 

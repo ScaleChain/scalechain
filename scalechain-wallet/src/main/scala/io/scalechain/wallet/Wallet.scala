@@ -311,7 +311,6 @@ class Wallet() extends ChainEventListener {
                         skip            : Long,
                         includeWatchOnly: Boolean
                       )(implicit db : KeyValueDatabase) : List[WalletTransactionDescriptor] = {
-
     // TODO : Use RocksDB Snapshot to see consistent data.
     // 1. Get transactions
     val transactions: List[WalletTransaction] = getWalletTransactions(accountOption).toList
@@ -393,8 +392,8 @@ class Wallet() extends ChainEventListener {
 
         sendingTransactions ::: receivingTransactions
       }
-    ).filter(_.isDefined) // Filter out any None values.
-    .map(_.get) // Get rid of the Option wrapper from Option[TransactionDescriptor]
+      ).filter(_.isDefined) // Filter out any None values.
+      .map(_.get) // Get rid of the Option wrapper from Option[TransactionDescriptor]
 
     // Change the order oldest to newest.
     transactionDescriptors.reverse
@@ -494,31 +493,34 @@ class Wallet() extends ChainEventListener {
                    maximumConfirmations: Long,
                    addressesOption     : Option[List[CoinAddress]]
                  )(implicit db : KeyValueDatabase) : List[UnspentCoinDescriptor] = {
+    // Need to wait for registerTransaction/unregisterTransaction, otherwise we may return a coin as unspent,
+    // even though it is being marked as spent by the registerTransaction.
+    synchronized {
+      // TODO : Use RocksDB Snapshot to see consistent data.
+      // TODO : BUGBUG : Need to consider ParsedPubKeyScript
+      val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
 
-    // TODO : Use RocksDB Snapshot to see consistent data.
-    // TODO : BUGBUG : Need to consider ParsedPubKeyScript
-    val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
+      val addressesFilter =
+        if (addressesOption.isDefined) {
+          addressesOption.get
+        } else {
+          allAddresses
+        }
 
-    val addressesFilter =
-      if (addressesOption.isDefined) {
-        addressesOption.get
-      } else {
-        allAddresses
-      }
-
-    addressesFilter.flatMap { coinAddress =>
-      // Wallet Store : Iterate UTXOs for a specific coin address
-      getTransactionOutputs(Some(coinAddress))
-        .filter(!_.walletOutput.spent) // filter only unspent.
-        .map { walletOutput =>
-        getUnspentCoinDescription(
-          blockchainView, Some(coinAddress), walletOutput
-        )
-      }
-    }.filter(_.isDefined) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
-      .map(_.get) // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
-      .filter(_.confirmations >= minimumConfirmations)
-      .filter(_.confirmations <= maximumConfirmations)
+      addressesFilter.flatMap { coinAddress =>
+        // Wallet Store : Iterate UTXOs for a specific coin address
+        getTransactionOutputs(Some(coinAddress))
+          .filter(!_.walletOutput.spent) // filter only unspent.
+          .map { walletOutput =>
+          getUnspentCoinDescription(
+            blockchainView, Some(coinAddress), walletOutput
+          )
+        }
+      }.filter(_.isDefined) // getUnspentCoinDescription returns Option[UnspentCoinDescriptor]. Filter out None values.
+        .map(_.get) // Get rid of the Option wrapper to convert Option[UnspentCoinDescriptor] to UnspentCoinDescriptor
+        .filter(_.confirmations >= minimumConfirmations)
+        .filter(_.confirmations <= maximumConfirmations)
+    }
   }
 
   /** Import a watch-only address into the wallet.
