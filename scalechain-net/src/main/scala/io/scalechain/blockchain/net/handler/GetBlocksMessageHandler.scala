@@ -5,6 +5,7 @@ import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLoca
 import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.proto.{GetBlocks, ProtocolMessage, GetData}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 
 /**
@@ -23,19 +24,14 @@ object GetBlocksMessageHandler {
   def handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit = {
     // TODO : Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
 
+    implicit val db : KeyValueDatabase = Blockchain.get.db
+
     // Step 1 : Get the list of block hashes to send.
     val locator = new BlockLocator(Blockchain.get)
 
-    // During block reorganization, transactions/blocks are attached/detached.
-    // We need to synchronize with block reorganization, as getblocks message depends on a 'consistent' view of the best blockchain.
-    // getblocks message should not see any inconsistent state of the best blockchain while block reorganization is in-progress.
-    val blockHashes =
-    Blockchain.get.synchronized {
-
-      // Step 2 : Skip the common block, start building the list of block hashes from the next block of the common block.
-      //          Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
-      locator.getHashes(BlockLocatorHashes(getBlocks.blockLocatorHashes), getBlocks.hashStop, maxHashCount = MAX_HASH_PER_REQUEST)
-    }
+    // Step 2 : Skip the common block, start building the list of block hashes from the next block of the common block.
+    //          Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
+    val blockHashes = locator.getHashes(BlockLocatorHashes(getBlocks.blockLocatorHashes), getBlocks.hashStop, maxHashCount = MAX_HASH_PER_REQUEST)
 
     // TODO : BUGBUG : Bitcoin Core compatibility - Need to drop the last hash if it matches getBlocks.hashStop.
     val filteredBlockHashes = blockHashes

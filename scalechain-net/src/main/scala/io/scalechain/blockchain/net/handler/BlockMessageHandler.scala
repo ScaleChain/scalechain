@@ -1,10 +1,13 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.net.{BlockGateway, TimeBasedCache}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.net.BlockGateway
 import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
-import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage, Addr}
+import io.scalechain.blockchain.proto._
+import io.scalechain.util.Config
 import org.slf4j.LoggerFactory
 import io.scalechain.blockchain.script.HashSupported._
 
@@ -14,6 +17,10 @@ import io.scalechain.blockchain.script.HashSupported._
 object BlockMessageHandler {
   private lazy val logger = Logger( LoggerFactory.getLogger(BlockMessageHandler.getClass) )
 
+  // More than half of the peers should sign the block.
+  val RequiredSigningTransactions = Config.peerAddresses().length / 2 + 1
+
+
   /** Handle Block message.
     *
     * @param context The context where handlers handling different messages for a peer can use to store state data.
@@ -21,21 +28,18 @@ object BlockMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, block : Block ) : Unit = {
+
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     val blockHash = block.header.hash
 
     logger.trace(s"[P2P] Received a block. Hash : ${blockHash}, Header : ${block.header}")
 
-    // Doring block reorganization, blocks can be attached to/detached from the best blockchain,
-    // But it does not affect whether a block exists, whether a block is an orphan or not.
-    // So, it is safe not to synchronize the Blockchain object within the block message.
+    BlockGateway.putReceivedBlock(blockHash, block)
 
-    if (BlockProcessor.hasNonOrphan(blockHash)) {
-      logger.trace(s"[P2P] Duplicate block was received. Hash : ${blockHash}")
-    } else if (BlockProcessor.hasOrphan(blockHash)) {
-      logger.trace(s"[P2P] Duplicate orphan block was received. Hash : ${blockHash}")
-    } else {
+/*
+    if (chain.getBestBlockHash() == )
+
       // TODO : Add the block as a known inventory of the node that sent it.
       // pfrom->AddInventoryKnown(inv);
       BlockProcessor.validateBlock(block)
@@ -65,6 +69,8 @@ object BlockMessageHandler {
           logger.trace(s"Propagating newly accepted blocks : ${invMessage} ")
         }
       } else { // Case 2 : Orphan block
+
+/*
         if (context.peer.requestedBlock().isDefined ) {
           // Do not process orphan blocks. We already requested parents of an orphan root.
           logger.info(s"A block was ignored, as there is an orphan block being requested. ${blockHash}")
@@ -82,6 +88,7 @@ object BlockMessageHandler {
           logger.info(s"An orphan block was found. Block Hash : ${blockHash}, Previous Hash : ${block.header.hashPrevBlock}, Inventories requested : ${getBlocksMessage} ")
           logger.trace(s"Requesting inventories of parents of the orphan. Orphan root: ${orphanRootHash} ")
         }
+*/
       }
     }
 
@@ -91,5 +98,6 @@ object BlockMessageHandler {
         context.peer.clearRequestedBlock()
       }
     }
+*/
   }
 }

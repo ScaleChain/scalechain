@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.BlockchainView
 
 /**
@@ -20,7 +21,7 @@ object TransactionAnalyzer {
     * @param transaction The transaction to calculate fee for it.
     * @return
     */
-  def calculateFee(blockchainView : BlockchainView, transaction : Transaction) : scala.math.BigDecimal = {
+  def calculateFee(blockchainView : BlockchainView, transaction : Transaction)(implicit db : KeyValueDatabase) : scala.math.BigDecimal = {
     // We can't calculate the fee for the generation transaction.
     assert(!transaction.inputs(0).isCoinBaseInput())
 
@@ -40,7 +41,7 @@ object TransactionAnalyzer {
     * @param transaction
     * @return
     */
-  def getSpentOutputs(blockchainView : BlockchainView, transaction : Transaction) : List[TransactionOutput] = {
+  def getSpentOutputs(blockchainView : BlockchainView, transaction : Transaction)(implicit db : KeyValueDatabase) : List[TransactionOutput] = {
     transaction.inputs.map { transactionInput : TransactionInput =>
       blockchainView.getTransactionOutput(OutPoint(
         Hash( transactionInput.outputTransactionHash.value ),

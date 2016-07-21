@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.script.ScriptSerializer
 import io.scalechain.blockchain.script.ops.{OpPush, OpReturn}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction._
@@ -67,7 +68,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     *                             If Some(sequence) is passed, we will use the given value.
     *
     */
-  def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None) : TransactionBuilder = {
+  def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None)(implicit db : KeyValueDatabase) : TransactionBuilder = {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),
@@ -110,6 +111,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     * Add an output whose locking script only contains the given bytes prefixed with OP_RETURN.
     *
     * Used by the block signer to create a transaction that contains the block hash to sign.
+    *
     * @param data
     * @return
     */

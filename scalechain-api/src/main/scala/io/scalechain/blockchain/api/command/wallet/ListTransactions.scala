@@ -92,7 +92,7 @@ object ListTransactions extends RpcCommand {
       val accountOption = if (account == "*") None else Some(account)
       val transactionDescs : List[WalletTransactionDescriptor] = Wallet.get.listTransactions(
         Blockchain.get, accountOption, count, skip, includeWatchOnly
-      )
+      )(Blockchain.get.db)
 
       // transactionDescs is an array containing objects, with each object describing a payment or internal accounting entry (not a transaction).
       // More than one object in this array may come from a single transaction. Array may be empty

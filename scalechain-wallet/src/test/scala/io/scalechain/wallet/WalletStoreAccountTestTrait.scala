@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, WalletException}
 import org.scalatest._
 
@@ -8,6 +9,7 @@ import org.scalatest._
   */
 trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait with ShouldMatchers{
   var store: WalletStore
+  implicit var db : KeyValueDatabase
 
   "putOutputOwnership" should "be able to put an output ownership." in {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)

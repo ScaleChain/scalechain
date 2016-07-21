@@ -23,7 +23,7 @@ trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUti
     if (message != null) {
       val encodedBits = encode(message)
 
-//      println(s"encodedBits=${HexUtil.hex(encodedBits.toByteArray)}")
+      println(s"encodedBits=${HexUtil.hex(encodedBits.toByteArray)}")
       encodedBits shouldBe payloadBits
     }
   }

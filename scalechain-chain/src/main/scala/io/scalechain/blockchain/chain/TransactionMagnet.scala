@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 /**
@@ -36,7 +37,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param txHash The hash of the transaction.
     * @return The list of in-points that are spending the outputs of the transaction
     */
-  protected[chain] def getOutputsSpentBy(txHash : Hash) : List[Option[InPoint]] = {
+  protected[chain] def getOutputsSpentBy(txHash : Hash)(implicit db : KeyValueDatabase) : List[Option[InPoint]] = {
     txDescIndex.getTransactionDescriptor(txHash).map(_.outputsSpentBy).getOrElse {
       txPoolIndex.getTransactionFromPool(txHash).map(_.outputsSpentBy).getOrElse {
         null
@@ -50,7 +51,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param txHash The hash of the transaction.
     * @param outputsSpentBy The list of in-points that are spending the outputs of the transaction
     */
-  protected[chain] def putOutputsSpentBy(txHash : Hash, outputsSpentBy : List[Option[InPoint]]) = {
+  protected[chain] def putOutputsSpentBy(txHash : Hash, outputsSpentBy : List[Option[InPoint]])(implicit db : KeyValueDatabase) = {
     val txDescOption = txDescIndex.getTransactionDescriptor(txHash)
     val txPoolEntryOption = txPoolIndex.getTransactionFromPool(txHash)
     if ( txDescOption.isDefined) {
@@ -60,7 +61,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           outputsSpentBy = outputsSpentBy
         )
       )
-      assert(txPoolEntryOption.isEmpty)
+      // Note that txPoolEntryOption can be defined,
+      // because the same transaction can be attached at the same time while (1) attaching a block by putBlock (2) attaching a transaction by putTransaction
     } else {
       assert( txPoolEntryOption.isDefined )
       txPoolIndex.putTransactionToPool(
@@ -69,7 +71,6 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           outputsSpentBy = outputsSpentBy
         )
       )
-      assert(txDescOption.isEmpty)
     }
   }
 
@@ -80,7 +81,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param inPoint The in-point that points to a transaction input that spends to output.
     * @param checkOnly If true, do not update the spending in-point, just check if the output is a valid UTXO.
     */
-  protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint, checkOnly : Boolean): Unit = {
+  protected[chain] def markOutputSpent(outPoint : OutPoint, inPoint : InPoint, checkOnly : Boolean)(implicit db : KeyValueDatabase): Unit = {
     val outputsSpentBy : List[Option[InPoint]] = getOutputsSpentBy(outPoint.transactionHash)
     if (outputsSpentBy == null) {
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist yet."
@@ -128,7 +129,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param outPoint The out-point that points to the output to mark.
     * @param inPoint The in-point that points to a transaction input that should have spent the output.
     */
-  protected[chain] def markOutputUnspent(outPoint : OutPoint, inPoint : InPoint): Unit = {
+  protected[chain] def markOutputUnspent(outPoint : OutPoint, inPoint : InPoint)(implicit db : KeyValueDatabase): Unit = {
     val outputsSpentBy : List[Option[InPoint]] = getOutputsSpentBy(outPoint.transactionHash)
     if (outputsSpentBy == null) {
       val message = s"An output pointed by an out-point(${outPoint}) spent by the in-point(${inPoint}) points to a transaction that does not exist."
@@ -167,7 +168,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param inPoint The in-point that points to the input to attach.
     * @param transactionInput The transaction input to attach.
     */
-  protected[chain] def detachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput) : Unit = {
+  protected[chain] def detachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput)(implicit db : KeyValueDatabase) : Unit = {
     // Make sure that the transaction input is not a coinbase input. detachBlock already checked if the input was NOT coinbase.
     assert(!transactionInput.isCoinBaseInput())
 
@@ -180,7 +181,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param transactionHash The hash of the tranasction that has the inputs.
     * @param transaction The transaction that has the inputs.
     */
-  protected[chain] def detachTransactionInputs(transactionHash : Hash, transaction : Transaction) : Unit = {
+  protected[chain] def detachTransactionInputs(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     var inputIndex = -1
     transaction.inputs foreach { transactionInput : TransactionInput =>
       inputIndex += 1
@@ -199,7 +200,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     *
     * @param transaction The transaction to detach.
     */
-  def detachTransaction(transaction : Transaction) : Unit = {
+  def detachTransaction(transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     val transactionHash = transaction.hash
 
     // Step 1 : Detach each transaction input
@@ -214,7 +215,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     txDescIndex.delTransactionDescriptor(transactionHash)
     txPoolIndex.delTransactionFromPool(transactionHash)
 
-    chainEventListener.map(_.onRemoveTransaction(transaction))
+    chainEventListener.map(_.onRemoveTransaction(transactionHash, transaction))
   }
 
   /**
@@ -225,7 +226,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param checkOnly If true, do not attach the transaction input, but just check if the transaction input can be attached.
     *
     */
-  protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput, checkOnly : Boolean) : Unit = {
+  protected[chain] def attachTransactionInput(inPoint : InPoint, transactionInput : TransactionInput, checkOnly : Boolean)(implicit db : KeyValueDatabase) : Unit = {
     // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
     assert(!transactionInput.isCoinBaseInput())
 
@@ -247,7 +248,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
     *
     */
-  protected[chain] def attachTransactionInputs(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean) : Unit = {
+  protected[chain] def attachTransactionInputs(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean)(implicit db : KeyValueDatabase) : Unit = {
     var inputIndex = -1
     transaction.inputs foreach { transactionInput : TransactionInput =>
       // Make sure that the transaction input is not a coinbase input. attachBlock already checked if the input was NOT coinbase.
@@ -268,7 +269,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     * @param checkOnly If true, do not attach the transaction inputs, but just check if the transaction inputs can be attached.
     * @param txLocatorOption Some(locator) if the transaction is stored in a block on the best blockchain; None if the transaction should be stored in a mempool.
     */
-  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean, txLocatorOption : Option[FileRecordLocator] = None, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None) : Unit = {
+  protected[chain] def attachTransaction(transactionHash : Hash, transaction : Transaction, checkOnly : Boolean, txLocatorOption : Option[FileRecordLocator] = None, chainBlock : Option[ChainBlock] = None, transactionIndex : Option[Int] = None)(implicit db : KeyValueDatabase) : Unit = {
+    //logger.trace(s"Attach Transaction : ${transactionHash}, stack : ${StackUtil.getCurrentStack}")
     // Step 1 : Attach each transaction input
     if (transaction.inputs(0).isCoinBaseInput()) {
       // Nothing to do for the coinbase inputs.
@@ -281,6 +283,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     } else {
       // Need to set the transaction locator of the transaction descriptor according to the location of the attached block.
       if (txLocatorOption.isDefined) {
+        //logger.trace(s"[Attach Transaction] Put transaction descriptor : ${transactionHash}")
         // If the txLocator is defined, the block height should also be defined.
         assert( chainBlock.isDefined )
         txDescIndex.putTransactionDescriptor(transactionHash,
@@ -291,6 +294,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           )
         )
       } else {
+        //logger.trace(s"[Attach Transaction] Put into the pool : ${transactionHash}")
         txPoolIndex.putTransactionToPool(
           transactionHash,
           TransactionPoolEntry(
@@ -299,7 +303,7 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
         )
       }
 
-      chainEventListener.map(_.onNewTransaction(transaction, chainBlock, transactionIndex))
+      chainEventListener.map(_.onNewTransaction(transactionHash, transaction, chainBlock, transactionIndex))
     }
 
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.

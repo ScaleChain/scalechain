@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto.{OrphanTransactionDescriptor, Transaction,
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.BlockStorage
 import HashSupported._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 
 /**
   * Created by kangmo on 6/9/16.
@@ -14,7 +15,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     *
     * @param orphanTxHash The hash of the accepted orphan transaction to remove.
     */
-  def delOrphan(orphanTxHash : Hash) : Unit = {
+  def delOrphan(orphanTxHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     storage.delOrphanTransaction(orphanTxHash)
   }
 
@@ -24,7 +25,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     * @param txHash The hash of the orphan transaction
     * @param transaction The orphan transaction.
     */
-  def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
+  def putOrphan(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     // TODO : BUGBUG : Need a recovery mechanism for the crash during the excution of this method.
 
     // Step 1 : Add the orphan transaction itself.
@@ -47,7 +48,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     * @param txHash The hash of the orphan transaction to get.
     * @return Some(transaction) if the orphan exists; None otherwise.
     */
-  def getOrphan(txHash : Hash) : Option[Transaction] = {
+  def getOrphan(txHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     storage.getOrphanTransaction(txHash).map(_.transaction)
   }
 
@@ -56,7 +57,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     * @param txHash The hash of the orphan to check the existence.
     * @return true if it exists; false otherwise.
     */
-  def hasOrphan(txHash : Hash) : Boolean = {
+  def hasOrphan(txHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
     // TODO : OPTIMIZE : Just check if the orphan exists without decoding the block data.
     storage.getOrphanTransaction(txHash).isDefined
   }
@@ -67,7 +68,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     * @param blockHash The block that orphans are depending on.
     * @return The list of orphan block hashes depending the given block.
     */
-  def getOrphansDependingOn(blockHash : Hash) : List[Hash] = {
+  def getOrphansDependingOn(blockHash : Hash)(implicit db : KeyValueDatabase) : List[Hash] = {
     storage.getOrphanTransactionsByParent(blockHash)
   }
 
@@ -75,7 +76,7 @@ class TransactionOrphanage(storage : BlockStorage) {
     *
     * @param blockHash The mapping from the block hash to the hashes of transactions depending on it is removed.
     */
-  def removeDependenciesOn(blockHash : Hash) : Unit = {
+  def removeDependenciesOn(blockHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     storage.delOrphanTransactionsByParent(blockHash)
   }
 }

@@ -2,27 +2,30 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.TransactionSampleData.Tx._
-import io.scalechain.blockchain.chain.TransactionSampleData._
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.transaction.{ChainEnvironment, PrivateKey, CoinAddress, TransactionTestDataTrait}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.transaction._
 import org.scalatest._
 import HashSupported._
 
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatchers {
+class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTrait with ShouldMatchers {
 
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockchainWithTransactionSpec/")
 
+  implicit var keyValueDB : KeyValueDatabase = null
+
   override def beforeEach() {
     // initialize a test.
 
     super.beforeEach()
+
+    keyValueDB = db
 
     chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
   }
@@ -30,13 +33,15 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
   override def afterEach() {
     super.afterEach()
 
+    keyValueDB = null
     // finalize a test.
   }
 
   "blockchain" should "be able to create an empty block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -49,9 +54,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
   }
 
   "blockchain" should "be able to accept one transaction in a block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -68,9 +75,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
   }
 
   "blockchain" should "be able to accept two transactions in a block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -89,9 +98,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
   }
 
   "blockchain" should "be able to accept three transactions in a block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -112,9 +123,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
   }
 
   "blockchain" should "be able to accept four transactions in a block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -138,9 +151,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
 
 
   "blockchain" should "be able to accept transactions in two blocks" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -182,9 +197,11 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait  with ShouldMatc
 
 
   "blockchain" should "be able to accept transactions in one block" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )

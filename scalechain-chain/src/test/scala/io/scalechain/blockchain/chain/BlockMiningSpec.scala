@@ -2,8 +2,8 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.TransactionSampleData.Tx._
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import org.scalatest._
 import HashSupported._
@@ -14,27 +14,34 @@ class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait 
 
   val testPath = new File("./target/unittests-BlockMiningSpec/")
 
-  import TransactionSampleData._
-  import TransactionSampleData.Tx._
-  import TransactionSampleData.Block._
-
   var bm : BlockMining = null
+  implicit var keyValueDB : KeyValueDatabase = null
+  var data : TransactionSampleData = null
 
   override def beforeEach() {
     super.beforeEach()
 
+    keyValueDB = db
+
+    data = new TransactionSampleData()
+    val d = data
+    import d._
+    import d.Tx._
+    import d.Block._
+
     // put the genesis block
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
+    chain.putBlock(d.env.GenesisBlockHash, d.env.GenesisBlock)
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
     chain.putBlock(BLK03.header.hash, BLK03)
 
-    bm = chain.createBlockMining()
+    bm = new BlockMining(chain.txDescIndex, chain.txPool, chain)(keyValueDB.asInstanceOf[RocksDatabase])
 
   }
 
   override def afterEach() {
     bm = null
+    keyValueDB = null
 
     super.afterEach()
 
@@ -45,6 +52,11 @@ class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait 
   }
 
   "selectTransactions" should "select complete transactions." in {
+    val d = data
+    import d._
+    import d.Tx._
+    import d.Block._
+
     val inputTransactions = List(
       TX04_04,
       TX04_03,
@@ -71,6 +83,11 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
    */
 
   "selectTransactions" should "select complete transactions with higher fees." in {
+    val d = data
+    import d._
+    import d.Tx._
+    import d.Block._
+
     val inputTransactions = List(
       TX04_05_05,
       TX04_05_04,
@@ -108,6 +125,11 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
    */
 
   "selectTransactions" should "exclude incomplete transactions. case 1" in {
+    val d = data
+    import d._
+    import d.Tx._
+    import d.Block._
+
     val inputTransactions = List(
       TX04_05_05,
       TX04_05_04,
@@ -132,6 +154,11 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
 
 
   "selectTransactions" should "exclude incomplete transactions. case 2" in {
+    val d = data
+    import d._
+    import d.Tx._
+    import d.Block._
+
     val inputTransactions = List(
       TX04_05_05,
       TX04_05_04,
@@ -154,4 +181,6 @@ List(Transaction(version=4, inputs=List(GenerationTransactionInput(outputTransac
 
     bm.selectTransactions(GEN04.transaction, inputTransactions.map(_.transaction), 1024 * 1024) shouldBe expectedTransactions.map(_.transaction)
   }
+
+
 }

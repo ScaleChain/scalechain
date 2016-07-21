@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import org.scalatest._
 import HashSupported._
@@ -16,15 +17,14 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
 
   val testPath = new File("./target/unittests-BlockMagnetSpec/")
 
-  import BlockSampleData._
-  import BlockSampleData.Tx._
-  import BlockSampleData.Block._
+  implicit var keyValueDB : KeyValueDatabase = null
 
   var bm : BlockMagnet = null
 
   override def beforeEach() {
     super.beforeEach()
 
+    keyValueDB = db
     // put the genesis block
     chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
 
@@ -33,6 +33,7 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
 
   override def afterEach() {
     bm = null
+    keyValueDB = null
 
     super.afterEach()
 
@@ -40,27 +41,60 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
   }
 
   "setEventListener" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
   }
 
   "detachBlock" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
   "detachBlocksAfter" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
   "attachBlock" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
   "collectBlockInfos" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
 
   "attachBlocksAfter" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
   "reorganize" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 
   "findCommonBlock" should "" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
   }
 }

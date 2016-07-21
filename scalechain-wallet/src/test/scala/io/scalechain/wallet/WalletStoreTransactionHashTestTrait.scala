@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, WalletException}
 import org.scalatest._
 
@@ -8,6 +9,7 @@ import org.scalatest._
   */
 trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with ShouldMatchers{
   var store : WalletStore
+  implicit var db : KeyValueDatabase
 
   def prepareTxHashTest() {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)

@@ -4,6 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.test.TestData
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -20,6 +21,8 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
 
   val TEST_RECORD_FILE_SIZE = 1024 * 1024
 
+  implicit var db : KeyValueDatabase = null
+
   var diskBlockStorage : DiskBlockStorage = null
   var storage : BlockStorage = null
   val testPath = new File("./target/unittests-DiskBlockStorageSpec/")
@@ -28,6 +31,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
+    db = new RocksDatabase( testPath )
     diskBlockStorage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
 
     storage = diskBlockStorage
@@ -38,7 +42,11 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
   override def afterEach() {
     super.afterEach()
 
+    db.close()
     storage.close()
+    db = null
+    storage = null
+    diskBlockStorage = null
 
     FileUtils.deleteDirectory(testPath)
 
@@ -46,23 +54,23 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
 
   "updateFileInfo" should "pass case 1 : a new record file was created." in {
     val FILE_NUMBER = 1
-    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
+    diskBlockStorage.getLastBlockFile() shouldBe None
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(offset=0, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
-    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe Some(FileNumber(FILE_NUMBER))
+    diskBlockStorage.getLastBlockFile() shouldBe Some(FileNumber(FILE_NUMBER))
   }
 
   "updateFileInfo" should "pass case 2 : the block was written on the existing record file." in {
     val FILE_NUMBER = 1
-    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
+    diskBlockStorage.getLastBlockFile() shouldBe None
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(offset=100, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
-    diskBlockStorage.blockDatabase.getLastBlockFile() shouldBe None
+    diskBlockStorage.getLastBlockFile() shouldBe None
   }
 
   "updateFileInfo" should "overwrite the file info if called twice" in {
     val FILE_NUMBER = 1
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(0, 80)), fileSize = 10L, blockHeight = 1, blockTimestamp = 1000L)
 
-    diskBlockStorage.blockDatabase.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
+    diskBlockStorage.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
       Some( BlockFileInfo (
         blockCount = 1,
         fileSize = 10L,
@@ -75,7 +83,7 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
     // update once more with the next block.
     diskBlockStorage.updateFileInfo(FileRecordLocator(FILE_NUMBER, RecordLocator(100, 80)), fileSize = 20L, blockHeight = 2, blockTimestamp = 2000L)
 
-    diskBlockStorage.blockDatabase.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
+    diskBlockStorage.getBlockFileInfo(FileNumber(FILE_NUMBER)) shouldBe
       Some( BlockFileInfo (
         blockCount = 2,
         fileSize = 20L,

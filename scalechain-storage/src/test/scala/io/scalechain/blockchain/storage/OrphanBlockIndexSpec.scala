@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.CodecTestUtil
-import io.scalechain.blockchain.storage.index.{RocksDatabase, BlockDatabase}
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase, BlockDatabase}
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -50,12 +50,14 @@ class OrphanBlockIndexSpec extends FlatSpec with ShouldMatchers with BeforeAndAf
   var index : OrphanBlockIndex = null
 
   val testPath = new File("./target/unittests-OrphanBlockIndexSpec")
+  implicit var db : KeyValueDatabase = null
+
+
   override def beforeEach() {
 
     FileUtils.deleteDirectory( testPath )
-    index = new OrphanBlockIndex {
-      val keyValueDB = new RocksDatabase( testPath )
-    }
+    index = new OrphanBlockIndex() {}
+    db = new RocksDatabase( testPath )
 
     super.beforeEach()
   }
@@ -63,7 +65,9 @@ class OrphanBlockIndexSpec extends FlatSpec with ShouldMatchers with BeforeAndAf
   override def afterEach() {
     super.afterEach()
 
-    index.keyValueDB.close()
+    db.close()
+    db = null
+
     FileUtils.deleteDirectory( testPath )
   }
 

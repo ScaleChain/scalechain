@@ -4,6 +4,7 @@ import io.scalechain.blockchain.proto.{BlockHeader, OrphanBlockDescriptor, Block
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.BlockStorage
 import HashSupported._
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 
 import scala.annotation.tailrec
 
@@ -16,7 +17,7 @@ class BlockOrphanage(storage : BlockStorage) {
     * @param blockHash The hash of the block to check.
     * @return true if the block exists as an orphan; false otherwise.
     */
-  def hasOrphan(blockHash : Hash) : Boolean = {
+  def hasOrphan(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
     storage.getOrphanBlock(blockHash).isDefined
   }
 
@@ -25,7 +26,7 @@ class BlockOrphanage(storage : BlockStorage) {
     *
     * @param block the block to put as an orphan block.
     */
-  def putOrphan(block : Block) : Unit = {
+  def putOrphan(block : Block)(implicit db : KeyValueDatabase) : Unit = {
     // TODO : BUGBUG : Need to check the max size of RocksDB value, as a block can grow to a big size such as 100MB ?
     // TOOD : BUGBUG : Need to check DoS attack consuming disk storage by sending orphan blocks.
     // TODO : Optimize : Use headers-first approach, or drop orphan blocks.
@@ -38,10 +39,11 @@ class BlockOrphanage(storage : BlockStorage) {
 
   /**
     * Get an orphan block.
+    *
     * @param blockHash The hash of the orphan block.
     * @return Some(block) if the orphan was found; None otherwise.
     */
-  def getOrphan(blockHash : Hash) : Option[Block] = {
+  def getOrphan(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[Block] = {
     storage.getOrphanBlock(blockHash).map(_.block)
   }
 
@@ -50,13 +52,13 @@ class BlockOrphanage(storage : BlockStorage) {
     *
     * @param block The block to delete from orphans.
     */
-  protected[chain] def delOrphan(block : Block) : Unit = {
+  protected[chain] def delOrphan(block : Block)(implicit db : KeyValueDatabase) : Unit = {
     storage.delOrphanBlock(block.header.hash)
   }
 
 
   @tailrec
-  final protected[chain] def getOrphanRoot(blockHeader : BlockHeader) : Hash = {
+  final protected[chain] def getOrphanRoot(blockHeader : BlockHeader)(implicit db : KeyValueDatabase) : Hash = {
     val blockHash = blockHeader.hash
     assert(blockHash != blockHeader.blockHeader.hashPrevBlock)
     val parentOrphanOption = storage.getOrphanBlock(blockHeader.blockHeader.hashPrevBlock)
@@ -74,7 +76,7 @@ class BlockOrphanage(storage : BlockStorage) {
     * @param blockHash The block to find the root parent of it.
     * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
-  def getOrphanRoot(blockHash : Hash) : Hash = {
+  def getOrphanRoot(blockHash : Hash)(implicit db : KeyValueDatabase) : Hash = {
     val orphanOption = storage.getOrphanBlock(blockHash)
     // getOrphanRoot should never called to a non-orphan block.
     // TODO : Make sure that concurrent threads can't delete the orphan block while getOrphanRoot is called.
@@ -88,7 +90,7 @@ class BlockOrphanage(storage : BlockStorage) {
     * @param blockHash The block that orphans are depending on.
     * @return The list of orphan block hashes depending the given block.
     */
-  def getOrphansDependingOn(blockHash : Hash) : List[Hash] = {
+  def getOrphansDependingOn(blockHash : Hash)(implicit db : KeyValueDatabase) : List[Hash] = {
     storage.getOrphanBlocksByParent(blockHash)
   }
 
@@ -97,7 +99,7 @@ class BlockOrphanage(storage : BlockStorage) {
     *
     * @param blockHash The parent block hash.
     */
-  def removeDependenciesOn(blockHash : Hash) : Unit = {
+  def removeDependenciesOn(blockHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     storage.delOrphanBlocksByParent(blockHash)
   }
 }

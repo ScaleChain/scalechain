@@ -2,13 +2,27 @@ package io.scalechain.blockchain.chain.processor
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.{BlockHeader, Hash, Block}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
 
-object BlockProcessor extends BlockProcessor(Blockchain.get)
+object BlockProcessor {
+  protected[chain] var theBlockProcessor : BlockProcessor = null
+  def create(chain : Blockchain) = {
+    if (theBlockProcessor == null) {
+      theBlockProcessor = new BlockProcessor(chain)(chain.db)
+    }
+    theBlockProcessor
+  }
+
+  def get = {
+    assert( theBlockProcessor != null)
+    theBlockProcessor
+  }
+}
 
 /** Process a received block.
   *
@@ -27,7 +41,7 @@ object BlockProcessor extends BlockProcessor(Blockchain.get)
   *    - If the parent of the block is the current best block(=the tip of the best blockchain), put the block on top of the current best block.
   *
   */
-class BlockProcessor(val chain : Blockchain) {
+class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockProcessor]) )
 
 
@@ -127,7 +141,12 @@ class BlockProcessor(val chain : Blockchain) {
     // Step 5. Need to check the lock time of all transactions.
     // Step 6. Need to check block hashes for checkpoint blocks.
     // Step 7. Write the block on the block database, reorganize blocks if necessary.
-    chain.putBlock(blockHash, block)
+    //chain.withTransaction { implicit transactingDB =>
+    //  chain.putBlock(blockHash, block)(transactingDB)
+    //}
+
+    // TODO : BUGBUG : Change to record level locking with atomic update.
+    chain.putBlock(blockHash, block)(db)
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.
@@ -141,6 +160,7 @@ class BlockProcessor(val chain : Blockchain) {
     var i = -1;
     do {
       val parentTxHash = if (acceptedChildren.length == 0) initialParentBlockHash else acceptedChildren(i)
+
       val dependentChildren : List[Hash] = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
@@ -158,6 +178,7 @@ class BlockProcessor(val chain : Blockchain) {
         }
       }
       chain.blockOrphanage.removeDependenciesOn(parentTxHash)
+
       i += 1
     } while( i < acceptedChildren.length)
 

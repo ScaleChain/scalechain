@@ -23,4 +23,8 @@ object ArrayUtil {
   def unpad(array : Array[Byte], value : Byte) : Array[Byte] = {
     array.take(array.lastIndexWhere(_ != 0)+1)
   }
+
+  def isEqual(left : Array[Byte], right : Array[Byte]) = {
+    left sameElements right
+  }
 }

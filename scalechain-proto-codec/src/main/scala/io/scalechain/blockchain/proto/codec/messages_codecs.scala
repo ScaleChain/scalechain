@@ -406,8 +406,8 @@ object TransactionCodec extends ProtocolMessageCodec[Transaction] {
 
   val codec : Codec[Transaction] = {
     ("version"             | int32L                                        ) ::
-    ("input_transactions"  | VarList.varList(TransactionInputCodec.codec ) ) ::
-    ("output_transactions" | VarList.varList(TransactionOutputCodec.codec) ) ::
+    ("inputs"  | VarList.varList(TransactionInputCodec.codec ) ) ::
+    ("outputs" | VarList.varList(TransactionOutputCodec.codec) ) ::
     ("lock_time"           | uint32L                                       )
   }.as[Transaction]
 }

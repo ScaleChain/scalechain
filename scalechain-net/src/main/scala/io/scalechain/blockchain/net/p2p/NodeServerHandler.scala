@@ -8,10 +8,9 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
-import io.netty.util.concurrent.GlobalEventExecutor
-import io.scalechain.blockchain.net.message.VersionFactory
+import io.scalechain.blockchain.net.message.{VersionFactory}
 import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.util.{ExceptionUtil, StackUtil}
+import io.scalechain.util.{Config, ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 

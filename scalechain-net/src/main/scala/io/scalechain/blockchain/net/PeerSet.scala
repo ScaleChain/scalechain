@@ -4,10 +4,11 @@ import java.net.{SocketAddress, InetAddress, InetSocketAddress}
 import java.util.concurrent.LinkedBlockingQueue
 
 import com.typesafe.scalalogging.Logger
+import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.group.{ChannelGroupFuture, ChannelGroupFutureListener, ChannelGroup, DefaultChannelGroup}
-import io.netty.util.concurrent.GlobalEventExecutor
+import io.netty.util.concurrent.{ImmediateEventExecutor, DefaultEventExecutorGroup, EventExecutor, GlobalEventExecutor}
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.{StackUtil, CollectionUtil}
@@ -43,7 +44,8 @@ class PeerSet {
     * A channel group that has all connected channels.
     * Assumption : When the connection closes, the channel is removed from the channel group.
     */
-  val channels : ChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+  //val channels : ChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+  val channels : ChannelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
   val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
 
@@ -73,6 +75,7 @@ class PeerSet {
           val peer = Peer(channel)
           peerByAddress.put(inetAddress, peer )
           channels.add(channel)
+          logger.trace(s"Added a peer to channel group. ${peer}")
           peer
         }
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
@@ -82,6 +85,7 @@ class PeerSet {
             // Put the peer as a peer on the localhost using port 1000.
             peerByAddress.put(new InetSocketAddress(1000), peer )
             channels.add(channel)
+            logger.trace(s"Added a peer to channel group. ${peer}")
             peer
           } else {
             val message = s"The remote address of the channel to add was not the type EmbeddedSocketAddress. Remote Address : ${channel.remoteAddress()}"

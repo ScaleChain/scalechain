@@ -5,7 +5,7 @@ package io.scalechain.blockchain.cli
   */
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.util.HexUtil
+import io.scalechain.util.{PeerAddress, HexUtil}
 import HexUtil._
 
 import org.scalatest._

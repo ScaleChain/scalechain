@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.blockchain.script.HashSupported._
-
-object BlockSampleData extends BlockSampleData
 
 /**
   * Create following blocks for testing block reorganization.
@@ -32,7 +31,7 @@ object BlockSampleData extends BlockSampleData
   *     ↘       ↘
   *       ↘ → → → → TX04
   */
-class BlockSampleData extends BlockBuildingTestTrait {
+class BlockSampleData()(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
 
   val Addr1 = generateAccountAddress("Address1") // address 1
   val Addr2 = generateAccountAddress("Address2") // address 2

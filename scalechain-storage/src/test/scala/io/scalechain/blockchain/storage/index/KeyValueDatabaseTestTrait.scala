@@ -89,7 +89,6 @@ trait KeyValueDatabaseTestTrait extends FlatSpec with KeyValueCommonTrait with S
   "putObject(objectKey)" should "store multiple keys with multiple prefixes" in {
     val F = FileNumberCodec
     val R = RecordLocatorCodec
-
     db.getObject(PREFIX1, FileNumber(1))(F, R) shouldBe None
     db.getObject(PREFIX2, FileNumber(2))(F, R) shouldBe None
     db.getObject(PREFIX1, FileNumber(3))(F, R) shouldBe None

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.slf4j.LoggerFactory
 
@@ -33,7 +34,7 @@ class BlockLocator(chain : Blockchain) {
     val env = ChainEnvironment.get
 
     val listBuf = ListBuffer[Hash]()
-    chain.synchronized {
+    chain.withTransaction { implicit transactingDB =>
       var blockHeight = chain.getBestBlockHeight() // The height of the block we are processing.
       var addedHashes = 0 // The number of hashes added to the list.
       var heightSteps = 1 // For each loop, how may heights do we jump?
@@ -73,7 +74,8 @@ class BlockLocator(chain : Blockchain) {
     val env = ChainEnvironment.get
     val listBuf = new ListBuffer[Hash]()
 
-    chain.synchronized {
+    // TODO : Optimize : Can we remove the chain.synchronized, as putBlock is atomic? ( May require using a RocksDB snapshot )
+    chain.withTransaction { implicit transactingDB =>
       // Step 1 : Find any matching hash from the list of locator hashes
       // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.
       //

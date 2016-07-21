@@ -3,11 +3,12 @@ package io.scalechain.blockchain.net.handler
 import java.io.File
 
 import io.netty.channel.embedded.EmbeddedChannel
-import io.scalechain.blockchain.chain.{Blockchain, BlockchainTestTrait, BlockBuildingTestTrait, TransactionSampleData}
-import io.scalechain.blockchain.chain.TransactionSampleData.Block._
-import io.scalechain.blockchain.chain.TransactionSampleData.Tx._
+import io.scalechain.blockchain.chain.{Blockchain, TransactionSampleData}
+import io.scalechain.blockchain.chain.TransactionSampleData
+
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.scalatest._
 import HashSupported._
@@ -17,12 +18,15 @@ class TxMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
 
   val testPath = new File("./target/unittests-TransactionMessageHandlerSpec/")
 
+  implicit var keyValueDB : KeyValueDatabase = null
+
   override def beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
 
+    keyValueDB = db
     val env = ChainEnvironment.get
     assert(Blockchain.theBlockchain!=null)
     chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
@@ -31,15 +35,18 @@ class TxMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
   override def afterEach() {
     super.afterEach()
 
+    keyValueDB = null
     // tear-down code
     //
   }
 
 
   "transaction message handler" should "be able to filter incomplete transaction while mining" in {
-    import TransactionSampleData._
-    import TransactionSampleData.Block._
-    import TransactionSampleData.Tx._
+    val data = new TransactionSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )

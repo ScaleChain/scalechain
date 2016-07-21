@@ -5,6 +5,7 @@ import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 
 import scala.collection._
@@ -71,7 +72,7 @@ object BlockVerifier {
 /**
   * Created by kangmo on 3/15/16.
   */
-class BlockVerifier(block : Block) {
+class BlockVerifier(block : Block)(implicit db : KeyValueDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockVerifier]) )
 
   def verify(chainView : BlockchainView) : Unit = {

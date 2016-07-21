@@ -42,7 +42,7 @@ object WalletTransactionCodec extends MessagePartCodec[WalletTransaction] {
   val codec: Codec[WalletTransaction] = {
     ("blockHash"         | optional(bool(8), HashCodec.codec) ) ::
     ("blockIndex"        | optional(bool(8), int64) ) ::
-    ("blockYime"         | optional(bool(8), int64) ) ::
+    ("blockTime"         | optional(bool(8), int64) ) ::
     ("transactionId"     | optional(bool(8), HashCodec.codec) ) ::
     ("addedTime"         | int64 ) ::
     ("transactionIndex"  | optional(bool(8), int32) ) ::

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.storage
 import java.io.File
 
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
@@ -37,14 +37,15 @@ class OrphanTransactionIndexSpec  extends FlatSpec with ShouldMatchers with Befo
   )
 
   var index : OrphanTransactionIndex = null
+  implicit var db : KeyValueDatabase = null
 
   val testPath = new File("./target/unittests-OrphanTransactionIndexSpec")
   override def beforeEach() {
 
     FileUtils.deleteDirectory( testPath )
-    index = new OrphanTransactionIndex {
-      val keyValueDB = new RocksDatabase( testPath )
-    }
+    index = new OrphanTransactionIndex {}
+    db = new RocksDatabase(testPath)
+
 
     super.beforeEach()
   }
@@ -52,7 +53,8 @@ class OrphanTransactionIndexSpec  extends FlatSpec with ShouldMatchers with Befo
   override def afterEach() {
     super.afterEach()
 
-    index.keyValueDB.close()
+    db.close()
+    db = null
     FileUtils.deleteDirectory( testPath )
   }
 

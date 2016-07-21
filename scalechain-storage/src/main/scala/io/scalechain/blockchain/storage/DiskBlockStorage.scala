@@ -5,7 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, HashCodec, BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.storage.index.{BlockDatabaseForRecordStorage, BlockDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.index._
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.crypto.HashEstimation
@@ -20,9 +20,9 @@ object DiskBlockStorage {
 
   var theBlockStorage : DiskBlockStorage = null
 
-  def create(storagePath : File) : BlockStorage = {
+  def create(storagePath : File, db : KeyValueDatabase) : BlockStorage = {
     assert(theBlockStorage == null)
-    theBlockStorage = new DiskBlockStorage(storagePath, MAX_FILE_SIZE)
+    theBlockStorage = new DiskBlockStorage(storagePath, MAX_FILE_SIZE)(db)
     theBlockStorage
   }
 
@@ -73,34 +73,28 @@ object DiskBlockStorage {
   * @param directoryPath The path where database files are located.
   */
 
-class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockStorage {
+class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : KeyValueDatabase) extends BlockStorage with BlockDatabaseForRecordStorage {
   private val logger = Logger( LoggerFactory.getLogger(classOf[DiskBlockStorage]) )
 
   directoryPath.mkdir()
 
-  // Implemenent the KeyValueDatabase declared in BlockStorage trait.
-  protected[storage] val keyValueDB = new RocksDatabase( directoryPath )
-
-  // Implemenent the BlockDatabase declared in BlockStorage trait.
-  protected[storage] val blockDatabase = new BlockDatabaseForRecordStorage( keyValueDB )
-
   protected[storage] val blockRecordStorage = new BlockRecordStorage(directoryPath, maxFileSize)
   protected[storage] val blockWriter = new BlockWriter(blockRecordStorage)
 
-  protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Int, blockTimestamp : Long): Unit = {
+  protected[storage] def updateFileInfo(headerLocator : FileRecordLocator, fileSize : Long, blockHeight : Long, blockTimestamp : Long): Unit = {
     val lastFileNumber = FileNumber(headerLocator.fileIndex)
 
     // Are we writing at the beginning of the file?
     // If yes, we need to update the last block file, because it means we created a file now.
 
     if (headerLocator.recordLocator.offset == 0) { // case 1 : a new record file was created.
-      blockDatabase.putLastBlockFile(lastFileNumber)
+      putLastBlockFile(lastFileNumber)
     } else { // case 2 : the block was written on the existing record file.
       // do nothing.
     }
 
     // Update the block info.
-    val blockFileInfo = blockDatabase.getBlockFileInfo(lastFileNumber).getOrElse(
+    val blockFileInfo = getBlockFileInfo(lastFileNumber).getOrElse(
       BlockFileInfo(
         blockCount = 0,
         fileSize = 0L,
@@ -113,7 +107,7 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
 
     // TODO : Need to make sure if it is ok even though a non-best block decreases the lastBlockHeight.
     // Is the lastBlockHeight actually meaning maximum block height?
-    blockDatabase.putBlockFileInfo(
+    putBlockFileInfo(
       lastFileNumber,
       blockFileInfo.copy(
         blockCount = blockFileInfo.blockCount + 1,
@@ -131,78 +125,73 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
-  def putBlock(blockHash : Hash, block : Block) : List[TransactionLocator] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
+  def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : List[TransactionLocator] = {
+    val blockInfo: Option[BlockInfo] = getBlockInfo(blockHash)
+    var isNewBlock = false
 
-      val blockInfo: Option[BlockInfo] = blockDatabase.getBlockInfo(blockHash)
-      var isNewBlock = false
+    val txLocators: List[TransactionLocator] =
+      if (blockInfo.isDefined) {
+        // case 1 : block info was found
+        if (blockInfo.get.blockLocatorOption.isEmpty) {
+          // case 1.1 : block info without a block locator was found
+          val appendResult = blockWriter.appendBlock(block)
+          val newBlockInfo = blockInfo.get.copy(
+            transactionCount = block.transactions.size,
+            blockLocatorOption = Some(appendResult.blockLocator)
+          )
+          putBlockInfo(blockHash, newBlockInfo)
+          val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+          updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
 
-      val txLocators: List[TransactionLocator] =
-        if (blockInfo.isDefined) {
-          // case 1 : block info was found
-          if (blockInfo.get.blockLocatorOption.isEmpty) {
-            // case 1.1 : block info without a block locator was found
-            val appendResult = blockWriter.appendBlock(block)
-            val newBlockInfo = blockInfo.get.copy(
-              transactionCount = block.transactions.size,
-              blockLocatorOption = Some(appendResult.blockLocator)
-            )
-            blockDatabase.putBlockInfo(blockHash, newBlockInfo)
-            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-            updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
-
-            //logger.info("The block locator was updated. block hash : {}", blockHash)
-            appendResult.txLocators
-          } else {
-            // case 1.2 block info with a block locator was found
-            // The block already exists. Do not put it once more.
-            logger.trace("The block already exists. block hash : {}", blockHash)
-
-            List()
-          }
+          //logger.info("The block locator was updated. block hash : {}", blockHash)
+          appendResult.txLocators
         } else {
-          // case 2 : no block info was found.
-          // get the info of the previous block, to calculate the height and chain-work of the given block.
-          val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
+          // case 1.2 block info with a block locator was found
+          // The block already exists. Do not put it once more.
+          logger.trace("The block already exists. block hash : {}", blockHash)
 
-          // Either the previous block should exist or the block should be the genesis block.
-          if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
-            // case 2.1 : no block info was found, previous block header exists.
-            val appendResult = blockWriter.appendBlock(block)
-
-            val blockInfo = BlockInfoFactory.create(
-              // For the genesis block, the prevBlockInfoOption is None.
-              prevBlockInfoOption,
-              block.header,
-              blockHash,
-              block.transactions.length, // transaction count
-              Some(appendResult.blockLocator) // block locator
-            )
-
-            blockDatabase.putBlockInfo(blockHash, blockInfo)
-
-            val blockHeight = blockInfo.height
-            val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-            updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
-
-            isNewBlock = true
-            //logger.info("The new block was put. block hash : {}", blockHash)
-
-            appendResult.txLocators
-          } else {
-            // case 2.2 : no block info was found, previous block header does not exists.
-            // Actually the code execution should never come to here, because we have checked if the block is an orphan block
-            // before invoking putBlock method.
-            logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
-
-            List()
-          }
+          List()
         }
+      } else {
+        // case 2 : no block info was found.
+        // get the info of the previous block, to calculate the height and chain-work of the given block.
+        val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
 
-      txLocators
-    }
+        // Either the previous block should exist or the block should be the genesis block.
+        if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
+          // case 2.1 : no block info was found, previous block header exists.
+          val appendResult = blockWriter.appendBlock(block)
+
+          val blockInfo = BlockInfoFactory.create(
+            // For the genesis block, the prevBlockInfoOption is None.
+            prevBlockInfoOption,
+            block.header,
+            blockHash,
+            block.transactions.length, // transaction count
+            Some(appendResult.blockLocator) // block locator
+          )
+
+          putBlockInfo(blockHash, blockInfo)
+
+          val blockHeight = blockInfo.height
+          val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+          updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
+
+          isNewBlock = true
+          //logger.info("The new block was put. block hash : {}", blockHash)
+
+          appendResult.txLocators
+        } else {
+          // case 2.2 : no block info was found, previous block header does not exists.
+          // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+          // before invoking putBlock method.
+          logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
+
+          List()
+        }
+      }
+
+    txLocators
   }
 
   /** Return a transaction that matches the given transaction hash.
@@ -212,16 +201,12 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     * @param transactionHash
     * @return
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      val txDescriptorOption = getTransactionDescriptor(transactionHash)
-      if (txDescriptorOption.isDefined) { // The transaction is in a block on the best blockchain.
-        Some( blockRecordStorage.readRecord(txDescriptorOption.get.transactionLocator)(TransactionCodec) )
-      } else {
-        getTransactionFromPool(transactionHash).map(_.transaction)
-      }
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
+    val txDescriptorOption = getTransactionDescriptor(transactionHash)
+    if (txDescriptorOption.isDefined) { // The transaction is in a block on the best blockchain.
+      Some( blockRecordStorage.readRecord(txDescriptorOption.get.transactionLocator)(TransactionCodec) )
+    } else {
+      getTransactionFromPool(transactionHash).map(_.transaction)
     }
   }
 
@@ -232,36 +217,27 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int) extends BlockSto
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      val blockInfoOption = blockDatabase.getBlockInfo(blockHash)
-      if (blockInfoOption.isDefined) {
-        // case 1 : The block info was found.
-        if (blockInfoOption.get.blockLocatorOption.isDefined) {
-          //logger.info(s"getBlock - Found a block info with a locator. block hash : ${blockHash}, locator : ${blockInfoOption.get.blockLocatorOption}")
-          // case 1.1 : the block info with a block locator was found.
-          Some( (blockInfoOption.get, blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec)) )
-        } else {
-          // case 1.2 : the block info without a block locator was found.
-          //logger.info("getBlock - Found a block info without a locator. block hash : {}", blockHash)
-          None
-        }
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
+    val blockInfoOption = getBlockInfo(blockHash)
+    if (blockInfoOption.isDefined) {
+      // case 1 : The block info was found.
+      if (blockInfoOption.get.blockLocatorOption.isDefined) {
+        //logger.info(s"getBlock - Found a block info with a locator. block hash : ${blockHash}, locator : ${blockInfoOption.get.blockLocatorOption}")
+        // case 1.1 : the block info with a block locator was found.
+        Some( (blockInfoOption.get, blockRecordStorage.readRecord(blockInfoOption.get.blockLocatorOption.get)(BlockCodec)) )
       } else {
-        // case 2 : The block info was not found
-        //logger.info("getBlock - No block info found. block hash : {}", blockHash)
+        // case 1.2 : the block info without a block locator was found.
+        //logger.info("getBlock - Found a block info without a locator. block hash : {}", blockHash)
         None
       }
+    } else {
+      // case 2 : The block info was not found
+      //logger.info("getBlock - No block info found. block hash : {}", blockHash)
+      None
     }
   }
 
   def close() : Unit = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      blockRecordStorage.close()
-      blockDatabase.close()
-    }
+    blockRecordStorage.close()
   }
 }

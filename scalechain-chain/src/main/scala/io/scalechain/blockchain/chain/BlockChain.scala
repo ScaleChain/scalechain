@@ -3,17 +3,13 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockHeaderCodec}
-import io.scalechain.blockchain.{ChainException, ErrorCode, GeneralException}
-import io.scalechain.blockchain.chain.mining.BlockTemplate
+import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, RocksDatabase, KeyValueDatabase, TransactionDescriptorIndex}
+import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage._
-import io.scalechain.blockchain.storage
 
 import io.scalechain.blockchain.transaction._
-import io.scalechain.util.Utils
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
@@ -24,11 +20,11 @@ import scala.util.control.TailCalls.TailRec
 
 object Blockchain {
   var theBlockchain : Blockchain = null
-  def create(storage : BlockStorage) = {
-    theBlockchain = new Blockchain(storage)
+  def create(db : RocksDatabase, storage : BlockStorage) = {
+    theBlockchain = new Blockchain(storage)(db)
 
     // Load any in memory structur required by the Blockchain class from the on-disk storage.
-    new BlockchainLoader(theBlockchain, storage).load()
+    new BlockchainLoader(theBlockchain, storage)(db).load()
     theBlockchain
   }
   def get() = {
@@ -38,7 +34,7 @@ object Blockchain {
 }
 
 
-class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
+class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : KeyValueDatabase) {
 
   def load() : Unit = {
     val bestBlockHashOption = storage.getBestBlockHash()
@@ -103,7 +99,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage) {
   * the block chain later when a new block is created.
   *
   */
-class Blockchain(storage : BlockStorage) extends BlockchainView  {
+class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends BlockchainView  {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
   val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
@@ -113,14 +109,27 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
   val blockOrphanage = new BlockOrphanage(storage)
   val txOrphanage = new TransactionOrphanage(storage)
 
-  /**
-    * Create the block mining, which knows how to select transactions from the transaction pool.
- *
-    * @return The created block mining.
-    */
-  def createBlockMining() : BlockMining = {
-    new BlockMining(storage, txPool, this)
+  def txDescIndex : TransactionDescriptorIndex = storage
+
+  def withTransaction[T]( block : KeyValueDatabase => T) : T = {
+    val transactingRocksDB = new TransactingRocksDatabase(db)
+
+    transactingRocksDB.beginTransaction()
+
+    val returnValue =
+      try {
+        block(transactingRocksDB)
+      } catch {
+        case t : Throwable => {
+          transactingRocksDB.abortTransaction()
+          throw t
+        }
+      }
+
+    transactingRocksDB.commitTransaction()
+    returnValue
   }
+
 
   /** Set an event listener of the blockchain.
     *
@@ -142,7 +151,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHash
     * @param blockInfo
     */
-  protected[chain] def setBestBlock(blockHash : Hash, blockInfo : BlockInfo) : Unit = {
+  protected[chain] def setBestBlock(blockHash : Hash, blockInfo : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
     theBestBlock = blockInfo
     storage.putBestBlockHash(blockHash)
   }
@@ -162,7 +171,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return true if the newly accepted block became the new best block.
     *
     */
-  def putBlock(blockHash : Hash, block:Block) : Boolean = {
+  def putBlock(blockHash : Hash, block:Block)(implicit db : KeyValueDatabase) : Boolean = {
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
@@ -283,19 +292,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     *
     * @param transaction The transaction to put into the disk-pool.
     */
-  def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
-    synchronized {
-      // TODO : BUGBUG : Need to start a RocksDB transaction.
-      try {
-        // Step 1 : Add transaction to the transaction pool.
-        txPool.addTransactionToPool(txHash, transaction)
+  def putTransaction(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
+    // TODO : BUGBUG : Need to start a RocksDB transaction.
+    try {
+      // Step 1 : Add transaction to the transaction pool.
+      txPool.addTransactionToPool(txHash, transaction)
 
-        // TODO : BUGBUG : Need to commit the RocksDB transaction.
+      // TODO : BUGBUG : Need to commit the RocksDB transaction.
 
-      } finally {
-        // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.
-        // Only some of inputs might be connected. We need to revert the connection if any error happens.
-      }
+    } finally {
+      // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.
+      // Only some of inputs might be connected. We need to revert the connection if any error happens.
     }
   }
 
@@ -306,7 +313,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  def getIterator(height : Long) : Iterator[ChainBlock] = {
+  def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
     // TODO : Implement
     assert(false)
     null
@@ -317,22 +324,17 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @return The best block height.
     */
   def getBestBlockHeight() : Long = {
-    synchronized {
-      assert(theBestBlock != null)
-      theBestBlock.height
-    }
+    assert(theBestBlock != null)
+    theBestBlock.height
   }
 
   /** Return the hash of block on the tip of the best blockchain.
     *
     * @return The best block hash.
     */
-  def getBestBlockHash() : Option[Hash] = {
-    synchronized {
-      storage.getBestBlockHash()
-    }
+  def getBestBlockHash()(implicit db : KeyValueDatabase) : Option[Hash] = {
+    storage.getBestBlockHash()
   }
-
 
   /** Get the hash of a block specified by the block height on the best blockchain.
     *
@@ -341,16 +343,13 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHeight The height of the block.
     * @return The hash of the block header.
     */
-  def getBlockHash(blockHeight : Long) : Hash = {
-    synchronized {
-
-      val blockHashOption = storage.getBlockHashByHeight(blockHeight)
-      // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
-      if (blockHashOption.isEmpty) {
-        throw new ChainException(ErrorCode.InvalidBlockHeight)
-      }
-      blockHashOption.get
+  def getBlockHash(blockHeight : Long)(implicit db : KeyValueDatabase) : Hash = {
+    val blockHashOption = storage.getBlockHashByHeight(blockHeight)
+    // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
+    if (blockHashOption.isEmpty) {
+      throw new ChainException(ErrorCode.InvalidBlockHeight)
     }
+    blockHashOption.get
   }
 
   /**
@@ -361,10 +360,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHash The hash of the block to get the info of it.
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
-  def getBlockInfo(blockHash : Hash) : Option[BlockInfo] = {
-    synchronized {
-      storage.getBlockInfo(blockHash)
-    }
+  def getBlockInfo(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
+    storage.getBlockInfo(blockHash)
   }
 
 
@@ -376,10 +373,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHash The hash of the block header to check.
     * @return true if the block exists; false otherwise.
     */
-  def hasBlock(blockHash : Hash) : Boolean = {
-    synchronized {
-      storage.hasBlock(blockHash)
-    }
+  def hasBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
+    storage.hasBlock(blockHash)
   }
 
   /** Get a block searching by the header hash.
@@ -389,10 +384,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
-    synchronized {
-      storage.getBlock(blockHash)
-    }
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
+    storage.getBlock(blockHash)
   }
 
 
@@ -401,10 +394,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param blockHash The hash of the block header.
     * @return The block header.
     */
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
-    synchronized {
-      storage.getBlockHeader(blockHash)
-    }
+  def getBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[BlockHeader] = {
+    storage.getBlockHeader(blockHash)
   }
 
   /** Return a transaction that matches the given transaction hash.
@@ -414,21 +405,19 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param txHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  def getTransaction(txHash : Hash) : Option[Transaction] = {
-    synchronized {
-      // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
+  def getTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
+    // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
-      // Step 1 : Search block database.
-      val dbTransactionOption = storage.getTransaction(txHash)
+    // Step 1 : Search block database.
+    val dbTransactionOption = storage.getTransaction(txHash)
 
-      // Step 3 : TODO : Run validation.
+    // Step 3 : TODO : Run validation.
 
-      //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
-      //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
-      //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+    //BUGBUG : Transaction validation fails because the transaction hash on the outpoint does not exist.
+    //poolTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
+    //dbTransactionOption.foreach( new TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
-      dbTransactionOption
-    }
+    dbTransactionOption
   }
 
   /**
@@ -437,7 +426,7 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
     * @return Some(block info) if the transaction is included in a block; None otherwise.
     */
-  def getTransactionBlockInfo(txHash : Hash ) : Option[BlockInfo] = {
+  def getTransactionBlockInfo(txHash : Hash )(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
     storage.getTransactionDescriptor(txHash).map{ txDesc : TransactionDescriptor =>
       val blockHash = getBlockHash(txDesc.blockHeight)
       getBlockInfo(blockHash).get
@@ -449,10 +438,8 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param txHash The hash of the transaction to check the existence.
     * @return true if we have the transaction; false otherwise.
     */
-  def hasTransaction(txHash : Hash) : Boolean = {
-    synchronized {
-      storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
-    }
+  def hasTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
+    storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
   }
 
   /** Return a transaction output specified by a give out point.
@@ -460,28 +447,26 @@ class Blockchain(storage : BlockStorage) extends BlockchainView  {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
-    synchronized {
-      // Coinbase outpoints should never come here
-      assert(!outPoint.transactionHash.isAllZero())
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
+    // Coinbase outpoints should never come here
+    assert(!outPoint.transactionHash.isAllZero())
 
-      val transaction = getTransaction(outPoint.transactionHash)
-      if (transaction.isEmpty) {
-        val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
-        logger.error(message)
-        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
-      }
-
-      val outputs = transaction.get.outputs
-
-      if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
-        val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
-        logger.error(message)
-        throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
-      }
-
-      outputs(outPoint.outputIndex)
+    val transaction = getTransaction(outPoint.transactionHash)
+    if (transaction.isEmpty) {
+      val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
+      logger.error(message)
+      throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
+
+    val outputs = transaction.get.outputs
+
+    if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
+      val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
+      logger.error(message)
+      throw new ChainException(ErrorCode.InvalidTransactionOutPoint, message)
+    }
+
+    outputs(outPoint.outputIndex)
   }
 }
 

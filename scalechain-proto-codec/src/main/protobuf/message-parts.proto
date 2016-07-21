@@ -1,0 +1,85 @@
+syntax = "proto2";
+
+package blockchain.proto.protobuf;
+option java_package = "io.scalechain.blockchain.proto.protobuf";
+option optimize_for = SPEED;
+
+message ByteArray {
+    required bytes array = 1;
+}
+
+message Hash {
+    required ByteArray value = 1;
+}
+
+message OutPoint {
+    required Hash transactionHash = 1;
+    required int32 outputIndex = 2;
+}
+
+message InPoint {
+    required Hash transactionHash = 1;
+    required int32 inputIndex = 2;
+}
+
+message OptionalInPoint {
+    optional InPoint inPoint = 1;
+}
+
+message LockingScript {
+    required ByteArray data = 1;
+}
+
+message UnlockingScript {
+    required ByteArray data = 1;
+}
+
+message TransactionInput {
+    required Hash outputTransactionHash = 1;
+    required int32 outputIndex = 2;
+    required LockingScript unlockingScript = 3;
+    required int64 sequenceNumber = 4;
+}
+
+message TransactionOutput {
+    required int64 value = 1;
+    required LockingScript lockingScript = 2;
+}
+
+message Transaction {
+    required int32 version = 1;
+    repeated TransactionInput inputs = 2;
+    repeated TransactionOutput outputs = 3;
+    required int64 lockTime = 4;
+}
+
+message BlockHeader {
+    required int32 version = 1;
+    required Hash hashPrevBlock = 2;
+    required Hash hashMerkleRoot = 3;
+    required int64 timestamp = 4;
+    required int64 target = 5;
+    required int64 nonce = 6;
+}
+
+message Block {
+    required BlockHeader blockHeader = 1;
+    repeated Transaction transactions = 2;
+}
+
+
+message IPv6Address {
+    required bytes address = 1;
+}
+
+message NetworkAddress {
+    required int64 services = 1;
+    required IPv6Address ipv6 = 2;
+    required int32 port = 3;
+}
+
+message NetworkAddressWithTimestamp {
+    required int64 timestamp = 1;
+    required NetworkAddress address = 2;
+}
+

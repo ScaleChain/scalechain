@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto._
@@ -24,7 +25,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param blockInfo The BlockInfo of the block to detach.
     * @param block The block to detach.
     */
-  protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+  protected[chain] def detachBlock(blockInfo: BlockInfo, block : Block)(implicit db : KeyValueDatabase) : Unit = {
     // Detach each transaction in reverse order.
     // TODO : Optimize : Iterate a list in reverse order without reversing it.
     block.transactions.reverse foreach { transaction : Transaction =>
@@ -46,7 +47,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param last The last block in the best blockchain.
     */
   @tailrec
-  protected[chain] final def detachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block]) : Unit = {
+  protected[chain] final def detachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo, lastBlock : Block, detachedBlocks : ListBuffer[Block])(implicit db : KeyValueDatabase) : Unit = {
     if (beforeFirstHeader == last.blockHeader) {
       // The base case.
     } else {
@@ -65,10 +66,10 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     *
     * @param block The block to attach
     */
-  protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block) : Unit = {
+  protected[chain] def attachBlock(blockInfo: BlockInfo, block : Block)(implicit db : KeyValueDatabase) : Unit = {
     val blockHash = block.header.hash
     // Check if the block is valid.
-    BlockProcessor.validateBlock(block)
+    BlockProcessor.get.validateBlock(block)
 
     assert(blockInfo.blockHeader == block.header)
 
@@ -96,6 +97,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
 
       // Step 5 : Remove the transaction from the disk pool.
       txPool.removeTransactionFromPool(transactionHash)
+      //logger.trace(s"[Attach Block] Removed transaction from pool : ${transactionHash}")
 
       txMagnet.attachTransaction(transactionHash, transaction, checkOnly = false, Some(txLocator.txLocator), chainBlockOption, Some(transactionIndex) )
     }
@@ -123,7 +125,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param last The last block to collect.
     */
   @tailrec
-  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirstHeader : BlockHeader, last : BlockInfo) : Unit = {
+  protected[chain] final def collectBlockInfos(blockInfos : ListBuffer[BlockInfo], beforeFirstHeader : BlockHeader, last : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
     // TODO : Need to check if our memory is enough by checking the gap of the height between beforeFirst and last
     if (beforeFirstHeader == last.blockHeader) {
       // The base case. Nothing to do.
@@ -146,7 +148,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param beforeFirstHeader Blocks after this block are attached to the best blockchain.
     * @param last The last block in the new best blockchain.
     */
-  protected[chain] def attachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo) : Unit = {
+  protected[chain] def attachBlocksAfter(beforeFirstHeader : BlockHeader, last : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
     // Blocks NOT in the best blockchain does not have the BlockInfo.nextBlockHash.
     // We need to track from the last back to beforeFirst, and reverse the list.
     val blockInfos = ListBuffer[BlockInfo]()
@@ -180,7 +182,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param originalBestBlock The original best block before the new best one was found.
     * @param newBestBlock The new best block, which has greater chain work than the original best block.
     */
-  def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo) : Unit = {
+  def reorganize(originalBestBlock : BlockInfo, newBestBlock : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     assert( originalBestBlock.chainWork < newBestBlock.chainWork)
@@ -321,7 +323,7 @@ class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : T
     * @param block2 The second given block.
     */
   @tailrec
-  final protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo) : BlockHeader = {
+  final protected def findCommonBlock(block1 : BlockInfo, block2 : BlockInfo)(implicit db : KeyValueDatabase) : BlockHeader = {
     if ( block1.height < block2.height ) {
       // back track for block2
       assert(!block2.blockHeader.hashPrevBlock.isAllZero())

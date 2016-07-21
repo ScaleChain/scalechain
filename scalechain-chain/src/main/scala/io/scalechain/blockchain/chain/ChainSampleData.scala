@@ -3,6 +3,7 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction._
 import io.scalechain.util.HexUtil
 
@@ -39,7 +40,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : Hash) : Option[(BlockInfo, Block)] = {
+  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
     blocks.get(blockHash)
   }
 
@@ -51,7 +52,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     transactions.get(transactionHash)
   }
 }
@@ -59,7 +60,7 @@ class TestBlockIndex extends BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends BlockBuildingTestTrait {
+class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
 
   private val blockIndex = new TestBlockIndex()
 
@@ -80,10 +81,10 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
 
 
   object TestBlockchainView extends BlockchainView {
-    def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
+    def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
       availableOutputs.getTransactionOutput(outPoint)
     }
-    def getIterator(height : Long) : Iterator[ChainBlock] = {
+    def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
       // unused.
       assert(false)
       null
@@ -92,7 +93,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
       blockIndex.bestBlockHeight
     }
 
-    def getTransaction(transactionHash : Hash) : Option[Transaction] = {
+    def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
       blockIndex.getTransaction( transactionHash )
     }
   }
@@ -108,7 +109,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
 
     val transactionHash = getTxHash(transactionWithName)
     blockIndex.addTransaction( transactionHash, transactionWithName.transaction)
-    chainEventListener.map(_.onNewTransaction(transactionWithName.transaction, None, None))
+    chainEventListener.map(_.onNewTransaction(transactionHash, transactionWithName.transaction, None, None))
     //println(s"transaction(${transactionWithName.name}) added : ${transactionHash}")
   }
 
@@ -120,6 +121,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener]) extends Bl
     block.transactions foreach { transaction =>
       transactionIndex += 1
       chainEventListener.map(_.onNewTransaction(
+        transaction.hash,
         transaction,
         Some( ChainBlock(blockHeight, block) ),
         Some( transactionIndex )

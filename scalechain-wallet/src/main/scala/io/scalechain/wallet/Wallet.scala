@@ -3,20 +3,24 @@ package io.scalechain.wallet
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.{ErrorCode, WalletException}
 import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
 import io.scalechain.blockchain.transaction.SigHash.SigHash
-import io.scalechain.blockchain.transaction.TransactionSigner.SignedTransaction
+import io.scalechain.blockchain.transaction.TransactionSigner
+import io.scalechain.blockchain.transaction.SignedTransaction
 import io.scalechain.blockchain.transaction._
 import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
+import io.scalechain.util.GlobalStopWatch
 import org.slf4j.LoggerFactory
 
 object Wallet {
   private var theWallet : Wallet = null
-  def create( walletPath : File) : Wallet = {
-    theWallet = new Wallet(walletPath)
+  def create() : Wallet = {
+    theWallet = new Wallet()
     theWallet
   }
 
@@ -25,7 +29,6 @@ object Wallet {
     theWallet
   }
 }
-
 
 /** The WalletOutput with additional information such as OutPoint.
   *
@@ -38,10 +41,10 @@ case class WalletOutputWithInfo(
                                )
 
 // [Wallet layer] A wallet keeps a list of private keys, and signs transactions using a private key, etc.
-class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable {
+class Wallet() extends ChainEventListener {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Wallet]) )
 
-  val store = new WalletStore(walletFolder)
+  val store = new WalletStore()
 
   /** signs a transaction.
     *
@@ -62,15 +65,15 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                       dependencies  : List[UnspentTransactionOutput],
                       privateKeys   : Option[List[PrivateKey]],
                       sigHash       : SigHash
-                     ) : SignedTransaction = {
+                     )(implicit db : KeyValueDatabase) : SignedTransaction = {
 
     if (privateKeys.isEmpty) {
       // Wallet Store : Iterate private keys for all accounts
       val privateKeysFromWallet = store.getPrivateKeys(None)
 
-      TransactionSigner.sign(transaction, chainView, dependencies, privateKeysFromWallet, sigHash )
+      new TransactionSigner().sign(transaction, chainView, dependencies, privateKeysFromWallet, sigHash )
     } else {
-      TransactionSigner.sign(transaction, chainView, dependencies, privateKeys.get, sigHash )
+      new TransactionSigner().sign(transaction, chainView, dependencies, privateKeys.get, sigHash )
     }
   }
 
@@ -83,7 +86,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param address The coin address to calculate the amount of received coins.
     * @param minConfirmations The number of confirmations to filter the UTXO.
     */
-  def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long) : CoinAmount = {
+  def getReceivedByAddress(blockchainView : BlockchainView, address : CoinAddress, minConfirmations : Long)(implicit db : KeyValueDatabase) : CoinAmount = {
     // TODO : BUGBUG : We are counting outputs that an address is just one of multiple addresses in multisig outputs.
 //    println(s"getReceivedByAddress(${address.base58})")
 
@@ -115,7 +118,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @param accountOption The account to get transactions related to an account
     */
-  protected[wallet] def getTransactionHashes(accountOption : Option[String]) : Set[Hash] = {
+  protected[wallet] def getTransactionHashes(accountOption : Option[String])(implicit db : KeyValueDatabase) : Set[Hash] = {
     store.getOutputOwnerships(accountOption).flatMap { ownership : OutputOwnership =>
       store.getTransactionHashes(Some(ownership))
     }.toSet
@@ -127,7 +130,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param accountOption
     * @return
     */
-  protected [wallet] def getWalletTransactions(accountOption : Option[String]) : Set[WalletTransaction] = {
+  protected [wallet] def getWalletTransactions(accountOption : Option[String])(implicit db : KeyValueDatabase) : Set[WalletTransaction] = {
     getTransactionHashes(accountOption).map { transactionHash: Hash =>
       store.getWalletTransaction(transactionHash) // returns Option[WalletTransaction]
     }.filter(_.isDefined) // Filter out None values.
@@ -198,7 +201,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                                                    negativeFeeOption : Option[scala.math.BigDecimal],
                                                    outputOwnershipsFilterOption : Option[List[OutputOwnership]],
                                                    includeWatchOnly  : Boolean
-                                                 ) : Option[WalletTransactionDescriptor] = {
+                                                 )(implicit db : KeyValueDatabase) : Option[WalletTransactionDescriptor] = {
 
     /**
       *  category should be set to one of the following values:
@@ -307,86 +310,59 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                         count           : Int,
                         skip            : Long,
                         includeWatchOnly: Boolean
-                      ) : List[WalletTransactionDescriptor] = {
+                      )(implicit db : KeyValueDatabase) : List[WalletTransactionDescriptor] = {
+    // TODO : Use RocksDB Snapshot to see consistent data.
+    // 1. Get transactions
+    val transactions: List[WalletTransaction] = getWalletTransactions(accountOption).toList
 
-    // The blockchain might be in progress of block reorganization.
-    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
-    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
-    //
-    // (1) the list of transactions
-    // (2) the list of transaction outputs.
-    // (3) the flag whether an output was spent or not
-    Blockchain.get.synchronized {
+    // 2. Sort transactions by recency in descending order. Recent transactions come first. (newest to oldest)
+    val recentTransactions: List[WalletTransaction] = transactions.sortWith(isMoreRecentThan)
 
-      // 1. Get transactions
-      val transactions: List[WalletTransaction] = getWalletTransactions(accountOption).toList
+    val outputOwnershipsFilterOption = accountOption.map { account =>
+      store.getOutputOwnerships(Some(account))
+    }
 
-      // 2. Sort transactions by recency in descending order. Recent transactions come first. (newest to oldest)
-      val recentTransactions: List[WalletTransaction] = transactions.sortWith(isMoreRecentThan)
+    var transactionIndex = 0L
+    // 3. For each transaction,
+    val transactionDescriptors = (
+      recentTransactions.flatMap { walletTransaction: WalletTransaction =>
+        // 3. Calculate the transaction fee.
+        // TODO : Optimize : We are searching transaction outputs pointed by inputs of this transaction twice.
+        // A. first time -> to calculate fee.
+        // B. second time -> within getTransactionDescriptor
 
-      val outputOwnershipsFilterOption = accountOption.map { account =>
-        store.getOutputOwnerships(Some(account))
-      }
-
-      var transactionIndex = 0L
-      // 3. For each transaction,
-      val transactionDescriptors = (
-        recentTransactions.flatMap { walletTransaction: WalletTransaction =>
-          // 3. Calculate the transaction fee.
-          // TODO : Optimize : We are searching transaction outputs pointed by inputs of this transaction twice.
-          // A. first time -> to calculate fee.
-          // B. second time -> within getTransactionDescriptor
-
-          // The fee paid as a negative bitcoins value.
-          // We will calculate the fee only if it is necenssary
-          lazy val negativeFee =
-            if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
-              scala.math.BigDecimal(0)
-            } else {
-              -TransactionAnalyzer.calculateFee(blockchainView, walletTransaction.transaction)
-            }
-
-          /*
-              lazy val spentOutputs : List[TransactionOutput] = walletTransaction.transaction.inputs.map { transactionInput : TransactionInput =>
-                blockchainView.getTransactionOutput(OutPoint(
-                  Hash( transactionInput.outputTransactionHash.value ),
-                  transactionInput.outputIndex.toInt
-                ))
-              }.filter(_.isDefined).map(_.get) // Remove None values, get rid Option wrapper.
-
-              lazy val spendingAddresses = spentOutputs.flatMap{ transactionOutput =>
-                LockingScriptAnalyzer.extractAddresses(transactionOutput.lockingScript))
-              }
-          */
-          // TODO : BUGBUG : if getTransactionDescriptor returns None, we count it as skipped.
-          val sendingTransactions = if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
-            List(None)
+        // The fee paid as a negative bitcoins value.
+        // We will calculate the fee only if it is necenssary
+        lazy val negativeFee =
+          if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
+            scala.math.BigDecimal(0)
           } else {
-            // 3.2 For each input, check if any UTXO owned by output ownership in the wallet is related. (category = send)
-            var inputIndex = -1
-            walletTransaction.transaction.inputs.map { transactionInput =>
-              inputIndex += 1
-              if (transactionIndex >= skip && transactionIndex < skip + count) {
-                // Returns Option[TransactionDescriptor]
-                val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Left(transactionInput), inputIndex, /*None No paying address,*/ Some(negativeFee), outputOwnershipsFilterOption, includeWatchOnly)
-                if (transactionDesc.isDefined) {
-                  transactionIndex += 1
-                }
-                transactionDesc
-              } else {
-                None
-              }
-            }
+            -TransactionAnalyzer.calculateFee(blockchainView, walletTransaction.transaction)
           }
 
-          // 3.3 For each output, check if any UTXO owned by output ownership in the wallet is related. (category = receive)
-          var outputIndex = -1
-          val receivingTransactions = walletTransaction.transaction.outputs.map { transactionOutput =>
-            outputIndex += 1
+        /*
+            lazy val spentOutputs : List[TransactionOutput] = walletTransaction.transaction.inputs.map { transactionInput : TransactionInput =>
+              blockchainView.getTransactionOutput(OutPoint(
+                Hash( transactionInput.outputTransactionHash.value ),
+                transactionInput.outputIndex.toInt
+              ))
+            }.filter(_.isDefined).map(_.get) // Remove None values, get rid Option wrapper.
+
+            lazy val spendingAddresses = spentOutputs.flatMap{ transactionOutput =>
+              LockingScriptAnalyzer.extractAddresses(transactionOutput.lockingScript))
+            }
+        */
+        // TODO : BUGBUG : if getTransactionDescriptor returns None, we count it as skipped.
+        val sendingTransactions = if (walletTransaction.transaction.inputs(0).isCoinBaseInput()) {
+          List(None)
+        } else {
+          // 3.2 For each input, check if any UTXO owned by output ownership in the wallet is related. (category = send)
+          var inputIndex = -1
+          walletTransaction.transaction.inputs.map { transactionInput =>
+            inputIndex += 1
             if (transactionIndex >= skip && transactionIndex < skip + count) {
               // Returns Option[TransactionDescriptor]
-              //            val payingAddressOption = spendingAddresses.headOption
-              val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Right(transactionOutput), outputIndex, /*payingAddressOption,*/ None, outputOwnershipsFilterOption, includeWatchOnly)
+              val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Left(transactionInput), inputIndex, /*None No paying address,*/ Some(negativeFee), outputOwnershipsFilterOption, includeWatchOnly)
               if (transactionDesc.isDefined) {
                 transactionIndex += 1
               }
@@ -395,15 +371,32 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
               None
             }
           }
-
-          sendingTransactions ::: receivingTransactions
         }
+
+        // 3.3 For each output, check if any UTXO owned by output ownership in the wallet is related. (category = receive)
+        var outputIndex = -1
+        val receivingTransactions = walletTransaction.transaction.outputs.map { transactionOutput =>
+          outputIndex += 1
+          if (transactionIndex >= skip && transactionIndex < skip + count) {
+            // Returns Option[TransactionDescriptor]
+            //            val payingAddressOption = spendingAddresses.headOption
+            val transactionDesc = getTransactionDescriptor(blockchainView, walletTransaction, Right(transactionOutput), outputIndex, /*payingAddressOption,*/ None, outputOwnershipsFilterOption, includeWatchOnly)
+            if (transactionDesc.isDefined) {
+              transactionIndex += 1
+            }
+            transactionDesc
+          } else {
+            None
+          }
+        }
+
+        sendingTransactions ::: receivingTransactions
+      }
       ).filter(_.isDefined) // Filter out any None values.
       .map(_.get) // Get rid of the Option wrapper from Option[TransactionDescriptor]
 
-      // Change the order oldest to newest.
-      transactionDescriptors.reverse
-    }
+    // Change the order oldest to newest.
+    transactionDescriptors.reverse
   }
 
   /** Get an iterator for UTXOs.
@@ -414,7 +407,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for UTXOs.
     */
-  protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership]) : List[WalletOutputWithInfo] = {
+  protected[wallet] def getTransactionOutputs(outputOwnershipOption : Option[OutputOwnership])(implicit db : KeyValueDatabase) : List[WalletOutputWithInfo] = {
     store.getTransactionOutPoints(outputOwnershipOption).map { outPoint =>
 
       //println(s"getTransactionOutPoints : ${outPoint}")
@@ -441,7 +434,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
   protected [wallet] def getUnspentCoinDescription( blockchainView : BlockchainView,
                                                     addressOption  : Option[CoinAddress],
                                                     walletOutput   : WalletOutputWithInfo
-                                                  ) : Option[UnspentCoinDescriptor] = {
+                                                  )(implicit db : KeyValueDatabase) : Option[UnspentCoinDescriptor] = {
     if ( walletOutput.walletOutput.spent ) {
       None
     } else {
@@ -472,7 +465,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param blockHeight The height of a block, where the transaction exists.
     * @return
     */
-  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long, outPointOption : Option[OutPoint] = None) = {
+  protected [wallet] def getConfirmations( blockchainView : BlockchainView, blockHeight : Long, outPointOption : Option[OutPoint] = None)(implicit db : KeyValueDatabase) = {
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
@@ -499,24 +492,18 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                    minimumConfirmations: Long,
                    maximumConfirmations: Long,
                    addressesOption     : Option[List[CoinAddress]]
-                 ) : List[UnspentCoinDescriptor] = {
-
-    // The blockchain might be in progress of block reorganization.
-    // As block reorganization attaches/detaches transactions, followings might be inconsistent, so we need to
-    // synchronize with Blockchain so that we get the consistent view after the block reorganization finishes.
-    //
-    // (1) the list of transactions
-    // (2) the list of transaction outputs.
-    // (3) the flag whether an output was spent or not
-    Blockchain.get.synchronized {
-
+                 )(implicit db : KeyValueDatabase) : List[UnspentCoinDescriptor] = {
+    // Need to wait for registerTransaction/unregisterTransaction, otherwise we may return a coin as unspent,
+    // even though it is being marked as spent by the registerTransaction.
+    synchronized {
+      // TODO : Use RocksDB Snapshot to see consistent data.
       // TODO : BUGBUG : Need to consider ParsedPubKeyScript
-      val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
 
       val addressesFilter =
         if (addressesOption.isDefined) {
           addressesOption.get
         } else {
+          val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
           allAddresses
         }
 
@@ -550,7 +537,13 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
      account : String,
      outputOwnership : OutputOwnership,
      rescanBlockchain : Boolean
-  ): Unit = {
+  )(implicit db : KeyValueDatabase) : Unit = {
+
+    // TODO : Need to support ParsedPubKeyScript.
+    if (outputOwnership.isInstanceOf[ParsedPubKeyScript]) {
+      logger.warn("Public key scripts are not supported for importaddress RPC.")
+      throw new WalletException(ErrorCode.UnsupportedFeature)
+    }
 
     // Step 1 : Wallet Store : Add an output ownership to an account. Create an account if it does not exist.
     store.putOutputOwnership(account, outputOwnership)
@@ -565,7 +558,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
       blockchainView.getIterator(height = 0L) foreach { chainBlock : ChainBlock =>
         chainBlock.block.transactions foreach { transaction =>
           tranasctionIndex += 1
-          registerTransaction(transaction, Some(chainBlock), Some(tranasctionIndex))
+          registerTransaction(transaction.hash, transaction, Some(chainBlock), Some(tranasctionIndex))
         }
       }
     }
@@ -580,7 +573,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param address The coin address, which is attached to the account.
     * @return The found account.
     */
-  def getAccount(address : CoinAddress) : Option[String] = {
+  def getAccount(address : CoinAddress)(implicit db : KeyValueDatabase) : Option[String] = {
 
     store.getAccount(address)
   }
@@ -592,7 +585,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @return the new address for receiving payments.
     */
-  def newAddress(account: String) : CoinAddress = {
+  def newAddress(account: String)(implicit db : KeyValueDatabase) : CoinAddress = {
     // Step 1 : Generate a random number and a private key.
     val privateKey : PrivateKey = PrivateKey.generate
 
@@ -621,7 +614,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param addressOption Some(address) to get private keys for an address. A Multisig address may have multiple keys for it.
     *                      None to get private keys for all accounts.
     */
-  def getPrivateKeys(addressOption : Option[OutputOwnership]) : List[PrivateKey] = {
+  def getPrivateKeys(addressOption : Option[OutputOwnership])(implicit db : KeyValueDatabase) : List[PrivateKey] = {
     store.getPrivateKeys(addressOption)
   }
 
@@ -635,7 +628,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @return The coin address for receiving payments.
     */
-  def getReceivingAddress(account:String) : CoinAddress = {
+  def getReceivingAddress(account:String)(implicit db : KeyValueDatabase) : CoinAddress = {
     val addressOption : Option[OutputOwnership] = store.getReceivingAddress(account)
     if ( addressOption.isEmpty ) { // The account does not have any receiving address.
       // Create a new address and set it as the receiving address of the account.
@@ -655,7 +648,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param outputOwnerships The output ownerships to check if they exist in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected[wallet] def getWalletOutputOwnerships(outputOwnerships : List[OutputOwnership]) : List[OutputOwnership] = {
+  protected[wallet] def getWalletOutputOwnerships(outputOwnerships : List[OutputOwnership])(implicit db : KeyValueDatabase) : List[OutputOwnership] = {
     outputOwnerships.filter { ownership : OutputOwnership =>
       store.ownershipExists(ownership)
     }
@@ -667,7 +660,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param lockingScript The locking script to check to produce any possible output ownerships that matches ones in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected[wallet] def getWalletOutputOwnerships(lockingScript : LockingScript) : List[OutputOwnership] = {
+  protected[wallet] def getWalletOutputOwnerships(lockingScript : LockingScript)(implicit db : KeyValueDatabase) : List[OutputOwnership] = {
     val outputOwnerships : List[OutputOwnership] = LockingScriptAnalyzer.extractPossibleOutputOwnerships(lockingScript)
     getWalletOutputOwnerships(outputOwnerships)
   }
@@ -680,8 +673,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The newly found transaction.
     * @see ChainEventListener
     */
-  def onNewTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-    registerTransaction(transaction, chainBlock, transactionIndex)
+  def onNewTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase): Unit = {
+    registerTransaction(transactionHash, transaction, chainBlock, transactionIndex)(db)
   }
 
   /** Invoked whenever a new transaction is removed from the mempool.
@@ -695,8 +688,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     * @param transaction The transaction removed from the mempool.
     * @see ChainEventListener
     */
-  def onRemoveTransaction(transaction : Transaction): Unit = {
-    unregisterTransaction(transaction)
+  def onRemoveTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase): Unit = {
+    unregisterTransaction(transactionHash, transaction)(db)
   }
 
   /** Register a transaction into the wallet database.
@@ -711,16 +704,11 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
                               None if the block is in the mempool.
 
     */
-  protected[wallet] def registerTransaction(transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int]): Unit = {
-    Blockchain.get.synchronized {
+  protected[wallet] def registerTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option[ChainBlock], transactionIndex : Option[Int])(implicit db : KeyValueDatabase) : Unit = {
+    synchronized { // threads can compete : (1) block attach/detach (2) putTransaction.
       //println(s"registerTransaction=${transaction}")
 
-      // Step 1 : Calulate the transaction hash.
-      val transactionHash = transaction.hash
-
       logger.trace(s"[Wallet register tx:${transactionHash}] started.")
-
-      val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
 
       // If the transaction is related to the output
       var isTransactionRelated = false
@@ -733,20 +721,22 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         val outPoint = OutPoint(transactionHash, outputIndex)
 
         val walletOutputOwnerships = getWalletOutputOwnerships(transactionOutput.lockingScript)
-        walletOutputOwnerships foreach { ownership : OutputOwnership =>
-          store.putTransactionHash(ownership, transactionHash)
-          store.putTransactionOutPoint(ownership, outPoint)
-
-          //println(s"registerTransaction outPoint=> ${outPoint}")
-          // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
-        }
 
         if (walletOutputOwnerships.isEmpty) {
           // Do nothing, the transaction output is not related to the output ownerships in the wallet.
         } else {
+
+          walletOutputOwnerships foreach { ownership: OutputOwnership =>
+            store.putTransactionHash(ownership, transactionHash)
+            store.putTransactionOutPoint(ownership, outPoint)
+
+            //println(s"registerTransaction outPoint=> ${outPoint}")
+            // Step 2.1 : Wallet Store : Put a UTXO into the output ownership.
+          }
+
           isTransactionRelated = true
 
-          val blockHeightOption = chainBlock.map( _.height )
+          val blockHeightOption = chainBlock.map(_.height)
 
           val walletOutputOption = store.getWalletOutput(outPoint)
 
@@ -756,13 +746,14 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
             // Otherwise, we may overwrite the "spent" flag from true to false.
 
             val walletOutput = WalletOutput(
-              blockindex  = blockHeightOption,
+              blockindex = blockHeightOption,
               // Whether this output is in the generation transaction.
               // TODO : BUGBUG : Need to check the outputIndex as well to see if an
               coinbase = transaction.inputs(0).outputTransactionHash.isAllZero(),
               spent = false,
               transactionOutput = transactionOutput
             )
+
             store.putWalletOutput(outPoint, walletOutput)
 
             logger.trace(s"[Wallet register tx:${transactionHash}] put new outpoint : ${outPoint}, wallet output : ${walletOutput}")
@@ -777,6 +768,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         }
       }
 
+
       if (transaction.inputs(0).isCoinBaseInput()) {
         // do nothing
       } else {
@@ -788,7 +780,7 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
           // Step 3 : Block Store : Get the transaction output the input is spending.
           val spentOutput = OutPoint(
-            Hash( transactionInput.outputTransactionHash.value ),
+            Hash(transactionInput.outputTransactionHash.value),
             transactionInput.outputIndex.toInt)
 
           val walletOutputOption = store.getWalletOutput(spentOutput)
@@ -802,7 +794,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
             // We have the output in our wallet.
             // Step 4 : Wallet Store : Mark a UTXO spent searching by OutPoint.
-            if ( store.markWalletOutputSpent(spentOutput, true) ) {
+            if (store.markWalletOutputSpent(spentOutput, true)) {
+
               logger.trace(s"[Wallet register tx:${transactionHash}] set output spent. outpoint : ${spentOutput}, inputIndex : ${inputIndex}")
             }
 
@@ -813,6 +806,8 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
 
       // Step 5 : Add a transaction.
       if (isTransactionRelated) {
+        val addedTime = store.getWalletTransaction(transactionHash).map( _.addedTime ).getOrElse(System.currentTimeMillis())
+
         val walletTransaction = WalletTransaction(
           blockHash         = chainBlock.map( _.block.header.hash ),
           blockIndex        = chainBlock.map( _.height ),
@@ -836,12 +831,9 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
     *
     * @param transaction The transaction to register.
     */
-  protected[wallet] def unregisterTransaction(transaction : Transaction): Unit = {
-    Blockchain.get.synchronized {
+  protected[wallet] def unregisterTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
+    synchronized { // threads can compete : (1) block attach/detach (2) putTransaction.
       val currentTime = System.currentTimeMillis()
-
-      // Step 1 : Calulate the transaction hash.
-      val transactionHash = transaction.hash
 
       logger.trace(s"[Wallet unregister tx:${transactionHash}] started.")
 
@@ -917,12 +909,5 @@ class Wallet(walletFolder : File) extends ChainEventListener with AutoCloseable 
         assert( store.getWalletTransaction(transactionHash).isEmpty )
       }
     }
-  }
-
-  /** Close the wallet.
-    *
-    */
-  def close() : Unit = {
-    store.close
   }
 }

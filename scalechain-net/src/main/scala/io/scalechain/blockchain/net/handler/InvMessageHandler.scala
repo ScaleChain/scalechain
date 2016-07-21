@@ -29,32 +29,32 @@ object InvMessageHandler {
 
     var blockInventories = 0
     val inventoriesToGetData =
-    Blockchain.get.synchronized {  // During block reorganization, transactions/blocks are attached/detached. We need to synchronize with block reorganization.
-      // Step 3 : Get a list of inventories to request data with GetData message.
-      inv.inventories.map { inventory: InvVector =>
-        if (inventory.invType == InvType.MSG_BLOCK) {
-          blockInventories += 1
+
+    // Step 3 : Get a list of inventories to request data with GetData message.
+    inv.inventories.map { inventory: InvVector =>
+      if (inventory.invType == InvType.MSG_BLOCK) {
+        blockInventories += 1
+      }
+      // Step 3 : Check if we already have it
+      if (InventoryProcessor.alreadyHas(inventory)) {
+        // The inventory already exists.
+        /*
+        if (inventory.invType == InvType.MSG_BLOCK && BlockProcessor.hasOrphan(inventory.hash)) {
+          assert(!BlockProcessor.hasNonOrphan(inventory.hash))
+          // Step 3.A : If it is an orphan block, Request to get the root parent of the orphan to the peer that sent the inventory.
+          val orphanRoot = BlockProcessor.getOrphanRoot(inventory.hash)
+          val getBlocksMessage = GetBlocksFactory.create(inventory.hash)
+          context.peer.send(getBlocksMessage)
+          logger.info(s"Requesting getblocks of orphan parents in response to inv. Orphan Block: ${inventory.hash}, Message : ${MessageSummarizer.summarize(getBlocksMessage)}")
         }
-        // Step 3 : Check if we already have it
-        if (InventoryProcessor.alreadyHas(inventory)) {
-          // The inventory already exists.
-          /*
-          if (inventory.invType == InvType.MSG_BLOCK && BlockProcessor.hasOrphan(inventory.hash)) {
-            assert(!BlockProcessor.hasNonOrphan(inventory.hash))
-            // Step 3.A : If it is an orphan block, Request to get the root parent of the orphan to the peer that sent the inventory.
-            val orphanRoot = BlockProcessor.getOrphanRoot(inventory.hash)
-            val getBlocksMessage = GetBlocksFactory.create(inventory.hash)
-            context.peer.send(getBlocksMessage)
-            logger.info(s"Requesting getblocks of orphan parents in response to inv. Orphan Block: ${inventory.hash}, Message : ${MessageSummarizer.summarize(getBlocksMessage)}")
-          }
-        */
-          None
-        } else {
-          // Step 3.B : If we don't have it yet, send "getdata" message to the peer that sent the "inv" message
-          Some(inventory)
-        }
-      }.filter(_.isDefined).map(_.get) // filter out None values.
-    }
+      */
+        None
+      } else {
+        // Step 3.B : If we don't have it yet, send "getdata" message to the peer that sent the "inv" message
+        Some(inventory)
+      }
+    }.filter(_.isDefined).map(_.get) // filter out None values.
+
     // Step 4 : Send the GetData message to get data for the missing inventories in this node.
     if (inventoriesToGetData.isEmpty) {
       // Nothing to request.

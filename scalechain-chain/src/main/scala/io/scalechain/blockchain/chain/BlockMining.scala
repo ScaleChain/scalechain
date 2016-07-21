@@ -3,13 +3,13 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Transaction, CoinbaseData}
+import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, BlockStorage}
-import io.scalechain.blockchain.storage.index.{RocksDatabase, TransactionDescriptorIndex}
+import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, KeyValueDatabase, RocksDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.transaction.{CoinsView, CoinAmount, CoinAddress}
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
@@ -24,25 +24,23 @@ class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoo
 
   directoryPath.mkdir()
 
-  // Implemenent the KeyValueDatabase declared in BlockStorage trait.
-  val keyValueDB = new RocksDatabase(directoryPath)
 
-  def close() : Unit = {
-    this.synchronized {
-      keyValueDB.close()
-    }
-  }
 }
 
-class TemporaryCoinsView(coinsView : CoinsView, tempTxPoolIndex : TemporaryTransactionPoolIndex) extends CoinsView {
+class TemporaryCoinsView(coinsView : CoinsView) extends CoinsView {
+
+  val tempTranasctionPoolIndex = new TransactionPoolIndex {}
+
+
   /** Return a transaction output specified by a give out point.
     *
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint) : TransactionOutput = {
-    // Find from the temporary transaction pool index first, and then find from the coins view.
-    tempTxPoolIndex.getTransactionFromPool(outPoint.transactionHash).map(_.transaction.outputs(outPoint.outputIndex)).getOrElse {
+  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
+    // Find from the temporary transaction pool index first, and then find from the transactions in a block.
+    tempTranasctionPoolIndex.getTransactionFromPool(outPoint.transactionHash).map(_.transaction.outputs(outPoint.outputIndex)).getOrElse {
+      // This is called by TransactionPriorityQueue, which already checked if the transaction is attachable.
       coinsView.getTransactionOutput(outPoint)
     }
   }
@@ -51,7 +49,7 @@ class TemporaryCoinsView(coinsView : CoinsView, tempTxPoolIndex : TemporaryTrans
 /**
   * Created by kangmo on 6/9/16.
   */
-class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView) {
+class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView)(rocksDB : RocksDatabase) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockMining]) )
 
   /*
@@ -82,12 +80,31 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     * @return The block template which has a sorted list of transactions to include into a block.
     */
   def getBlockTemplate(coinbaseData : CoinbaseData, minerAddress : CoinAddress, maxBlockSize : Int) : BlockTemplate = {
+    implicit val db = rocksDB
     // TODO : P1 - Use difficulty bits
     //val difficultyBits = getDifficulty()
     val difficultyBits = 10
 
-    val validTransactions : List[Transaction] = transactionPool.getTransactionsFromPool().map {
+    val validTransactions : List[Transaction] = transactionPool.getTransactionsFromPool().filter{
+      // Because we are concurrently putting transactions into the pool while putting blocks,
+      // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
+      // Skip all transactions that has the transaction descriptor.
+      case (txHash, transaction) =>
+      txDescIndex.getTransactionDescriptor(txHash).isEmpty
+    }.map {
       case (txHash, transaction) => transaction
+    }
+
+    // Remove transactions from the pool if it is in a block as well.
+    transactionPool.getTransactionsFromPool().filter{
+      // Because we are concurrently putting transactions into the pool while putting blocks,
+      // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
+      // Skip all transactions that has the transaction descriptor.
+      case (txHash, transaction) =>
+        // If the transaction descriptor exists, it means the transaction is in a block.
+        txDescIndex.getTransactionDescriptor(txHash).isDefined
+    }.foreach { case (txHash, transaction) =>
+      transactionPool.removeTransactionFromPool(txHash)
     }
 
     val generationTranasction =
@@ -146,39 +163,55 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     serializedBlockSize += TransactionCodec.serialize(generationTransaction).length
     selectedTransactions.append(generationTransaction)
 
-    val tempTxPoolFile = new File(s"./target/temp-tx-pool-${Random.nextInt}")
-    val tempTranasctionPoolIndex = new TemporaryTransactionPoolIndex( tempTxPoolFile )
-    // The TemporaryCoinsView with additional transactions in the temporary transaction pool.
-    // TemporaryCoinsView returns coins in the transaction pool of the coinsView, which may not be included in tempTranasctionPoolIndex,
-    // But this should be fine, because we are checking if a transaction can be attached without including the transaction pool of the coinsView.
-    val tempCoinsView = new TemporaryCoinsView(coinsView, tempTranasctionPoolIndex)
-    val txQueue = new TransactionPriorityQueue(tempCoinsView)
+    // Create a temporary database just for checking if transactions can be attached.
+    // We should never commit the tempDB.
+    implicit val tempDB = new TransactingRocksDatabase(rocksDB)
+    tempDB.beginTransaction()
 
-    val txMagnet = new TransactionMagnet(txDescIndex, tempTranasctionPoolIndex)
+    // Remove all transactions in the pool
+
 
     // For all attachable transactions, attach them, and move to the priority queue.
+//    val tempPoolDbPath = new File(s"target/temp-tx-pool-for-mining-${Random.nextLong}")
+//    tempPoolDbPath.mkdir
+    val tempCoinsView = new TemporaryCoinsView(coinsView)
+    // Remove all transactions from the pool. Note that we are removing them in tempDB, which does not affect the actual db for the pool.
+    transactionPool.getTransactionsFromPool() foreach { case (txHash, tx) =>
+      transactionPool.removeTransactionFromPool(tx.hash)
+    }
+
     try {
+      // The TemporaryCoinsView with additional transactions in the temporary transaction pool.
+      // TemporaryCoinsView returns coins in the transaction pool of the coinsView, which may not be included in tempTranasctionPoolIndex,
+      // But this should be fine, because we are checking if a transaction can be attached without including the transaction pool of the coinsView.
+      val txQueue = new TransactionPriorityQueue(tempCoinsView)
+
+      val txMagnet = new TransactionMagnet(txDescIndex, tempCoinsView.tempTranasctionPoolIndex)
+
       var newlySelectedTransaction : Option[Transaction] = None
       do {
-        candidateTransactions foreach { tx : Transaction =>
+        candidateTransactions foreach { tx: Transaction =>
           val txHash = tx.hash
           // Test if it can be atached.
           val isTxAttachable = try {
             txMagnet.attachTransaction(txHash, tx, checkOnly = true)
             true
           } catch {
-            case e : ChainException => {
+            case e: ChainException => {
               false
-            }  // The transaction can't be attached.
+            } // The transaction can't be attached.
           }
 
-          if (isTxAttachable) { // move the the transaction queue
+          if (isTxAttachable) {
+            // move the the transaction queue
             candidateTransactions -= tx
             txQueue.enqueue(tx)
           }
         }
 
         newlySelectedTransaction = txQueue.dequeue()
+
+//        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
 
         if (newlySelectedTransaction.isDefined) {
           val newTx = newlySelectedTransaction.get
@@ -189,14 +222,14 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
             selectedTransactions += newTx
           }
         }
+
       } while(newlySelectedTransaction.isDefined && (serializedBlockSize <= maxBlockSize) )
       // Caution : serializedBlockSize is greater than the actual block size
 
       selectedTransactions.toList
 
     } finally {
-      tempTranasctionPoolIndex.close
-      FileUtils.deleteDirectory(tempTxPoolFile)
+      tempDB.abortTransaction
     }
   }
 }

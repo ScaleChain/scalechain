@@ -3,12 +3,15 @@ package io.scalechain.blockchain.transaction
 import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.blockchain.script.{ScriptValue, ScriptSerializer, TransactionSignature}
 import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{TransactionSignException, ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.crypto.ECKey.ECDSASignature
 import io.scalechain.crypto.{ECKey, Hash256}
 import io.scalechain.util.{HexUtil, ByteArray}
+
+import scala.annotation.tailrec
 
 
 object SigHash extends Enumeration {
@@ -22,17 +25,18 @@ object SigHash extends Enumeration {
   val SINGLE_OR_ANYONECANPAY = new Val(nextId, "SINGLE|ANYONECANPAY")
 }
 
+/** The result of signing a transaction.
+  *
+  * @param transaction the transaction with signatures.
+  * @param complete true if transaction is fully signed; false if more signatures are required
+  */
+case class SignedTransaction(transaction : Transaction, complete : Boolean)
+
 /**
   * Created by kangmo on 5/13/16.
   */
-object TransactionSigner {
+class TransactionSigner()(implicit db : KeyValueDatabase) {
 
-  /** The result of signing a transaction.
-    *
-    * @param transaction the transaction with signatures.
-    * @param complete true if transaction is fully signed; false if more signatures are required
-    */
-  case class SignedTransaction(transaction : Transaction, complete : Boolean)
 
   /** Sign an input of a transaction with the list of given private keys.
     *
@@ -157,7 +161,8 @@ object TransactionSigner {
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The transaction with the newly signed input updated.
     */
-  protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
+  @tailrec
+  final protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
 
     // TODO : List.length is costly. Optimize it by passing an input itself by dropping one item at head for each invocation of this method.
     if (inputIndex >= transaction.inputs.length) { // The base case. We try to sign all inputs.

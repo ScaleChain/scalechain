@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.Logger
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
 import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
 import io.scalechain.util.StackUtil
-import org.apache.commons.collections4.map.LRUMap
+//import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
 
 
@@ -26,8 +26,8 @@ case class Peer(private val channel : Channel) {
 
   /**
     * Update version received from the peer.
- *
-    * @param version
+    *
+    * @param version The version received from the peer.
     */
   def updateVersion(version : Version) : Unit = {
     versionOption = Some(version)

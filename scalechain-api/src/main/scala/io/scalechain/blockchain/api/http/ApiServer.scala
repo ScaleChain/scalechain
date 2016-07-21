@@ -29,7 +29,8 @@ class ApiServer {
     //b.option[Integer](ChannelOption.SO_BACKLOG, 1024)
     b.group(bossGroup, workerGroup)
      .channel(classOf[NioServerSocketChannel])
-     .handler(new LoggingHandler(LogLevel.TRACE))
+     .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
+     .handler(new LoggingHandler(LogLevel.INFO))
      .childHandler(new ApiServerInitializer(sslCtx))
 
     b.bind(port).addListener(new ChannelFutureListener() {

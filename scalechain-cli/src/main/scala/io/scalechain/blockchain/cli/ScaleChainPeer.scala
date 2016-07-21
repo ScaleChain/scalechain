@@ -4,21 +4,20 @@ import java.io.File
 import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
 import java.util
 
-import com.typesafe.config.{ConfigFactory, Config}
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
-import io.scalechain.blockchain.net.message.PrivateVersionFactory
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage._
+import io.scalechain.blockchain.storage.index.{CachedRocksDatabase, RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.{CoinAddress, SigHash, PrivateKey, ChainEnvironment}
-import io.scalechain.util.{HexUtil, Config}
+import io.scalechain.util.{PeerAddress, NetUtil, HexUtil, Config}
 import io.scalechain.util.HexUtil._
 import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
-import scala.collection.JavaConverters._
 import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice}
 
 import scala.collection.mutable.ArrayBuffer
@@ -84,25 +83,10 @@ object ScaleChainPeer {
     }
   }
 
-  protected[cli] def initializeNetLayer(params: Parameters, wallet: Wallet): PeerCommunicator = {
+  protected[cli] def initializeNetLayer(params: Parameters, indexDb : RocksDatabase, wallet: Wallet)(implicit db : KeyValueDatabase): PeerCommunicator = {
 
     def isMyself(addr: PeerAddress) = {
-      def getLocalAddresses() : List[String] = {
-        val addresses = new ArrayBuffer[String]()
-        val e = NetworkInterface.getNetworkInterfaces();
-        while(e.hasMoreElements())
-        {
-          val n = e.nextElement().asInstanceOf[NetworkInterface]
-          val ee = n.getInetAddresses();
-          while (ee.hasMoreElements())
-          {
-            val i = ee.nextElement().asInstanceOf[InetAddress]
-            addresses.append(i.getHostAddress())
-          }
-        }
-        addresses.toList
-      }
-      getLocalAddresses().contains(addr.address) && addr.port == params.p2pInboundPort
+      NetUtil.getLocalAddresses().contains(addr.address) && addr.port == params.p2pInboundPort
     }
 //      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
 
@@ -127,12 +111,11 @@ object ScaleChainPeer {
         List(PeerAddress(params.peerAddress.get, params.peerPort.get))
       } else {
         // Otherwise, connect to peers listed in the configuration file.
-        io.scalechain.util.Config.getConfigList("scalechain.p2p.peers").asScala.toList.map { peer =>
-          PeerAddress(peer.getString("address"), peer.getInt("port"))
-        }
+        Config.peerAddresses
       }
 
-    BlockSigner.setWallet( wallet )
+    val nodeIndex = PeerIndexCalculator.getPeerIndex(params.p2pInboundPort).get
+    BlockBroadcaster.create(nodeIndex)
 
     PeerToPeerNetworking.getPeerCommunicator(
       params.p2pInboundPort,
@@ -161,15 +144,19 @@ object ScaleChainPeer {
     val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
 
+    val indexDb : RocksDatabase = new CachedRocksDatabase(blockStoragePath)
+    implicit val db : KeyValueDatabase = indexDb
+
     val storage: BlockStorage =
       // Initialize the block storage.
       // TODO : Investigate when to call storage.close.
-      DiskBlockStorage.create(blockStoragePath)
+      DiskBlockStorage.create(blockStoragePath, indexDb)
 
 
     // Step 5 : Chain Layer : Initialize blockchain.
     // BUGBUG : Need to change the folder name according to the production env.
-    val chain = Blockchain.create(storage)
+    val chain = Blockchain.create(indexDb, storage)
+    BlockProcessor.create(chain)
 
     // See if we have genesis block. If not, put one.
     if ( ! chain.hasBlock(env.GenesisBlockHash) ) {
@@ -181,13 +168,13 @@ object ScaleChainPeer {
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
     val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
-    val wallet = Wallet.create(walletPath)
+    val wallet = Wallet.create()
     chain.setEventListener(wallet)
 
     // Step 7 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
 
-    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, wallet)
+    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, indexDb, wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
@@ -195,8 +182,8 @@ object ScaleChainPeer {
     JsonRpcMicroservice.runService(params.apiInboundPort)
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    val minerParams = CoinMinerParams(InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
+    val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
 
-    CoinMiner.create(params.miningAccount, wallet, chain, peerCommunicator, minerParams)
+    CoinMiner.create(indexDb, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
   }
 }

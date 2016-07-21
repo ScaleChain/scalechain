@@ -28,9 +28,13 @@ object Hash {
   */
 case class Hash(value : ByteArray) extends ProtocolMessage {
   def isAllZero() = {
-    (0 until value.length).forall { i =>
-      value(i) == 0
+    var i = 0
+    val valueLength = value.length
+    val array = value.array
+    while (i < valueLength && array(i) == 0) {
+      i += 1
     }
+    i == valueLength
   }
 
   def toHex() : String = value.toString
