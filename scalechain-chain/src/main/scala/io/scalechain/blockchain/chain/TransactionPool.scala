@@ -57,7 +57,7 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
         // Step 09 : Add to the disk-pool
         txMagnet.attachTransaction(txHash, transaction, checkOnly = false)
 
-        logger.info(s"A new transaction was put into pool. Hash : ${txHash}")
+        logger.trace(s"A new transaction was put into pool. Hash : ${txHash}")
       }
     }
   }
