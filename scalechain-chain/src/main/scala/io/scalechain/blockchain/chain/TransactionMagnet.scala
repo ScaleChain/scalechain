@@ -61,7 +61,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           outputsSpentBy = outputsSpentBy
         )
       )
-      assert(txPoolEntryOption.isEmpty)
+      // Note that txPoolEntryOption can be defined,
+      // because the same transaction can be attached at the same time while (1) attaching a block by putBlock (2) attaching a transaction by putTransaction
     } else {
       assert( txPoolEntryOption.isDefined )
       txPoolIndex.putTransactionToPool(
@@ -70,7 +71,6 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           outputsSpentBy = outputsSpentBy
         )
       )
-      assert(txDescOption.isEmpty)
     }
   }
 
