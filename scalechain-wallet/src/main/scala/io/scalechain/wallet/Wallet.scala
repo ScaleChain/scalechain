@@ -498,12 +498,12 @@ class Wallet() extends ChainEventListener {
     synchronized {
       // TODO : Use RocksDB Snapshot to see consistent data.
       // TODO : BUGBUG : Need to consider ParsedPubKeyScript
-      val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
 
       val addressesFilter =
         if (addressesOption.isDefined) {
           addressesOption.get
         } else {
+          val allAddresses = store.getOutputOwnerships(None).collect { case address: CoinAddress => address }
           allAddresses
         }
 

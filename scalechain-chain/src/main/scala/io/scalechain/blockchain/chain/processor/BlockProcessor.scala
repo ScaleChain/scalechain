@@ -141,9 +141,12 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     // Step 5. Need to check the lock time of all transactions.
     // Step 6. Need to check block hashes for checkpoint blocks.
     // Step 7. Write the block on the block database, reorganize blocks if necessary.
-    chain.withTransaction { implicit transactingDB =>
-      chain.putBlock(blockHash, block)(transactingDB)
-    }
+    //chain.withTransaction { implicit transactingDB =>
+    //  chain.putBlock(blockHash, block)(transactingDB)
+    //}
+
+    // TODO : BUGBUG : Change to record level locking with atomic update.
+    chain.putBlock(blockHash, block)(db)
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.

@@ -47,12 +47,14 @@ class TransactionProcessor(val chain : Blockchain) {
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
   def putTransaction(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
-    synchronized { // To prevent double spends, we need to synchronize transactions to put.
+//    synchronized { // To prevent double spends, we need to synchronize transactions to put.
       // TODO : Need to check if the validity of the transation?
-      chain.withTransaction { implicit transactingDB =>
-        chain.putTransaction(txHash, transaction)(transactingDB)
-      }
-    }
+//      chain.withTransaction { implicit transactingDB =>
+//        chain.putTransaction(txHash, transaction)(transactingDB)
+//      }
+//    }
+    // TODO : BUGBUG : Change to record level locking with atomic update.
+    chain.putTransaction(txHash, transaction)(db)
   }
 
   /**
@@ -71,7 +73,7 @@ class TransactionProcessor(val chain : Blockchain) {
 
         val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
 
-        chain.withTransaction { transactionalDB =>
+        //chain.withTransaction { transactionalDB =>
           dependentChildren foreach { dependentChildHash : Hash =>
             val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
             if (dependentChild.isDefined) {
@@ -105,7 +107,7 @@ class TransactionProcessor(val chain : Blockchain) {
           }
 
           chain.txOrphanage.removeDependenciesOn(parentTxHash)
-        }
+        //}
         i += 1
       } while( i < acceptedChildren.length)
 
