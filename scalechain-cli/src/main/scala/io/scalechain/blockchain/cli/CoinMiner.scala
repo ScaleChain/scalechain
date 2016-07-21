@@ -6,7 +6,7 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.net.handler.BlockMessageHandler
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
-import io.scalechain.util.{PeerAddress, NetUtil, Config, Utils}
+import io.scalechain.util._
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
@@ -176,7 +176,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                       BlockBroadcaster.get.broadcastHeader(block.header)
 
                       blockFound = true
-                      logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${block}\n\n")
+                      logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${StringUtil.getBrief(block.toString, 512)}\n\n")
                     }
                   }
                 } else {
