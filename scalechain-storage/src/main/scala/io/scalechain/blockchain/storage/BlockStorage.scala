@@ -53,59 +53,57 @@ trait BlockStorage extends BlockDatabase with BlockIndex with TransactionDescrip
   }
 
   def getBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[BlockHeader] = {
-    // TODO : Refactor : Remove synchronized.
-    // APIs threads calling TransactionVerifier.verify and BlockProcessor actor competes to access DiskBlockDatabase.
-    this.synchronized {
-      val blockInfoOption = getBlockInfo(blockHash)
-      if (blockInfoOption.isDefined) {
-        // case 1 : the block info was found.
-        Some(blockInfoOption.get.blockHeader)
-      } else {
-        // case 2 : the block info was not found.
-        None
-      }
+    // TODO : Check if we need synchronization
+
+    val blockInfoOption = getBlockInfo(blockHash)
+    if (blockInfoOption.isDefined) {
+      // case 1 : the block info was found.
+      Some(blockInfoOption.get.blockHeader)
+    } else {
+      // case 2 : the block info was not found.
+      None
     }
   }
 
   def putBlockHeader(blockHash : Hash, blockHeader : BlockHeader)(implicit db : KeyValueDatabase) : Unit = {
-    this.synchronized {
-      // get the info of the previous block, to calculate the height of the given block and chain-work.
-      val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(blockHeader.hashPrevBlock.value))
+    // TODO : Check if we need synchronization
 
-      // Either the previous block should exist or the block should be the genesis block.
-      if (prevBlockInfoOption.isDefined || blockHeader.hashPrevBlock.isAllZero()) {
+    // get the info of the previous block, to calculate the height of the given block and chain-work.
+    val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(blockHeader.hashPrevBlock.value))
 
-        val blockInfo: Option[BlockInfo] = getBlockInfo(blockHash)
-        if (blockInfo.isEmpty) {
+    // Either the previous block should exist or the block should be the genesis block.
+    if (prevBlockInfoOption.isDefined || blockHeader.hashPrevBlock.isAllZero()) {
 
-          // case 1.1 : the header does not exist yet.
-          val blockInfo = BlockInfoFactory.create(
-            // Pass None for the genesis block.
-            prevBlockInfoOption,
-            blockHeader,
-            blockHash,
-            0, // transaction count
-            None // block locator
-          )
+      val blockInfo: Option[BlockInfo] = getBlockInfo(blockHash)
+      if (blockInfo.isEmpty) {
 
-          putBlockInfo(blockHash, blockInfo)
-          // We are not checking if the block is the best block, because we received a header only.
-          // We put a block as a best block only if we have the block data as long as the header.
-        } else {
-          // case 1.2 : the same block header already exists.
-          logger.trace("A block header is put onto the block database twice. block hash : {}", blockHash)
+        // case 1.1 : the header does not exist yet.
+        val blockInfo = BlockInfoFactory.create(
+          // Pass None for the genesis block.
+          prevBlockInfoOption,
+          blockHeader,
+          blockHash,
+          0, // transaction count
+          None // block locator
+        )
 
-          // blockIndex hits an assertion if the block header is changed for the same block hash.
-          // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
-          //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
-          //  blockHeader = blockHeader
-          //))
-
-        }
+        putBlockInfo(blockHash, blockInfo)
+        // We are not checking if the block is the best block, because we received a header only.
+        // We put a block as a best block only if we have the block data as long as the header.
       } else {
-        // case 2 : the previous block header was not found.
-        logger.trace("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
+        // case 1.2 : the same block header already exists.
+        logger.trace("A block header is put onto the block database twice. block hash : {}", blockHash)
+
+        // blockIndex hits an assertion if the block header is changed for the same block hash.
+        // TODO : Need to change to throw an exception if we try to overwrite with a different block header.
+        //blockIndex.putBlockInfo(blockHash, blockInfo.get.copy(
+        //  blockHeader = blockHeader
+        //))
+
       }
+    } else {
+      // case 2 : the previous block header was not found.
+      logger.trace("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
     }
   }
 }

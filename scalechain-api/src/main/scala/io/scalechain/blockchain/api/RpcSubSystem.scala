@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.api
 
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator, PeerSet}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported
@@ -135,11 +136,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @return
     */
   def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
-    // TODO : BUGBUG : Remove synchronization on chain.
-    chain.withTransaction { transactingDB =>
-      // TODO : BUGBUG : allowHighFees is not used.
-      chain.putTransaction(transaction.hash, transaction)(transactingDB)
-    }
+    TransactionProcessor.putTransaction(transaction.hash, transaction)(Blockchain.get.db)
 
     peerCommunicator.propagateTransaction(transaction)
   }

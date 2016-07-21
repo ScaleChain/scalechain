@@ -82,7 +82,8 @@ class PeerIndexCalculatorSpec extends FlatSpec with BeforeAndAfterEach with Shou
     PeerIndexCalculator.getPeerIndex(7644) shouldBe Some(1)
     PeerIndexCalculator.getPeerIndex(7645) shouldBe Some(2)
     PeerIndexCalculator.getPeerIndex(7646) shouldBe Some(3)
-    PeerIndexCalculator.getPeerIndex(7647) shouldBe None
+    PeerIndexCalculator.getPeerIndex(7647) shouldBe Some(4)
+    PeerIndexCalculator.getPeerIndex(7648) shouldBe None
   }
 
 }

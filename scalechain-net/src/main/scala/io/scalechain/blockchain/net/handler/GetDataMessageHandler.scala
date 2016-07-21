@@ -21,6 +21,7 @@ object GetDataMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   def handle( context : MessageHandlerContext, getData : GetData ) : Unit = {
+    implicit val db = Blockchain.get.db
     // TODO : Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
     val messagesToSend : List[ProtocolMessage] =
@@ -32,12 +33,7 @@ object GetDataMessageHandler {
             // For now, send a transaction if we have it.
             // Returns Option[Transaction]
 
-            // During block reorganization, transactions/blocks are attached/detached.
-            // During block reorganization, transaction indexes are inconsistent state. We need to synchronize with block reorganization.
-            // Optimize : To get rid of the synchronized block, keep transactions and indexes consistent even during block reorganization.
-            Blockchain.get.synchronized {
-              TransactionProcessor.getTransaction(inventory.hash)
-            }
+            TransactionProcessor.getTransaction(inventory.hash)
           }
           case InvType.MSG_BLOCK => {
             // Get the block we have. Orphan blocks are not returned.

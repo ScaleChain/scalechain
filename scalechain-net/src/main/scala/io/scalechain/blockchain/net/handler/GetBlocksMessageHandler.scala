@@ -29,16 +29,9 @@ object GetBlocksMessageHandler {
     // Step 1 : Get the list of block hashes to send.
     val locator = new BlockLocator(Blockchain.get)
 
-    // During block reorganization, transactions/blocks are attached/detached.
-    // We need to synchronize with block reorganization, as getblocks message depends on a 'consistent' view of the best blockchain.
-    // getblocks message should not see any inconsistent state of the best blockchain while block reorganization is in-progress.
-    val blockHashes =
-    Blockchain.get.synchronized {
-
-      // Step 2 : Skip the common block, start building the list of block hashes from the next block of the common block.
-      //          Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
-      locator.getHashes(BlockLocatorHashes(getBlocks.blockLocatorHashes), getBlocks.hashStop, maxHashCount = MAX_HASH_PER_REQUEST)
-    }
+    // Step 2 : Skip the common block, start building the list of block hashes from the next block of the common block.
+    //          Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
+    val blockHashes = locator.getHashes(BlockLocatorHashes(getBlocks.blockLocatorHashes), getBlocks.hashStop, maxHashCount = MAX_HASH_PER_REQUEST)
 
     // TODO : BUGBUG : Bitcoin Core compatibility - Need to drop the last hash if it matches getBlocks.hashStop.
     val filteredBlockHashes = blockHashes

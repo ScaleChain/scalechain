@@ -18,7 +18,7 @@ case class BlockLocatorHashes(hashes : List[Hash])
   *
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
-class BlockLocator(chain : Blockchain)(implicit db : KeyValueDatabase) {
+class BlockLocator(chain : Blockchain) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockLocator]) )
 
   /** Get the summary of block hashes that this node has.
@@ -34,7 +34,7 @@ class BlockLocator(chain : Blockchain)(implicit db : KeyValueDatabase) {
     val env = ChainEnvironment.get
 
     val listBuf = ListBuffer[Hash]()
-    chain.synchronized {
+    chain.withTransaction { implicit transactingDB =>
       var blockHeight = chain.getBestBlockHeight() // The height of the block we are processing.
       var addedHashes = 0 // The number of hashes added to the list.
       var heightSteps = 1 // For each loop, how may heights do we jump?
@@ -75,7 +75,7 @@ class BlockLocator(chain : Blockchain)(implicit db : KeyValueDatabase) {
     val listBuf = new ListBuffer[Hash]()
 
     // TODO : Optimize : Can we remove the chain.synchronized, as putBlock is atomic? ( May require using a RocksDB snapshot )
-    chain.synchronized {
+    chain.withTransaction { implicit transactingDB =>
       // Step 1 : Find any matching hash from the list of locator hashes
       // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.
       //

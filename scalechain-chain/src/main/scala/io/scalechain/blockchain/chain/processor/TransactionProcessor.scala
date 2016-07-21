@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
-object TransactionProcessor extends TransactionProcessor(Blockchain.get)(Blockchain.get.db)
+object TransactionProcessor extends TransactionProcessor(Blockchain.get)
 
 /** Processes a received transaction.
   *
   */
-class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
+class TransactionProcessor(val chain : Blockchain) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionProcessor]) )
 
   /** See if a transaction exists. Checks orphan transactions as well.
@@ -23,7 +23,7 @@ class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabas
     * @param txHash The hash of the transaction to check the existence.
     * @return true if the transaction was found; None otherwise.
     */
-  def exists(txHash : Hash) : Boolean = {
+  def exists(txHash : Hash)(implicit db : KeyValueDatabase) : Boolean = {
     chain.hasTransaction(txHash) || chain.txOrphanage.hasOrphan(txHash)
   }
 
@@ -33,7 +33,7 @@ class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabas
     * @param txHash The hash of the transaction to get.
     * @return Some(transaction) if the transaction was found; None otherwise.
     */
-  def getTransaction(txHash : Hash) : Option[Transaction] = {
+  def getTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
     chain.getTransaction(txHash)
   }
 
@@ -46,10 +46,12 @@ class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabas
     * @param transaction The transaction to add to the disk-pool.
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def putTransaction(txHash : Hash, transaction : Transaction) : Unit = {
-    // TODO : Need to check if the validity of the transation?
-    chain.withTransaction { implicit transactingDB =>
-      chain.putTransaction(txHash, transaction)(transactingDB)
+  def putTransaction(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
+    synchronized { // To prevent double spends, we need to synchronize transactions to put.
+      // TODO : Need to check if the validity of the transation?
+      chain.withTransaction { implicit transactingDB =>
+        chain.putTransaction(txHash, transaction)(transactingDB)
+      }
     }
   }
 
@@ -59,53 +61,57 @@ class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabas
     * @param initialParentTxHash The hash of the parent transaction that an orphan might depend on.
     * @return The list of hashes of accepted children transactions.
     */
-  def acceptChildren(initialParentTxHash : Hash) : List[Hash] = {
-    val acceptedChildren = new ArrayBuffer[Hash]
+  def acceptChildren(initialParentTxHash : Hash)(implicit db : KeyValueDatabase) : List[Hash] = {
+    synchronized { // do not allow two threads run acceptChildren at the same time.
+      val acceptedChildren = new ArrayBuffer[Hash]
 
-    var i = -1;
-    do {
-      val parentTxHash = if (acceptedChildren.length == 0) initialParentTxHash else acceptedChildren(i)
+      var i = -1;
+      do {
+        val parentTxHash = if (acceptedChildren.length == 0) initialParentTxHash else acceptedChildren(i)
 
-      val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
-      dependentChildren foreach { dependentChildHash : Hash =>
-        val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
-        if (dependentChild.isDefined) {
-          try {
-            //println(s"trying to accept a child. ${dependentChildHash}")
-            // Try to add to the transaction pool.
-            putTransaction(dependentChildHash, dependentChild.get)
-            // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
-            acceptedChildren.append(dependentChildHash)
-            // del the orphan
-            chain.txOrphanage.delOrphan(dependentChildHash)
+        val dependentChildren : List[Hash] = chain.txOrphanage.getOrphansDependingOn(parentTxHash)
 
-            //println(s"accepted a child. ${dependentChildHash}")
+        chain.withTransaction { transactionalDB =>
+          dependentChildren foreach { dependentChildHash : Hash =>
+            val dependentChild = chain.txOrphanage.getOrphan(dependentChildHash)
+            if (dependentChild.isDefined) {
+              try {
+                //println(s"trying to accept a child. ${dependentChildHash}")
+                // Try to add to the transaction pool.
+                putTransaction(dependentChildHash, dependentChild.get)
+                // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
+                acceptedChildren.append(dependentChildHash)
+                // del the orphan
+                chain.txOrphanage.delOrphan(dependentChildHash)
 
-          } catch {
-            case e : ChainException => {
-              if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
-                // do nothing.
-                // TODO : Add a test case.
-              } else if ( e.code == ErrorCode.ParentTransactionNotFound) { // The transaction depends on another parent transaction.
-                // do nothing. Still an orphan transaction.
-                // TODO : Add a test case.
-              } else {
-                throw e
+                //println(s"accepted a child. ${dependentChildHash}")
+
+              } catch {
+                case e : ChainException => {
+                  if (e.code == ErrorCode.TransactionOutputAlreadySpent) { // The orphan turned out to be a conflicting transaction.
+                    // do nothing.
+                    // TODO : Add a test case.
+                  } else if ( e.code == ErrorCode.ParentTransactionNotFound) { // The transaction depends on another parent transaction.
+                    // do nothing. Still an orphan transaction.
+                    // TODO : Add a test case.
+                  } else {
+                    throw e
+                  }
+                }
               }
+            } else {
+              // The orphan tranasction was already deleted. nothing to do.
             }
           }
-        } else {
-          // The orphan tranasction was already deleted. nothing to do.
+
+          chain.txOrphanage.removeDependenciesOn(parentTxHash)
         }
-      }
+        i += 1
+      } while( i < acceptedChildren.length)
 
-      chain.txOrphanage.removeDependenciesOn(parentTxHash)
-
-      i += 1
-    } while( i < acceptedChildren.length)
-
-    // Remove duplicate by converting to a set, and return as a list.
-    acceptedChildren.toSet.toList
+      // Remove duplicate by converting to a set, and return as a list.
+      acceptedChildren.toSet.toList
+    }
   }
 
   /**
@@ -114,7 +120,7 @@ class TransactionProcessor(val chain : Blockchain)(implicit db : KeyValueDatabas
     * @param txHash The hash of the orphan transaction
     * @param transaction The orphan transaction.
     */
-  def putOrphan(txHash : Hash, transaction : Transaction) : Unit = {
+  def putOrphan(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
     chain.txOrphanage.putOrphan(txHash, transaction)
   }
 }

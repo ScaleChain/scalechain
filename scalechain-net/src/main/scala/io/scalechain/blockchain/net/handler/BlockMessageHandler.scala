@@ -2,6 +2,9 @@ package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.net.{BlockGateway, TimeBasedCache}
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.net.BlockGateway
 import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto._
 import io.scalechain.util.Config
