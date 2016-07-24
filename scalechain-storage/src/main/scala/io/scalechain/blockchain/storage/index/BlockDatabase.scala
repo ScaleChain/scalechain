@@ -34,7 +34,7 @@ trait BlockDatabase {
   import DatabaseTablePrefixes._
 
   def getBlockInfo(hash : Hash)(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
-    db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
+    db.getObject[Hash, BlockInfo](BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
   }
 
   /** Get the block hash at the given height on the best blockchain.
@@ -43,7 +43,7 @@ trait BlockDatabase {
     * @return The hash of the block at the height on the best blockchain.
     */
   def getBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Option[Hash] = {
-    db.getObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec, HashCodec)
+    db.getObject[BlockHeight, Hash](BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec, HashCodec)
   }
 
   /** Put the block hash searchable by height.
@@ -109,7 +109,7 @@ trait BlockDatabase {
   }
 
   def getBestBlockHash()(implicit db : KeyValueDatabase) : Option[Hash] = {
-    db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
+    db.getObject[Hash](Array(BEST_BLOCK_HASH))(HashCodec)
   }
 }
 
@@ -158,7 +158,7 @@ trait BlockDatabaseForRecordStorage extends BlockDatabase {
   }
 
   def getBlockFileInfo(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Option[BlockFileInfo] = {
-    db.getObject(BLOCK_FILE_INFO, fileNumber)(FileNumberCodec, BlockFileInfoCodec)
+    db.getObject[FileNumber, BlockFileInfo](BLOCK_FILE_INFO, fileNumber)(FileNumberCodec, BlockFileInfoCodec)
   }
 
   def putLastBlockFile(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Unit = {
@@ -173,7 +173,7 @@ trait BlockDatabaseForRecordStorage extends BlockDatabase {
   }
 
   def getLastBlockFile()(implicit db : KeyValueDatabase) : Option[FileNumber] = {
-    db.getObject(Array(LAST_BLOCK_FILE))(FileNumberCodec)
+    db.getObject[FileNumber](Array(LAST_BLOCK_FILE))(FileNumberCodec)
   }
 
 }

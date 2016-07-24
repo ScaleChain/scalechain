@@ -6,7 +6,8 @@ import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
 import io.scalechain.io.InputOutputStream
-import io.scalechain.util.{ByteArray, ByteArrayAndVectorConverter}
+import io.scalechain.util.{ArrayUtil, ByteArray, ByteArrayAndVectorConverter}
+import org.apache.commons.collections4.map.LRUMap
 import scodec.{DecodeResult, Attempt, Codec}
 import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
@@ -14,8 +15,7 @@ import scodec.codecs._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
-
-trait SerializeParseUtil[T] {
+trait SerializeParseBase[T] {
   val codec : Codec[T]
 
   def serialize(obj : T) : Array[Byte] = {
@@ -87,6 +87,101 @@ trait SerializeParseUtil[T] {
     val bitVector: BitVector = BitVector.view(data)
     parseManyInternal(bitVector, decodedItems)
     decodedItems.toList
+  }
+}
+
+case class ParseCacheEntry[T](obj : T, serialized : Array[Byte])
+
+class Cache[T](count : Int) {
+  type SerializeCache = LRUMap[T, Array[Byte]]
+  type ParseCache = LRUMap[Int, ParseCacheEntry[T]]
+  var hitCount : Int = 0
+  var missCount : Int = 0
+  def parseCacheKey(serializedData : Array[Byte]): Int = {
+    (if (serializedData.length >= 1) (serializedData(0).toInt) else 0) +
+    (if (serializedData.length >= 2) (serializedData(1).toInt << 8) else 0) +
+    (if (serializedData.length >= 3) (serializedData(2).toInt << 16) else 0) +
+    (if (serializedData.length >= 3) (serializedData(3).toInt << 24) else 0)
+  }
+  val serializeCache = new SerializeCache(count)
+  val parseCache = new ParseCache(count)
+
+  def put(obj : T, serializedData : Array[Byte]) : Unit = {
+    serializeCache.put(obj, serializedData)
+    val key = parseCacheKey(serializedData)
+    parseCache.put(key, ParseCacheEntry(obj, serializedData))
+  }
+
+  /**
+    * Get the serialized array of an object from the cache.
+    *
+    * @param obj The input object.
+    * @return A non-null byte array if there is an entry in the cache. Null otherwise.
+    */
+  def get(obj : T) : Array[Byte] = {
+    val cached = serializeCache.get(obj)
+    if (cached == null) {
+      missCount += 1
+    } else {
+      hitCount += 1
+    }
+    cached
+  }
+
+  /**
+    * Get the deserialized object from a serialized array from the cache.
+    *
+    * @param serializedData The serialized data.
+    * @return A non-null object reference if there is an entry in the cache. Null otherwise.
+    */
+  def get(serializedData : Array[Byte]) : Option[T] = {
+    val key = parseCacheKey(serializedData)
+    val candidate = parseCache.get(key)
+    if (candidate == null) {
+      missCount += 1
+      None
+    } else {
+      if (ArrayUtil.isEqual(serializedData, candidate.serialized)) {
+        hitCount += 1
+        Some(candidate.obj)
+      } else {
+        missCount += 1
+        None
+      }
+    }
+  }
+  override def toString = s"Cache(missCount=${missCount}, hitCount=${hitCount})"
+}
+
+object SerializeParseUtil {
+  val CacheSize = 1024
+}
+
+trait SerializeParseUtil[T] extends SerializeParseBase[T] {
+  import SerializeParseUtil._
+  val cache = new Cache[T](CacheSize)
+
+  override def serialize(obj : T) : Array[Byte] = {
+//    println(s"${obj.getClass.getCanonicalName}"+cache)
+    val cached = cache.get(obj)
+    if (cached == null) {
+      val serialized = super.serialize(obj)
+      cache.put(obj, serialized)
+      serialized
+    } else {
+      cached
+    }
+  }
+
+  override def parse(data: Array[Byte]) : T = {
+    val cached = cache.get(data)
+    if (cached.isEmpty) {
+      val parsed = super.parse(data)
+      cache.put(parsed, data)
+      parsed
+    } else {
+      cached.get
+    }
   }
 }
 

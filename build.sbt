@@ -13,6 +13,8 @@ libraryDependencies in ThisBuild ++= Seq(
     "org.scalacheck"%% "scalacheck" % "1.12.5",
 // latest :    
 //    "org.scalacheck"%% "scalacheck" % "1.13.1",
+    // For LRUMap in for caching data.
+    "org.apache.commons" % "commons-collections4" % "4.1",
     // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
     "commons-io" % "commons-io" % "2.5")
 

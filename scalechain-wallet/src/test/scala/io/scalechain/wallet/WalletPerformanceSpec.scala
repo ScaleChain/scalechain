@@ -242,7 +242,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
   }
 
-  "single thread perf test" should "measure performance by adding transactions to the pool" ignore {
+  "single thread perf test" should "measure performance by adding transactions to the pool" in {
     val data = new BlockSampleData()
     import data._
     import data.Block._
@@ -347,7 +347,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
 
-  "multi thread perf test" should "measure performance by adding transactions to the pool" in {
+  "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = new BlockSampleData()
     import data._
     import data.Block._

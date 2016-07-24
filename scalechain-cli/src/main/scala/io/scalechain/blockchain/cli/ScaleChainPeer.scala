@@ -12,7 +12,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.{BlockPrinterSetter}
 import io.scalechain.blockchain.storage._
-import io.scalechain.blockchain.storage.index.{CachedRocksDatabase, RocksDatabase, KeyValueDatabase}
+import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.{CoinAddress, SigHash, PrivateKey, ChainEnvironment}
 import io.scalechain.util.{PeerAddress, NetUtil, HexUtil, Config}
 import io.scalechain.util.HexUtil._
@@ -144,7 +144,7 @@ object ScaleChainPeer {
     val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
 
-    val indexDb : RocksDatabase = new CachedRocksDatabase(blockStoragePath)
+    val indexDb : RocksDatabase = new RocksDatabase(blockStoragePath)
     implicit val db : KeyValueDatabase = indexDb
 
     val storage: BlockStorage =

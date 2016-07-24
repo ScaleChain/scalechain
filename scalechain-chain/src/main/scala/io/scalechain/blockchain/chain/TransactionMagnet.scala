@@ -71,6 +71,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           outputsSpentBy = outputsSpentBy
         )
       )
+      // Note that txPoolEntryOption can be defined,
+      // because the same transaction can be attached at the same time while (1) attaching a block by putBlock (2) attaching a transaction by putTransaction
     }
   }
 

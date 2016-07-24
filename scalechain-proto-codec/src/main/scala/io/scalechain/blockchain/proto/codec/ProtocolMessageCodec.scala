@@ -16,7 +16,7 @@ import scodec.{DecodeResult, Attempt, Codec}
   *
   * Source : https://en.bitcoin.it/wiki/Protocol_documentation
   */
-trait ProtocolMessageCodec[T <: ProtocolMessage] extends MessagePartCodec[T] {
+trait ProtocolMessageCodec[T >: Null <: ProtocolMessage] extends MessagePartCodec[T] {
 
   val command : String
   val clazz : Class[T]
