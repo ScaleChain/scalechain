@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 trait BlockStorage extends BlockDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with OrphanBlockIndex with OrphanTransactionIndex {
   private val logger = Logger( LoggerFactory.getLogger(classOf[BlockStorage]) )
 
-  def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : List[TransactionLocator]
+  def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : Unit
   def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction]
   def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)]
 
@@ -30,7 +30,7 @@ trait BlockStorage extends BlockDatabase with BlockIndex with TransactionDescrip
     getBlockInfo(hash).get.nextBlockHash
   }
 
-  def putBlock(block : Block)(implicit db : KeyValueDatabase) : List[TransactionLocator] = {
+  def putBlock(block : Block)(implicit db : KeyValueDatabase) : Unit = {
     putBlock(block.header.hash, block)
   }
 

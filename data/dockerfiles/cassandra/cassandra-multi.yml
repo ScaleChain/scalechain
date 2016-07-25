@@ -33,7 +33,31 @@ services:
     depends_on:
       - cassandra-02
     restart: always
-        
+  cassandra-04:
+    image: cassandra
+    container_name: cassandra-04
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-04"
+      CASSANDRA_SEEDS: "cassandra-01"
+    ports:
+    - 7000
+    - "9042:9042"
+    depends_on:
+      - cassandra-03
+    restart: always
+  cassandra-05:
+    image: cassandra
+    container_name: cassandra-05
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-05"
+      CASSANDRA_SEEDS: "cassandra-01"
+    ports:
+    - 7000
+    - "9042:9042"
+    depends_on:
+      - cassandra-04
+    restart: always
+
 networks:
   default:
     external:

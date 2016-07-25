@@ -125,73 +125,62 @@ class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : Ke
     * @return Boolean true if the block header or block was not existing, and it was put for the first time. false otherwise.
     *                 submitblock rpc uses this method to check if the block to submit is a new one on the database.
     */
-  def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : List[TransactionLocator] = {
+  def putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : Unit = {
     val blockInfo: Option[BlockInfo] = getBlockInfo(blockHash)
     var isNewBlock = false
 
-    val txLocators: List[TransactionLocator] =
-      if (blockInfo.isDefined) {
-        // case 1 : block info was found
-        if (blockInfo.get.blockLocatorOption.isEmpty) {
-          // case 1.1 : block info without a block locator was found
-          val appendResult = blockWriter.appendBlock(block)
-          val newBlockInfo = blockInfo.get.copy(
-            transactionCount = block.transactions.size,
-            blockLocatorOption = Some(appendResult.blockLocator)
-          )
-          putBlockInfo(blockHash, newBlockInfo)
-          val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-          updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
-
-          //logger.info("The block locator was updated. block hash : {}", blockHash)
-          appendResult.txLocators
-        } else {
-          // case 1.2 block info with a block locator was found
-          // The block already exists. Do not put it once more.
-          logger.trace("The block already exists. block hash : {}", blockHash)
-
-          List()
-        }
+    if (blockInfo.isDefined) {
+      // case 1 : block info was found
+      if (blockInfo.get.blockLocatorOption.isEmpty) {
+        // case 1.1 : block info without a block locator was found
+        val appendResult = blockWriter.appendBlock(block)
+        val newBlockInfo = blockInfo.get.copy(
+          transactionCount = block.transactions.size,
+          blockLocatorOption = Some(appendResult.blockLocator)
+        )
+        putBlockInfo(blockHash, newBlockInfo)
+        val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+        updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
+        //logger.info("The block locator was updated. block hash : {}", blockHash)
       } else {
-        // case 2 : no block info was found.
-        // get the info of the previous block, to calculate the height and chain-work of the given block.
-        val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
-
-        // Either the previous block should exist or the block should be the genesis block.
-        if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
-          // case 2.1 : no block info was found, previous block header exists.
-          val appendResult = blockWriter.appendBlock(block)
-
-          val blockInfo = BlockInfoFactory.create(
-            // For the genesis block, the prevBlockInfoOption is None.
-            prevBlockInfoOption,
-            block.header,
-            blockHash,
-            block.transactions.length, // transaction count
-            Some(appendResult.blockLocator) // block locator
-          )
-
-          putBlockInfo(blockHash, blockInfo)
-
-          val blockHeight = blockInfo.height
-          val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
-          updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
-
-          isNewBlock = true
-          //logger.info("The new block was put. block hash : {}", blockHash)
-
-          appendResult.txLocators
-        } else {
-          // case 2.2 : no block info was found, previous block header does not exists.
-          // Actually the code execution should never come to here, because we have checked if the block is an orphan block
-          // before invoking putBlock method.
-          logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
-
-          List()
-        }
+        // case 1.2 block info with a block locator was found
+        // The block already exists. Do not put it once more.
+        logger.trace("The block already exists. block hash : {}", blockHash)
       }
+    } else {
+      // case 2 : no block info was found.
+      // get the info of the previous block, to calculate the height and chain-work of the given block.
+      val prevBlockInfoOption: Option[BlockInfo] = getBlockInfo(Hash(block.header.hashPrevBlock.value))
 
-    txLocators
+      // Either the previous block should exist or the block should be the genesis block.
+      if (prevBlockInfoOption.isDefined || block.header.hashPrevBlock.isAllZero()) {
+        // case 2.1 : no block info was found, previous block header exists.
+        val appendResult = blockWriter.appendBlock(block)
+
+        val blockInfo = BlockInfoFactory.create(
+          // For the genesis block, the prevBlockInfoOption is None.
+          prevBlockInfoOption,
+          block.header,
+          blockHash,
+          block.transactions.length, // transaction count
+          Some(appendResult.blockLocator) // block locator
+        )
+
+        putBlockInfo(blockHash, blockInfo)
+
+        val blockHeight = blockInfo.height
+        val fileSize = blockRecordStorage.files(appendResult.headerLocator.fileIndex).size
+        updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
+
+        isNewBlock = true
+        //logger.info("The new block was put. block hash : {}", blockHash)
+      } else {
+        // case 2.2 : no block info was found, previous block header does not exists.
+        // Actually the code execution should never come to here, because we have checked if the block is an orphan block
+        // before invoking putBlock method.
+        logger.trace("An orphan block was discarded while saving a block. block hash : {}", block.header)
+      }
+    }
   }
 
   /** Return a transaction that matches the given transaction hash.
