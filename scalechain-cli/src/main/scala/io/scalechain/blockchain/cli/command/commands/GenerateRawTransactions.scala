@@ -179,8 +179,8 @@ object GenerateRawTransactions extends Command {
               val rawSplitTransaction = HexUtil.hex(TransactionCodec.serialize(signedSplitTx))
               val rawMergeTransaction = HexUtil.hex(TransactionCodec.serialize(signedMergeTx))
 
-              writer.append(rawSplitTransaction)
-              writer.append(rawMergeTransaction)
+              writer.println(rawSplitTransaction)
+              writer.println(rawMergeTransaction)
 
               txHash = signedMergeTx.hash
               outputIndex = 0 // From now on, we will use only the first output in the mergeTx
