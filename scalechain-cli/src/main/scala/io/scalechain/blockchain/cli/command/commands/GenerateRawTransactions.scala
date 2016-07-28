@@ -15,6 +15,7 @@ import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
 import org.apache.commons.io.FileUtils
 import HashSupported._
+import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -22,14 +23,15 @@ import scala.util.Random
 
 
 object TransactionGenerator {
-  def create : TransactionGenerator = {
-    Storage.initialize()
-    val walletDbPath = new File(s"./target/transaction-generator-${Random.nextLong}")
-    FileUtils.deleteDirectory(walletDbPath)
-    walletDbPath.mkdir()
+  Storage.initialize()
+  val walletDbPath = new File(s"./target/transaction-generator-${Random.nextLong}")
+  FileUtils.deleteDirectory(walletDbPath)
+  walletDbPath.mkdir()
 
-    val db : KeyValueDatabase = new RocksDatabase(walletDbPath)
-    val wallet = Wallet.create
+  val db : KeyValueDatabase = new RocksDatabase(walletDbPath)
+  val wallet = Wallet.create
+
+  def create : TransactionGenerator = {
     new TransactionGenerator(wallet)(db)
   }
 }
@@ -38,7 +40,7 @@ object TransactionGenerator {
 class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) extends AutoCloseable {
 
   val chainView = new BlockchainView {
-    val txMap = new mutable.HashMap[Hash, Transaction]()
+    val txMap = new ConcurrentHashMap[Hash, Transaction]()
     val availableOutputs = new TransactionOutputSet()
 
     def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
@@ -51,7 +53,8 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) exte
     }
 
     def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
-      txMap.get(transactionHash)
+      val tx = txMap.get(transactionHash)
+      if (tx == null) None else Some(tx)
     }
 
     def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
@@ -128,14 +131,7 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) exte
   * Created by kangmo on 7/28/16.
   */
 object GenerateRawTransactions extends Command {
-  def invoke(command : String, args : Array[String]) = {
-    val privateKeyString = args(1)
-    val outputSplitCount = Integer.parseInt(args(2))
-    val transactionGroupCount = Integer.parseInt(args(3))
-    val transactionCountPerGroup = Integer.parseInt(args(4))
-
-    val privateKey = PrivateKey.from(privateKeyString)
-
+  def createSplitTransaction( privateKey : PrivateKey, transactionGroupCount : Int) : Transaction = {
     // Assumption : The output of the generation transaction of the block height 1 (right above the genesis block)
     //              can be spent by using the given private key.
     //              (1) For a node, scalechain.mining.address in scalechain.conf should have the address generated from the given private key.
@@ -145,28 +141,46 @@ object GenerateRawTransactions extends Command {
     val txGenerator = TransactionGenerator.create
     txGenerator.addTransaction(generationTx)
 
-
     val txGroupAddresses = txGenerator.newAddresses(transactionGroupCount)
 
     // The transaction that splits the output of the generation tx into N outputs owned by tx group addresses.
-    val unsignedInitialSplitTransaction =  txGenerator.newTransaction(generationTx.hash, 0, 0, txGroupAddresses)
-    val initialSplitTransaction = txGenerator.signTransaction( unsignedInitialSplitTransaction, Some(List(privateKey)) )
+    val unsignedInitialSplitTransaction = txGenerator.newTransaction(generationTx.hash, 0, 0, txGroupAddresses)
+    val initialSplitTransaction = txGenerator.signTransaction(unsignedInitialSplitTransaction, Some(List(privateKey)))
     txGenerator.addTransaction(initialSplitTransaction)
 
+    // Write the initial split transaction.
+    val writer = new PrintWriter(new File(s"initial-split-transaction.txt"))
+    val rawInitialSplitTransaction = HexUtil.hex(TransactionCodec.serialize(initialSplitTransaction))
+    writer.append(rawInitialSplitTransaction)
+    writer.close
+
+    initialSplitTransaction
+  }
+  def invoke(command : String, args : Array[String]) = {
+    val privateKeyString = args(1)
+    val outputSplitCount = Integer.parseInt(args(2))
+    val transactionGroupCount = Integer.parseInt(args(3))
+    val transactionCountPerGroup = Integer.parseInt(args(4))
+
+    val privateKey = PrivateKey.from(privateKeyString)
+
+    val initialSplitTransaction = createSplitTransaction(privateKey, transactionGroupCount)
     val initialSplitTxHash = initialSplitTransaction.hash
 
-//    val threads =
+    val threads =
       (0 until transactionGroupCount).map { i =>
-//        new Thread() {
+        new Thread() {
           var outputIndex = i
+          val txGenerator = TransactionGenerator.create
+          txGenerator.addTransaction(initialSplitTransaction)
           val splitAddresses = txGenerator.newAddresses(outputSplitCount)
           val mergeAddresses = txGenerator.newAddresses(1)
-          //override def run(): Unit = {
+          override def run(): Unit = {
             val writer = new PrintWriter(new File(s"transaction-group-${i}.txt"))
             var txHash : Hash = initialSplitTxHash
-            for (i <- 1 to transactionCountPerGroup/2) {
-              if ( ((i >> 10) << 10) == i) { // i % 1024 = 0
-                println(s"Processing ${i*2} transactions")
+            for (t <- 1 to transactionCountPerGroup/2) {
+              if ( ((t >> 7) << 7) == t) { // t % 128 = 0
+                println(s"Processing ${t*2} transactions")
               }
               val splitTx = txGenerator.newTransaction(txHash, outputIndex, outputIndex, splitAddresses )
               val signedSplitTx = txGenerator.signTransaction( splitTx )
@@ -186,18 +200,12 @@ object GenerateRawTransactions extends Command {
               outputIndex = 0 // From now on, we will use only the first output in the mergeTx
             }
             writer.close
-          //}
-  //      }
+          }
+        }
       }
 
-//    threads foreach { _.start } // Start all threads
-//    threads foreach { _.join }  // Join all threads
-
-    // Write the initial split transaction.
-    val writer = new PrintWriter(new File(s"initial-split-transaction.txt"))
-    val rawInitialSplitTransaction = HexUtil.hex(TransactionCodec.serialize(initialSplitTransaction))
-    writer.append(rawInitialSplitTransaction)
-    writer.close
+    threads foreach { _.start } // Start all threads
+    threads foreach { _.join }  // Join all threads
   }
 
   def generationTransaction( height : Long, privateKey: PrivateKey) = {

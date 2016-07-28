@@ -14,7 +14,9 @@ libraryDependencies in ThisBuild ++= Seq(
 // latest :    
 //    "org.scalacheck"%% "scalacheck" % "1.13.1",
     // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
-    "commons-io" % "commons-io" % "2.5")
+    "commons-io" % "commons-io" % "2.5",
+    "org.eclipse.collections" % "eclipse-collections" % "7.1.0",
+    "org.eclipse.collections" % "eclipse-collections-api" % "7.1.0" )
 
 fork in test := true
 traceLevel in run := 0
