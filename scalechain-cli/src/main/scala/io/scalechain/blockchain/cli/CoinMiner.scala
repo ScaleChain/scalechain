@@ -45,7 +45,7 @@ object CoinMiner {
 
 
   def coinbaseData(height : Long) = {
-    CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+    CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
   }
 }
 
@@ -118,9 +118,12 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
             if (bestBlockHeight < Config.InitialSetupBlocks) {
               val receivingAddress = wallet.getReceivingAddress(minerAccount)
               if (Config.hasPath("scalechain.mining.address") ) {
+                println("TEST : has path : scalechain.mining.address")
                 val miningAddressString = Config.getString("scalechain.mining.address")
+                println("TEST : mining address string : miningAddressString")
                 if (receivingAddress.base58() != miningAddressString) {
                   val miningAddress = CoinAddress.from(miningAddressString)
+                  println(s"TEST : loading mining address : ${miningAddress.base58}")
                   // Import the given address, and set it as the receiving address of the mining account
                   wallet.importOutputOwnership(chain, minerAccount, miningAddress, false)
 
@@ -128,15 +131,19 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   // This is to create the first block on top of the genesis block to have a generation transaction
                   // with an output spendable by the scalechain.mining.address.
                   // To generate raw transactions deterministically for performance tests, we need to have the same generation transaction hash for the block with height 1.
+                  miningAddress
                 } else {
+                  println("TEST : mining address loaded")
+
                   // After the first block, sleep like other nodes.
                   Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+                  receivingAddress
                 }
               } else {
                 // To give the node that has 'scalechain.mining.address' to mine the first block, sleep at least params.HashDelayMS.
                 Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+                receivingAddress
               }
-              receivingAddress
             } else {
               Thread.sleep(random.nextInt(params.HashDelayMS))
               wallet.getReceivingAddress("internal")
