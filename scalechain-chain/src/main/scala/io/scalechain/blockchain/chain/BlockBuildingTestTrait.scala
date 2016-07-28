@@ -67,7 +67,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
                              amount : CoinAmount,
                              generatedBy : OutputOwnership
                            ) : TransactionWithName = {
-    val transaction = TransactionBuilder.newBuilder(availableOutputs)
+    val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
       .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo."))
       .addOutput(CoinAmount(50), generatedBy)
@@ -96,10 +96,10 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     * @return
     */
   def normalTransaction( name : String, spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) : TransactionWithName = {
-    val builder = TransactionBuilder.newBuilder(availableOutputs)
+    val builder = TransactionBuilder.newBuilder()
 
     spendingOutputs foreach { output =>
-      builder.addInput(output.outPoint)
+      builder.addInput(availableOutputs, output.outPoint)
     }
 
     newOutputs foreach { output =>

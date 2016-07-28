@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.net.handler.BlockMessageHandler
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
+import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util._
 import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
 import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
@@ -43,7 +44,9 @@ object CoinMiner {
 
 
 
-
+  def coinbaseData(height : Long) = {
+    CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+  }
 }
 
 
@@ -113,18 +116,38 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // The mined coin goes to minerAccount if the best block height is less than INITIAL_SETUP_BLOCKS.
           val minerAddress =
             if (bestBlockHeight < Config.InitialSetupBlocks) {
-              wallet.getReceivingAddress(minerAccount)
+              val receivingAddress = wallet.getReceivingAddress(minerAccount)
+              if (Config.hasPath("scalechain.mining.address") ) {
+                val miningAddressString = Config.getString("scalechain.mining.address")
+                if (receivingAddress.base58() != miningAddressString) {
+                  val miningAddress = CoinAddress.from(miningAddressString)
+                  // Import the given address, and set it as the receiving address of the mining account
+                  wallet.importOutputOwnership(chain, minerAccount, miningAddress, false)
+
+                  // If the scalechain.mining.address is specified, do not sleep for the initial setup blocks.
+                  // This is to create the first block on top of the genesis block to have a generation transaction
+                  // with an output spendable by the scalechain.mining.address.
+                  // To generate raw transactions deterministically for performance tests, we need to have the same generation transaction hash for the block with height 1.
+                } else {
+                  // After the first block, sleep like other nodes.
+                  Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+                }
+              } else {
+                // To give the node that has 'scalechain.mining.address' to mine the first block, sleep at least params.HashDelayMS.
+                Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+              }
+              receivingAddress
             } else {
+              Thread.sleep(random.nextInt(params.HashDelayMS))
               wallet.getReceivingAddress("internal")
             }
 
-          Thread.sleep(random.nextInt(params.HashDelayMS))
 
           //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 
           if (canMine) {
             //chain.synchronized {
-              val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+              val COINBASE_MESSAGE = coinbaseData(chain.getBestBlockHeight() + 1)
               // Step 2 : Create the block template
               val bestBlockHash = chain.getBestBlockHash()
               if (bestBlockHash.isDefined) {

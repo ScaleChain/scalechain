@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.cli.api
+package io.scalechain.blockchain.cli.command
 
 import java.io.IOException
 

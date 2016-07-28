@@ -6,7 +6,7 @@ import java.util
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.cli.api.{RpcInvoker, Parameters}
+import io.scalechain.blockchain.cli.command.{RpcInvoker, Parameters}
 import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.TransactionCodec

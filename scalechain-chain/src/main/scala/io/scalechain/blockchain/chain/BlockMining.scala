@@ -46,6 +46,7 @@ class TemporaryCoinsView(coinsView : CoinsView) extends CoinsView {
   }
 }
 
+
 /**
   * Created by kangmo on 6/9/16.
   */
@@ -107,14 +108,11 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
       transactionPool.removeTransactionFromPool(txHash)
     }
 
-    val generationTranasction =
-      TransactionBuilder.newBuilder(coinsView)
-        .addGenerationInput(coinbaseData)
-        .addOutput(CoinAmount(50), minerAddress)
-        .build()
+    val generationTransaction =
+      TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
 
     // Select transactions by priority and fee. Also, sort them.
-    val sortedTransactions = selectTransactions(generationTranasction, validTransactions, maxBlockSize)
+    val sortedTransactions = selectTransactions(generationTransaction, validTransactions, maxBlockSize)
 
     new BlockTemplate(difficultyBits, sortedTransactions)
   }
