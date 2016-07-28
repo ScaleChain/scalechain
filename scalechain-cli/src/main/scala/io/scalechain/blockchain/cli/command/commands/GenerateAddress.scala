@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.cli.command.commands
 
 import io.scalechain.blockchain.transaction.{CoinAddress, PublicKey, PrivateKey}
+import io.scalechain.util.HexUtil
 
 
 /**
@@ -15,6 +16,7 @@ object GenerateAddress extends Command {
     println(
       s"""
         |private key : ${privateKey.base58}
+        |public key hash : ${HexUtil.hex(publicKey.getHash().bytes)}
         |address : ${address.base58()}
       """.stripMargin
     )
