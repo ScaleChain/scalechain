@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.cli.command.commands
+package io.scalechain.blockchain.cli.command
 
 /**
   * Created by kangmo on 7/28/16.

@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.cli.command
 
-import io.scalechain.blockchain.cli.command.commands.Commands
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
 
@@ -45,6 +44,11 @@ object CommandExecutor {
         c.copy(command = "generaterawtransactions") } text("generaterawtransactions generates transactions.") children {
         arg[String]("<private key> <output split count> <transaction group count> <transaction count for each group>") minOccurs(4) maxOccurs(4) required() action { (x, c) =>
           c.copy(args = args :+ x) } text("provide the private key to get coins to test, the number of outputs for split transactions to use, transaction group count for the parallelism in your test, the number of transactions for each group.")
+      }
+      cmd("multithreadtestlayers") required() action { (_, c) =>
+        c.copy(command = "multithreadtestlayers") } text("multithreadtestlayers tests each layer using multi-threads. You need to run generaterawtransaction to generate transaction files used as inputs of this RPC.") children {
+        arg[String]("<transaction group count>") minOccurs(1) maxOccurs(1) required() action { (x, c) =>
+          c.copy(args = args :+ x) } text("transaction group count for the parallelism in your test.")
       }
     }
 

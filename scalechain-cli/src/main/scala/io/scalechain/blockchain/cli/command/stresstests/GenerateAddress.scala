@@ -1,5 +1,6 @@
-package io.scalechain.blockchain.cli.command.commands
+package io.scalechain.blockchain.cli.command.stresstests
 
+import io.scalechain.blockchain.cli.command.Command
 import io.scalechain.blockchain.transaction.{CoinAddress, PublicKey, PrivateKey}
 import io.scalechain.util.HexUtil
 
