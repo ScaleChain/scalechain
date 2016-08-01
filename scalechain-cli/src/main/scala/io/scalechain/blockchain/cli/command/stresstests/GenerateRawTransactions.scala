@@ -5,7 +5,7 @@ import java.util
 
 import io.scalechain.blockchain.chain.{TransactionBuilder}
 import io.scalechain.blockchain.cli.CoinMiner
-import io.scalechain.blockchain.cli.command.Command
+import io.scalechain.blockchain.cli.command.{RpcParameters, Command}
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported
@@ -47,7 +47,7 @@ object GenerateRawTransactions extends Command {
 
     initialSplitTransaction
   }
-  def invoke(command : String, args : Array[String]) = {
+  def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
     val privateKeyString = args(1)
     val outputSplitCount = Integer.parseInt(args(2))
     val transactionGroupCount = Integer.parseInt(args(3))

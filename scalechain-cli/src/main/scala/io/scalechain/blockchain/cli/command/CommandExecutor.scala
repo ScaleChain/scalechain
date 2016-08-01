@@ -3,11 +3,15 @@ package io.scalechain.blockchain.cli.command
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
 
+case class RpcParameters(
+                          host : String = "localhost",
+                          port : Int = Config.getInt("scalechain.api.port"),
+                          user : String = Config.getString("scalechain.api.user"),
+                          password : String = Config.getString("scalechain.api.password")
+                        )
+
 case class Parameters(
-  host : String = "localhost",
-  port : Int = Config.getInt("scalechain.api.port"),
-  user : String = Config.getString("scalechain.api.user"),
-  password : String = Config.getString("scalechain.api.password"),
+  rpcParameters: RpcParameters = RpcParameters(),
   network : String = "testnet",
   command : String = null,
   args : Array[String] = Array())
@@ -21,13 +25,13 @@ object CommandExecutor {
     val parser = new scopt.OptionParser[Parameters]("scalechain-cli") {
       head("scalechain-cli", "1.0")
       opt[String]('h', "host") action { (x, c) =>
-        c.copy(host = x) } text("host of the ScaleChain Json-RPC service.")
+        c.copy(rpcParameters = c.rpcParameters.copy(host = x)) } text("host of the ScaleChain Json-RPC service.")
       opt[Int]('p', "port") action { (x, c) =>
-        c.copy(port = x) } text("port of the ScaleChain Json-RPC service.")
+        c.copy(rpcParameters = c.rpcParameters.copy(port = x)) } text("port of the ScaleChain Json-RPC service.")
       opt[String]('u', "user") action { (x, c) =>
-        c.copy(host = x) } text("The user name for RPC authentication")
+        c.copy(rpcParameters = c.rpcParameters.copy(user = x)) } text("The user name for RPC authentication")
       opt[String]('p', "password") action { (x, c) =>
-        c.copy(host = x) } text("The password for RPC authentication")
+        c.copy(rpcParameters = c.rpcParameters.copy(password = x)) } text("The password for RPC authentication")
       opt[String]('n', "network") action { (x, c) =>
         c.copy(network = x)
       } text ("The network to use. currently 'testnet' is supported. Will support 'mainnet' as well as 'regtest' soon.")
@@ -48,7 +52,12 @@ object CommandExecutor {
       cmd("multithreadtestlayers") required() action { (_, c) =>
         c.copy(command = "multithreadtestlayers") } text("multithreadtestlayers tests each layer using multi-threads. You need to run generaterawtransaction to generate transaction files used as inputs of this RPC.") children {
         arg[String]("<transaction group count>") minOccurs(1) maxOccurs(1) required() action { (x, c) =>
-          c.copy(args = args :+ x) } text("transaction group count for the parallelism in your test.")
+          c.copy(args = args :+ x) } text("provide transaction group count for the parallelism in your test.")
+      }
+      cmd("multithreadtestrpc") required() action { (_, c) =>
+        c.copy(command = "multithreadtestrpc") } text("multithreadtestrpc calls sendrawtransaction RPC using multi-threads. You need to run generaterawtransaction to generate transaction files used as inputs of this RPC.") children {
+        arg[String]("<node count> <transaction group count>") minOccurs(2) maxOccurs(2) required() action { (x, c) =>
+          c.copy(args = args :+ x) } text("provide node count, transaction group count for the parallelism in your test.")
       }
     }
 
@@ -63,9 +72,9 @@ object CommandExecutor {
 
         val commandOption = Commands.commandMap.get(params.command)
         if (commandOption.isDefined) { // If we have the command in the command map, execute it.
-          commandOption.get.invoke(params.command, params.args)
+          commandOption.get.invoke(params.command, params.args, params.rpcParameters)
         } else { // Otherwise, send the command as a RPC.
-          val response = RpcInvoker.invoke(params.command, params.args, params.host, params.port, params.user, params.password)
+          val response = RpcInvoker.invoke(params.command, params.args, params.rpcParameters.host, params.rpcParameters.port, params.rpcParameters.user, params.rpcParameters.password)
         }
 
       case None =>

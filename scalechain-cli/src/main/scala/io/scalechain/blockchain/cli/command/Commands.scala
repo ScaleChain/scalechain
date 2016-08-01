@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.cli.command
 
-import io.scalechain.blockchain.cli.command.stresstests.{MultiThreadTestLayers, GenerateAddress, GenerateRawTransactions}
+import io.scalechain.blockchain.cli.command.stresstests.{MultiThreadTestRPC, MultiThreadTestLayers, GenerateAddress, GenerateRawTransactions}
 
 /**
   * Created by kangmo on 7/28/16.
@@ -9,7 +9,8 @@ object Commands {
   val all = Seq (
     GenerateAddress,
     GenerateRawTransactions,
-    MultiThreadTestLayers
+    MultiThreadTestLayers,
+    MultiThreadTestRPC
   )
 
   // The map from the command to the service object.
