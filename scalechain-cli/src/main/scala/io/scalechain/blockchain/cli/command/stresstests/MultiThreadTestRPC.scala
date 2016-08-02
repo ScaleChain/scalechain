@@ -14,7 +14,12 @@ object MultiThreadTestRPC extends Command {
       (txGroupIndex : Int, rawTransaction : String) => {
         // For the initial split transaction, txGroupIndex is always 0.
         // We need to send the initial split transaction to the node which matches the nodeFilterIndex.
-        val port = rpcParams.port + nodeFilterIndexOption.getOrElse(0)
+
+        // We use port 7643 only for launching N scalechain deamons in a local machine.
+        val port =
+          if (rpcParams.port==7643) rpcParams.port + nodeFilterIndexOption.getOrElse(0)
+          else rpcParams.port
+
         RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
       }
 
@@ -24,7 +29,10 @@ object MultiThreadTestRPC extends Command {
         // txGroupIndex can be from 0 to 39 in case there are 40 groups.
         // Distribute each group to different nodes.
         // The port of a node is rpcParams.port, rpcParams.port+1, rpcParams.port+2, ...,  rpcParams.port + (node count - 1)
-        val port = rpcParams.port + txGroupIndex % nodeCount
+        val port =
+          // We use port 7643 only for launching N scalechain deamons in a local machine.
+          if (rpcParams.port==7643) rpcParams.port + txGroupIndex % nodeCount
+          else rpcParams.port
         RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
       }
 
