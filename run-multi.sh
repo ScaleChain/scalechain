@@ -25,5 +25,5 @@ echo "Starting test process"
 read -p "Press any key to stop all processes... " -n1 -s
 
 
-./kill-all.sh
+#./kill-all.sh
 

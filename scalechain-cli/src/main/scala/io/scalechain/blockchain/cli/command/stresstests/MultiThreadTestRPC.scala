@@ -8,6 +8,7 @@ object MultiThreadTestRPC extends Command {
   def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
     val nodeCount = Integer.parseInt(args(1))
     val transactionGroupCount = Integer.parseInt(args(2))
+    val nodeFilterIndexOption = if ( args.length >= 4) Some(Integer.parseInt(args(3))) else None
 
     val sendRawTransaction : RawTransactionWithGroupListener =
       (txGroupIndex : Int, rawTransaction : String) => {
@@ -18,6 +19,10 @@ object MultiThreadTestRPC extends Command {
         RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
       }
 
-    new MultiThreadTransactionTester().testRawTransaction(transactionGroupCount, sendRawTransaction)
+    val threadGroupIndexFilter =
+      nodeFilterIndexOption.map{ nodeFilterIndex =>
+        (txGroupIndex : Int) => (txGroupIndex % nodeCount) == nodeFilterIndex
+      }
+    new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(transactionGroupCount, sendRawTransaction)
   }
 }

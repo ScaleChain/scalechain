@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli.command.stresstests
 
 import java.io.File
 
-import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTransactionTester.{RawTransactionWithGroupListener, TransactionWithGroupListener}
+import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTransactionTester.{ThreadGroupIndexFilter, RawTransactionWithGroupListener, TransactionWithGroupListener}
 import io.scalechain.blockchain.proto.Transaction
 
 import io.scalechain.blockchain.cli.command.stresstests.TransactionReader.RawTransactionListener
@@ -10,14 +10,19 @@ import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.util.HexUtil
 
 object MultiThreadTransactionTester {
+  // (Thread group index, transaction) => Unit
   type TransactionWithGroupListener = (Int, Transaction) => Unit
+  // (Thread group index, raw transaction string) => Unit
   type RawTransactionWithGroupListener = (Int, String) => Unit
+
+  // Thread group index => Whether to run the thread group
+  type ThreadGroupIndexFilter = Int => Boolean
 }
 
 /**
   * Run tests in parallel for each transaction group, written by generaterawtransaction RPC.
   */
-class MultiThreadTransactionTester {
+class MultiThreadTransactionTester(threadGroupIndexFilter : Option[ThreadGroupIndexFilter] = None) {
   /**
     * Read transaction group files, run test cases for each transaction in the group. Run the tests for each group in parallel.
     *
@@ -52,7 +57,14 @@ class MultiThreadTransactionTester {
 
     // Step 2 : Load each transaction group file, run tests in parallel for each group.
     val threads =
-      (0 until transactionTests.length).map { i =>
+      (0 until transactionTests.length).filter { i =>
+        if (threadGroupIndexFilter.isDefined) { // Filter threads first if any threadGroupIndexFilter is defined.
+          val filter : ThreadGroupIndexFilter = threadGroupIndexFilter.get
+          filter(i)
+        } else {
+          true
+        }
+      }.map { i =>
         new Thread() {
           override def run(): Unit = {
             val txTest = transactionTests(i)

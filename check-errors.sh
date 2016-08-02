@@ -1,1 +1,1 @@
-grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler\|ERROR\|WANR" target/sc*.log | grep -v "Connection accepted from" | grep -v "Failed to connect"
+grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler\|ERROR\|WANR" target/sc*.log | grep -v "Connection accepted from" | grep -v "Failed to connect" | grep -v "OutOfDirectMemoryError: failed to allocate"
