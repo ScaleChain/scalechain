@@ -10,7 +10,16 @@ object MultiThreadTestRPC extends Command {
     val transactionGroupCount = Integer.parseInt(args(2))
     val nodeFilterIndexOption = if ( args.length >= 4) Some(Integer.parseInt(args(3))) else None
 
-    val sendRawTransaction : RawTransactionWithGroupListener =
+    val sendSplitTransaction : RawTransactionWithGroupListener =
+      (txGroupIndex : Int, rawTransaction : String) => {
+        // For the initial split transaction, txGroupIndex is always 0.
+        // We need to send the initial split transaction to the node which matches the nodeFilterIndex.
+        val port = rpcParams.port + nodeFilterIndexOption.getOrElse(0)
+        RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
+      }
+
+
+    val sendThreadTransaction : RawTransactionWithGroupListener =
       (txGroupIndex : Int, rawTransaction : String) => {
         // txGroupIndex can be from 0 to 39 in case there are 40 groups.
         // Distribute each group to different nodes.
@@ -23,6 +32,7 @@ object MultiThreadTestRPC extends Command {
       nodeFilterIndexOption.map{ nodeFilterIndex =>
         (txGroupIndex : Int) => (txGroupIndex % nodeCount) == nodeFilterIndex
       }
-    new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(transactionGroupCount, sendRawTransaction)
+    new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(
+      sendSplitTransaction, IndexedSeq.fill(transactionGroupCount)(sendThreadTransaction))
   }
 }
