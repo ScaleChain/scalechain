@@ -55,9 +55,11 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Sho
       }
     }
 
+    var count = 0
     for (b : Block <- blocks) {
-      println("Block : " + b.toString())
+      count += 1
     }
+    println("Total Blocks : " + count)
     assert(blocksRead == READ_BLOCKS_UP_TO)
   }
 }

@@ -3,17 +3,21 @@ package io.scalechain.blockchain.chain.mining
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.ChainException
-import io.scalechain.blockchain.chain.{TransactionBuilder, TransactionMagnet, TransactionPool, TransactionPriorityQueue}
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.chain.{TransactionPriorityQueue, TransactionMagnet, TransactionBuilder, TransactionPool}
+import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.scalechain.blockchain.chain.mining.BlockTemplate
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.TransactionPoolIndex
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase, TransactingRocksDatabase, TransactionDescriptorIndex}
-import io.scalechain.blockchain.transaction.{CoinAddress, CoinsView}
+import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.storage.{TransactionPoolIndex, BlockStorage}
+import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, KeyValueDatabase, RocksDatabase, TransactionDescriptorIndex}
+import io.scalechain.blockchain.transaction.{CoinsView, CoinAmount, CoinAddress}
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
+import HashSupported._
 
 
 class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoolIndex {
@@ -88,7 +92,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
       // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
       // Skip all transactions that has the transaction descriptor.
       case (txHash, transaction) =>
-      txDescIndex.getTransactionDescriptor(txHash).isEmpty
+        txDescIndex.getTransactionDescriptor(txHash).isEmpty
     }.map {
       case (txHash, transaction) => transaction
     }
@@ -167,8 +171,8 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
 
     // For all attachable transactions, attach them, and move to the priority queue.
-//    val tempPoolDbPath = new File(s"target/temp-tx-pool-for-mining-${Random.nextLong}")
-//    tempPoolDbPath.mkdir
+    //    val tempPoolDbPath = new File(s"target/temp-tx-pool-for-mining-${Random.nextLong}")
+    //    tempPoolDbPath.mkdir
     val tempCoinsView = new TemporaryCoinsView(coinsView)
     // Remove all transactions from the pool. Note that we are removing them in tempDB, which does not affect the actual db for the pool.
     transactionPool.getTransactionsFromPool() foreach { case (txHash, tx) =>
@@ -206,7 +210,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
         newlySelectedTransaction = txQueue.dequeue()
 
-//        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
+        //        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
 
         if (newlySelectedTransaction.isDefined) {
           val newTx = newlySelectedTransaction.get

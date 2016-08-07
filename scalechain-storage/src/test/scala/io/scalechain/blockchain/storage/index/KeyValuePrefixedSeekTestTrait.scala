@@ -91,6 +91,16 @@ trait KeyValuePrefixedSeekTestTrait extends FlatSpec with KeyValueCommonTrait wi
     db.getPrefixedObject(PREFIX1, "prefix", FileNumber(1))(F, R) shouldBe None
   }
 
+  "getPrefixedPrefixedObject(objectKey)" should "delete a key with CStringPrefixed" in {
+    val F = FileNumberCodec
+    val R = RecordLocatorCodec
+
+    db.putPrefixedObject(PREFIX1, "prefix", FileNumber(1), RecordLocator(1,2))(F, R)
+    db.delPrefixedObject(PREFIX1, CStringPrefixed("prefix", FileNumber(1)))(F)
+
+    db.getPrefixedObject(PREFIX1, "prefix", FileNumber(1))(F, R) shouldBe None
+  }
+
   "getPrefixedPrefixedObject(objectKey)" should "do nothing if we try to remove a non-existent key" in {
     val F = FileNumberCodec
 

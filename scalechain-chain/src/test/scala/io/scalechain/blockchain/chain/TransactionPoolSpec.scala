@@ -4,7 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ChainException, ErrorCode, RpcException}
-import io.scalechain.blockchain.chain.processor.TransactionProcessor
+import io.scalechain.blockchain.chain.processor.{BlockProcessor, TransactionProcessor}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import org.scalatest._
