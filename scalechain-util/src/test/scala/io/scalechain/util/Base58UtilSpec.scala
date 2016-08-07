@@ -66,27 +66,4 @@ class Base58UtilSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatcher
       encodedValue.toList shouldBe encodedValue2.toList
     }
   }
-
-  "Base58Check" should "decode encoded string" in {
-    val VERSION : Byte = 1
-    for (i <- 1 to 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
-      val random = new SecureRandom()
-      random.setSeed( random.generateSeed(32) )
-
-      val originalValue : Array[Byte] = new Array[Byte](32)
-      assert(originalValue.length == 32)
-      random.nextBytes(originalValue)
-
-      val encodedValue = Base58Check.encode(VERSION, originalValue)
-
-      val (decodedVersion, decodedValue) = Base58Check.decode(encodedValue)
-
-      val encodedValue2 = Base58Check.encode(VERSION, decodedValue)
-
-      decodedValue.toList shouldBe originalValue.toList
-      decodedVersion shouldBe decodedVersion
-      encodedValue2.toList shouldBe encodedValue.toList
-    }
-
-  }
 }

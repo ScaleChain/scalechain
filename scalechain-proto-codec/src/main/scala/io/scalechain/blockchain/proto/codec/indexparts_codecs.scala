@@ -56,6 +56,12 @@ object OneByteCodec extends MessagePartCodec[OneByte]{
   }.as[OneByte]
 }
 
+object LongValueCodec extends MessagePartCodec[LongValue]{
+  val codec : Codec[LongValue] = {
+    ("value" | int64)
+  }.as[LongValue]
+}
+
 /** The codec for TransactionCount.
   *
   */

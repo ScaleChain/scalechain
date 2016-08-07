@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.{ProtocolMessage, LockingScript, Transacti
 import io.scalechain.blockchain.script.ops._
 import io.scalechain.blockchain.script.{ScriptSerializer, ScriptValue, ScriptParser, ScriptOpList}
 import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.crypto.{Hash160, ECKey, HashFunctions, Base58Check}
+import io.scalechain.crypto.{Base58Check, Hash160, ECKey, HashFunctions}
 import io.scalechain.util.{HexUtil, ByteArray}
 
 import scala.collection.generic.SeqFactory

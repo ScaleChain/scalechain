@@ -36,6 +36,11 @@ case class FileNumber(
   */
 case class OneByte( value : Byte ) extends ProtocolMessage
 
+
+/** For converting transation time(long) to a byte array, which is finally converted to a base58 encoded string
+  */
+case class LongValue( value : Long ) extends ProtocolMessage
+
 /** To get a record locator of each transaction we write while we write a block,
   * We need to write (1) block header (2) transaction count (3) each transaction.
   *

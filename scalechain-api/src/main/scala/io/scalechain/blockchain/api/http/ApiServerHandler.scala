@@ -10,6 +10,7 @@ import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http._
 import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.scalechain.blockchain.api.RequestHandler
+import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.util.{StackUtil, ExceptionUtil}
 import org.slf4j.LoggerFactory
 import collection.convert.wrapAll._
@@ -57,6 +58,8 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
         if (!writeResponse(trailer, ctx, responseString)) {
           ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
         }
+
+        NodeThrottle.throttle(logger)
       }
     }
   }

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.transaction._

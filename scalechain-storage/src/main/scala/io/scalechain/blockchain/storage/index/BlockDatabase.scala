@@ -17,6 +17,8 @@ object DatabaseTablePrefixes {
 
   // The disk-pool, which keeps transactions on disk instead of mempool.
   val TRANSACTION_POOL : Byte = 'd'
+  // The index from transaction creation time to the transaction hash.
+  val TRANSACTION_TIME : Byte = 'e'
 
   val ORPHAN_BLOCK : Byte = '1'
   val ORPHAN_TRANSACTION : Byte = '2'

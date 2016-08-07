@@ -3,12 +3,13 @@ package io.scalechain.blockchain.cli
 import java.util
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.net.handler.BlockMessageHandler
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util._
-import io.scalechain.blockchain.chain.{BlockMining, Blockchain}
+import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
 import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._

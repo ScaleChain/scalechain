@@ -1,8 +1,54 @@
 package io.scalechain.crypto
 
-/**
-  * Created by kangmo on 8/7/16.
-  */
-class Base58CheckSpec {
+import java.math.BigInteger
+import java.security.SecureRandom
+import java.util
 
+import io.scalechain.util.Base58Util
+import org.scalatest._
+
+/**
+  * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
+  * License : Apache v2.
+  */
+class Base58CheckSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+  this: Suite =>
+
+  override def beforeEach() {
+    // set-up code
+    //
+
+    super.beforeEach()
+  }
+
+  override def afterEach() {
+    super.afterEach()
+    // tear-down code
+    //
+  }
+
+  import Base58Util._
+
+  "Base58Check" should "decode encoded string" in {
+    val VERSION : Byte = 1
+    for (i <- 1 to 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
+    val random = new SecureRandom()
+      random.setSeed( random.generateSeed(32) )
+
+      val originalValue : Array[Byte] = new Array[Byte](32)
+      assert(originalValue.length == 32)
+      random.nextBytes(originalValue)
+
+      val encodedValue = Base58Check.encode(VERSION, originalValue)
+
+      val (decodedVersion, decodedValue) = Base58Check.decode(encodedValue)
+
+      val encodedValue2 = Base58Check.encode(VERSION, decodedValue)
+
+      decodedValue.toList shouldBe originalValue.toList
+      decodedVersion shouldBe decodedVersion
+      encodedValue2.toList shouldBe encodedValue.toList
+    }
+
+  }
 }

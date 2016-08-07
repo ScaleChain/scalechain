@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
