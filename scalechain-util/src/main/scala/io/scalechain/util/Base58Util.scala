@@ -1,4 +1,4 @@
-package io.scalechain.crypto
+package io.scalechain.util
 
 /* Source copied from https://github.com/ACINQ/bitcoin-lib/blob/master/src/main/scala/fr/acinq/bitcoin/Base58.scala
  * The license was apache v2.

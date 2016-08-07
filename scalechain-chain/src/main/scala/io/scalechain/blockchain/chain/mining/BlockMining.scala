@@ -1,22 +1,19 @@
-package io.scalechain.blockchain.chain
+package io.scalechain.blockchain.chain.mining
 
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.{ErrorCode, ChainException}
-import io.scalechain.blockchain.chain.mining.BlockTemplate
-import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.chain.{TransactionBuilder, TransactionMagnet, TransactionPool, TransactionPriorityQueue}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.storage.{TransactionPoolIndex, BlockStorage}
-import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, KeyValueDatabase, RocksDatabase, TransactionDescriptorIndex}
-import io.scalechain.blockchain.transaction.{CoinsView, CoinAmount, CoinAddress}
-import org.apache.commons.io.FileUtils
+import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase, TransactingRocksDatabase, TransactionDescriptorIndex}
+import io.scalechain.blockchain.transaction.{CoinAddress, CoinsView}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
-import scala.util.Random
-import HashSupported._
 
 
 class TemporaryTransactionPoolIndex(directoryPath : File) extends TransactionPoolIndex {

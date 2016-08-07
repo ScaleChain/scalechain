@@ -1,10 +1,9 @@
-package io.scalechain.crypto
+package io.scalechain.util
 
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util
 
-import io.scalechain.util.Utils
 import org.scalatest._
 
 /**
