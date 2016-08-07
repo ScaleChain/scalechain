@@ -10,6 +10,8 @@ import io.scalechain.util.Base58Util
 import io.scalechain.util.Using._
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable.ListBuffer
+
 object TransactionTimeIndex {
   val maxBase58EncodedLength = Base58Util.encode( LongValueCodec.serialize( LongValue( Long.MaxValue ) ) ).length
 
@@ -39,12 +41,18 @@ trait TransactionTimeIndex {
   private implicit val hashCodec = HashCodec
   private implicit val oneByteCodec = OneByteCodec
 
+  protected val TimeIndexPrefix = TRANSACTION_TIME
+  /** Put a transaction into the transaction time index.
+    *
+    * @param creationTime The time when the transaction was created (in nano seconds)
+    * @param txHash The hash of the transaction to add
+    */
   def putTransactionTime(creationTime : Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
 
     val keyPrefix = timeToString(creationTime)
 
-    db.putPrefixedObject(TRANSACTION_TIME, keyPrefix, txHash, OneByte('\0') )
+    db.putPrefixedObject(TimeIndexPrefix, keyPrefix, txHash, OneByte('\0') )
   }
 
   /** Get a transaction from the transaction pool.
@@ -56,19 +64,28 @@ trait TransactionTimeIndex {
     assert(count > 0)
     //logger.trace(s"getTransactionFromPool : ${txHash}")
 
-    using( db.seekPrefixedObject(TRANSACTION_TIME)(HashCodec, OneByteCodec) ) in {
-      _.take(count) // Take count elements from the iterator.
-       .map(_._1) // Do not use the dummy byte value, but keep StringPrefixed transaction hash only.
-       .toList
+    using( db.seekPrefixedObject(TimeIndexPrefix)(HashCodec, OneByteCodec) ) in {
+      iter =>
+        val buffer = new ListBuffer[CStringPrefixed[Hash]]
+        var copied = 0
+        while(copied < count && iter.hasNext) {
+          val (key, _) = iter.next()
+          buffer.append(key)
+          copied += 1
+        }
+        buffer.toList
     }
   }
 
   /** Del a transaction from the pool.
     *
-    * @param key The string prefixed hash to remove. The prefixed string contains the creation time of the transaction.
+    * @param creationTime The time when the transaction was created (in nano seconds)
+    * @param txHash The hash of the transaction to remove
     */
-  def delTransactionTime(key : CStringPrefixed[Hash])(implicit db : KeyValueDatabase) : Unit = {
+  def delTransactionTime(creationTime: Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
 
-    db.delPrefixedObject(TRANSACTION_TIME, key )
+    val keyPrefix = timeToString(creationTime)
+
+    db.delPrefixedObject(TimeIndexPrefix, keyPrefix, txHash )
   }
 }

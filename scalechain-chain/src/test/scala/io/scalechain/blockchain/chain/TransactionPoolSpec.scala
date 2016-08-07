@@ -2,6 +2,7 @@ package io.scalechain.blockchain.chain
 
 import java.io.File
 
+import io.scalechain.blockchain.proto.{Transaction, Hash}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ChainException, ErrorCode, RpcException}
 import io.scalechain.blockchain.chain.processor.{BlockProcessor, TransactionProcessor}
@@ -56,12 +57,65 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p.addTransactionToPool(TX04a.transaction.hash, TX04a.transaction)
     p.addTransactionToPool(TX05a.transaction.hash, TX05a.transaction)
 
-    p.getTransactionsFromPool().toSet shouldBe Set(
+    p.getOldestTransactions(100).toSet shouldBe Set(
       (TX03.transaction.hash, TX03.transaction),
       (TX03a.transaction.hash, TX03a.transaction),
       (TX04.transaction.hash, TX04.transaction),
       (TX04a.transaction.hash, TX04a.transaction),
       (TX05a.transaction.hash, TX05a.transaction)
+    )
+  }
+
+  "getOldestTransactions" should "not return removed transactions" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
+    chain.putBlock(BLK01.header.hash, BLK01)
+    chain.putBlock(BLK02.header.hash, BLK02)
+
+    p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
+    p.addTransactionToPool(TX03a.transaction.hash, TX03a.transaction)
+    p.addTransactionToPool(TX04.transaction.hash, TX04.transaction)
+    p.addTransactionToPool(TX04a.transaction.hash, TX04a.transaction)
+    p.addTransactionToPool(TX05a.transaction.hash, TX05a.transaction)
+
+    val candidateTransactions : List[(Hash, Transaction)] = p.getOldestTransactions(100)
+
+    candidateTransactions.filter{
+      // Because we are concurrently putting transactions into the pool while putting blocks,
+      // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
+      // Skip all transactions that has the transaction descriptor.
+      case (txHash, transaction) =>
+        // If the transaction descriptor exists, it means the transaction is in a block.
+        true
+    }.foreach { case (txHash, transaction) =>
+      p.removeTransactionFromPool(txHash)
+    }
+
+    p.getOldestTransactions(100) shouldBe List()
+
+  }
+
+  "getOldestTransactions" should "should return the given maximum number of transactions" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Tx._
+    import data.Block._
+
+    chain.putBlock(BLK01.header.hash, BLK01)
+    chain.putBlock(BLK02.header.hash, BLK02)
+    p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
+    p.addTransactionToPool(TX03a.transaction.hash, TX03a.transaction)
+    p.addTransactionToPool(TX04.transaction.hash, TX04.transaction)
+    p.addTransactionToPool(TX04a.transaction.hash, TX04a.transaction)
+    p.addTransactionToPool(TX05a.transaction.hash, TX05a.transaction)
+
+    p.getOldestTransactions(3).toSet shouldBe Set(
+      (TX03.transaction.hash, TX03.transaction),
+      (TX03a.transaction.hash, TX03a.transaction),
+      (TX04.transaction.hash, TX04.transaction)
     )
   }
 
@@ -86,7 +140,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p.addTransactionToPool(TX03a.transaction.hash, TX03a.transaction)
     txProcessor.acceptChildren(TX03a.transaction.hash)
 
-    p.getTransactionsFromPool().toSet shouldBe Set(
+    p.getOldestTransactions(100).toSet shouldBe Set(
       (TX03.transaction.hash, TX03.transaction),
       (TX03a.transaction.hash, TX03a.transaction),
       (TX04.transaction.hash, TX04.transaction),
@@ -155,7 +209,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p.removeTransactionFromPool(TX04a.transaction.hash)
     p.removeTransactionFromPool(TX05a.transaction.hash)
 
-    p.getTransactionsFromPool().toSet shouldBe Set(
+    p.getOldestTransactions(100).toSet shouldBe Set(
       (TX03.transaction.hash, TX03.transaction),
       (TX03a.transaction.hash, TX03a.transaction)
     )

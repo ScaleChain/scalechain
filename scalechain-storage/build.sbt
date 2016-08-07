@@ -9,6 +9,7 @@ libraryDependencies ++= Seq(
   "org.apache.cassandra" % "cassandra-all" % "3.5",
   "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.2",
   "com.datastax.cassandra" % "cassandra-driver-extras" % "3.0.2",
+  "org.fusesource" % "sigar" % "1.6.4",
   "org.cassandraunit" % "cassandra-unit" % "3.0.0.1"
 )
 

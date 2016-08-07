@@ -20,3 +20,4 @@ libraryDependencies in ThisBuild ++= Seq(
 
 fork in test := true
 traceLevel in run := 0
+logLevel in Test := Level.Warn

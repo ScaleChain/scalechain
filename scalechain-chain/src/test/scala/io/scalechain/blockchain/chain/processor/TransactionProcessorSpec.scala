@@ -136,7 +136,7 @@ class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestD
     b.acceptBlock(BLK01.header.hash, BLK01)
     b.acceptBlock(BLK02.header.hash, BLK02)
     t.putTransaction(TX03.transaction.hash, TX03.transaction)
-    t.chain.txPool.getTransactionsFromPool should contain (TX03.transaction.hash, TX03.transaction)
+    t.chain.txPool.getOldestTransactions(100) should contain (TX03.transaction.hash, TX03.transaction)
   }
 
   "acceptChildren" should "accept all children" in {

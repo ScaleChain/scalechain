@@ -21,6 +21,7 @@ class CassandraBlockStorageForUnitTest(directoryPath : File)(implicit db : KeyVa
 }
 
 // Cassandra Test is taking too long. Temporarily disable the suite.
+@Ignore
 class CassandraBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 

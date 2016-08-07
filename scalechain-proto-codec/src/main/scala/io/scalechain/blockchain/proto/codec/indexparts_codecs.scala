@@ -100,6 +100,7 @@ object OrphanTransactionDescriptorCodec extends MessagePartCodec[OrphanTransacti
 object TransactionPoolEntryCodec extends MessagePartCodec[TransactionPoolEntry] {
   val codec : Codec[TransactionPoolEntry] = {
     ("transaction" | TransactionCodec.codec ) ::
-    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
+    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) )) ::
+    ("createdAt" | int64)
   }.as[TransactionPoolEntry]
 }

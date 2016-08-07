@@ -5,7 +5,7 @@ import io.scalechain.blockchain.storage.index.{KeyValueDatabase, TransactionDesc
 import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{TransactionPoolIndex, TransactionLocator, BlockStorage}
+import io.scalechain.blockchain.storage.{TransactionTimeIndex, TransactionPoolIndex, TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
   *                      During mining, txPoolStorage is a separate transaction pool for testing dependency of each transaction.
   *                      Otherwise, txPoolStorage is the 'storage' parameter.
   */
-class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex) {
+class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex, txTimeIndex : TransactionTimeIndex) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionMagnet]) )
 
   protected [chain] var chainEventListener : Option[ChainEventListener] = None
@@ -213,7 +213,13 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     // Remove the transaction descriptor otherwise other transactions can spend the UTXO from the detached transaction.
     // The transaction might not be stored in a block on the best blockchain yet. Remove the transaction from the pool too.
     txDescIndex.delTransactionDescriptor(transactionHash)
-    txPoolIndex.delTransactionFromPool(transactionHash)
+
+    val txOption : Option[TransactionPoolEntry] = txPoolIndex.getTransactionFromPool(transactionHash)
+    if (txOption.isDefined) {
+      // BUGBUG : Need to remove these two records atomically
+      txPoolIndex.delTransactionFromPool(transactionHash)
+      txTimeIndex.delTransactionTime( txOption.get.createdAtNanos, transactionHash)
+    }
 
     chainEventListener.map(_.onRemoveTransaction(transactionHash, transaction))
   }
@@ -295,12 +301,19 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
         )
       } else {
         //logger.trace(s"[Attach Transaction] Put into the pool : ${transactionHash}")
+        val txCreatedAt = System.nanoTime()
+        // Need to put transaction first, and then put transaction time.
+        // Why? We will search by transaction time, and get the transaction object from tx hash we get from the transaction time index.
+        // If we put transaction time first, we may not have transaction even though a transaction time exists.
         txPoolIndex.putTransactionToPool(
           transactionHash,
           TransactionPoolEntry(
             transaction,
-            List.fill(transaction.outputs.length)(None) )
+            List.fill(transaction.outputs.length)(None),
+            txCreatedAt
+          )
         )
+        txTimeIndex.putTransactionTime(txCreatedAt, transactionHash)
       }
 
       chainEventListener.map(_.onNewTransaction(transactionHash, transaction, chainBlock, transactionIndex))

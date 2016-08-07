@@ -77,25 +77,6 @@ class TransactionTimeSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
       CStringPrefixed( TransactionTimeIndex.timeToString(currentNanoSec), dummyHash(3)),
       CStringPrefixed( TransactionTimeIndex.timeToString(Long.MaxValue), dummyHash(9))
     )
-
-    time.getOldestTransactionHashes(3) shouldBe List(
-      CStringPrefixed( TransactionTimeIndex.timeToString(1), dummyHash(1)),
-      CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2)),
-      CStringPrefixed( TransactionTimeIndex.timeToString(currentNanoSec), dummyHash(3))
-    )
-
-    time.getOldestTransactionHashes(2) shouldBe List(
-      CStringPrefixed( TransactionTimeIndex.timeToString(1), dummyHash(1)),
-      CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2))
-    )
-
-    time.getOldestTransactionHashes(1) shouldBe List(
-      CStringPrefixed( TransactionTimeIndex.timeToString(1), dummyHash(1))
-    )
-
-    an[AssertionError] shouldBe thrownBy {
-      time.getOldestTransactionHashes(0)
-    }
   }
 
   "delTransactionFromPool" should "delete a transaction in the pool" in {
@@ -104,7 +85,7 @@ class TransactionTimeSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
     time.putTransactionTime(3, dummyHash(3))
     time.putTransactionTime(4, dummyHash(4))
 
-    time.delTransactionTime(CStringPrefixed(TransactionTimeIndex.timeToString(1), dummyHash(1)))
+    time.delTransactionTime( 1, dummyHash(1))
 
     time.getOldestTransactionHashes(4) shouldBe List(
       CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2)),
@@ -112,16 +93,20 @@ class TransactionTimeSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
       CStringPrefixed( TransactionTimeIndex.timeToString(4), dummyHash(4))
     )
 
-    time.delTransactionTime(CStringPrefixed(TransactionTimeIndex.timeToString(3), dummyHash(3)))
+    time.delTransactionTime( 3, dummyHash(3))
 
     time.getOldestTransactionHashes(4) shouldBe List(
       CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2)),
       CStringPrefixed( TransactionTimeIndex.timeToString(4), dummyHash(4))
     )
 
+    time.delTransactionTime( 4, dummyHash(4))
+
     time.getOldestTransactionHashes(1) shouldBe List(
       CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2))
     )
+
+    time.delTransactionTime( 2, dummyHash(2))
 
     an[AssertionError] shouldBe thrownBy {
       time.getOldestTransactionHashes(0)

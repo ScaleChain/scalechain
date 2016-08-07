@@ -27,6 +27,7 @@ trait TransactionPoolIndex {
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
   private implicit val transactionCodec = TransactionPoolEntryCodec
+  protected val PoolIndexPrefix = TRANSACTION_POOL
 
   /** Put a transaction into the transaction pool.
     *
@@ -36,7 +37,7 @@ trait TransactionPoolIndex {
   def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry)(implicit db : KeyValueDatabase) : Unit = {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
 
-    db.putPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
+    db.putPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
   }
 
   /** Get a transaction from the transaction pool.
@@ -47,7 +48,7 @@ trait TransactionPoolIndex {
   def getTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Option[TransactionPoolEntry] = {
     //logger.trace(s"getTransactionFromPool : ${txHash}")
 
-    db.getPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
+    db.getPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
   }
 
 
@@ -57,7 +58,7 @@ trait TransactionPoolIndex {
     */
   def getTransactionsFromPool()(implicit db : KeyValueDatabase) : List[(Hash, TransactionPoolEntry)] = {
     (
-      using(db.seekPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
+      using(db.seekPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
         _.toList
       }
     ).map{ case (CStringPrefixed(_, txHash), transactionPoolEntry ) => (txHash, transactionPoolEntry) }
@@ -70,9 +71,8 @@ trait TransactionPoolIndex {
   def delTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
     //logger.trace(s"delTransactionFromPool : ${txHash}")
 
-    db.delPrefixedObject(TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash )
+    db.delPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash )
   }
 
 }
-
 

@@ -102,7 +102,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : K
 class Blockchain(storage : BlockStorage)(val db : RocksDatabase) extends BlockchainView  {
   private val logger = Logger( LoggerFactory.getLogger(classOf[Blockchain]) )
 
-  val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage)
+  val txMagnet = new TransactionMagnet(storage, txPoolIndex = storage, txTimeIndex = storage)
   val txPool = new TransactionPool(storage, txMagnet)
   val blockMagnet = new BlockMagnet(storage, txPool, txMagnet)
 

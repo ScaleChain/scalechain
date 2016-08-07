@@ -8,18 +8,21 @@ object MultiThreadTestRPC extends Command {
   def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
     val nodeCount = Integer.parseInt(args(1))
     val transactionGroupCount = Integer.parseInt(args(2))
-    val nodeFilterIndexOption = if ( args.length >= 4) Some(Integer.parseInt(args(3))) else None
+    val nodeFilterIndexOption = if ( args(3) == "x") None else Some(Integer.parseInt(args(3)))
+
+ //   println(s"nodeFilterIndexOption = ${nodeFilterIndexOption}")
 
     val sendSplitTransaction : RawTransactionWithGroupListener =
       (txGroupIndex : Int, rawTransaction : String) => {
         // For the initial split transaction, txGroupIndex is always 0.
         // We need to send the initial split transaction to the node which matches the nodeFilterIndex.
 
-        // We use port 7643 only for launching N scalechain deamons in a local machine.
+        // We use port 8080 only for launching N scalechain deamons in a local machine.
         val port =
-          if (rpcParams.port==7643) rpcParams.port + nodeFilterIndexOption.getOrElse(0)
+          if (rpcParams.port==8080) rpcParams.port + nodeFilterIndexOption.getOrElse(0)
           else rpcParams.port
 
+//        println(s"sendSplitTransaction - Using port ${port}")
         RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
       }
 
@@ -30,9 +33,12 @@ object MultiThreadTestRPC extends Command {
         // Distribute each group to different nodes.
         // The port of a node is rpcParams.port, rpcParams.port+1, rpcParams.port+2, ...,  rpcParams.port + (node count - 1)
         val port =
-          // We use port 7643 only for launching N scalechain deamons in a local machine.
-          if (rpcParams.port==7643) rpcParams.port + txGroupIndex % nodeCount
+          // We use port 8080 only for launching N scalechain deamons in a local machine.
+          if (rpcParams.port==8080) rpcParams.port + txGroupIndex % nodeCount
           else rpcParams.port
+
+//        println(s"sendThreadTransaction - Using port ${port}, txGroupIndex=${txGroupIndex}, nodeCount=${nodeCount}")
+
         RpcInvoker.invoke("sendrawtransaction", Array(rawTransaction), rpcParams.host, port, rpcParams.user, rpcParams.password)
       }
 
@@ -40,6 +46,7 @@ object MultiThreadTestRPC extends Command {
       nodeFilterIndexOption.map{ nodeFilterIndex =>
         (txGroupIndex : Int) => (txGroupIndex % nodeCount) == nodeFilterIndex
       }
+
     new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(
       sendSplitTransaction, IndexedSeq.fill(transactionGroupCount)(sendThreadTransaction))
   }

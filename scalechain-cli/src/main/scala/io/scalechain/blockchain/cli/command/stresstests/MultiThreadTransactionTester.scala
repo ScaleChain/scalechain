@@ -46,15 +46,6 @@ class MultiThreadTransactionTester(threadGroupIndexFilter : Option[ThreadGroupIn
   }
 
   def testRawTransaction(initialSplitTxTestWithGroup : RawTransactionWithGroupListener, transactionTests : IndexedSeq[RawTransactionWithGroupListener]) : Unit = {
-    // Step 1 : Run the test for the initial split transaction.
-    val initialTxReader = new TransactionReader( new File( GenerateRawTransactions.initialSplitTransactionFileName() ) )
-
-    val initialSplitTxTest = (rawTx : String) => {
-      initialSplitTxTestWithGroup(0, rawTx)
-    }
-
-    initialTxReader.read(initialSplitTxTest)
-
     // Step 2 : Load each transaction group file, run tests in parallel for each group.
     val threads =
       (0 until transactionTests.length).filter { i =>
@@ -67,6 +58,17 @@ class MultiThreadTransactionTester(threadGroupIndexFilter : Option[ThreadGroupIn
       }.map { i =>
         new Thread() {
           override def run(): Unit = {
+
+            // Step 1 : Send the initial split transaction.
+            val initialTxReader = new TransactionReader( new File( GenerateRawTransactions.initialSplitTransactionFileName() ) )
+
+            val initialSplitTxTest = (rawTx : String) => {
+              initialSplitTxTestWithGroup(i, rawTx)
+            }
+
+            initialTxReader.read(initialSplitTxTest)
+
+            // Step 2 : Send transactions in files.
             val txTest = transactionTests(i)
             val txReader = new TransactionReader( new File( GenerateRawTransactions.transactionGroupFileName(i) ) )
 

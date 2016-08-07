@@ -155,10 +155,11 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
 
           if (canMine) {
             //chain.synchronized {
-              val COINBASE_MESSAGE = coinbaseData(chain.getBestBlockHeight() + 1)
               // Step 2 : Create the block template
               val bestBlockHash = chain.getBestBlockHash()
               if (bestBlockHash.isDefined) {
+                val blockHeight = chain.getBlockInfo(bestBlockHash.get)(rocksDB).get.height
+                val COINBASE_MESSAGE = coinbaseData(blockHeight + 1)
 
                 val blockTemplate = {
                   val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
@@ -176,39 +177,22 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
 
                   // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
-                  val blockHeaderThreshold =
-                    if (io.scalechain.util.Config.hasPath("scalechain.mining.header_hash_threshold"))
-                      io.scalechain.util.Config.getString("scalechain.mining.header_hash_threshold")
-                    else "00F0000000000000000000000000000000000000000000000000000000000000"
 
-                  val blockHashThreshold = Hash(blockHeaderThreshold)
-                  if (blockHashThreshold.value.length != 32) {
-                    logger.error(s"scalechain.mining.header_hash_threshold should be 32 bytes. The specified value has ${blockHashThreshold.value.length} bytes")
+                  // Check the best block hash once more.
+                  if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
+                    // Step 5 : When a block is found, create the block and put it on the blockchain.
+                    // Also propate the block to the peer to peer network.
+                    val block = blockTemplate.get.createBlock(blockHeader, blockHeader.nonce)
+                    val blockHeaderHash = block.header.hash
 
-                  }
+                    peerCommunicator.propagateBlock(block)
 
-                  val newBlockHeader = blockHeader.copy(nonce = nonce)
-                  val newBlockHash = newBlockHeader.hash
+                    BlockGateway.putReceivedBlock(blockHeaderHash, block)
 
-                  if (true) {
-                  //if (Hash.isLessThan(newBlockHash, blockHashThreshold)) {
+                    BlockBroadcaster.get.broadcastHeader(block.header)
 
-                    // Check the best block hash once more.
-                    if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
-                      // Step 5 : When a block is found, create the block and put it on the blockchain.
-                      // Also propate the block to the peer to peer network.
-                      val block = blockTemplate.get.createBlock(newBlockHeader, nonce)
-                      val blockHeaderHash = block.header.hash
-
-                      peerCommunicator.propagateBlock(block)
-
-                      BlockGateway.putReceivedBlock(blockHeaderHash, block)
-
-                      BlockBroadcaster.get.broadcastHeader(block.header)
-
-                      blockFound = true
-                      logger.trace(s"Block Mined.\n hash : ${newBlockHash}, block : ${StringUtil.getBrief(block.toString, 512)}\n\n")
-                    }
+                    blockFound = true
+                    logger.trace(s"Block Mined.\n hash : ${blockHeaderHash}\n\n")
                   }
                 } else {
                   logger.trace("Not enough signed transactions with the previous block hash.")

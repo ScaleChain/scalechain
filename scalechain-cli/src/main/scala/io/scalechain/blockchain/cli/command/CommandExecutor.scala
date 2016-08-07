@@ -56,8 +56,8 @@ object CommandExecutor {
       }
       cmd("multithreadtestrpc") required() action { (_, c) =>
         c.copy(command = "multithreadtestrpc") } text("multithreadtestrpc calls sendrawtransaction RPC using multi-threads. You need to run generaterawtransaction to generate transaction files used as inputs of this RPC.") children {
-        arg[String]("<node count> <transaction group count> [filter node index]") minOccurs(2) maxOccurs(3) required() action { (x, c) =>
-          c.copy(args = args :+ x) } text("provide total node count, transaction group count, the node index to send data(-1 for all nodes, or 0,1,2,.. or node count-1) for the parallelism in your test.")
+        arg[String]("<node count> <transaction group count> [filter node index]") minOccurs(3) maxOccurs(3) required() action { (x, c) =>
+          c.copy(args = args :+ x) } text("provide total node count, transaction group count, the node index to send data(x for all nodes, or 0,1,2,.. or node count-1) for the parallelism in your test.")
       }
     }
 

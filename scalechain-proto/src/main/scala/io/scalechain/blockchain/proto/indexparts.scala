@@ -92,5 +92,6 @@ case class OrphanTransactionDescriptor(
   */
 case class TransactionPoolEntry(
   transaction : Transaction,
-  outputsSpentBy : List[Option[InPoint]]
+  outputsSpentBy : List[Option[InPoint]],
+  createdAtNanos : Long
 ) extends ProtocolMessage
