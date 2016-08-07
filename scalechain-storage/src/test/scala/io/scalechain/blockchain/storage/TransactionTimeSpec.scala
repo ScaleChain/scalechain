@@ -113,4 +113,39 @@ class TransactionTimeSpec  extends FlatSpec with ShouldMatchers with BeforeAndAf
     }
   }
 
+  "delTransactionFromPool(CStringPrefixed)" should "delete a transaction in the pool" in {
+    time.putTransactionTime(1, dummyHash(1))
+    time.putTransactionTime(2, dummyHash(2))
+    time.putTransactionTime(3, dummyHash(3))
+    time.putTransactionTime(4, dummyHash(4))
+
+    import TransactionTimeIndex._
+    time.delTransactionTime( CStringPrefixed(timeToString(1), dummyHash(1)))
+
+    time.getOldestTransactionHashes(4) shouldBe List(
+      CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2)),
+      CStringPrefixed( TransactionTimeIndex.timeToString(3), dummyHash(3)),
+      CStringPrefixed( TransactionTimeIndex.timeToString(4), dummyHash(4))
+    )
+
+    time.delTransactionTime( CStringPrefixed(timeToString(3), dummyHash(3)))
+
+    time.getOldestTransactionHashes(4) shouldBe List(
+      CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2)),
+      CStringPrefixed( TransactionTimeIndex.timeToString(4), dummyHash(4))
+    )
+
+    time.delTransactionTime( CStringPrefixed(timeToString(4), dummyHash(4)))
+
+    time.getOldestTransactionHashes(1) shouldBe List(
+      CStringPrefixed( TransactionTimeIndex.timeToString(2), dummyHash(2))
+    )
+
+    time.delTransactionTime( CStringPrefixed(timeToString(2), dummyHash(2)))
+
+    an[AssertionError] shouldBe thrownBy {
+      time.getOldestTransactionHashes(0)
+    }
+  }
+
 }

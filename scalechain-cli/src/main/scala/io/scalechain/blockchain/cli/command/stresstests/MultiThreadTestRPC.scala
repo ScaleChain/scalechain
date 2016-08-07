@@ -14,12 +14,11 @@ object MultiThreadTestRPC extends Command {
 
     val sendSplitTransaction : RawTransactionWithGroupListener =
       (txGroupIndex : Int, rawTransaction : String) => {
-        // For the initial split transaction, txGroupIndex is always 0.
         // We need to send the initial split transaction to the node which matches the nodeFilterIndex.
 
         // We use port 8080 only for launching N scalechain deamons in a local machine.
         val port =
-          if (rpcParams.port==8080) rpcParams.port + nodeFilterIndexOption.getOrElse(0)
+          if (rpcParams.port==8080) rpcParams.port + txGroupIndex % nodeCount
           else rpcParams.port
 
 //        println(s"sendSplitTransaction - Using port ${port}")

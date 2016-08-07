@@ -97,6 +97,9 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
     watch.stop("candidateTransactions")
 
+    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+    val newFirstCandidateHash0 = if (newCandidates0.isEmpty) None else Some(newCandidates0.head)
+
 
     watch.start("validTransactions")
 
@@ -139,6 +142,9 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
       }
     }
 
+    val newCandidates1 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+    val newFirstCandidateHash1 = if (newCandidates1.isEmpty) None else Some(newCandidates1.head)
+
 
     val generationTransaction =
       TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
@@ -151,10 +157,10 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     watch.stop("selectTx")
 
     val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head._1)
-    val newCandidates = transactionPool.getOldestTransactions(1)(rocksDB)
-    val newFirstCandidateHash = if (newCandidates.isEmpty) None else Some(newCandidates.head._1)
+    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+    val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
 
-    logger.info(s"Coin Miner stats : ${watch.toString}, First Candidate Tx : ${firstCandidateHash}, New First Candidate Tx : ${newFirstCandidateHash}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
+    logger.info(s"Coin Miner stats : ${watch.toString}, First Candidate Tx : ${newFirstCandidateHash0}, New First Candidate Tx(1) : ${newFirstCandidateHash1}, New First Candidate Tx(2) : ${newFirstCandidateHash2}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
     new BlockTemplate(difficultyBits, sortedTransactions)
   }
 

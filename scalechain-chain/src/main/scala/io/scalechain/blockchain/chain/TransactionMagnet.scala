@@ -217,8 +217,8 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     val txOption : Option[TransactionPoolEntry] = txPoolIndex.getTransactionFromPool(transactionHash)
     if (txOption.isDefined) {
       // BUGBUG : Need to remove these two records atomically
-      txPoolIndex.delTransactionFromPool(transactionHash)
       txTimeIndex.delTransactionTime( txOption.get.createdAtNanos, transactionHash)
+      txPoolIndex.delTransactionFromPool(transactionHash)
     }
 
     chainEventListener.map(_.onRemoveTransaction(transactionHash, transaction))

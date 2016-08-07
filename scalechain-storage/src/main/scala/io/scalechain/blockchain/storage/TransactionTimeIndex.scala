@@ -4,7 +4,6 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
 import io.scalechain.blockchain.proto.codec.{LongValueCodec, OneByteCodec, TransactionPoolEntryCodec, HashCodec}
 import io.scalechain.blockchain.proto.{LongValue, OneByte, TransactionPoolEntry, Hash}
-import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes._
 import io.scalechain.blockchain.storage.index.{DatabaseTablePrefixes, KeyValueDatabase}
 import io.scalechain.util.Base58Util
 import io.scalechain.util.Using._
@@ -87,5 +86,11 @@ trait TransactionTimeIndex {
     val keyPrefix = timeToString(creationTime)
 
     db.delPrefixedObject(TimeIndexPrefix, keyPrefix, txHash )
+ //   assert(db.getPrefixedObject(TimeIndexPrefix, keyPrefix, txHash)(HashCodec, OneByteCodec).isEmpty)
   }
+
+  def delTransactionTime(key : CStringPrefixed[Hash])(implicit db : KeyValueDatabase) : Unit = {
+    db.delPrefixedObject(TimeIndexPrefix, key )
+  }
+
 }

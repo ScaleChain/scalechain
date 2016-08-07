@@ -10,15 +10,22 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 6/9/16.
   */
-class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
+class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) {
   private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPool]) )
 
   def getOldestTransactions(count:Int)(implicit db : KeyValueDatabase) : List[(Hash, Transaction)] = {
-    storage.getOldestTransactionHashes(count).map(_.data).map{ txHash : Hash =>
+    storage.getOldestTransactionHashes(count).map{ case key @ CStringPrefixed(createdAtString,txHash) =>
       val txOption = storage.getTransactionFromPool(txHash)
-      assert(txOption.isDefined)
-      (txHash, txOption.get.transaction)
-    }
+      if (txOption.isDefined) {
+        Some((txHash, txOption.get.transaction))
+      }
+      else {
+        // When two threads add transaction, remove transaction at the same time,
+        // a garbage on the Transaction Time Index can exist. we need to remove them.
+        storage.delTransactionTime(key)
+        None
+      }
+    }.filter(_.isDefined).map(_.get)
   }
   /**
     * Add a transaction to disk pool.
@@ -75,8 +82,8 @@ class TransactionPool(storage : BlockStorage, txMagnet : TransactionMagnet) {
     val txOption : Option[TransactionPoolEntry] = storage.getTransactionFromPool(txHash)
     if (txOption.isDefined) {
       // BUGBUG : Need to remove these two records atomically
-      storage.delTransactionFromPool(txHash)
       storage.delTransactionTime( txOption.get.createdAtNanos, txHash)
+      storage.delTransactionFromPool(txHash)
     }
   }
 
