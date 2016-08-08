@@ -97,8 +97,8 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
 
     watch.stop("candidateTransactions")
 
-    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
-    val newFirstCandidateHash0 = if (newCandidates0.isEmpty) None else Some(newCandidates0.head)
+//    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+//    val newFirstCandidateHash0 = if (newCandidates0.isEmpty) None else Some(newCandidates0.head)
 
 
     watch.start("validTransactions")
@@ -137,13 +137,13 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
         // If the transaction descriptor exists, it means the transaction is in a block.
         txDescIndex.getTransactionDescriptor(txHash)(rocksDB).isDefined
     }.foreach { case (txHash, transaction) => {
-        logger.info(s"A Transaction in a block removed from pool. Hash : ${txHash} ")
+//        logger.info(s"A Transaction in a block removed from pool. Hash : ${txHash} ")
         transactionPool.removeTransactionFromPool(txHash)(rocksDB)
       }
     }
 
-    val newCandidates1 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
-    val newFirstCandidateHash1 = if (newCandidates1.isEmpty) None else Some(newCandidates1.head)
+//    val newCandidates1 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+//    val newFirstCandidateHash1 = if (newCandidates1.isEmpty) None else Some(newCandidates1.head)
 
 
     val generationTransaction =
@@ -156,11 +156,11 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     val (txCount, sortedTransactions) = selectTransactions(generationTransaction, validTransactions, maxBlockSize)
     watch.stop("selectTx")
 
-    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head._1)
-    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
-    val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
+//    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head._1)
+//    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+ //   val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
 
-    logger.info(s"Coin Miner stats : ${watch.toString}, First Candidate Tx : ${newFirstCandidateHash0}, New First Candidate Tx(1) : ${newFirstCandidateHash1}, New First Candidate Tx(2) : ${newFirstCandidateHash2}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
+    logger.info(s"Coin Miner stats : ${watch.toString}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
     new BlockTemplate(difficultyBits, sortedTransactions)
   }
 
@@ -229,12 +229,12 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
       // The TemporaryCoinsView with additional transactions in the temporary transaction pool.
       // TemporaryCoinsView returns coins in the transaction pool of the coinsView, which may not be included in tempTranasctionPoolIndex,
       // But this should be fine, because we are checking if a transaction can be attached without including the transaction pool of the coinsView.
-      val txQueue = new TransactionPriorityQueue(tempCoinsView)
+      //val txQueue = new TransactionPriorityQueue(tempCoinsView)
 
       val txMagnet = new TransactionMagnet(txDescIndex, tempCoinsView.tempTranasctionPoolIndex, tempCoinsView.tempTranasctionTimeIndex )
 
-      var newlySelectedTransaction : Option[Transaction] = None
       /*
+      var newlySelectedTransaction : Option[Transaction] = None
       do {
         val iter = candidateTransactions.iterator
         var consequentNonAttachableTx = 0
