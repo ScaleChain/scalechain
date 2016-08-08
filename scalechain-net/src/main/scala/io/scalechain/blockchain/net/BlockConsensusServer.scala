@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import HashSupported._
 import collection.JavaConverters._
 
-class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
+class BlockConsensusServer(id: Int) extends DefaultRecoverable {
   private lazy val logger = Logger( LoggerFactory.getLogger(classOf[BlockConsensusServer]) )
 
   private var replica: ServiceReplica = new ServiceReplica(id, this, this)
@@ -24,7 +24,15 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
     null
   }
 
-  override def appExecuteOrdered(command: Array[Byte], msgCtx: MessageContext): Array[Byte] = {
+  override def appExecuteBatch(commands: Array[Array[Byte]], msgCtxs: Array[MessageContext]): Array[Array[Byte]] = {
+    (commands zip msgCtxs).map{
+      case (command, ctx) => {
+        appExecuteOrdered(command, ctx)
+      }
+    }
+  }
+
+  private def appExecuteOrdered(command: Array[Byte], msgCtx: MessageContext): Array[Byte] = {
     try {
       logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
 
@@ -73,6 +81,9 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
       if (chain.hasBlock(bestBlockHash)(chain.db)) {
         // We have the hash. We are ok.
       } else {
+        logger.info(s"Setting the snapshot block hash. ${bestBlockHash}")
+
+        Node.get.setLastBlockHashForIBD(bestBlockHash)
         // We don't have the best block hash. Need to start IBD(Initial block download).
         // TODO : Switch to initial block download mode.
       }

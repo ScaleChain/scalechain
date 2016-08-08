@@ -1,10 +1,9 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.net.{BlockGateway, TimeBasedCache}
+import io.scalechain.blockchain.net.{Node, BlockGateway, TimeBasedCache}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.net.BlockGateway
 import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto._
 import io.scalechain.util.Config
@@ -34,9 +33,25 @@ object BlockMessageHandler {
     val blockHash = block.header.hash
 
     logger.trace(s"[P2P] Received a block. Hash : ${blockHash}, Header : ${block.header}")
+    val node = Node.get
 
-    BlockGateway.putReceivedBlock(blockHash, block)
+    val processedByIBD = node.synchronized {
+      if ( node.isInitialBlockDownload() ) {
+        val peerBestHeight = node.bestPeerStartHeight()
+        if ( peerBestHeight > Blockchain.get.getBestBlockHeight() ) {
+          // putBlock returns true if the block was processed by it.
+          BlockGateway.putBlock(blockHash, block)
+        } else {
+          false
+        }
+      } else {
+        false
+      }
+    }
 
+    if (!processedByIBD) { // putReceivedBlock processes the block only if it was not processed by the IBD.
+      BlockGateway.putReceivedBlock(blockHash, block)
+    }
 /*
     if (chain.getBestBlockHash() == )
 

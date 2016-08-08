@@ -33,42 +33,6 @@ case class Peer(private val channel : Channel) {
     versionOption = Some(version)
   }
 
-  /**
-    * Keep block hashes requested using getblocks message.
-    * Only keep up to 4 block hashes in the cache.
-    */
-  //protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
-  var requestedBlockHashOption : Option[Hash] = None
-  /**
-    * Keep a block as requested using getblocks message.
- *
-    * @param blockHash The hash of block requested using getblocks message.
-    */
-  def blockRequested(blockHash : Hash) : Unit = {
-    requestedBlockHashOption = Some(blockHash)
-  }
-
-  /**
-    * Check if a block was requested using getblocks message.
- *
-    * @param blockHash The block hash to check.
-    * @return true if the block was requested; false otherwise.
-    */
-  def isBlockRequested(blockHash : Hash) = {
-    requestedBlockHashOption == Some(blockHash)
-  }
-
-  def requestedBlock() = requestedBlockHashOption
-
-  /**
-    * Clear all requested blocks.
-    */
-  def clearRequestedBlock() = {
-    requestedBlockHashOption = None
-  }
-
-
-
   /** Return if this peer is live.
     *
     * @return True if this peer is live, false otherwise.

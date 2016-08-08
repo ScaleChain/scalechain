@@ -10,7 +10,7 @@ import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
 import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util._
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
+import io.scalechain.blockchain.net._
 import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.wallet.Wallet
@@ -63,30 +63,22 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     * @return true if we can mine; false otherwise.
     */
   def canMine() : Boolean = {
-    val peerCount = Config.peerAddresses.length
-    if (peerCount == 1) {
+    val maxPeerCount = Config.peerAddresses.length
+    val node = Node.get
+    if (maxPeerCount == 1) {
       // regression test mode with only one node.
       true
+    } else if (node.isInitialBlockDownload()) { // During the initial block download, do not do mining.
+      false
     } else {
-      // exclude myself.
-      val peerCountExcudingMe = peerCount - 1
-      // We have two-way peer connections. From me to peer, From peer to me.
-      val maxPeerConnections = peerCountExcudingMe * 2
+      val bestPeerOption = node.getBestPeer()
+      if (bestPeerOption.isDefined) {
+        val bestPeer = bestPeerOption.get
+        val bestBlockHeight = chain.getBestBlockHeight()
 
-      val peerInfos = peerCommunicator.getPeerInfos()
-      // Do we have enough number of peers? (At least more than half)
-      if ( peerInfos.length > maxPeerConnections / 2 ) {
-        // Did we receive starting height for all peers?
-        if ( peerInfos.filter( _.startingheight.isDefined ).length == peerInfos.length ) {
-          val bestPeer = peerCommunicator.getBestPeer.get
-          val bestBlockHeight = chain.getBestBlockHeight()
-
-          // Did we catch up the best peer, which has the highest block height by the time we connected ?
-          bestBlockHeight >= bestPeer.startingheight.get
-        } else {
-          false
-        }
-      } else { // Not enough connected peers.
+        // Did we catch up the best peer, which has the highest block height by the time we connected ?
+        bestBlockHeight >= bestPeer.versionOption.map(_.startHeight).getOrElse(0)
+      } else {
         false
       }
     }

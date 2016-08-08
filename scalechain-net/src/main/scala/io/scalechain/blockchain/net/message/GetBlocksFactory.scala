@@ -14,7 +14,7 @@ object GetBlocksFactory {
     * @param blockHashToGet The hash of the block to get.
     * @return
     */
-  def create(blockHashToGet : Hash) : GetBlocks = {
+  def create(blockHashToGet : Hash = Hash.ALL_ZERO) : GetBlocks = {
     val env = ChainEnvironment.get
     implicit val db : KeyValueDatabase = Blockchain.get.db
 

@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
+import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.chain.Blockchain
@@ -30,37 +31,41 @@ object TxMessageHandler {
     val transactionHash = transaction.hash
     logger.trace(s"[P2P] Received a transaction. Hash : ${transactionHash}")
 
-    // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
-    try {
-      if (TransactionProcessor.exists(transactionHash)) {
-        logger.trace(s"The transaction already exists. ${transaction}")
-      } else {
+    // Do not process the message during initial block download.
+    if ( ! Node.get.isInitialBlockDownload() ) {
+      // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
+      try {
+        if (TransactionProcessor.exists(transactionHash)) {
+          logger.trace(s"The transaction already exists. ${transaction}")
+        } else {
 
-        // Try to put the transaction into the disk-pool
-        TransactionProcessor.putTransaction(transactionHash, transaction)
+          // Try to put the transaction into the disk-pool
+          TransactionProcessor.putTransaction(transactionHash, transaction)
 
-        // Yes! the transaction was put into the disk-pool.
-        // Step 2 : Recursively check if any orphan transaction depends on this transaction.
-        // Also delete the newly accepted transactions from indexes for orphan transactions.
-        val acceptedChildren: List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
-/*
-        // Step 3 : Relay the transaction as an inventory
-        val invMessage = InvFactory.createTransactionInventories(transactionHash :: acceptedChildren)
-        context.communicator.sendToAll(invMessage)
-        logger.trace(s"Propagating inventories for the newly accepted transactions. ${invMessage}")
-*/
-      }
-    } catch {
-      case e: ChainException => {
-        if (e.code == ErrorCode.ParentTransactionNotFound) {
-          // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
-          TransactionProcessor.putOrphan(transactionHash, transaction)
-          logger.info(s"An orphan transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
-        } else if (e.code == ErrorCode.TransactionOutputAlreadySpent) {
-          logger.trace(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
+          // Yes! the transaction was put into the disk-pool.
+          // Step 2 : Recursively check if any orphan transaction depends on this transaction.
+          // Also delete the newly accepted transactions from indexes for orphan transactions.
+          val acceptedChildren: List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
+          /*
+                  // Step 3 : Relay the transaction as an inventory
+                  val invMessage = InvFactory.createTransactionInventories(transactionHash :: acceptedChildren)
+                  context.communicator.sendToAll(invMessage)
+                  logger.trace(s"Propagating inventories for the newly accepted transactions. ${invMessage}")
+          */
+        }
+      } catch {
+        case e: ChainException => {
+          if (e.code == ErrorCode.ParentTransactionNotFound) {
+            // A transaction pointed by an input of the transaction does not exist. add it as an orphan.
+            TransactionProcessor.putOrphan(transactionHash, transaction)
+            logger.info(s"An orphan transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
+          } else if (e.code == ErrorCode.TransactionOutputAlreadySpent) {
+            logger.trace(s"A double spending transaction was received. Hash : ${transactionHash}, Transaction : ${transaction}")
+          }
         }
       }
     }
+
 
  /*
     pfrom->AddInventoryKnown(tx inventory)

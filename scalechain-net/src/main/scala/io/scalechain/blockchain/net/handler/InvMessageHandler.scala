@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.net.handler
 
+import java.util.{TimerTask, Timer}
+
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.{BlockProcessor, InventoryProcessor}
-import io.scalechain.blockchain.net.MessageSummarizer
+import io.scalechain.blockchain.net.{Node, MessageSummarizer}
 import io.scalechain.blockchain.net.message.{GetDataFactory, GetBlocksFactory}
 import io.scalechain.blockchain.proto.{InvType, InvVector, Inv, ProtocolMessage}
 import org.slf4j.LoggerFactory
@@ -29,7 +31,6 @@ object InvMessageHandler {
 
     var blockInventories = 0
     val inventoriesToGetData =
-
     // Step 3 : Get a list of inventories to request data with GetData message.
     inv.inventories.map { inventory: InvVector =>
       if (inventory.invType == InvType.MSG_BLOCK) {
@@ -65,12 +66,23 @@ object InvMessageHandler {
       logger.trace(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
     }
 
-    if (blockInventories == GetBlocksMessageHandler.MAX_HASH_PER_REQUEST) {
-      if (context.peer.requestedBlock().isDefined) {
-        val blockHashToRequest = context.peer.requestedBlock().get
-        context.peer.send( GetBlocksFactory.create(blockHashToRequest) )
-        logger.trace(s"Requesting the next batch of hashes to get the blocks. Orphan root : ${blockHashToRequest}")
+//    if (blockInventories == GetBlocksMessageHandler.MAX_HASH_PER_REQUEST) {
+      val node = Node.get
+      if (node.isInitialBlockDownload()) {
+        if (node.bestPeerForIBD == context.peer) {
+          // After a second, summarize local blockchain and send getblocks again.
+          val timer = new Timer(true);
+          timer.schedule( new TimerTask {
+            override def run(): Unit = {
+              // TODO : BUGBUG - Use the snapshot block hash for the hash stop.
+              context.peer.send( GetBlocksFactory.create() )
+              logger.trace(s"Requesting the next batch of hashes to get the blocks.")
+            }
+          }, 1000);
+
+//          context.peer.send( GetBlocksFactory.create( node.getLastBlockHashForIBD ) )
+        }
       }
-    }
+//    }
   }
 }

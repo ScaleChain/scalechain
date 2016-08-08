@@ -63,6 +63,7 @@ object RpcCommand {
     // TODO : Bitcoin Compatibility : Need to use the same RPC error when the height parameter has an invalid value.
     ErrorCode.InvalidBlockHeight -> RpcError.RPC_INVALID_PARAMETER,
     ErrorCode.InvalidTransactionOutPoint -> RpcError.RPC_INVALID_PARAMETER,
-    ErrorCode.ParentTransactionNotFound -> RpcError.RPC_INVALID_PARAMETER
+    ErrorCode.ParentTransactionNotFound -> RpcError.RPC_INVALID_PARAMETER,
+    ErrorCode.BusyWithInitialBlockDownload -> RpcError.RPC_CLIENT_IN_INITIAL_DOWNLOAD
   )
 }

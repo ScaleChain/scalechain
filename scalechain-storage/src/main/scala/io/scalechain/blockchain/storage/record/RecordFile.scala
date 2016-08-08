@@ -2,6 +2,7 @@ package io.scalechain.blockchain.storage.record
 
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import io.scalechain.blockchain.proto.codec.MessagePartCodec
 import io.scalechain.blockchain.proto.{ProtocolMessage, RecordLocator}
@@ -19,29 +20,41 @@ import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
   * http://tutorials.jenkov.com/java-nio/file-channel.html
   */
 class RecordFile(val path : File, maxFileSize : Long) extends BlockAccessFile(path, maxFileSize){
+  val rwLock = new ReentrantReadWriteLock()
+
   // Move to the end of file so that we can append records at the end of the file.
   moveTo( size() )
 
   def readRecord[T <: ProtocolMessage](locator : RecordLocator)(implicit codec : MessagePartCodec[T]) : T = {
-
-    val buffer = read(locator.offset, locator.size)
-    codec.parse(buffer.array())
+    rwLock.readLock.lock
+    try {
+      val buffer = read(locator.offset, locator.size)
+      codec.parse(buffer.array())
+    } finally {
+      rwLock.readLock.unlock
+    }
   }
 
   def appendRecord[T <: ProtocolMessage](record : T)(implicit codec : MessagePartCodec[T]) : RecordLocator = {
-    // Move to the end of the file if we are not.
-    if ( offset() <= size() ) {
-      moveTo(size())
-    }
+    rwLock.writeLock.lock
 
-    val serializedBytes = codec.serialize(record)
-    val initialOffset = offset()
-    val buffer = ByteBuffer.wrap(serializedBytes)
-    if (initialOffset + buffer.capacity() > maxFileSize) {
-      throw new BlockStorageException(ErrorCode.OutOfFileSpace)
+    try {
+      // Move to the end of the file if we are not.
+      if ( offset() <= size() ) {
+        moveTo(size())
+      }
+
+      val serializedBytes = codec.serialize(record)
+      val initialOffset = offset()
+      val buffer = ByteBuffer.wrap(serializedBytes)
+      if (initialOffset + buffer.capacity() > maxFileSize) {
+        throw new BlockStorageException(ErrorCode.OutOfFileSpace)
+      }
+      append(buffer)
+      RecordLocator(initialOffset, buffer.capacity())
+    } finally {
+      rwLock.writeLock.unlock
     }
-    append(buffer)
-    RecordLocator(initialOffset, buffer.capacity())
   }
 }
 
