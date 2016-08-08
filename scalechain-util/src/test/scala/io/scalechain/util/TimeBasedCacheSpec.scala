@@ -13,7 +13,7 @@ class TimeBasedCacheSpec extends FlatSpec with BeforeAndAfterEach with Matchers 
 
   var cache : TimeBasedCache[Integer, String] = null
 
-  val CACHE_KEEP_MILLISECONDS = 10
+  val CACHE_KEEP_MILLISECONDS = 50
 
   override def beforeEach() {
     super.beforeEach()

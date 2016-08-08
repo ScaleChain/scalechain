@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.cli.api
+package io.scalechain.blockchain.cli.command
 
 import java.io.IOException
 
@@ -10,7 +10,7 @@ import spray.json._
 
 
 // BUGBUG : We need to be able to pass Int, scala.math.BigDecimal, a json object to params array.
-case class RpcRequest(jsonrpc:String, id:String, method:String, params:Array[String])
+case class RpcRequest(jsonrpc:String, id:Int, method:String, params:Array[String])
 
 object RpcInvoker extends DefaultJsonProtocol {
   // BUGBUG : This code is too dirty. Make it cleaner.
@@ -18,7 +18,7 @@ object RpcInvoker extends DefaultJsonProtocol {
 
 
     val rpcRequest = RpcRequest(
-      jsonrpc = "1.0", id = "1", method = method, params = args
+      jsonrpc = "1.0", id = 1, method = method, params = args
     )
 
     // BUGBUG : Find a better way to serialize scala values.

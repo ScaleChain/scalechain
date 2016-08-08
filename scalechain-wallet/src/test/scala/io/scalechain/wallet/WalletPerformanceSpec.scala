@@ -4,14 +4,15 @@ import java.io.File
 
 
 import io.scalechain.blockchain.chain.BlockSampleData
+import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.chain.{NewOutput, TransactionWithName, BlockSampleData, Blockchain}
 import io.scalechain.blockchain.proto.codec.{TransactionCodec, HashCodec}
-import io.scalechain.blockchain.proto.{TransactionPoolEntry, Hash, Transaction}
+import io.scalechain.blockchain.proto.{CoinbaseData, TransactionPoolEntry, Hash, Transaction}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction._
 import io.scalechain.test.PerformanceTestTrait
-import io.scalechain.util.GlobalStopWatch
+import io.scalechain.util.{StopWatch, StringUtil, GlobalStopWatch}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory
 import org.scalatest._
@@ -102,14 +103,18 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     }
   }
 
-  def prepareTestTransactions(txCount : Long) : ListBuffer[(Hash, Transaction)] = {
-    val data = new BlockSampleData()
+  def prepareTestTransactions(txCount : Long, data : BlockSampleData = new BlockSampleData(), genTxOption : Option[Transaction] = None) : ListBuffer[(Hash, Transaction)] = {
     import data._
     import data.Block._
     import data.Tx._
 
     val generationAddress = wallet.newAddress("generation")
-    val generationTx = generationTransaction( "GenTx.BLK01", CoinAmount(50), generationAddress )
+    val generationTx =
+      if (genTxOption.isDefined) {
+        TransactionWithName("generation transaction", genTxOption.get )
+      } else {
+        generationTransaction( "GenTx.BLK01", CoinAmount(50), generationAddress )
+      }
 
     // Prepare test data.
     val transactions = new ListBuffer[(Hash, Transaction)]()
@@ -181,7 +186,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
     println("Preparing Performance test data.")
 
-    implicit val TEST_LOOP_COUNT = 10000
+    implicit val TEST_LOOP_COUNT = 1000
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
     val hashes = new ListBuffer[Array[Byte]]()
@@ -242,6 +247,120 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
   }
 
+  "single thread perf test" should "measure performance for mining blocks" in {
+    val data = new BlockSampleData()
+    import data._
+    import data.Block._
+    import data.Tx._
+
+    import ch.qos.logback.classic.Logger
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    root.setLevel(ch.qos.logback.classic.Level.WARN);
+
+    wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)
+    wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
+
+    chain.putBlock(BLK01.header.hash, BLK01)
+    chain.putBlock(BLK02.header.hash, BLK02)
+    chain.putBlock(BLK03a.header.hash, BLK03a)
+
+    //    val TEST_LOOP_COUNT = 2
+    implicit val TEST_LOOP_COUNT = 10000
+    var testLoop = TEST_LOOP_COUNT
+
+    println("Preparing Performance test data.")
+
+    val transactions = prepareTestTransactions(TEST_LOOP_COUNT, data, Some(BLK02.transactions(0)))
+
+
+    measure("single thread Add Transaction") {
+      val poolIndex = new TransactionPoolIndex {}
+      // Drop the first transaction, which is the generation transaction already included in the first block.
+      transactions.drop(1) foreach { case (txHash, tx) =>
+        chain.withTransaction { transactingDatabase =>
+          /*
+                  GlobalStopWatch.measure("put-to-pool") {
+                    poolIndex.putTransactionToPool(
+                      txHash,
+                      TransactionPoolEntry(tx, List.fill(tx.outputs.length)(None))
+                    )(transactingDatabase)
+                  }
+                  GlobalStopWatch.measure("put-to-wallet") {
+                    wallet.onNewTransaction(txHash, tx, None, None)
+                  }
+          */
+          chain.txPool.addTransactionToPool(txHash, tx)(transactingDatabase)
+        }
+      }
+    }
+
+    val w = new StopWatch()
+
+    //val MaxBlockSize = 1024 * 1024 * 2
+    val MaxBlockSize = 128 * 1024
+    val minedBlockOption = measure("mine block") {
+      w.start("COINBASE_MESSAGE")
+      val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight()}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
+      w.stop("COINBASE_MESSAGE")
+      // Step 2 : Create the block template
+      w.start("getBestBlockHash")
+      val bestBlockHash = chain.getBestBlockHash()
+      w.stop("getBestBlockHash")
+      if (bestBlockHash.isDefined) {
+
+        w.start("blockTemplate")
+        val blockTemplate = {
+          val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(chain.db)
+          Some(blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, MaxBlockSize))
+        }
+        w.stop("blockTemplate")
+
+        if (blockTemplate.isDefined) {
+          w.start("getBlockHeader")
+          // Step 3 : Get block header
+          val blockHeader = blockTemplate.get.getBlockHeader(Hash(bestBlockHash.get.value))
+          w.stop("getBlockHeader")
+
+
+          // Step 3 : Loop until we find a block header hash less than the threshold.
+          //            do {
+          // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
+
+          // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
+
+          // Check the best block hash once more.
+          w.start("hash compare")
+          if (bestBlockHash.get.value == chain.getBestBlockHash().get.value) {
+            w.stop("hash compare")
+            // Step 5 : When a block is found, create the block and put it on the blockchain.
+            // Also propate the block to the peer to peer network.
+            w.start("create block")
+            val block = blockTemplate.get.createBlock(blockHeader, blockHeader.nonce)
+            w.stop("create block")
+
+            w.start("calc block hash")
+            val blockHeaderHash = block.header.hash
+            w.stop("calc block hash")
+            Some(block)
+          } else {
+            None
+          }
+        } else {
+          println("Not enough signed transactions with the previous block hash.")
+          None
+        }
+      } else {
+        println("The best block hash is not defined yet.")
+        None
+      }
+
+    }(1)
+
+    println(s"result : ${w.toString}")
+    println(s"transactions in the block : ${minedBlockOption.get.transactions.length}")
+  }
+
   "single thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = new BlockSampleData()
     import data._
@@ -259,22 +378,10 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     //    val TEST_LOOP_COUNT = 2
     implicit val TEST_LOOP_COUNT = 10000
     var testLoop = TEST_LOOP_COUNT
-/*
-    println("Warming up.")
-    {
-      val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
-      transactions foreach { case (hash, tx) =>
-        chain.withTransaction { implicit transactingDatabase =>
-          chain.txPool.addTransactionToPool(hash, tx)(transactingDatabase)
-        }
-      }
-    }
-*/
     println("Preparing Performance test data.")
 
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
-
 
     measure("single thread Add Transaction") {
       val poolIndex = new TransactionPoolIndex {}
@@ -295,59 +402,9 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
         }
       }
     }
-
-/*
-    val signedTransactions =
-      {
-        println("Performance test started. Sign Transaction.")
-        val startTimestamp = System.currentTimeMillis()
-
-        var index = -1
-        val signedTransactions =
-          // Drop the generation transaction, unable to sign the generation transaction
-          transactions.drop(1).map { case (hash, tx) =>
-            index += 1
-            println(s"singing ${index}")
-            Wallet.get.signTransaction(
-              tx,
-              Blockchain.get,
-              List(),
-              None,
-              SigHash.ALL)
-          }
-
-        val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-        println(s"Elapsed second : ${elapsedSecond}")
-        val totalTransactions = TEST_LOOP_COUNT
-        println(s"Total transactions : ${totalTransactions}")
-        println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
-
-        signedTransactions
-      }
-
-
-    {
-      println("Performance test started. Verify Transaction.")
-      val startTimestamp = System.currentTimeMillis()
-
-      signedTransactions foreach { signedTx =>
-
-        assert(signedTx.complete)
-        new TransactionVerifier(signedTx.transaction).verify(chain)
-      }
-
-      val elapsedSecond = (System.currentTimeMillis()-startTimestamp) / 1000d
-      println(s"Elapsed second : ${elapsedSecond}")
-      val totalTransactions = TEST_LOOP_COUNT
-      println(s"Total transactions : ${totalTransactions}")
-      println(s"Transactions per second : ${totalTransactions / elapsedSecond} /s ")
-    }
-
-*/
   }
 
-
-  "multi thread perf test" should "measure performance by adding transactions to the pool" in {
+  "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = new BlockSampleData()
     import data._
     import data.Block._
@@ -365,7 +422,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
     println("Preparing Performance test data.")
 
-    val TEST_LOOP_COUNT = 10000
+    val TEST_LOOP_COUNT = 1000
     var testLoop = TEST_LOOP_COUNT
 
     var transactionsMap = scala.collection.mutable.Map[Int, ListBuffer[(Hash, Transaction)]]()

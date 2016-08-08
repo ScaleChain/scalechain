@@ -56,6 +56,12 @@ object OneByteCodec extends MessagePartCodec[OneByte]{
   }.as[OneByte]
 }
 
+object LongValueCodec extends MessagePartCodec[LongValue]{
+  val codec : Codec[LongValue] = {
+    ("value" | int64)
+  }.as[LongValue]
+}
+
 /** The codec for TransactionCount.
   *
   */
@@ -94,6 +100,7 @@ object OrphanTransactionDescriptorCodec extends MessagePartCodec[OrphanTransacti
 object TransactionPoolEntryCodec extends MessagePartCodec[TransactionPoolEntry] {
   val codec : Codec[TransactionPoolEntry] = {
     ("transaction" | TransactionCodec.codec ) ::
-    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) ))
+    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) )) ::
+    ("createdAt" | int64)
   }.as[TransactionPoolEntry]
 }

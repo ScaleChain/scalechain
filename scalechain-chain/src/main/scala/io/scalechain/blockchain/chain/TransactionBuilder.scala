@@ -11,12 +11,18 @@ import io.scalechain.util.HexUtil
 import scala.collection.mutable.ListBuffer
 
 object TransactionBuilder {
-  /** create a new transaction builder providing a way to search spending outputs using a coins view.
+  /** create a new transaction builder.
     *
-    * @param coinsView A read-only view to transaction outputs.
     * @return The transaction builder.
     */
-  def newBuilder(coinsView : CoinsView) = new TransactionBuilder(coinsView)
+  def newBuilder() = new TransactionBuilder()
+
+  def newGenerationTransaction(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : Transaction = {
+    TransactionBuilder.newBuilder()
+      .addGenerationInput(coinbaseData)
+      .addOutput(CoinAmount(50), minerAddress)
+      .build()
+  }
 }
 
 
@@ -25,10 +31,8 @@ object TransactionBuilder {
   * Note that the builder does not check if this is a double spending transaction.
   * IOW, it does not check if the outputs pointed by inputs are already spent.
   *
-  * @param coinsView The read-only view of coins in the blockchain. Need it to verify the sum of input amounts >= sum of output amounts.
-  *
   */
-class TransactionBuilder(coinsView : CoinsView) {
+class TransactionBuilder() {
   /** The outputs spent by inputs. The order of spendingOutputs matches inputs.
     */
   val spendingOutputs = new ListBuffer[TransactionOutput]
@@ -58,6 +62,7 @@ class TransactionBuilder(coinsView : CoinsView) {
 
   /** Add a normal transaction input.
     *
+    * @param coinsView The read-only view of coins in the blockchain. Need it to verify the sum of input amounts >= sum of output amounts.
     * @param outPoint The out point which points to the output we want to spent.
     * @param unlockingScriptOption The unlocking script if any.
     *                              If None is passed, we will put an empty unlocking script,
@@ -68,7 +73,7 @@ class TransactionBuilder(coinsView : CoinsView) {
     *                             If Some(sequence) is passed, we will use the given value.
     *
     */
-  def addInput(outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None)(implicit db : KeyValueDatabase) : TransactionBuilder = {
+  def addInput(coinsView : CoinsView, outPoint : OutPoint, unlockingScriptOption : Option[UnlockingScript] = None, sequenceNumberOption : Option[Long] = None)(implicit db : KeyValueDatabase) : TransactionBuilder = {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),

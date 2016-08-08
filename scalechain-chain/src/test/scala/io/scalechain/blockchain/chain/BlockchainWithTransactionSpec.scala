@@ -49,7 +49,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check transactions in the block. No transaction should exist.
+    // Drop the generation transaction and check transactions in the block. No transaction should exist.
     block1.transactions.drop(1) shouldBe List()
   }
 
@@ -68,7 +68,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction
     )
@@ -90,7 +90,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction,
       TX04_02.transaction
@@ -114,7 +114,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction,
       TX04_02.transaction,
@@ -140,7 +140,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction,
       TX04_02.transaction,
@@ -168,7 +168,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction,
       TX04_02.transaction,
@@ -185,7 +185,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block2 = mineBlock(chain)
     chain.putBlock(block2.header.hash, block2)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block2.transactions.drop(1) shouldBe List(
       TX04_05_01.transaction,
       TX04_05_02.transaction,
@@ -220,7 +220,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     val block1 = mineBlock(chain)
     chain.putBlock(block1.header.hash, block1)
 
-    // Drop the genesis transaction and check all transactions are in the block.
+    // Drop the generation transaction and check all transactions are in the block.
     block1.transactions.drop(1) shouldBe List(
       TX04_01.transaction,
       TX04_02.transaction,

@@ -51,7 +51,7 @@ class WalletAndChainSpec extends FlatSpec with WalletTestTrait with BeforeAndAft
     * @return The list of transaction hashes.
     */
   def listPoolTransactionHashes() : List[Hash] = {
-    chain.txPool.getTransactionsFromPool().map { case(txHash : Hash, transaction : Transaction) =>
+    chain.txPool.getOldestTransactions(100).map { case(txHash : Hash, transaction : Transaction) =>
       txHash
     }
   }

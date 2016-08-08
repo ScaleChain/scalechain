@@ -89,7 +89,7 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
   def putBlocks(blockCount : Int) = {
     for (blockHeight <- 1 to blockCount) {
       val blockHash = numberToHash(blockHeight)
-      println(s"putblocks : ${blockCount}, ${blockHash}, ${createBlock(blockHeight)} ")
+      //println(s"putblocks : ${blockCount}, ${blockHash}, ${createBlock(blockHeight)} ")
       // put a block using genesis block, as we don't check if the block hash matches in the putBlock method.
       chain.putBlock(blockHash, createBlock(blockHeight))
     }

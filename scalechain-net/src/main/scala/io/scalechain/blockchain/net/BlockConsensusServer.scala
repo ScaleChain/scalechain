@@ -2,6 +2,7 @@ package io.scalechain.blockchain.net
 
 import java.io._
 
+import bftsmart.consensus.messages.ConsensusMessage
 import bftsmart.tom.{MessageContext, ServiceReplica}
 import bftsmart.tom.server.defaultservices.{DefaultSingleRecoverable, DefaultRecoverable}
 import com.typesafe.scalalogging.Logger
@@ -10,6 +11,7 @@ import io.scalechain.blockchain.proto.codec.{BlockHeaderCodec, HashCodec}
 import io.scalechain.blockchain.script.HashSupported
 import org.slf4j.LoggerFactory
 import HashSupported._
+import collection.JavaConverters._
 
 class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
   private lazy val logger = Logger( LoggerFactory.getLogger(classOf[BlockConsensusServer]) )
@@ -31,6 +33,12 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
       logger.trace(s"appExecuteOrdered : received block header : ${blockHeader}")
 
       BlockGateway.putConsensualHeader(blockHeader)
+
+      /*
+      val consensusMesssages : java.util.Set[ConsensusMessage] = msgCtx.getProof()
+      consensusMesssages.asScala.map { message =>
+        message.getProof()
+      }*/
 
       if (msgCtx != null) {
         if (msgCtx.getConsensusId == -1) {

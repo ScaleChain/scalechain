@@ -4,6 +4,7 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinsView
 import io.scalechain.blockchain.{ChainException, ErrorCode}
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint}
+import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import scala.collection.mutable
 
@@ -14,11 +15,11 @@ import scala.collection.mutable
 class TransactionOutputSet extends CoinsView {
   /** The map from an out point to a transaction output.
     */
-  val outputsByOutPoint = new mutable.HashMap[OutPoint, TransactionOutput]()
+  val outputsByOutPoint = new ConcurrentHashMap[OutPoint, TransactionOutput]()
 
   /** The map from a transaction output to an out point
     */
-  val outPointsByOutput = new mutable.HashMap[TransactionOutput, OutPoint]()
+  val outPointsByOutput = new ConcurrentHashMap[TransactionOutput, OutPoint]()
 
   /** Add a coin to the set.
     *
@@ -37,7 +38,8 @@ class TransactionOutputSet extends CoinsView {
     * @return The found output.
     */
   def getOutPoint(transactionOutput : TransactionOutput) : Option[OutPoint] = {
-    outPointsByOutput.get(transactionOutput)
+    val output = outPointsByOutput.get(transactionOutput)
+    if (output == null) None else Some(output)
   }
 
 
@@ -47,11 +49,11 @@ class TransactionOutputSet extends CoinsView {
     * @return The transaction output we found.
     */
   def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
-    val outputOption = outputsByOutPoint.get(outPoint)
-    if (outputOption.isEmpty) {
+    val output = outputsByOutPoint.get(outPoint)
+    if (output == null) {
       throw new ChainException( ErrorCode.InvalidTransactionOutPoint )
     }
-    outputOption.get
+    output
   }
 }
 

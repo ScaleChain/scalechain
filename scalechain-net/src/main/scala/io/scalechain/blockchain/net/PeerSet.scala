@@ -108,42 +108,47 @@ class PeerSet {
     * @param message The message to send.
     */
   def sendToAll(message : ProtocolMessage): Unit = {
-    val messageString = MessageSummarizer.summarize(message)
+    synchronized {
+      val messageString = MessageSummarizer.summarize(message)
 
-    if (channels.size > 0) {
-      logger.trace(s"Sending to all peers : ${messageString}")
+      if (channels.size > 0) {
+        logger.trace(s"Sending to all peers : ${messageString}")
 
-      channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
-        def operationComplete(future:ChannelGroupFuture) {
-          assert( future.isDone )
-          val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
-          if (future.isSuccess) { // completed successfully
-            logger.debug(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
+        channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
+          def operationComplete(future: ChannelGroupFuture) {
+            assert(future.isDone)
+            val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
+            if (future.isSuccess) {
+              // completed successfully
+              logger.debug(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
+            }
+
+            if (future.cause() != null) {
+              // completed with failure
+              val failureDescriptions =
+                future.cause.iterator.asScala.map { entry =>
+                  val channel: Channel = entry.getKey
+                  val throwable: Throwable = entry.getValue
+                  val causeDescription =
+                    if (throwable.getCause == null)
+                      ""
+                    else
+                      s"Cause : { exception : ${throwable.getCause}, stack : ${StackUtil.getStackTrace(throwable.getCause)} }"
+                  s"An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
+                }.mkString("\n")
+
+              logger.debug(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}")
+            }
+
+            if (future.isCancelled) {
+              // completed by cancellation
+              logger.debug(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
+            }
           }
-
-          if (future.cause() != null) { // completed with failure
-          val failureDescriptions =
-            future.cause.iterator.asScala.map{ entry =>
-              val channel : Channel = entry.getKey
-              val throwable : Throwable = entry.getValue
-              val causeDescription =
-                if (throwable.getCause == null)
-                  ""
-                else
-                  s"Cause : { exception : ${throwable.getCause}, stack : ${StackUtil.getStackTrace(throwable.getCause)} }"
-              s"An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
-            }.mkString("\n")
-
-            logger.debug(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}" )
-          }
-
-          if (future.isCancelled) { // completed by cancellation
-            logger.debug(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
-          }
-        }
-      })
-    } else {
-      logger.warn(s"No connected peer to send the message : ${messageString}")
+        })
+      } else {
+        logger.warn(s"No connected peer to send the message : ${messageString}")
+      }
     }
   }
 

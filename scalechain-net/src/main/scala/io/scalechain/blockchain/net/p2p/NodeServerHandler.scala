@@ -9,6 +9,7 @@ import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.scalechain.blockchain.net.message.{VersionFactory}
+import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.{Config, ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
@@ -78,6 +79,7 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
   override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
     assert(messageHandler != null)
     // Process the received message, and send message to peers if necessary.
+
     messageHandler.handle(message)
 
     /*

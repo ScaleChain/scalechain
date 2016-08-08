@@ -5,6 +5,7 @@ import io.netty.channel.{Channel, ChannelHandlerContext, SimpleChannelInboundHan
 import io.netty.handler.ssl.SslHandler
 import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.{Future, GenericFutureListener}
+import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.{StackUtil, ExceptionUtil}
 import org.slf4j.LoggerFactory

@@ -164,16 +164,18 @@ trait KeyValueDatabase {
   }
 
 
-  def delObject[K <: ProtocolMessage](prefix : Byte, key : K)(implicit keyCodec : MessagePartCodec[K]) = {
+  def delObject[K <: ProtocolMessage](prefix : Byte, key : K)(implicit keyCodec : MessagePartCodec[K]) : Unit = {
     val rawKey = prefixedKey(prefix, keyCodec.serialize(key))
     del(rawKey)
   }
 
-  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(implicit keyCodec : MessagePartCodec[K]) = {
-    val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(CStringPrefixed(keyPrefix, key)) )
-    del(rawKey)
+  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, keyPrefix : String, key : K)(implicit keyCodec : MessagePartCodec[K]) : Unit = {
+    delPrefixedObject( prefix, CStringPrefixed(keyPrefix, key))
   }
 
-
+  def delPrefixedObject[K <: ProtocolMessage](prefix : Byte, key : CStringPrefixed[K])(implicit keyCodec : MessagePartCodec[K]) : Unit = {
+    val rawKey = prefixedKey(prefix, new CStringPrefixedCodec[K](keyCodec).serialize(key) )
+    del(rawKey)
+  }
 }
 

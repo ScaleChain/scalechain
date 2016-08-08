@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
 import io.scalechain.blockchain.transaction._
@@ -67,9 +68,9 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
                              amount : CoinAmount,
                              generatedBy : OutputOwnership
                            ) : TransactionWithName = {
-    val transaction = TransactionBuilder.newBuilder(availableOutputs)
+    val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
-      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo."))
+      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes))
       .addOutput(CoinAmount(50), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
@@ -96,10 +97,10 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     * @return
     */
   def normalTransaction( name : String, spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) : TransactionWithName = {
-    val builder = TransactionBuilder.newBuilder(availableOutputs)
+    val builder = TransactionBuilder.newBuilder()
 
     spendingOutputs foreach { output =>
-      builder.addInput(output.outPoint)
+      builder.addInput(availableOutputs, output.outPoint)
     }
 
     newOutputs foreach { output =>
@@ -157,7 +158,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     val rocksDB = db.asInstanceOf[RocksDatabase]
 
     val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
-    val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.")
+    val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)
     val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash().get ), nonce = 0 )

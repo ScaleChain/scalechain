@@ -5,5 +5,5 @@ package io.scalechain.util
   */
 object StringUtil {
   def getBrief(string : String, maxLength : Int)
-    = s"${if (string.length() >= maxLength) string.substring(0,maxLength)+"..." else string}"
+    = s"${if (string.length() >= maxLength) string.take(maxLength)+"..." else string}"
 }

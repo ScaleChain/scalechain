@@ -3,7 +3,7 @@ package io.scalechain.blockchain.cli
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.{RpcError, RpcParams, RpcRequest, RpcResult}
-import io.scalechain.blockchain.cli.api.RpcInvoker
+import io.scalechain.blockchain.cli.command.RpcInvoker
 import io.scalechain.blockchain.proto.Hash
 import org.scalatest.ShouldMatchers
 import spray.json.JsValue

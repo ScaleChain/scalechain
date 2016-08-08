@@ -1,5 +1,8 @@
 Introduction
 ============
+
+[A five-minute pitch for ScaleChain private blockchain.](https://www.youtube.com/watch?v=Nh-XuL8mb6I)
+
 A customizable blockchain implementation for private blockchains.
 Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
 Take a look at an example [configuration](data/docs/config.md).
