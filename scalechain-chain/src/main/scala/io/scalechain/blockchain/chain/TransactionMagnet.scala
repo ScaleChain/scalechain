@@ -1,15 +1,21 @@
 package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
+import de.jkeylockmanager.manager.{LockCallback, KeyLockManager, KeyLockManagers}
 import io.scalechain.blockchain.storage.index.{KeyValueDatabase, TransactionDescriptorIndex}
 import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.{ErrorCode, ChainException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.storage.{TransactionTimeIndex, TransactionPoolIndex, TransactionLocator, BlockStorage}
 import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.StackUtil
+import io.scalechain.util.{HexUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
+
+object TransactionMagnet {
+
+  val txLock : KeyLockManager = KeyLockManagers.newLock();
+}
 /**
   * The transaction maganet which is able to attach or detach transactions.
   *
@@ -300,20 +306,30 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
           )
         )
       } else {
-        //logger.trace(s"[Attach Transaction] Put into the pool : ${transactionHash}")
-        val txCreatedAt = System.nanoTime()
-        // Need to put transaction first, and then put transaction time.
-        // Why? We will search by transaction time, and get the transaction object from tx hash we get from the transaction time index.
-        // If we put transaction time first, we may not have transaction even though a transaction time exists.
-        txPoolIndex.putTransactionToPool(
-          transactionHash,
-          TransactionPoolEntry(
-            transaction,
-            List.fill(transaction.outputs.length)(None),
-            txCreatedAt
-          )
-        )
-        txTimeIndex.putTransactionTime(txCreatedAt, transactionHash)
+        // Use fine grained lock for the concurrency control of adding a transaction.
+        // To fix Issue : #105 Remove duplicate transactions in blocks
+        // https://github.com/ScaleChain/scalechain/issues/105
+        val txLockName = HexUtil.hex(transactionHash.value)
+        TransactionMagnet.txLock.executeLocked(txLockName, new LockCallback() {
+          def doInLock(): Unit = {
+            if ( txPoolIndex.getTransactionFromPool(transactionHash).isEmpty ) {
+              //logger.trace(s"[Attach Transaction] Put into the pool : ${transactionHash}")
+              val txCreatedAt = System.nanoTime()
+              // Need to put transaction first, and then put transaction time.
+              // Why? We will search by transaction time, and get the transaction object from tx hash we get from the transaction time index.
+              // If we put transaction time first, we may not have transaction even though a transaction time exists.
+              txPoolIndex.putTransactionToPool(
+                transactionHash,
+                TransactionPoolEntry(
+                  transaction,
+                  List.fill(transaction.outputs.length)(None),
+                  txCreatedAt
+                )
+              )
+              txTimeIndex.putTransactionTime(txCreatedAt, transactionHash)
+            }
+          }
+        })
       }
 
       chainEventListener.map(_.onNewTransaction(transactionHash, transaction, chainBlock, transactionIndex))
