@@ -34,6 +34,9 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Shou
 
     super.beforeEach()
 
+    Node.theNode = null
+    Node.create(null, chain)
+
     keyValueDB = db
     assert(keyValueDB != null)
 
