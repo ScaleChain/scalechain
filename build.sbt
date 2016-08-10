@@ -5,6 +5,7 @@ version in ThisBuild := "0.7"
 scalaVersion in ThisBuild := "2.11.8"
 
 libraryDependencies in ThisBuild ++= Seq(
+    "de.jkeylockmanager" % "jkeylockmanager" % "2.1.0",
     "io.netty" % "netty-all" % "4.1.1.Final",
     "io.spray" % "spray-json_2.11" % "1.3.2",
     "ch.qos.logback" %  "logback-classic" % "1.1.7",
