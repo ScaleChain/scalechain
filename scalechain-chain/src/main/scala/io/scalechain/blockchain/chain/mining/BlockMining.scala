@@ -308,7 +308,12 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
         }
 
       }
-
+/*
+      if (selectedTransactions.size != selectedTransactions.toSet.size) {
+        logger.error(s"Duplicate transactions found while creating a block : ${selectedTransactions.map(_.hash).mkString("\n")}")
+        assert(false)
+      }
+*/
       (txCount, selectedTransactions.toList)
 
     } finally {
