@@ -88,7 +88,7 @@ class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : Tr
     val difficultyBits = 10
 
 
-    val bytesPerTransaction = 256
+    val bytesPerTransaction = 128
     val estimatedTransactionCount = maxBlockSize / bytesPerTransaction
 
     watch.start("candidateTransactions")
