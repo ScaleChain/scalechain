@@ -46,7 +46,11 @@ object MultiThreadTestRPC extends Command {
         (txGroupIndex : Int) => (txGroupIndex % nodeCount) == nodeFilterIndex
       }
 
+    val startTimeMillis = System.currentTimeMillis()
     new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(
       sendSplitTransaction, IndexedSeq.fill(transactionGroupCount)(sendThreadTransaction))
+    val elapsedMillis = System.currentTimeMillis() - startTimeMillis
+
+    println(s"Elapsed Time(ms) : ${elapsedMillis}")
   }
 }
