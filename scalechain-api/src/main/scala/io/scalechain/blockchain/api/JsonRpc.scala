@@ -15,7 +15,6 @@ import io.scalechain.blockchain.proto.{HashFormat}
 import io.scalechain.util.StringUtil
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.WalletTransactionDescriptor
-import org.apache.http.protocol.ExecutionContext
 import org.slf4j.LoggerFactory
 import spray.json.DefaultJsonProtocol._
 import spray.json._
