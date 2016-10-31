@@ -9,5 +9,6 @@ cp run-assembly.sh ../scalechain-package
 cp .env ../scalechain-package
 cp README-INSTALL.md ../scalechain-package
 pushd .
+cd ..
 tar cvfz scalechain-package.tar.gz scalechain-package
 popd  
