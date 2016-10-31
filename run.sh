@@ -26,6 +26,6 @@ rm $LOG_FILE
 rm $EXCEPTION_FILE
 rm config/currentView 
 
-SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE | grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler\|ERROR\|WANR" | grep -v "Connection accepted from" | grep -v "Failed to connect" | tee $EXCEPTION_FILE 2>&1
-#SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE 
+#SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE | grep "Exception\|AssertionError\|NodeServerHandler\|NodeClientHandler\|ERROR\|WANR" | grep -v "Connection accepted from" | grep -v "Failed to connect" | tee $EXCEPTION_FILE 2>&1
+SBT_OPTS="$JAVA_OPTIONS" sbt "project scalechain-cli" "run-main io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT --minerInitialDelayMS $MINER_INITIAL_DELAY_MS --minerHashDelayMS $MINER_HASH_DELAY_MS --cassandraAddress $CASSANDRA_IP" | tee $LOG_FILE 
 
