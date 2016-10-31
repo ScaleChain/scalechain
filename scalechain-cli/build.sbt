@@ -6,8 +6,8 @@
 libraryDependencies ++= {
   Seq(
     // spark-core : SparkLoader.scala uses it.
-    "org.apache.spark" %% "spark-core" % "1.6.1",
-    "com.github.scopt"  %% "scopt" % "3.4.0"
+    // "org.apache.spark" %% "spark-core" % "1.6.1",
+    "com.github.scopt"  %% "scopt" % "3.5.0"
   )
 }
 

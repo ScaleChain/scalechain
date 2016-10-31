@@ -4,5 +4,5 @@
 
 libraryDependencies ++= Seq(
   // def inetAddress = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reverse)
-  "com.google.guava" % "guava" % "19.0"
+  "com.google.guava" % "guava" % "20.0"
 )

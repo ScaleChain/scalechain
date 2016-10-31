@@ -160,7 +160,7 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
   def close() : Unit = {
 //    logger.info("Closing RocksDB.")
     def getHistogram(histogramType : HistogramType) = {
-      val histo = options.statisticsPtr.geHistogramData(histogramType)
+      val histo = options.statisticsPtr.getHistogramData(histogramType)
       s"Average: ${histo.getAverage}, Median: ${histo.getMedian}, 95%: ${histo.getPercentile95}, 99%: ${histo.getPercentile99}, Standard Deviation: ${histo.getStandardDeviation}"
     }
 
