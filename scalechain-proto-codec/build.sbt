@@ -16,6 +16,7 @@ PB.flatPackage in PB.protobufConfig := true
 //PB.javaConversions in PB.protobufConfig := true
 
 libraryDependencies ++= Seq(
-  "org.scodec" %% "scodec-core" % "1.10.2",
-  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.4.20" % PB.protobufConfig
+  "org.scodec" %% "scodec-core" % "1.10.3",
+  "org.scalacheck"%% "scalacheck" % "1.12.5",
+  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.43" % PB.protobufConfig
 )
