@@ -8,7 +8,7 @@ import io.scalechain.util.HexUtil._
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-class TransactionPoolSpec  extends FlatSpec with ShouldMatchers with BeforeAndAfterEach {
+class TransactionPoolSpec  extends FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

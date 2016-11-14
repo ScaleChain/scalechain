@@ -11,7 +11,7 @@ import HashSupported._
 /**
   * Created by kangmo on 6/16/16.
   */
-class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 

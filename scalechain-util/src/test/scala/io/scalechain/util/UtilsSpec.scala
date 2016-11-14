@@ -5,7 +5,7 @@ import java.security.SecureRandom
 
 import org.scalatest._
 
-class UtilsSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class UtilsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

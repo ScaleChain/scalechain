@@ -6,7 +6,7 @@ import io.netty.channel.embedded.EmbeddedChannel
 import org.scalatest._
 
 
-class HeadersMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
+class HeadersMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-HeadersMessageHandlerSpec/")

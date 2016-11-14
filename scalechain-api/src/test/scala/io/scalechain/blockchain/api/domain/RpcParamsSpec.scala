@@ -9,7 +9,7 @@ import spray.json.{JsArray, JsNumber, JsString}
   * Created by kangmo on 2/25/16.
   */
 @Ignore
-class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

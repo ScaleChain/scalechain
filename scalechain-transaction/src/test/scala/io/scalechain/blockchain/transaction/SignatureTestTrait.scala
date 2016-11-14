@@ -7,7 +7,7 @@ import org.scalatest._
 /**
  * Created by kangmo on 11/16/15.
  */
-trait SignatureTestTrait extends ShouldMatchers {
+trait SignatureTestTrait extends Matchers {
   this: Suite =>
 
   protected def verifyTransactionInput(subject : String, spendingTransaction : Transaction, inputIndex : Int, lockingScript : LockingScript): Unit =

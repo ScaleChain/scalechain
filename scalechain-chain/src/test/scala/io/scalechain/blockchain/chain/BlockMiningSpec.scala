@@ -11,7 +11,7 @@ import HashSupported._
 
 // Need to rewrite test case
 @Ignore
-class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 

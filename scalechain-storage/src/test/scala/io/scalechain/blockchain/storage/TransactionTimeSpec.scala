@@ -9,7 +9,7 @@ import org.apache.commons.io.FileUtils
 import io.scalechain.util.HexUtil._
 import org.scalatest._
 
-class TransactionTimeSpec  extends FlatSpec with ShouldMatchers with BeforeAndAfterEach {
+class TransactionTimeSpec  extends FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

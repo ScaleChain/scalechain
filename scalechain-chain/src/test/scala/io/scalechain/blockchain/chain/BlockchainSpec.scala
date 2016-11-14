@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class BlockchainSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 

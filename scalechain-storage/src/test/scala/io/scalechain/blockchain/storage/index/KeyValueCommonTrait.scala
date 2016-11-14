@@ -1,12 +1,12 @@
 package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto.FileNumber
-import org.scalatest.ShouldMatchers
+import org.scalatest.Matchers
 
 /**
   * Common util methods for testing key/value store.
   */
-trait KeyValueCommonTrait extends ShouldMatchers{
+trait KeyValueCommonTrait extends Matchers{
   /** Convert a string to a byte array.
     *
     * @param value The string to convert to a byte array.

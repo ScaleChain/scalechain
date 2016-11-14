@@ -10,7 +10,7 @@ import Using._
 /**
   * Test putPrefixedObject, getPrefixedObject, delPrefixedObject, seekPrefixedObject method of KeyValueDatabase.
   */
-trait KeyValuePrefixedSeekTestTrait extends FlatSpec with KeyValueCommonTrait with ShouldMatchers {
+trait KeyValuePrefixedSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Matchers {
   var db: KeyValueDatabase
 
   "getPrefixedObject(objectKey)" should "return a value which was put" in {

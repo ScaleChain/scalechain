@@ -7,7 +7,7 @@ import org.scalatest._
 import io.scalechain.util.ByteArray
 import ByteArray._
 
-class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with ShouldMatchers {
+class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with Matchers {
 
   this: Suite =>
 

@@ -9,7 +9,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 3/24/16.
   */
-trait BlockDatabaseTestTrait extends FlatSpec with ShouldMatchers with CodecTestUtil {
+trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
   var blockDb : BlockDatabase
   implicit var db : KeyValueDatabase
 

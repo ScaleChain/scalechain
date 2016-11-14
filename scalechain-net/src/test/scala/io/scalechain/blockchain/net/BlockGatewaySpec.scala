@@ -20,7 +20,7 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with ShouldMatchers {
+class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockGatewaySpec/")

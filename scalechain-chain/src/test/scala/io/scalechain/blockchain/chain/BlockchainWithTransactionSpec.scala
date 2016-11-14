@@ -12,7 +12,7 @@ import HashSupported._
 
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTrait with ShouldMatchers {
+class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTrait with Matchers {
 
   this: Suite =>
 

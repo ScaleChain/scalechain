@@ -3,12 +3,12 @@ package io.scalechain.wallet
 import io.scalechain.blockchain.proto.{Hash, Transaction, WalletTransaction, WalletOutput}
 import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.transaction.{OutputOwnership, TransactionTestDataTrait}
-import org.scalatest.ShouldMatchers
+import org.scalatest.Matchers
 
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreTestDataTrait extends TransactionTestDataTrait with ShouldMatchers {
+trait WalletStoreTestDataTrait extends TransactionTestDataTrait with Matchers {
   val ACCOUNT1 = "acc1"
   val ACCOUNT2 = "acc2"
   val ACCOUNT3 = "acc3"

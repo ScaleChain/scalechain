@@ -9,7 +9,7 @@ import org.scalatest._
 
 import scala.util.Random
 
-class WalletStoreSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with ChainTestTrait with ShouldMatchers
+class WalletStoreSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with ChainTestTrait with Matchers
   with WalletStoreAccountTestTrait
   with WalletStoreOutPointTestTrait
   with WalletStoreTransactionHashTestTrait

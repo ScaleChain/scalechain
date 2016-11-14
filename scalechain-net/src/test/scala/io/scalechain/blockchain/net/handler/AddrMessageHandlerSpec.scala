@@ -4,7 +4,7 @@ import java.io.File
 
 import org.scalatest._
 
-class AddrMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
+class AddrMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-AddrMessageHandlerSpec/")

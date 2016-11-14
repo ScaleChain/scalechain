@@ -13,7 +13,7 @@ import org.scalatest._
   * Created by kangmo on 5/28/16.
   */
 // Remove the ignore annotation after creating the "by block height" index
-class BlockLocatorSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class BlockLocatorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-BlockLocatorSpec/")

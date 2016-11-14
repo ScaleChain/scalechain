@@ -7,7 +7,7 @@ import org.scalatest._
 /**
  * Created by kangmo on 11/2/15.
  */
-class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

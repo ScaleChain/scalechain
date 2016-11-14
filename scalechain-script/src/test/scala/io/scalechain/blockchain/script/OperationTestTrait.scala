@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.Script
 import io.scalechain.blockchain.{ScriptEvalException, ScriptParseException, ErrorCode}
 import io.scalechain.blockchain.script.ops.ScriptOp
 import io.scalechain.util.Utils
-import org.scalatest.{Suite, ShouldMatchers}
+import org.scalatest.{Suite, Matchers}
 
 import scala.Long
 import scala.collection.mutable.ArrayBuffer
@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 class InvalidStackValueException extends Exception
 class InvalidExpectationTypeException extends Exception
 
-trait OperationTestTrait extends ShouldMatchers {
+trait OperationTestTrait extends Matchers {
   this: Suite =>
 
   /** Verify a stack with expected values.

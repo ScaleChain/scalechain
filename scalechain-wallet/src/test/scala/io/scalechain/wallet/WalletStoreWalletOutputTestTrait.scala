@@ -7,7 +7,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestDataTrait with ShouldMatchers{
+trait WalletStoreWalletOutputTestTrait extends FlatSpec with WalletStoreTestDataTrait with Matchers{
   var store : WalletStore
   implicit var db : KeyValueDatabase
 

@@ -5,7 +5,7 @@ import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.{RpcError, RpcParams, RpcRequest, RpcResult}
 import io.scalechain.blockchain.cli.command.RpcInvoker
 import io.scalechain.blockchain.proto.Hash
-import org.scalatest.ShouldMatchers
+import org.scalatest.Matchers
 import spray.json.JsValue
 
 /** Start the peer and connect to the local bitcoind node.
@@ -30,7 +30,7 @@ object StartPeer extends Runnable {
 /**
   * Created by kangmo on 3/15/16.
   */
-trait APITestSuite extends ShouldMatchers {
+trait APITestSuite extends Matchers {
   val GENESIS_BLOCK_HEIGHT = 0
   val GENESIS_BLOCK_HASH = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
   val ALL_ZERO_HASH = Hash("0" * 64)

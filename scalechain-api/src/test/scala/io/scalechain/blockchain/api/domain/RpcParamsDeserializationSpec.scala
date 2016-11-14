@@ -4,7 +4,7 @@ import org.scalatest._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
-class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

@@ -10,7 +10,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorageTestTrait extends FlatSpec with ShouldMatchers {
+trait BlockStorageTestTrait extends FlatSpec with Matchers {
   var storage : BlockStorage
   implicit var db : KeyValueDatabase
 
