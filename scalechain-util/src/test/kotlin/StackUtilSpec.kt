@@ -23,7 +23,7 @@ class StackUtilSpec {
         try {
             throw IllegalArgumentException()
         } catch ( t : Throwable ) {
-            assertTrue( StackUtil.getCurrentStack().contains("IllegalArgumentException") )
+            assertTrue( StackUtil.getCurrentStack().contains("java.lang.Thread.getStackTrace") )
         }
     }
 

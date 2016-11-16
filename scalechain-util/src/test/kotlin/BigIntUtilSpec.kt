@@ -23,8 +23,8 @@ class BigIntUtilSpec {
     @Test fun testBint() {
         val value : BigInt = BigInt.apply(1)
         assertEquals(
-            BigIntUtil.bint(value),
-            "BigInt($value)"
+            "BigInt(\"$value\")",
+            BigIntUtil.bint(value)
         )
     }
 }

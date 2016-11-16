@@ -43,6 +43,10 @@ class HexUtilSpec {
             )
         )
 
+        val arr = HexUtil.bytes( S("01 02") )
+        for ( a in arr) {
+            println("=> ${a}")
+        }
         assertTrue(
             ArrayUtil.isEqual(
                 HexUtil.bytes( S("01 02") ),
@@ -63,8 +67,8 @@ class HexUtilSpec {
         assertEquals( HexUtil.hex(arrayOf()), "" )
         assertEquals( HexUtil.hex(arrayOf(1)), "01" )
         assertEquals( HexUtil.hex(arrayOf(10)), "0a" )
-        assertEquals( HexUtil.hex(arrayOf(1,2)), "01 02" )
-        assertEquals( HexUtil.hex(arrayOf(1,2,3)), "01 02 03" )
+        assertEquals( HexUtil.hex(arrayOf(1,2)), "0102" )
+        assertEquals( HexUtil.hex(arrayOf(1,2,3)), "010203" )
         assertEquals( HexUtil.hex(arrayOf(1,2,3), scala.Some(",")), "01,02,03" )
     }
 
@@ -77,11 +81,11 @@ class HexUtilSpec {
     }
 
     @Test fun testScalaHex() {
-        assertEquals( HexUtil.scalaHex(arrayOf()), "bytes(\"\")" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1)), "bytes(\"01\")" )
-        assertEquals( HexUtil.scalaHex(arrayOf(10)), "bytes(\"0a\")" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1,2)), "bytes(\"0102\")" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1,2,3)), "bytes(\"010203\")" )
+        assertEquals( HexUtil.scalaHex(arrayOf()), """bytes(\"\")""" )
+        assertEquals( HexUtil.scalaHex(arrayOf(1)), """bytes(\"01\")""" )
+        assertEquals( HexUtil.scalaHex(arrayOf(10)), """bytes(\"0a\")""" )
+        assertEquals( HexUtil.scalaHex(arrayOf(1,2)), """bytes(\"0102\")""" )
+        assertEquals( HexUtil.scalaHex(arrayOf(1,2,3)), """bytes(\"010203\")""" )
     }
 
 }

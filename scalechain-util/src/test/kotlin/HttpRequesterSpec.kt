@@ -30,8 +30,8 @@ class HttpRequesterSpec {
 
     @Test fun testPost() {
         val POST_DATA = "Hello World!"
-        assertEquals (
-            HttpRequester.post("http://httpbin.org/post", POST_DATA, "unused", "unused"),
-            POST_DATA )
+        val response = HttpRequester.post("http://httpbin.org/post", POST_DATA, "unused", "unused")
+        assertTrue( response.contains(POST_DATA) )
+
     }
 }

@@ -6,5 +6,5 @@ package io.scalechain.util
 object StringUtil {
     @JvmStatic
     fun getBrief(string : String, maxLength : Int) : String
-        = "${if (string.length >= maxLength) string.take(maxLength)+"..." else string}"
+        = "${if (string.length > maxLength) string.take(maxLength)+"..." else string}"
 }

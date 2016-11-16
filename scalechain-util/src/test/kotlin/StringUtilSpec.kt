@@ -57,7 +57,7 @@ class StringUtilSpec {
 
         assertEquals(
             StringUtil.getBrief("123",3),
-            "123..."
+            "123"
         )
 
     }

@@ -19,10 +19,10 @@ object HexUtil {
     fun bytes(hexString: java.lang.String): Array<Byte> {
         // BUGBUG : this extention function was copied from Internet. Need to make sure that this works.
         fun <T> List<T>.sliding(windowSize: Int): List<List<T>> {
-            return this.dropLast(windowSize - 1).mapIndexed { i, s -> this.subList(i, i + windowSize) }
+            return this.dropLast(windowSize - 1).mapIndexed { i, s -> Pair(i, this.subList(i, i + windowSize)) }.filter{ it.first % 2 == 0}.map {it.second}
         }
 
-        return hexString.replaceAll("[^0-9A-Fa-f]", "").toCharArray().toList().sliding(2).map { Integer.parseInt(it.toString(), 16) as Byte }.toTypedArray()
+        return hexString.replaceAll("[^0-9A-Fa-f]", "").toCharArray().toList().sliding(2).map { Integer.parseInt(it.joinToString(""), 16).toByte() }.toTypedArray()
     }
 
     /** Convert a byte array to a hex string with an optional separator between each byte.
