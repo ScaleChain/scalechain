@@ -33,7 +33,8 @@ object Base58Util {
     * @param input binary data
     * @return the base-58 representation of input
     */
-  def encode(input: Seq[Byte]): String = {
+  // BUGBUG : Interface Change, Seq[Byte] => Array[Byte]
+  def encode(input: Array[Byte]): String = {
     if (input.isEmpty) ""
     else {
       val big = new BigInteger(1, input.toArray)
