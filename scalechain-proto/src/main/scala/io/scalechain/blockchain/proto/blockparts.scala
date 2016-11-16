@@ -4,7 +4,6 @@ import io.scalechain.util
 import io.scalechain.util.{Utils, ByteArray, HexUtil, BigIntUtil}
 import HexUtil.scalaHex
 import ByteArray._
-import BigIntUtil._
 import spray.json.{JsValue, JsString, RootJsonFormat}
 
 object Hash {
@@ -225,7 +224,7 @@ case class IPv6Address(address:ByteArray) extends ProtocolMessage {
 // TODO : Add a comment
 case class NetworkAddress(services:BigInt, ipv6:IPv6Address, port:Int) extends ProtocolMessage {
   override def toString() : String = {
-    s"NetworkAddress(${bint(services)}, $ipv6, $port)"
+    s"NetworkAddress(${BigIntUtil.bint(services)}, $ipv6, $port)"
   }
 }
 // TODO : Add a comment

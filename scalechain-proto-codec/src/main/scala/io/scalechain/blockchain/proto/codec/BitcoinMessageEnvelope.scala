@@ -13,7 +13,6 @@ import scodec.codecs._
 import scodec.bits.{ByteVector, BitVector}
 import HexUtil.scalaHex
 
-
 /** The envelope message that wraps actual payload.
  * Field Size,  Description,  Data type,  Comments
  * ================================================
@@ -84,18 +83,21 @@ object BitcoinMessageEnvelope {
 
   val COMMAND_SIZE = 12
 
-  private def decodeCommand(zeroPaddedCommand : Array[Byte]): String = {
+  private def decodeCommand(zeroPaddedCommand : Array[java.lang.Byte]): String = {
     assert(zeroPaddedCommand.length == COMMAND_SIZE)
 
     // command is a 0 padded string. Get rid of trailing 0 values.
-    val command: Array[Byte] = ArrayUtil.unpad(zeroPaddedCommand, 0)
-    new String(command, StandardCharsets.US_ASCII)
+    val command: Array[java.lang.Byte] = ArrayUtil.unpad(zeroPaddedCommand, 0)
+
+    // BUGBUG : Dirty code. make it clean.
+    new String(command.map(_.asInstanceOf[Byte]), StandardCharsets.US_ASCII)
   }
 
-  private def encodeCommand(command: String) : Array[Byte] = {
+  private def encodeCommand(command: String) : Array[java.lang.Byte] = {
     assert(command.length <= COMMAND_SIZE)
 
-    val bytes = command.getBytes(StandardCharsets.US_ASCII)
+    // BUGBUG : Dirty code. make it clean.
+    val bytes = command.getBytes(StandardCharsets.US_ASCII).map(_.asInstanceOf[java.lang.Byte])
     // Pad the array with 0, to make the size to 12 bytes.
     ArrayUtil.pad(bytes, COMMAND_SIZE /* targetLength */ , 0 /* value */)
   }
@@ -139,7 +141,8 @@ object BitcoinMessageEnvelope {
   def encode(msg: BitcoinMessageEnvelope) : scodec.Attempt[scodec.bits.BitVector]= {
     for {
       magic <- Magic.codec.encode(BitcoinConfiguration.config.magic)
-      command <- bytes(12).encode(ByteVector(encodeCommand(msg.command)))
+      // BUBUG : DIRTY_CODE, remove .map(_.asInstanceOf[Byte])
+      command <- bytes(12).encode(ByteVector(encodeCommand(msg.command).map(_.asInstanceOf[Byte])))
       length <- uint32L.encode(msg.length)
       checksum <- Checksum.codec.encode(msg.checksum)
     } yield magic ++ command ++ length ++ checksum ++ msg.payload
@@ -155,7 +158,8 @@ object BitcoinMessageEnvelope {
     } yield scodec.DecodeResult(
               BitcoinMessageEnvelope(
                 magic.value,
-                decodeCommand(command.value.toArray),
+                // BUBUG : DIRTY_CODE, remove : map(_.asInstanceOf[java.lang.Byte])
+                decodeCommand(command.value.toArray.map(_.asInstanceOf[java.lang.Byte])),
                 length.value.toInt,
                 checksum.value,
                 payload),

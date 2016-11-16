@@ -1,5 +1,6 @@
 package io.scalechain.crypto;
 
+import io.scalechain.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;

@@ -4,7 +4,6 @@ import io.scalechain.blockchain.proto.RejectType.RejectType
 import io.scalechain.util
 import io.scalechain.util.{BigIntUtil, ByteArray, HexUtil}
 import util.HexUtil.scalaHex
-import BigIntUtil._
 import java.math.BigInteger
 
 /** protocols.scala ; Define protocol case classes that are aware of serialization and deserialization about the message.
@@ -27,7 +26,7 @@ case class Version( version : Int,
                     startHeight : Int,
                     relay : Boolean )
 extends ProtocolMessage {
-  override def toString = s"""Version($version, ${bint(services)}, ${timestamp}L, $destAddress, $sourceAddress, ${bint(nonce)}, \"${userAgent}\", $startHeight, $relay)"""
+  override def toString = s"""Version($version, ${BigIntUtil.bint(services)}, ${timestamp}L, $destAddress, $sourceAddress, ${BigIntUtil.bint(nonce)}, \"${userAgent}\", $startHeight, $relay)"""
 }
 
 
@@ -158,7 +157,7 @@ case class Mempool() extends ProtocolMessage {
  *          8,        nonce,   uint64_t,  random nonce
  */
 case class Ping(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Ping(${bint(nonce)})"
+  override def toString = s"Ping(${BigIntUtil.bint(nonce)})"
 }
 
 /** Pong ; The pong message is sent in response to a ping message.
@@ -170,7 +169,7 @@ case class Ping(val nonce : BigInt) extends ProtocolMessage {
 
  */
 case class Pong(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Pong(${bint(nonce)})"
+  override def toString = s"Pong(${BigIntUtil.bint(nonce)})"
 }
 
 object RejectType extends Enumeration {

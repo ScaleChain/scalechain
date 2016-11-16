@@ -22,6 +22,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
+import io.scalechain.util.StringUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -45,6 +46,5 @@ public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMess
         ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
 
         out.add( buffer );
-
     }
 }

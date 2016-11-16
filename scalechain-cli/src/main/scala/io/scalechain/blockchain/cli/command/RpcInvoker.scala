@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli.command
 
 import java.io.IOException
 
-import io.scalechain.blockchain.{HttpRequestException, ErrorCode}
+import io.scalechain.blockchain.{ErrorCode, HttpRequestException}
 import io.scalechain.util.HttpRequester
 
 //import io.scalechain.util.HttpRequester
@@ -36,7 +36,13 @@ object RpcInvoker extends DefaultJsonProtocol {
 
     val jsonRequest = (rpcRequest.toJson).toString
 
-    val result = HttpRequester.post(s"http://$host:$port/", jsonRequest, user, password)
+    val result = try {
+      HttpRequester.post(s"http://$host:$port/", jsonRequest, user, password)
+    } catch {
+      case e : io.scalechain.util.HttpRequestException => {
+        throw new HttpRequestException(ErrorCode.HttpRequestFailure, e.getHttpCode, e.getReponse)
+      }
+    }
 
     result
   }

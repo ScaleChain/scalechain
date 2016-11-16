@@ -3,7 +3,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 libraryDependencies ++= Seq(
-  "junit" % "junit" % "4.12",
   "commons-codec" % "commons-codec" % "1.10"
   //,
 //  "com.yahoo.ycsb" % "core" % "0.1.4"

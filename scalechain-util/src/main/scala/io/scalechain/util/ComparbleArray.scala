@@ -2,7 +2,6 @@ package io.scalechain.util
 
 import java.util
 
-import io.scalechain.util.HexUtil.scalaHex
 
 /**
   * Created by kangmo on 1/30/16.
@@ -36,17 +35,21 @@ object ComparableArray {
 
 
 case class ByteArray(override val array : Array[Byte]) extends ComparableArray[Byte](array) {
-  override def toString = s"${scalaHex(array)}"
+  // BUGBUG : Dirty, .map(_.asInstanceOf[java.lang.Byte])
+  override def toString = s"${HexUtil.scalaHex(array.map(_.asInstanceOf[java.lang.Byte]))}"
 }
 
 object ByteArray {
   implicit def byteArrayToArray (barray : ByteArray   ) = barray.array
   implicit def arrayToByteArray (array  : Array[Byte] ) = ByteArray(array)
 
+  // BUGBUG : Dirty, .map(_.asInstanceOf[scala.Byte])
   implicit def stringToByteArray(value : String)
-    = ByteArray.arrayToByteArray(HexUtil.bytes(value))
+    = ByteArray.arrayToByteArray(HexUtil.bytes(value).map(_.asInstanceOf[scala.Byte]))
+
+  // BUGBUG : Dirty, .map(_.asInstanceOf[java.lang.Byte]), Some("")
   implicit def byteArrayToString(value : ByteArray)
-    = HexUtil.hex( ByteArray.byteArrayToArray(value) )
+    = HexUtil.hex( ByteArray.byteArrayToArray(value).map(_.asInstanceOf[java.lang.Byte]), Some("") )
 }
 
 object ByteArrayAndVectorConverter {

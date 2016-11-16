@@ -4,7 +4,12 @@ version in ThisBuild := "0.7"
 
 scalaVersion in ThisBuild := "2.12.0"
 
+kotlinLib("stdlib")
+
 libraryDependencies in ThisBuild ++= Seq(
+    "junit" % "junit" % "4.12" % "test" ,
+    "org.jetbrains.kotlin" % "kotlin-stdlib" % "1.0.4",
+    "org.jetbrains.kotlin" % "kotlin-test" % "1.0.4" % "test",
     "io.netty" % "netty-all" % "4.1.6.Final",
     "io.spray" % "spray-json_2.12" % "1.3.2",
     "ch.qos.logback" %  "logback-classic" % "1.1.7",
