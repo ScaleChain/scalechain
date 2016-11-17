@@ -36,13 +36,7 @@ object RpcInvoker extends DefaultJsonProtocol {
 
     val jsonRequest = (rpcRequest.toJson).toString
 
-    val result = try {
-      HttpRequester.post(s"http://$host:$port/", jsonRequest, user, password)
-    } catch {
-      case e : io.scalechain.util.HttpRequestException => {
-        throw new HttpRequestException(ErrorCode.HttpRequestFailure, e.getHttpCode, e.getReponse)
-      }
-    }
+    val result = HttpRequester.post(s"http://$host:$port/", jsonRequest, user, password)
 
     result
   }

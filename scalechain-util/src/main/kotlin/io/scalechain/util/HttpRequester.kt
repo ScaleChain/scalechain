@@ -1,9 +1,9 @@
 package io.scalechain.util
 
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.HttpRequestException
 import java.io.*
 import java.net.*
-
-class HttpRequestException(val httpCode : Int, val reponse : String ) : Exception(httpCode.toString() + " : " + reponse)
 
 object HttpRequester {
     @JvmStatic
@@ -54,7 +54,7 @@ object HttpRequester {
         if (responseCode == HttpURLConnection.HTTP_OK) {
             return response
         } else {
-            throw HttpRequestException(responseCode, response)
+            throw HttpRequestException(ErrorCode.HttpRequestFailure, responseCode, response)
         }
     }
 }
