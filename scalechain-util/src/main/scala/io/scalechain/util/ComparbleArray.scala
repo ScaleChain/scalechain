@@ -2,10 +2,8 @@ package io.scalechain.util
 
 import java.util
 
-
-/**
-  * Created by kangmo on 1/30/16.
-  */
+// Need to reimplement these classes according to the requirements of Kotlin.
+/*
 class ComparableArray[T](val array : Array[T]) {
   //def this(length : Int) = this( new scala.Array[T](length) )
   override def hashCode() = {
@@ -56,3 +54,4 @@ object ByteArrayAndVectorConverter {
   implicit def byteArrayToVector(barray : ByteArray   ) = barray.array.toVector
   implicit def vectorToByteArray(vector : Vector[Byte]) = ByteArray(vector.toArray[Byte])
 }
+*/
