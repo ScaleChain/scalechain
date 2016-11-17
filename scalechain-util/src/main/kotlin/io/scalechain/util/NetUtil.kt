@@ -1,13 +1,12 @@
 package io.scalechain.util
 
 import java.net.*
-import java.util.*
-import kotlin.collections.MutableList
 
 /**
  * Created by kangmo on 7/11/16.
  */
 object NetUtil {
+    @JvmStatic
     fun getLocalAddresses() : List<String> {
         val addresses = mutableListOf<String>()
 

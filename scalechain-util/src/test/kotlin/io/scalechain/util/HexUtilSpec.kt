@@ -19,7 +19,7 @@ class HexUtilSpec {
         // tear down the test case
     }
 
-    fun S(str : String) : java.lang.String = str as java.lang.String
+    fun S(str : String) = str
 
     @Test fun testBytes() {
         assertTrue(

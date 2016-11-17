@@ -7,9 +7,6 @@ package io.scalechain.util
 import java.math.BigInteger
 import java.util.*
 
-import io.scalechain.blockchain.*
-
-
 
 /*
  * see https://en.bitcoin.it/wiki/Base58Check_encoding
@@ -41,6 +38,7 @@ object Base58Util {
      * @return the base-58 representation of input
      */
     // BUGBUG : Interface Change, Seq[Byte] => ByteArray
+    @JvmStatic
     fun encode(input: kotlin.ByteArray): String {
         if (input.isEmpty()) return ""
         else {
@@ -71,6 +69,7 @@ object Base58Util {
      * @param input base-58 encoded data
      * @return the decoded data
      */
+    @JvmStatic
     fun decode(input: String) : kotlin.ByteArray {
         val zeroes = input.takeWhile{it == '1'}.map{0.toByte()}.toByteArray()
         val trim  = input.dropWhile{it== '1'}.toList()
