@@ -4,7 +4,6 @@ import java.io._
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.{ErrorCode, FatalException}
 import io.scalechain.blockchain.proto.Block
-import io.scalechain.io.BlockDataInputStream
 
 
 /** For each block read by the block reader, we will have a function call.

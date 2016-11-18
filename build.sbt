@@ -8,8 +8,8 @@ kotlinLib("stdlib")
 
 libraryDependencies in ThisBuild ++= Seq(
     "junit" % "junit" % "4.12" % "test" ,
-    "org.jetbrains.kotlin" % "kotlin-stdlib" % "1.0.4",
-    "org.jetbrains.kotlin" % "kotlin-test" % "1.0.4" % "test",
+    "org.jetbrains.kotlin" % "kotlin-stdlib" % "1.0.5",
+    "org.jetbrains.kotlin" % "kotlin-test" % "1.0.5" % "test",
     "io.kotlintest" % "kotlintest" % "1.3.5" % "test",
     "io.netty" % "netty-all" % "4.1.6.Final",
     "io.spray" % "spray-json_2.12" % "1.3.2",

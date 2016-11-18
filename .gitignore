@@ -3,12 +3,14 @@
 *.log
 *.ipr
 *.iws
+*.iml
 
 # sbt specific
 .cache
 .history
 .lib/
 dist/*
+lib/*
 target/
 lib_managed/
 src_managed/

@@ -7,7 +7,6 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.ops.OpCodeSparator
 import io.scalechain.blockchain.{ErrorCode, TransactionVerificationException}
 import io.scalechain.crypto.{Hash256, HashFunctions, TransactionSigHash}
-import io.scalechain.io.BlockDataOutputStream
 import io.scalechain.util.Utils
 
 object TransactionSignature {

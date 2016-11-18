@@ -5,7 +5,6 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.codec.primitive._
-import io.scalechain.io.{BlockDataInputStream, BlockDataOutputStream}
 import scodec.bits.{ByteVector, BitVector}
 import scodec.{DecodeResult, Attempt, Codec}
 import scodec.codecs._
