@@ -8,6 +8,8 @@ import org.scalatest._
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+// Create one when we write a performance testing case using Kotlin.
+/*
 trait PerformanceTestTrait extends FlatSpec with Matchers {
 
   def sha256(value : Array[Byte]) : Array[Byte] = {
@@ -63,3 +65,4 @@ trait PerformanceTestTrait extends FlatSpec with Matchers {
     buffer.toList
   }
 }
+*/
