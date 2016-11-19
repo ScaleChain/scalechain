@@ -85,6 +85,13 @@ class BlockDataOutputStreamSpec : FlatSpec(), Matchers {
                 val ostream = BlockDataOutputStream(bout)
                 ostream.writeVarInt(decoded)
                 ostream.flush()
+
+                print("encoded:"); println()
+                for (b in encoded) print("${b.toInt()},")
+                println()
+                print("bout:"); println()
+                for (b in bout.toByteArray()) print("${b.toInt()},")
+
                 java.util.Arrays.equals( encoded, bout.toByteArray() ) shouldBe true
             }
         }

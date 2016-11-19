@@ -58,7 +58,7 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
             3 -> {
                 writeByte(253)
                 writeByte((value and 0xFF).toByte().toInt())
-                writeByte(((value shl 8) and 0xFF).toByte().toInt())
+                writeByte(((value shr 8) and 0xFF).toByte().toInt())
             }
             5 -> {
                 writeByte(254)

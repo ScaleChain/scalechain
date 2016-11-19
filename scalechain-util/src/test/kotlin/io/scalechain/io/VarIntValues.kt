@@ -7,7 +7,7 @@ object VarIntValues {
     fun B(value : Int) = value.toByte()
 
     val EncodedValueOf_0L                   = arrayOf<Byte>(0).toByteArray()
-    val EncodedValueOf_1L                   = arrayOf<Byte>(0).toByteArray()
+    val EncodedValueOf_1L                   = arrayOf<Byte>(1).toByteArray()
     val EncodedValueOf_0x80L                = arrayOf<Byte>( B(128) ).toByteArray()
     val EncodedValueOf_252L                 = arrayOf<Byte>( B(252) ).toByteArray()
     val EncodedValueOf_253L                 = arrayOf<Byte>( B(253), B(253), 0 ).toByteArray()

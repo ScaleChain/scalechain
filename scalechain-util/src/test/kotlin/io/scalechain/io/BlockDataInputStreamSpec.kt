@@ -54,7 +54,7 @@ class BlockDataInputStreamSpec : FlatSpec(), Matchers {
             istream( arrayOf<Byte>(B(0x88), B(0x77), B(0x66), B(0x55), B(0x44), B(0x33), B(0x22), B(0x11) ) ).readLittleEndianLong() shouldBe 0x1122334455667788L
         }
         "readLittleEndianLong" should "read 0x7FFFFFFFFFFFFFFFL" {
-            istream( arrayOf<Byte>(B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0x7F) ) ).readLittleEndianInt() shouldBe 0x7FFFFFFFFFFFFFFFL
+            istream( arrayOf<Byte>(B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0xFF), B(0x7F) ) ).readLittleEndianLong() shouldBe 0x7FFFFFFFFFFFFFFFL
         }
 
 
