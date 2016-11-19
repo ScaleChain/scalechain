@@ -14,7 +14,7 @@ object HexFileLoader {
     @JvmStatic
     fun load(path:String) : ByteArray  {
         val fileContent = File(path).readLines().map{ it.substring(10,60) }.joinToString("\n")
-        return HexUtil.bytes(fileContent).toByteArray()
+        return HexUtil.bytes(fileContent)
     }
 }
 

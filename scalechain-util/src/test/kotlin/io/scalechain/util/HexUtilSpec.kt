@@ -6,6 +6,9 @@ import kotlin.test.*
 import org.junit.After
 import org.junit.Before
 
+import io.scalechain.test.TestMethods.S
+import io.scalechain.test.TestMethods.A
+
 /**
  * JUnit 4 Test Case
  */
@@ -19,26 +22,24 @@ class HexUtilSpec {
         // tear down the test case
     }
 
-    fun S(str : String) = str
-
     @Test fun testBytes() {
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("") ),
+                HexUtil.bytes( S("") ).toTypedArray(),
                 arrayOf()
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01") ),
+                HexUtil.bytes( S("01") ).toTypedArray(),
                 arrayOf(1)
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("0a") ),
+                HexUtil.bytes( S("0a") ).toTypedArray(),
                 arrayOf(10)
             )
         )
@@ -49,14 +50,14 @@ class HexUtilSpec {
         }
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01 02") ),
+                HexUtil.bytes( S("01 02") ).toTypedArray(),
                 arrayOf(1,2)
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01 02 03") ),
+                HexUtil.bytes( S("01 02 03") ).toTypedArray(),
                 arrayOf(1,2,3)
             )
         )
@@ -64,28 +65,28 @@ class HexUtilSpec {
     }
 
     @Test fun testHex() {
-        assertEquals( HexUtil.hex(arrayOf()), "" )
-        assertEquals( HexUtil.hex(arrayOf(1)), "01" )
-        assertEquals( HexUtil.hex(arrayOf(10)), "0a" )
-        assertEquals( HexUtil.hex(arrayOf(1,2)), "0102" )
-        assertEquals( HexUtil.hex(arrayOf(1,2,3)), "010203" )
-        assertEquals( HexUtil.hex(arrayOf(1,2,3), scala.Some(",")), "01,02,03" )
+        assertEquals( HexUtil.hex(A()), "" )
+        assertEquals( HexUtil.hex(A(1)), "01" )
+        assertEquals( HexUtil.hex(A(10)), "0a" )
+        assertEquals( HexUtil.hex(A(1,2)), "0102" )
+        assertEquals( HexUtil.hex(A(1,2,3)), "010203" )
+        assertEquals( HexUtil.hex(A(1,2,3), scala.Some(",")), "01,02,03" )
     }
 
     @Test fun testPrettyHex() {
-        assertEquals( HexUtil.prettyHex(arrayOf()), "" )
-        assertEquals( HexUtil.prettyHex(arrayOf(1)), "01" )
-        assertEquals( HexUtil.prettyHex(arrayOf(10)), "0a" )
-        assertEquals( HexUtil.prettyHex(arrayOf(1,2)), "01 02" )
-        assertEquals( HexUtil.prettyHex(arrayOf(1,2,3)), "01 02 03" )
+        assertEquals( HexUtil.prettyHex(A()), "" )
+        assertEquals( HexUtil.prettyHex(A(1)), "01" )
+        assertEquals( HexUtil.prettyHex(A(10)), "0a" )
+        assertEquals( HexUtil.prettyHex(A(1,2)), "01 02" )
+        assertEquals( HexUtil.prettyHex(A(1,2,3)), "01 02 03" )
     }
 
     @Test fun testScalaHex() {
-        assertEquals( HexUtil.scalaHex(arrayOf()), """bytes(\"\")""" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1)), """bytes(\"01\")""" )
-        assertEquals( HexUtil.scalaHex(arrayOf(10)), """bytes(\"0a\")""" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1,2)), """bytes(\"0102\")""" )
-        assertEquals( HexUtil.scalaHex(arrayOf(1,2,3)), """bytes(\"010203\")""" )
+        assertEquals( HexUtil.kotlinHex(A()), "\"\"" )
+        assertEquals( HexUtil.kotlinHex(A(1)), "\"01\"" )
+        assertEquals( HexUtil.kotlinHex(A(10)), "\"0a\"" )
+        assertEquals( HexUtil.kotlinHex(A(1,2)), "\"0102\"" )
+        assertEquals( HexUtil.kotlinHex(A(1,2,3)), "\"010203\"" )
     }
 
 }

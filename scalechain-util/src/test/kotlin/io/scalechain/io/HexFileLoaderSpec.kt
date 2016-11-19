@@ -64,7 +64,7 @@ class HexFileLoaderSpec : FlatSpec(), Matchers {
 
             assert(
                 Arrays.equals(
-                    HexUtil.bytes( EXPECTED_CONTENT ).toByteArray(),
+                    HexUtil.bytes( EXPECTED_CONTENT ),
                     HexFileLoader.load("hextest/test.hex")
                 )
             )

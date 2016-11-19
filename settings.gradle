@@ -1,2 +1,3 @@
 //include 'scalechain-cli'
+include 'scalechain-proto'
 include 'scalechain-util'

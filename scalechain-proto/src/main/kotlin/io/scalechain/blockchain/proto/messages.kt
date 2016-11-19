@@ -1,13 +1,10 @@
 package io.scalechain.blockchain.proto
 
-import io.scalechain.blockchain.proto.RejectType.RejectType
-import io.scalechain.util
-import io.scalechain.util.{BigIntUtil, ByteArray, HexUtil}
-import util.HexUtil.scalaHex
+import io.scalechain.util.*
 import java.math.BigInteger
 
-/** protocols.scala ; Define protocol case classes that are aware of serialization and deserialization about the message.
- * Each case class itself consists of protocol fields.
+/** protocols.scala ; Define protocol data classes that are aware of serialization and deserialization about the message.
+ * Each data class itself consists of protocol fields.
  *
  * Case class names and comments are copied from https://en.bitcoin.it/wiki/Protocol_documentation .
  * The license of Bitcoin Wiki is Creative Commons Attribution 3.0.
@@ -16,51 +13,48 @@ import java.math.BigInteger
 /** Version ; When a node creates an outgoing connection, it will immediately advertise its version.
   *  The remote node will respond with its version. No further communication is possible until both peers have exchanged their version.
  */
-case class Version( version : Int,
-                    services : BigInt,
-                    timestamp : Long,
-                    destAddress : NetworkAddress,
-                    sourceAddress : NetworkAddress,
-                    nonce : BigInt,
-                    userAgent : String,
-                    startHeight : Int,
-                    relay : Boolean )
-extends ProtocolMessage {
-  override def toString = s"""Version($version, ${BigIntUtil.bint(services)}, ${timestamp}L, $destAddress, $sourceAddress, ${BigIntUtil.bint(nonce)}, \"${userAgent}\", $startHeight, $relay)"""
+data class Version( val version : Int,
+                    val services : java.math.BigInteger,
+                    val timestamp : Long,
+                    val destAddress : NetworkAddress,
+                    val sourceAddress : NetworkAddress,
+                    val nonce : java.math.BigInteger,
+                    val userAgent : String,
+                    val startHeight : Int,
+                    val relay : Boolean )
+: ProtocolMessage {
+  override fun toString() = """Version($version, ${BigIntUtil.bint(services)}, ${timestamp}L, $destAddress, $sourceAddress, ${BigIntUtil.bint(nonce)}, \"${userAgent}\", $startHeight, $relay)"""
 }
 
 
 /** Verack ; The verack message is sent in reply to version.
  * This message consists of only a message header with the command string "verack".
  */
-case class Verack() extends ProtocolMessage {
-  override def toString = "Verack()"
+data class Verack(private val dummy : Int = 0) : ProtocolMessage {
+  override fun toString() = "Verack()"
 }
 
 /** Addr ; Provide information on known nodes of the network.
  *  Non-advertised nodes should be forgotten after typically 3 hours
  */
-case class Addr(addresses : List[NetworkAddressWithTimestamp]) extends ProtocolMessage {
-  override def toString = s"Addr(List(${addresses.mkString(",")}))"
+data class Addr(val addresses : List<NetworkAddressWithTimestamp>) : ProtocolMessage {
+  override fun toString() = "Addr(List(${addresses.joinToString(",")}))"
 }
 
-object InvType extends Enumeration {
-  type InvType = Value
-  val ERROR, MSG_TX, MSG_BLOCK, MSG_FILTERED_BLOCK = Value
+enum class InvType {
+  ERROR, MSG_TX, MSG_BLOCK, MSG_FILTERED_BLOCK
 }
 
-import InvType._
-
-case class InvVector(invType:InvType, hash : Hash) extends ProtocolMessage {
-  override def toString = s"InvVector(InvType.$invType, $hash)"
+data class InvVector(val invType:InvType, val hash : Hash) : ProtocolMessage {
+  override fun toString() = "InvVector(InvType.$invType, $hash)"
 }
 
 
 /** Inv ; Allows a node to advertise its knowledge of one or more objects.
  *  It can be received unsolicited, or in reply to getblocks.
  */
-case class Inv(inventories:List[InvVector]) extends ProtocolMessage {
-  override def toString = s"Inv(List(${inventories.mkString(",")}))"
+data class Inv(val inventories:List<InvVector>) : ProtocolMessage {
+  override fun toString() = "Inv(List(${inventories.joinToString(",")}))"
 }
 
 /** GetData ; getdata is used in response to inv, to retrieve the content of a specific object,
@@ -70,16 +64,16 @@ case class Inv(inventories:List[InvVector]) extends ProtocolMessage {
  * to avoid having clients start to depend on nodes having full transaction indexes
  * (which modern nodes do not).
  */
-case class GetData(inventories:List[InvVector]) extends ProtocolMessage {
-  override def toString = s"GetData(List(${inventories.mkString(",")}))"
+data class GetData(val inventories:List<InvVector>) : ProtocolMessage {
+  override fun toString() = "GetData(List(${inventories.joinToString(",")}))"
 }
 
 
 /** NotFound ; notfound is a response to a getdata, sent if any requested data items could not be relayed.
  * For example, because the requested transaction was not in the memory pool or relay set.
  */
-case class NotFound(inventories:List[InvVector]) extends ProtocolMessage {
-  override def toString = s"NotFound(List(${inventories.mkString(",")}))"
+data class NotFound(val inventories:List<InvVector>) : ProtocolMessage {
+  override fun toString() = "NotFound(List(${inventories.joinToString(",")}))"
 }
 
 
@@ -94,11 +88,11 @@ case class NotFound(inventories:List[InvVector]) extends ProtocolMessage {
  * Keep in mind that some clients may provide blocks which are invalid
  * if the block locator object contains a hash on the invalid branch.
  */
-case class GetBlocks( version : Long,
-                      blockLocatorHashes : List[Hash],
-                      hashStop : Hash
-                    ) extends ProtocolMessage  {
-  override def toString = s"GetBlocks(${version}L, List(${blockLocatorHashes.mkString(",")}), $hashStop)"
+data class GetBlocks( val version : Long,
+                      val blockLocatorHashes : List<Hash>,
+                      val hashStop : Hash
+                    ) : ProtocolMessage  {
+  override fun toString() = "GetBlocks(${version}L, List(${blockLocatorHashes.joinToString(",")}), $hashStop)"
 }
 
 
@@ -110,18 +104,18 @@ case class GetBlocks( version : Long,
  * Keep in mind that some clients may provide headers of blocks which are invalid
  * if the block locator object contains a hash on the invalid branch.
  */
-case class GetHeaders( version : Long,
-                       blockLocatorHashes : List[Hash],
-                       hashStop : Hash
-                     ) extends ProtocolMessage {
-  override def toString = s"GetHeaders(${version}L, List(${blockLocatorHashes.mkString(",")}), $hashStop)"
+data class GetHeaders(  val version : Long,
+                        val blockLocatorHashes : List<Hash>,
+                        val hashStop : Hash
+                     ) : ProtocolMessage {
+  override fun toString() = "GetHeaders(${version}L, List(${blockLocatorHashes.joinToString(",")}), $hashStop)"
 }
 
 
 /** Headers ; The headers packet returns block headers in response to a getheaders packet.
  */
-case class Headers(headers:List[BlockHeader]) extends ProtocolMessage {
-  override def toString = s"Headers(List(${headers.mkString(",")}))"
+data class Headers(val headers:List<BlockHeader>) : ProtocolMessage {
+  override fun toString() = "Headers(List(${headers.joinToString(",")}))"
 }
 
 
@@ -133,8 +127,8 @@ case class Headers(headers:List[BlockHeader]) extends ProtocolMessage {
  *
  * No additional data is transmitted with this message.
  */
-case class GetAddr() extends ProtocolMessage {
-  override def toString = s"GetAddr()"
+data class GetAddr(private val dummy : Int = 0) : ProtocolMessage {
+  override fun toString() = "GetAddr()"
 }
 
 
@@ -144,8 +138,8 @@ case class GetAddr() extends ProtocolMessage {
  * It is specified in BIP 35. Since BIP 37, if a bloom filter is loaded, only transactions matching the filter are replied.
  *
  */
-case class Mempool() extends ProtocolMessage {
-  override def toString = s"Mempool()"
+data class Mempool(private val dummy : Int = 0) : ProtocolMessage {
+  override fun toString() = "Mempool()"
 }
 
 
@@ -156,8 +150,8 @@ case class Mempool() extends ProtocolMessage {
  * ================================================
  *          8,        nonce,   uint64_t,  random nonce
  */
-case class Ping(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Ping(${BigIntUtil.bint(nonce)})"
+data class Ping(val nonce : java.math.BigInteger) : ProtocolMessage {
+  override fun toString() = "Ping(${BigIntUtil.bint(nonce)})"
 }
 
 /** Pong ; The pong message is sent in response to a ping message.
@@ -168,47 +162,45 @@ case class Ping(val nonce : BigInt) extends ProtocolMessage {
   *          8,        nonce,   uint64_t,  random nonce
 
  */
-case class Pong(val nonce : BigInt) extends ProtocolMessage {
-  override def toString = s"Pong(${BigIntUtil.bint(nonce)})"
+data class Pong(val nonce : java.math.BigInteger) : ProtocolMessage {
+  override fun toString() = "Pong(${BigIntUtil.bint(nonce)})"
 }
 
-object RejectType extends Enumeration {
-  type RejectType = Value
-  val REJECT_MALFORMED, REJECT_INVALID, REJECT_OBSOLETE, REJECT_DUPLICATE, REJECT_NONSTANDARD, REJECT_DUST, REJECT_INSUFFICIENTFEE, REJECT_CHECKPOINT = Value
+enum class RejectType {
+  REJECT_MALFORMED, REJECT_INVALID, REJECT_OBSOLETE, REJECT_DUPLICATE, REJECT_NONSTANDARD, REJECT_DUST, REJECT_INSUFFICIENTFEE, REJECT_CHECKPOINT
 }
-import RejectType._
 
 /** Reject ; The reject message is sent when messages are rejected.
  */
-case class Reject(message:String,
-                  rejectType:RejectType,
-                  reason : String,
-                  data : ByteArray ) extends ProtocolMessage {
-  override def toString = s"""Reject(\"${message}\", $rejectType, \"${reason}\", $data)"""
+data class Reject(val message:String,
+                  val rejectType:RejectType,
+                  val reason : String,
+                  val data : ByteArray ) : ProtocolMessage {
+  override fun toString() = """Reject(\"${message}\", $rejectType, \"${reason}\", $data)"""
 }
 
 
-/** These messages are related to Bloom filtering of connections and are defined in BIP 0037.
+/** These messages are related to Bloom filtering of connections and are funined in BIP 0037.
  * Details : https://en.bitcoin.it/wiki/BIP_0037
  */
-case class FilterLoad() extends ProtocolMessage {
-  override def toString = s"FilterLoad()"
+data class FilterLoad(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "FilterLoad()"
 }
 
 
 /** FilterAdd; TODO : Copy & paste description from Bitcoin protocol wiki.
  *
  */
-case class FilterAdd() extends ProtocolMessage {
-  override def toString = s"FilterAdd()"
+data class FilterAdd(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "FilterAdd()"
 }
 
 
 /** FilterClear; TODO : Copy & paste description from Bitcoin protocol wiki.
   *
   */
-case class FilterClear() extends ProtocolMessage {
-  override def toString = s"FilterClear()"
+data class FilterClear(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "FilterClear()"
 }
 
 
@@ -216,8 +208,8 @@ case class FilterClear() extends ProtocolMessage {
   *
   */
 // TODO : Implement it.
-case class MerkleBlock() extends ProtocolMessage {
-  override def toString = s"MerkleBlock()"
+data class MerkleBlock(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "MerkleBlock()"
 }
 
 
@@ -229,15 +221,15 @@ case class MerkleBlock() extends ProtocolMessage {
  * The text in the Message string should be relayed to log files and any user interfaces.
  */
 // TODO : Implement it.
-case class Alert() extends ProtocolMessage {
-  override def toString = s"Alert()"
+data class Alert(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "Alert()"
 }
 
 
 /** SendHeaders; The sendheaders message tells the receiving peer
   * to send new block announcements using a headers message rather than an inv message.
   */
-case class SendHeaders() extends ProtocolMessage {
-  override def toString = s"SendHeaders()"
+data class SendHeaders(private val dummy : Int = 1) : ProtocolMessage {
+  override fun toString() = "SendHeaders()"
 }
 

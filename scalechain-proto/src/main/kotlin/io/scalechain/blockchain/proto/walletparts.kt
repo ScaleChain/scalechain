@@ -2,17 +2,17 @@ package io.scalechain.blockchain.proto
 
 import java.math.BigInteger
 
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
+import io.scalechain.blockchain.*
 import io.scalechain.util.HexUtil
 
-/** case classes that are used for keys or values of the wallet database.
+/** data classes that are used for keys or values of the wallet database.
   */
 
 /** An account with a name.
   *
   * @param name The account name.
   */
-case class Account(name : String) extends ProtocolMessage
+data class Account(val name : String) : ProtocolMessage
 
 
 /** An outpoint points to an output in a transaction.
@@ -20,7 +20,7 @@ case class Account(name : String) extends ProtocolMessage
   * @param transactionHash The hash of the transaction that has the output.
   * @param outputIndex The index of the output. The index starts from 0. Ex> The first output of a transaction has index 0.
   */
-case class OutPoint(transactionHash : Hash, outputIndex : Int) extends ProtocolMessage
+data class OutPoint(val transactionHash : Hash, val outputIndex : Int) : ProtocolMessage
 
 
 /** An in point points to an input in a transaction.
@@ -28,7 +28,7 @@ case class OutPoint(transactionHash : Hash, outputIndex : Int) extends ProtocolM
   * @param transactionHash The hash of the transaction that has the output.
   * @param inputIndex The index of the input. The index starts from 0. Ex> The first input of a transaction has index 0.
   */
-case class InPoint(transactionHash : Hash, inputIndex : Int) extends ProtocolMessage
+data class InPoint(val transactionHash : Hash, val inputIndex : Int) : ProtocolMessage
 
 
 /**
@@ -41,7 +41,7 @@ case class InPoint(transactionHash : Hash, inputIndex : Int) extends ProtocolMes
  *  • move if an off-block-chain move made with the move RPC
  */
 /*
-object WalletTransactionAttribute extends Enumeration {
+object WalletTransactionAttribute : Enumeration {
   type WalletTransactionAttribute = Value
 
 /*
@@ -64,28 +64,28 @@ object WalletTransactionAttribute extends Enumeration {
 */
 /** A transaction stored for an output ownership.
   */
-case class WalletTransaction(
+data class WalletTransaction(
                               // Only returned for confirmed transactions.
                               // The hash of the block on the local best block chain which includes this transaction, encoded as hex in RPC byte order
                               // P1
-                              blockHash         : Option[Hash], // "00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929",
+                              val blockHash         : Hash?, // "00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929",
                               // Only returned for confirmed transactions.
                               // The block height of the block on the local best block chain which includes this transaction
                               // P1
-                              blockIndex        : Option[Long], // 11,
+                              val blockIndex        : Long?, // 11,
                               // Only returned for confirmed transactions.
                               // The block header time (Unix epoch time) of the block on the local best block chain which includes this transaction
                               // P1
-                              blockTime         : Option[Long], // 1411051649,
+                              val blockTime         : Long?, // 1411051649,
                               // The TXID of the transaction, encoded as hex in RPC byte order. Not returned for move category payments
-                              transactionId : Option[Hash], // "99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d",
+                              val transactionId     : Hash?, // "99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d",
                               // An array containing the TXIDs of other transactions that spend the same inputs (UTXOs) as this transaction.
                               // Array may be empty. Not returned for move category payments
                               // walletconflicts item : The TXID of a conflicting transaction, encoded as hex in RPC byte order
                               // P2
                               //    walletconflicts   : List[Hash],            // : [],
                               // A Unix epoch time when the transaction was added to the wallet
-                              addedTime              : Long, // 1418695703,
+                              val addedTime              : Long, // 1418695703,
                               // A Unix epoch time when the transaction was detected by the local node,
                               // or the time of the block on the local best block chain that included the transaction.
                               // Not returned for move category payments
@@ -95,11 +95,11 @@ case class WalletTransaction(
                               // An additional field for sorting transactions by recency.
                               // Some(transactionIndex) if the transaction is in a block on the best blockchain.
                               // None if the block is in the mempool.
-                              transactionIndex : Option[Int],
+                              val transactionIndex : Int?,
 
                               // The transaction related with this wallet transaction.
-                              transaction : Transaction
-) extends ProtocolMessage
+                              val transaction : Transaction
+) : ProtocolMessage
 
 /** Ownership is described as multiple private keys.
   *
@@ -107,15 +107,15 @@ case class WalletTransaction(
   *
   * @param privateKeys
   */
-case class OwnershipDescriptor(account : String, privateKeys : List[String]) extends ProtocolMessage
+data class OwnershipDescriptor(val account : String, val privateKeys : List<String>) : ProtocolMessage
 
-case class WalletOutput(
+data class WalletOutput(
     // Some(block height) of the block on the local best block chain which includes this transaction. None otherwise.
-    blockindex        : Option[Long],          // 11,
+    val blockindex : Long?,          // 11,
     // Whether this output is in the generation transaction.
-    coinbase : Boolean,
+    val coinbase : Boolean,
     // Whether this coin was spent or not.
-    spent : Boolean,
+    val spent : Boolean,
     // The transaction output
-    transactionOutput : TransactionOutput
-) extends ProtocolMessage
+    val transactionOutput : TransactionOutput
+) : ProtocolMessage

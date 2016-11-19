@@ -16,13 +16,13 @@ object HexUtil {
      * @return A byte array, which is converted from the given hex string.
      */
     @JvmStatic
-    fun bytes(hexString: String): Array<Byte> {
+    fun bytes(hexString: String): ByteArray {
         // BUGBUG : this extention function was copied from Internet. Need to make sure that this works.
         fun <T> List<T>.sliding(windowSize: Int): List<List<T>> {
             return this.dropLast(windowSize - 1).mapIndexed { i, s -> Pair(i, this.subList(i, i + windowSize)) }.filter{ it.first % windowSize == 0}.map {it.second}
         }
 
-        return (hexString as java.lang.String).replaceAll("[^0-9A-Fa-f]", "").toCharArray().toList().sliding(2).map { Integer.parseInt(it.joinToString(""), 16).toByte() }.toTypedArray()
+        return (hexString as java.lang.String).replaceAll("[^0-9A-Fa-f]", "").toCharArray().toList().sliding(2).map { Integer.parseInt(it.joinToString(""), 16).toByte() }.toByteArray()
     }
 
     /** Convert a byte array to a hex string with an optional separator between each byte.
@@ -34,7 +34,7 @@ object HexUtil {
      */
     // BUGBUG : Get rid of Scala Option
     @JvmStatic
-    fun hex(data: Array<Byte>, sep: Option<String> = scala.Some("") ): String {
+    fun hex(data: ByteArray, sep: Option<String> = scala.Some("") ): String {
         val separatorChar = if ( sep.isDefined ) sep.get() else ""
 
         return data.map{String.format("%02x", it) }.joinToString( separatorChar )
@@ -47,7 +47,7 @@ object HexUtil {
      * @return the hex string.
      */
     @JvmStatic
-    fun prettyHex(data : Array<Byte>) : String {
+    fun prettyHex(data : ByteArray) : String {
         return "${hex(data, scala.Some(" "))}"
     }
 
@@ -58,7 +58,7 @@ object HexUtil {
      * @return A string in a format, hex(hex-data)
      */
     @JvmStatic
-    fun scalaHex(data : Array<Byte>) : String {
-        return """bytes(\"${HexUtil.hex(data)}\")"""
+    fun kotlinHex(data : ByteArray) : String {
+        return "\"${HexUtil.hex(data)}\""
     }
 }
