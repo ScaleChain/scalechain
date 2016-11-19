@@ -1,0 +1,8 @@
+apply plugin: 'application'
+
+dependencies {
+    compile project(':scalechain-util')
+}
+
+mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'
+

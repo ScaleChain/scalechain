@@ -33,8 +33,8 @@ class GlobalStopWatchSpec : FlatSpec(), Matchers {
                 TimeUnit.NANOSECONDS.sleep(200)
             }
 
-            assert( GlobalStopWatch.toString()!!.contains("test1") )
-            assert( GlobalStopWatch.toString()!!.contains("test2") )
+            assert( GlobalStopWatch.toString().contains("test1") )
+            assert( GlobalStopWatch.toString().contains("test2") )
         }
 
         "StopWatchEx" should "measure elapsed time in a block" {

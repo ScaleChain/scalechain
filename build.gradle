@@ -1,0 +1,51 @@
+group 'io.scalechain'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.0.5'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'scala'
+    apply plugin: 'kotlin'
+
+    sourceCompatibility = 1.6
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+        compile "org.scala-lang:scala-library:2.12.0"
+        compile "org.scala-lang:scala-compiler:2.12.0"
+        compile "io.netty:netty-all:4.1.6.Final"
+        compile "io.spray:spray-json_2.12:1.3.2"
+        compile "ch.qos.logback:logback-classic:1.1.7"
+        compile "com.typesafe.scala-logging:scala-logging_2.12:3.5.0"
+        compile "org.scalatest:scalatest_2.12:3.0.0"
+        // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
+        // TODO : use java.io.File.rmdir to remove files instead of commons-io
+        compile "commons-io:commons-io:2.5"
+        compile "org.eclipse.collections:eclipse-collections:8.0.0"
+        compile "org.eclipse.collections:eclipse-collections-api:8.0.0" 
+
+        testCompile "junit:junit:4.12"
+        testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+        testCompile "io.kotlintest:kotlintest:1.3.5"
+    }
+}
+
+
+// Multiproject example from 
+// https://github.com/pkainulainen/gradle-examples/tree/master/multi-project-build 

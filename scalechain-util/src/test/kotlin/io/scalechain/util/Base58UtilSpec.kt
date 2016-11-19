@@ -26,7 +26,7 @@ class Base58UtilSpec : FlatSpec(), Matchers {
 
     init {
         "Base58" should "encode byte arrays" {
-            assert(Base58Util.encode(("Hello World" as java.lang.String).getBytes("UTF-8")) == "JxF12TrwUP45BMd")
+            assert(Base58Util.encode("Hello World".toByteArray()) == "JxF12TrwUP45BMd")
             assert(Base58Util.encode(BigInteger.valueOf(3471844090L).toByteArray()) == "16Ho7Hs")
 
             println("aaa" + Base58Util.encode(ByteArray(1,{1})))
@@ -36,7 +36,7 @@ class Base58UtilSpec : FlatSpec(), Matchers {
         }
 
         "Base58" should "decode strings" {
-            assert(java.util.Arrays.equals(Base58Util.decode("JxF12TrwUP45BMd"), ("Hello World" as java.lang.String).getBytes("UTF-8")))
+            assert(java.util.Arrays.equals(Base58Util.decode("JxF12TrwUP45BMd"), "Hello World".toByteArray()))
             assert(java.util.Arrays.equals(Base58Util.decode(""), ByteArray(0, {0})))
             assert(java.util.Arrays.equals(Base58Util.decode("1"), ByteArray(1,{0})))
             assert(java.util.Arrays.equals(Base58Util.decode("1111111"), ByteArray(7,{0})))

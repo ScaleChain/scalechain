@@ -46,7 +46,7 @@ class InputOutputStreamWithBlockDataInputStreamSpec : FlatSpec(), Matchers {
         "readVarInt" should "read encoded values" {
             for ( (decoded, encoded) in VarIntValues.ENCODED_VALUE_MAP) {
                 println("testing readVarInt : $decoded")
-                val stream = InputOutputStream( BlockDataInputStream(ByteArrayInputStream(encoded)) )
+                val stream = InputOutputStream( BlockDataInputStream(ByteArrayInputStream(encoded)), null )
                 stream.variableInt(-1) shouldBe decoded
             }
         }
