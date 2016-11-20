@@ -8,8 +8,8 @@ import io.scalechain.util.HexUtil
 /**
   * Created by kangmo on 7/28/16.
   */
-object GenerateAddress extends Command {
-  def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
+object GenerateAddress : Command {
+  fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
     val privateKey = PrivateKey.generate()
     val publicKey = PublicKey.from(privateKey)
     val address = CoinAddress.from(privateKey)

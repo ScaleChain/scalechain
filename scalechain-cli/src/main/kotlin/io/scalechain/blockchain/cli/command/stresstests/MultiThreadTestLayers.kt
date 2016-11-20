@@ -6,12 +6,12 @@ import io.scalechain.blockchain.cli.command.{RpcParameters, Command}
 import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 
-case class TestCase(name : String, initialSplitTxTest : TransactionWithGroupListener, transactionTest : TransactionWithGroupListener)
+data class TestCase(name : String, initialSplitTxTest : TransactionWithGroupListener, transactionTest : TransactionWithGroupListener)
 
 /**
   * Created by kangmo on 7/29/16.
   */
-object MultiThreadTestLayers extends Command {
+object MultiThreadTestLayers : Command {
   val protoCodecTestCase : TransactionWithGroupListener =
     (txGroupIndex : Int, transaction : Transaction) => {
       val serialized = TransactionCodec.serialize(transaction)
@@ -23,13 +23,13 @@ object MultiThreadTestLayers extends Command {
     TestCase("proto-codec", protoCodecTestCase, protoCodecTestCase)
   )
 
-  def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
+  fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
     val transactionGroupCount = Integer.parseInt(args(1))
 
     testCases foreach { testCase : TestCase =>
       println(s"Testing ${testCase.name}")
       val transactionTests = IndexedSeq.fill(transactionGroupCount)(testCase.transactionTest)
-      new MultiThreadTransactionTester().testTransaction(testCase.initialSplitTxTest, transactionTests)
+      MultiThreadTransactionTester().testTransaction(testCase.initialSplitTxTest, transactionTests)
     }
   }
 }

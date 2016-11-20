@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.PayloadTestSuite
 import io.scalechain.util.HexUtil._
 
 /**
- * [Bitcoin Core Packets Not Captured]
+ * <Bitcoin Core Packets Not Captured>
  *
  * 4d                                               .... coinbase data size. (4d => 77 bytes)
  *                                                       Length of the coinbase data, from 2 to 100 bytes
@@ -20,7 +20,7 @@ import io.scalechain.util.HexUtil._
 
 // No need to create a codec for CoinbaseData, as it is converted from/to UnlockingScript by TransactionInputCodec.
 /*
-class CoinbaseDataSpec extends PayloadTestSuite[CoinbaseData]  {
+class CoinbaseDataSpec : PayloadTestSuite<CoinbaseData>  {
 
   val codec = CoinbaseDataCodec.codec
 

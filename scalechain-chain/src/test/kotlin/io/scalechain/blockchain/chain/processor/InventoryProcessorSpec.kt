@@ -12,30 +12,30 @@ import HashSupported._
 
 import scala.util.Random
 
-class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File(s"./target/unittests-InventoryProcessorSpec/")
+  val testPath = File(s"./target/unittests-InventoryProcessorSpec/")
 
   var t : TransactionProcessor = null
   var b : BlockProcessor = null
   var i : InventoryProcessor = null
   implicit var keyValueDB : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
     keyValueDB = db
-    t = new TransactionProcessor(chain)
-    b = new BlockProcessor(chain)
-    i = new InventoryProcessor(chain)
+    t = TransactionProcessor(chain)
+    b = BlockProcessor(chain)
+    i = InventoryProcessor(chain)
     // Put the genesis block for testing.
     b.acceptBlock(env.GenesisBlockHash, env.GenesisBlock)
 
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     keyValueDB = null
     t = null
     b = null
@@ -47,7 +47,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
   }
 
   "alreadyHas" should "return true for a block on the blockchain." in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -62,7 +62,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
   }
 
   "alreadyHas" should "return true for an orphan block." in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -75,7 +75,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
   /*
 
     "alreadyHas" should "return true for a transaction in a non-orphan block." in {
-      val data = new BlockSampleData()
+      val data = BlockSampleData()
       import data._
       import data.Block._
       import data.Tx._
@@ -88,7 +88,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
     }
 
     "alreadyHas" should "return false for a transaction in an orphan block." in {
-      val data = new BlockSampleData()
+      val data = BlockSampleData()
       import data._
       import data.Block._
       import data.Tx._
@@ -99,7 +99,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
     }
 
     "alreadyHas" should "return true for a transaction in the transaction pool." in {
-      val data = new BlockSampleData()
+      val data = BlockSampleData()
       import data._
       import data.Block._
       import data.Tx._
@@ -112,7 +112,7 @@ class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDat
     }
 
     "alreadyHas" should "return true for an orphan transaction." in {
-      val data = new BlockSampleData()
+      val data = BlockSampleData()
       import data._
       import data.Block._
       import data.Tx._

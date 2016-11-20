@@ -19,7 +19,7 @@ class ScriptStack {
    * The bottom of the stack is the first element in this array.
    * The top of the stack is the last element of this array.
    */
-  val array = new mutable.ArrayBuffer[ScriptValue]
+  val array = mutable.ArrayBuffer<ScriptValue>
 
   /**
    * Convert the stack index to the array index on the array field.
@@ -28,7 +28,7 @@ class ScriptStack {
    * @param stackIndex
    * @return
    */
-  def toArrayIndex(stackIndex:Int) : Int = {
+  fun toArrayIndex(stackIndex:Int) : Int {
     array.length -1 -stackIndex
   }
 
@@ -36,7 +36,7 @@ class ScriptStack {
    *
    * @param value
    */
-  def push(value : ScriptValue ): Unit = {
+  fun push(value : ScriptValue ): Unit {
     // The top of the stack is the end of the array.
     // Just append the element to the end of the array.
     array.append(value)
@@ -46,7 +46,7 @@ class ScriptStack {
    *
    * @return
    */
-  def pop() : ScriptValue = {
+  fun pop() : ScriptValue {
     // The top of the stack is the end of the array.
     // Get rid of the last element of the array.
     val popped = array.remove( toArrayIndex(0) )
@@ -57,7 +57,7 @@ class ScriptStack {
     *
     * @return The top element.
     */
-  def top() : ScriptValue = {
+  fun top() : ScriptValue {
     this.apply(0)
   }
 
@@ -66,7 +66,7 @@ class ScriptStack {
    * @param index The index from the top of the stack.
    * @return The n-th element.
    */
-  def apply(index : Int) : ScriptValue = {
+  fun apply(index : Int) : ScriptValue {
     array.apply( toArrayIndex(index) )
   }
 
@@ -74,18 +74,18 @@ class ScriptStack {
    * - The top element : N = 0
    * - The element right below the top element : N = 1
    */
-  def remove(index : Int) : ScriptValue = {
+  fun remove(index : Int) : ScriptValue {
     val removedValue = array.remove( toArrayIndex(index) )
     removedValue
   }
 
-  /** Inserts new elements at a given index into this stack.
+  /** Inserts elements at a given index into this stack.
    *
    * @param index The index where the new element will exist after the insertion.
    * @param value The value to insert into this stack.
    */
   // TODO : Write a unit test for every edge cases for this method.
-  def insert(index :Int, value : ScriptValue) : Unit = {
+  fun insert(index :Int, value : ScriptValue) : Unit {
     array.insert( toArrayIndex(index), value)
   }
 
@@ -93,7 +93,7 @@ class ScriptStack {
    *
    * @return The number of elements.
    */
-  def size() : Int = {
+  fun size() : Int {
     array.size
   }
 
@@ -101,7 +101,7 @@ class ScriptStack {
    *
    * @param value The value to push
    */
-  def pushInt(value : BigInteger): Unit = {
+  fun pushInt(value : BigInteger): Unit {
     val scriptValue = ScriptValue.valueOf( value )
     push(scriptValue)
   }
@@ -110,15 +110,15 @@ class ScriptStack {
    *
    * @return The popped value.
    */
-  def popInt() : BigInteger  = {
+  fun popInt() : BigInteger  {
     val scriptValue = pop()
     val value : BigInteger  = ScriptValue.decodeStackInt(scriptValue.value)
     value
   }
 
 /*
-  override def toString() : String = {
-    s"ScriptStack[${array.mkString(",")}}]"
+  override fun toString() : String {
+    s"ScriptStack<${array.mkString(",")}}>"
   }
 */
 }

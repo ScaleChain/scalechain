@@ -11,7 +11,7 @@ object InvFactory {
     * @param blockHashes The hash of blocks to put into the block inventories.
     * @return The created Inv message.
     */
-  def createBlockInventories(blockHashes : List[Hash]) : Inv = {
+  fun createBlockInventories(blockHashes : List<Hash>) : Inv {
     Inv(blockHashes.map{ hash : Hash =>
       InvVector(
         InvType.MSG_BLOCK,
@@ -25,7 +25,7 @@ object InvFactory {
     * @param transactionHashes The hash of transactions to put into the transation inventories.
     * @return The created Inv message.
     */
-  def createTransactionInventories(transactionHashes : List[Hash]) : Inv = {
+  fun createTransactionInventories(transactionHashes : List<Hash>) : Inv {
     Inv(transactionHashes.map{ hash : Hash =>
       InvVector(
         InvType.MSG_TX,

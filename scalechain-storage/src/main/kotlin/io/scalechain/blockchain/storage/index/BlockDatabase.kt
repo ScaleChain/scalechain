@@ -36,11 +36,11 @@ object DatabaseTablePrefixes {
   * This class is used by CassandraBlockStorage.
   */
 trait BlockDatabase {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockDatabase]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockDatabase>) )
 
   import DatabaseTablePrefixes._
 
-  def getBlockInfo(hash : Hash)(implicit db : KeyValueDatabase) : Option[BlockInfo] = {
+  fun getBlockInfo(hash : Hash)(implicit db : KeyValueDatabase) : Option<BlockInfo> {
     db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
   }
 
@@ -49,7 +49,7 @@ trait BlockDatabase {
     * @param height The height of the block.
     * @return The hash of the block at the height on the best blockchain.
     */
-  def getBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Option[Hash] = {
+  fun getBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Option<Hash> {
     db.getObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec, HashCodec)
   }
 
@@ -58,7 +58,7 @@ trait BlockDatabase {
     * @param height The height of the block hash. The block should be on the best blockchain.
     * @param hash The hash of the block.
     */
-  def putBlockHashByHeight(height : Long, hash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun putBlockHashByHeight(height : Long, hash : Hash)(implicit db : KeyValueDatabase) : Unit {
     db.putObject(BLOCK_HEIGHT, BlockHeight(height), hash)(BlockHeightCodec, HashCodec)
   }
 
@@ -67,7 +67,7 @@ trait BlockDatabase {
     *
     * @param height the height of the block to delete.
     */
-  def delBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Unit = {
+  fun delBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Unit {
     db.delObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec)
   }
 
@@ -76,8 +76,8 @@ trait BlockDatabase {
     * @param hash The block to update the next block hash.
     * @param nextBlockHash Some(nextBlockHash) if the block is on the best blockchain, None otherwise.
     */
-  def updateNextBlockHash(hash : Hash, nextBlockHash : Option[Hash])(implicit db : KeyValueDatabase) = {
-    val blockInfoOption : Option[BlockInfo] = getBlockInfo(hash)
+  fun updateNextBlockHash(hash : Hash, nextBlockHash : Option<Hash>)(implicit db : KeyValueDatabase) {
+    val blockInfoOption : Option<BlockInfo> = getBlockInfo(hash)
 
     assert(blockInfoOption.isDefined)
 
@@ -86,11 +86,11 @@ trait BlockDatabase {
     ))
   }
 
-  def getBlockHeight(hash : Hash)(implicit db : KeyValueDatabase) : Option[Long] = {
+  fun getBlockHeight(hash : Hash)(implicit db : KeyValueDatabase) : Option<Long> {
     getBlockInfo(hash).map(_.height)
   }
 
-  def putBlockInfo(hash : Hash, info : BlockInfo)(implicit db : KeyValueDatabase) : Unit = {
+  fun putBlockInfo(hash : Hash, info : BlockInfo)(implicit db : KeyValueDatabase) : Unit {
     val blockInfoOption = getBlockInfo(hash)
     if (blockInfoOption.isDefined) {
       val currentBlockInfo = blockInfoOption.get
@@ -111,11 +111,11 @@ trait BlockDatabase {
     db.putObject(BLOCK_INFO, hash, info)(HashCodec, BlockInfoCodec)
   }
 
-  def putBestBlockHash(hash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun putBestBlockHash(hash : Hash)(implicit db : KeyValueDatabase) : Unit {
     db.putObject(Array(BEST_BLOCK_HASH), hash)(HashCodec)
   }
 
-  def getBestBlockHash()(implicit db : KeyValueDatabase) : Option[Hash] = {
+  fun getBestBlockHash()(implicit db : KeyValueDatabase) : Option<Hash> {
     db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
   }
 }
@@ -126,10 +126,10 @@ trait BlockDatabase {
   *
   * When storing blocks with RecordStorage, we need to keep track of block file information.
   */
-trait BlockDatabaseForRecordStorage extends BlockDatabase {
+trait BlockDatabaseForRecordStorage : BlockDatabase {
   import DatabaseTablePrefixes._
 
-  def putBlockFileInfo(fileNumber : FileNumber, blockFileInfo : BlockFileInfo)(implicit db : KeyValueDatabase) : Unit = {
+  fun putBlockFileInfo(fileNumber : FileNumber, blockFileInfo : BlockFileInfo)(implicit db : KeyValueDatabase) : Unit {
     // Input validation for the block file info.
     val currentInfoOption = getBlockFileInfo(fileNumber)
     if (currentInfoOption.isDefined) {
@@ -164,11 +164,11 @@ trait BlockDatabaseForRecordStorage extends BlockDatabase {
     db.putObject(BLOCK_FILE_INFO, fileNumber, blockFileInfo)(FileNumberCodec, BlockFileInfoCodec)
   }
 
-  def getBlockFileInfo(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Option[BlockFileInfo] = {
+  fun getBlockFileInfo(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Option<BlockFileInfo> {
     db.getObject(BLOCK_FILE_INFO, fileNumber)(FileNumberCodec, BlockFileInfoCodec)
   }
 
-  def putLastBlockFile(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Unit = {
+  fun putLastBlockFile(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Unit {
     // Input validation check for the fileNumber.
     val fileNumberOption = getLastBlockFile()
     if (fileNumberOption.isDefined) {
@@ -179,7 +179,7 @@ trait BlockDatabaseForRecordStorage extends BlockDatabase {
     db.putObject(Array(LAST_BLOCK_FILE), fileNumber)(FileNumberCodec)
   }
 
-  def getLastBlockFile()(implicit db : KeyValueDatabase) : Option[FileNumber] = {
+  fun getLastBlockFile()(implicit db : KeyValueDatabase) : Option<FileNumber> {
     db.getObject(Array(LAST_BLOCK_FILE))(FileNumberCodec)
   }
 

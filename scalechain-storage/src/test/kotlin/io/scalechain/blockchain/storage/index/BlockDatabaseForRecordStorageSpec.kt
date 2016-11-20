@@ -16,7 +16,7 @@ import scodec.bits.BitVector
 /**
   * Covers all methods in BlockDatabaseForRecordStorage as well as its super class, BlockDatabase
   */
-class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with CodecTestUtil with BeforeAndAfterEach  {
+class BlockDatabaseForRecordStorageSpec : FlatSpec with Matchers with CodecTestUtil with BeforeAndAfterEach  {
   this: Suite =>
 
   Storage.initialize()
@@ -24,19 +24,19 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
   implicit var db : RocksDatabase = null
   var blockDb : BlockDatabaseForRecordStorage = null
 
-  val testPath = new File("./target/unittests-BlockDatabaseSpec")
+  val testPath = File("./target/unittests-BlockDatabaseSpec")
 
-  override def beforeEach() {
+  override fun beforeEach() {
     FileUtils.deleteDirectory( testPath )
     testPath.mkdir()
 
-    blockDb = new BlockDatabaseForRecordStorage {}
-    db = new RocksDatabase( testPath )
+    blockDb = BlockDatabaseForRecordStorage {}
+    db = RocksDatabase( testPath )
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()
@@ -162,7 +162,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     blockDb.getBlockFileInfo(FILE_NUMBER) shouldBe Some(blockFileInfo)
 
     // Can't put the same block info twice.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, blockFileInfo)
     }
 
@@ -174,7 +174,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     )
 
     // First block height can't be changed.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           firstBlockHeight = blockFileInfo.firstBlockHeight + 1
         )
@@ -182,7 +182,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // First block timestamp can't be changed.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           firstBlockTimestamp = blockFileInfo.firstBlockTimestamp + 1
         )
@@ -190,7 +190,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // Block count should not be decreased.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           blockCount = blockFileInfo.blockCount - 1
         )
@@ -198,7 +198,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // Block count should increase
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           blockCount = blockFileInfo.blockCount
         )
@@ -206,7 +206,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // File size should not be decreased
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           fileSize = blockFileInfo.fileSize -1
         )
@@ -214,7 +214,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // File size should increase
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           fileSize = blockFileInfo.fileSize
         )
@@ -224,7 +224,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     // If a block on a fork is added, the last block might not increase.
 /*
     // The last block height should not be decreased.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           lastBlockHeight = blockFileInfo.lastBlockHeight - 1
         )
@@ -232,7 +232,7 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     }
 
     // The last block height should increase.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       db.putBlockFileInfo(FILE_NUMBER, newBlockFileInfo.copy(
           lastBlockHeight = blockFileInfo.lastBlockHeight
         )
@@ -265,12 +265,12 @@ class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with Code
     blockDb.getLastBlockFile() shouldBe Some(FILE_NUMBER_2)
 
     // The file number should increase.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putLastBlockFile(FILE_NUMBER_1)
     }
 
     // The file number should increase.
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putLastBlockFile(FILE_NUMBER_2)
     }
   }

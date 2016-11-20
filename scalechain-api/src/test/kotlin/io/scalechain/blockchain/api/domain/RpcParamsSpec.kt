@@ -9,17 +9,17 @@ import spray.json.{JsArray, JsNumber, JsString}
   * Created by kangmo on 2/25/16.
   */
 @Ignore
-class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -36,7 +36,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getListOption[String]("param1", 0) shouldBe Some(List("foo", "bar"))
+    params.getListOption<String>("param1", 0) shouldBe Some(List("foo", "bar"))
   }
 
   "getListOption" should "return none if the parameter is missing" in {
@@ -49,7 +49,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getListOption[String]("param2", 1) shouldBe None
+    params.getListOption<String>("param2", 1) shouldBe None
   }
 
   "getListOption" should "throw an exception if the parameter type mismatches" in {
@@ -62,7 +62,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getListOption[Long]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.getListOption<Long>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
@@ -73,7 +73,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getListOption[String]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.getListOption<String>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
@@ -84,7 +84,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getOption[String]("param1", 0) shouldBe Some("foo")
+    params.getOption<String>("param1", 0) shouldBe Some("foo")
 
   }
 
@@ -95,7 +95,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getOption[String]("param2", 1) shouldBe None
+    params.getOption<String>("param2", 1) shouldBe None
 
   }
 
@@ -106,7 +106,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getOption[Long]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.getOption<Long>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
 
   }
@@ -122,9 +122,9 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getOption[Int]("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe Some(intValue)
-    params.getOption[Long]("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe Some(longValue)
-    params.getOption[scala.math.BigDecimal](
+    params.getOption<Int>("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe Some(intValue)
+    params.getOption<Long>("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe Some(longValue)
+    params.getOption<scala.math.BigDecimal>(
       "param1",
       0,
       List(BigDecimalRangeValidator(
@@ -153,13 +153,13 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
       Some(scala.math.BigDecimal(200)))
     )
 
-    (the [RpcException] thrownBy params.getOption[Int]("param1", 0, intValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
-    (the [RpcException] thrownBy params.getOption[Long]("param1", 0, longValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
-    (the [RpcException] thrownBy params.getOption[scala.math.BigDecimal]("param1", 0, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.getOption<Int>("param1", 0, intValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.getOption<Long>("param1", 0, longValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.getOption<scala.math.BigDecimal>("param1", 0, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
 
-    (the [RpcException] thrownBy params.getOption[Int]("param2", 1, intValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
-    (the [RpcException] thrownBy params.getOption[Long]("param2", 1, longValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
-    (the [RpcException] thrownBy params.getOption[scala.math.BigDecimal]("param2", 1, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.getOption<Int>("param2", 1, intValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.getOption<Long>("param2", 1, longValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.getOption<scala.math.BigDecimal>("param2", 1, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
   }
 
 
@@ -170,7 +170,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.get[String]("param1", 0) shouldBe "foo"
+    params.get<String>("param1", 0) shouldBe "foo"
   }
 
   "get" should "throw an exception if a required parameter is missing" in {
@@ -180,7 +180,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.get[String]("param2", 1)
+    val thrown = the <RpcException> thrownBy params.get<String>("param2", 1)
     thrown.code shouldBe ErrorCode.RpcMissingRequiredParameter
   }
 
@@ -191,7 +191,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.get[Int]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.get<Int>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
 
   }
@@ -207,9 +207,9 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.get[Int]("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe intValue
-    params.get[Long]("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe longValue
-    params.get[scala.math.BigDecimal](
+    params.get<Int>("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe intValue
+    params.get<Long>("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe longValue
+    params.get<scala.math.BigDecimal>(
       "param1",
       0,
       List(BigDecimalRangeValidator(
@@ -240,13 +240,13 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
       Some(scala.math.BigDecimal(200)))
     )
 
-    (the [RpcException] thrownBy params.get[Int]("param1", 0, intValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
-    (the [RpcException] thrownBy params.get[Long]("param1", 0, longValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
-    (the [RpcException] thrownBy params.get[scala.math.BigDecimal]("param1", 0, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.get<Int>("param1", 0, intValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.get<Long>("param1", 0, longValidators)).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
+    (the <RpcException> thrownBy params.get<scala.math.BigDecimal>("param1", 0, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentLessThanMinValue
 
-    (the [RpcException] thrownBy params.get[Int]("param2", 1, intValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
-    (the [RpcException] thrownBy params.get[Long]("param2", 1, longValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
-    (the [RpcException] thrownBy params.get[scala.math.BigDecimal]("param2", 1, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.get<Int>("param2", 1, intValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.get<Long>("param2", 1, longValidators)).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
+    (the <RpcException> thrownBy params.get<scala.math.BigDecimal>("param2", 1, bigDecimalValidators )).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
   }
 
 
@@ -261,7 +261,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getList[String]("param1", 0) shouldBe List("foo", "bar")
+    params.getList<String>("param1", 0) shouldBe List("foo", "bar")
 
   }
 
@@ -275,7 +275,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getList[String]("param2", 1)
+    val thrown = the <RpcException> thrownBy params.getList<String>("param2", 1)
     thrown.code shouldBe ErrorCode.RpcMissingRequiredParameter
   }
 
@@ -289,7 +289,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getList[Long]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.getList<Long>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
@@ -300,7 +300,7 @@ class RpcParamsSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    val thrown = the [RpcException] thrownBy params.getList[String]("param1", 0)
+    val thrown = the <RpcException> thrownBy params.getList<String>("param1", 0)
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 }

@@ -6,15 +6,15 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  [NET] SocketSendData
+<Bitcoin Core Packets Captured>
+  <NET> SocketSendData
   <Header> Magic:ù¾´Ù, Command:getaddr, Size:0, Checksum:-488573347
   dumping data len : 24
   00000000  f9 be b4 d9 67 65 74 61  64 64 72 00 00 00 00 00  ù¾´Ùgetaddr.....
-  00000010  00 00 00 00 5d f6 e0 e2                           ....]öàâ
+  00000010  00 00 00 00 5d f6 e0 e2                           ....>öàâ
 
   */
-class GetAddrSpec extends EnvelopeTestSuite[GetAddr]  {
+class GetAddrSpec : EnvelopeTestSuite<GetAddr>  {
 
   val codec = GetAddrCodec.codec
 

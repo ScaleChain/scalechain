@@ -4,17 +4,17 @@ package io.scalechain.blockchain.proto.codec.primitive
   * Thanks to : https://github.com/yzernik
   */
 
-case class UInt64(value: Long) {
-  //override def toString = s"UInt64(${UInt64.longToBigInt(value).toString})"
-  override def toString = s"UInt64(${value}L)"
+data class UInt64(value: Long) {
+  //override fun toString = s"UInt64(${UInt64.longToBigInt(value).toString})"
+  override fun toString = s"UInt64(${value}L)"
 }
 
 object UInt64 {
 
-  def longToBigInt(unsignedLong: Long): BigInt =
+  fun longToBigInt(unsignedLong: Long): BigInt =
     (BigInt(unsignedLong >>> 1) << 1) + (unsignedLong & 1)
 
-  def bigIntToLong(n: BigInt): Long = {
+  fun bigIntToLong(n: BigInt): Long {
     val smallestBit = (n & 1).toLong
     ((n >> 1).toLong << 1) | smallestBit
   }
@@ -29,9 +29,9 @@ import scodec.codecs.int64L
 
 object BigIntForLongCodec {
   // BUGBUG : Make sure using int64L for UInt64L is safe.
-  val int64codec: Codec[UInt64] = int64L.xmap(UInt64.apply, _.value)
+  val int64codec: Codec<UInt64> = int64L.xmap(UInt64.apply, _.value)
 
-  implicit val codec: Codec[BigInt] = int64codec.xmap(
+  implicit val codec: Codec<BigInt> = int64codec.xmap(
     n => (UInt64.longToBigInt(n.value)),
     b => UInt64(UInt64.bigIntToLong(b)))
 }

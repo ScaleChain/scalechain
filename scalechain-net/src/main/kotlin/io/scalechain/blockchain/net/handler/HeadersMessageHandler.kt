@@ -22,7 +22,7 @@ object HeadersMessageHandler {
     * @param headers The Headers message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, headers : Headers ) : Unit = {
+  fun handle( context : MessageHandlerContext, headers : Headers ) : Unit {
     // We don't support the headers first approach yet.
     logger.warn("Headers message is not supported yet.")
 
@@ -35,7 +35,7 @@ object HeadersMessageHandler {
               val message = s"Headers message contains non-continuous block headers. Expected previous header hash ${prevHeaderHash}, actual header : ${header}"
               logger.warn(message)
               // TODO : Increase DoS score.
-              throw new NetException(ErrorCode.NonContinuousBlockHeaders)
+              throw NetException(ErrorCode.NonContinuousBlockHeaders)
             }
           }
 
@@ -60,7 +60,7 @@ object HeadersMessageHandler {
         - Step 4 : Check proof of work, block timestamp, block checkpoint, block version based on majority of recent block versions.
         ContextualCheckBlockHeader(block, state, pindexPrev)
 
-        - Step 5 : Add the new block as a block index.
+        - Step 5 : Add the block as a block index.
         AddToBlockIndex(block)
 
     // Step 3 : Request next block headers using "getheaders" message

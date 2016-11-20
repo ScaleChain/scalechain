@@ -7,8 +7,8 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  [NET] recv; header:
+<Bitcoin Core Packets Captured>
+  <NET> recv; header:
   <Header> Magic:ù¾´Ù, Command:block, Size:231721, Checksum:-2127760196
   dumping data len : 24
   00000000  f9 be b4 d9 62 6c 6f 63  6b 00 00 00 00 00 00 00  ù¾´Ùblock.......
@@ -20,7 +20,7 @@ import scodec.bits.BitVector
   00000020  00 00 00 00 b1 a7 95 87  8d a6 e1 e0 92 4f 71 8d  ....±§<95><87><8d>¦áà<92>Oq<8d>
   ... omitted .............. full data at /block-size231721.hex
   */
-class BlockSpec extends EnvelopeTestSuite[Block]  {
+class BlockSpec : EnvelopeTestSuite<Block>  {
 
   val codec = BlockCodec.codec
 

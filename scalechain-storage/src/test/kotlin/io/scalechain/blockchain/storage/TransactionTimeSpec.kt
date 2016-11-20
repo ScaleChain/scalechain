@@ -9,12 +9,12 @@ import org.apache.commons.io.FileUtils
 import io.scalechain.util.HexUtil._
 import org.scalatest._
 
-class TransactionTimeSpec  extends FlatSpec with Matchers with BeforeAndAfterEach {
+class TransactionTimeSpec  : FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
 
-  def dummyHash(num: Int) = {
+  fun dummyHash(num: Int) {
     assert(num >= 0 && num <= 9)
     Hash(bytes(num.toString * 64))
   }
@@ -22,20 +22,20 @@ class TransactionTimeSpec  extends FlatSpec with Matchers with BeforeAndAfterEac
 
   var time: TransactionTimeIndex = null
 
-  val testPath = new File("./target/unittests-TransactionTimeSpec")
+  val testPath = File("./target/unittests-TransactionTimeSpec")
 
   implicit var db : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
     FileUtils.deleteDirectory(testPath)
-    time = new TransactionTimeIndex {}
-    db = new RocksDatabase(testPath)
+    time = TransactionTimeIndex {}
+    db = RocksDatabase(testPath)
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()
@@ -108,7 +108,7 @@ class TransactionTimeSpec  extends FlatSpec with Matchers with BeforeAndAfterEac
 
     time.delTransactionTime( 2, dummyHash(2))
 
-    an[AssertionError] shouldBe thrownBy {
+    an<AssertionError> shouldBe thrownBy {
       time.getOldestTransactionHashes(0)
     }
   }
@@ -143,7 +143,7 @@ class TransactionTimeSpec  extends FlatSpec with Matchers with BeforeAndAfterEac
 
     time.delTransactionTime( CStringPrefixed(timeToString(2), dummyHash(2)))
 
-    an[AssertionError] shouldBe thrownBy {
+    an<AssertionError> shouldBe thrownBy {
       time.getOldestTransactionHashes(0)
     }
   }

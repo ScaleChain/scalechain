@@ -19,17 +19,17 @@ import scala.collection.mutable
 
 object PeerSet {
   var thePeerSet : PeerSet = null
-  def create : PeerSet = {
+  fun create : PeerSet {
     if (thePeerSet == null)
-      thePeerSet = new PeerSet()
+      thePeerSet = PeerSet()
     thePeerSet
   }
-  def get : PeerSet = thePeerSet
+  fun get : PeerSet = thePeerSet
 }
 
 
 
-/** The set of peers populated as we have a new connection to a new peer.
+/** The set of peers populated as we have a connection to a new peer.
   * Also, we need to remove a peer from the peer set if the peer was disconnected.
   *
   * This class should be thread-safe.
@@ -38,19 +38,19 @@ object PeerSet {
   * As a stream is materialized using Akka actors, multiple threads can run at the same time trying to access the peer set.
   */
 class PeerSet {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[PeerSet]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<PeerSet>) )
 
   /**
     * A channel group that has all connected channels.
     * Assumption : When the connection closes, the channel is removed from the channel group.
     */
-  //val channels : ChannelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-  val channels : ChannelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
+  //val channels : ChannelGroup = DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+  val channels : ChannelGroup = DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
-  val peerByAddress = mutable.HashMap[InetSocketAddress, Peer]()
+  val peerByAddress = mutable.HashMap<InetSocketAddress, Peer>()
 
 /*
-  def getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer = {
+  fun getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer {
     synchronized {
       val peer = peerByAddress.get(remotePeerAddress) match {
         case Some(foundPeer : Peer) => foundPeer
@@ -63,12 +63,12 @@ class PeerSet {
     }
   }
 */
-  /** Add a new peer connected via the given channel.
+  /** Add a peer connected via the given channel.
     *
     * @param channel The connected channel.
     * @return
     */
-  def add(channel : Channel) : Peer = {
+  fun add(channel : Channel) : Peer {
     synchronized {
       channel.remoteAddress() match {
         case inetAddress : InetSocketAddress => {
@@ -83,20 +83,20 @@ class PeerSet {
           if ( embeddedSocketAddress .toString == "embedded") {
             val peer = Peer(channel)
             // Put the peer as a peer on the localhost using port 1000.
-            peerByAddress.put(new InetSocketAddress(1000), peer )
+            peerByAddress.put(InetSocketAddress(1000), peer )
             channels.add(channel)
             logger.trace(s"Added a peer to channel group. ${peer}")
             peer
           } else {
             val message = s"The remote address of the channel to add was not the type EmbeddedSocketAddress. Remote Address : ${channel.remoteAddress()}"
             logger.error(message)
-            throw new ChainException(ErrorCode.InternalError, message )
+            throw ChainException(ErrorCode.InternalError, message )
           }
         }
         case _ => {
           val message = s"The remote address of the channel to add was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}"
           logger.error(message)
-          throw new ChainException(ErrorCode.InternalError, message )
+          throw ChainException(ErrorCode.InternalError, message )
         }
       }
     }
@@ -107,15 +107,15 @@ class PeerSet {
  *
     * @param message The message to send.
     */
-  def sendToAll(message : ProtocolMessage): Unit = {
+  fun sendToAll(message : ProtocolMessage): Unit {
     synchronized {
       val messageString = MessageSummarizer.summarize(message)
 
       if (channels.size > 0) {
         logger.trace(s"Sending to all peers : ${messageString}")
 
-        channels.writeAndFlush(message).addListener(new ChannelGroupFutureListener() {
-          def operationComplete(future: ChannelGroupFuture) {
+        channels.writeAndFlush(message).addListener(ChannelGroupFutureListener() {
+          fun operationComplete(future: ChannelGroupFuture) {
             assert(future.isDone)
             val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
             if (future.isSuccess) {
@@ -159,7 +159,7 @@ class PeerSet {
  *
     * @param remoteAddress The remote address of the peer to remove.
     */
-  def remove(remoteAddress : SocketAddress): Unit = {
+  fun remove(remoteAddress : SocketAddress): Unit {
     synchronized {
       // Note : nothing to do for the channels.
       // when a channel is disconnected, the channel is removed from channels group.
@@ -171,23 +171,23 @@ class PeerSet {
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
         case embeddedSocketAddress : SocketAddress => {
           if ( embeddedSocketAddress.toString == "embedded") {
-            peerByAddress.remove(new InetSocketAddress(1000) )
+            peerByAddress.remove(InetSocketAddress(1000) )
           } else {
             val message = s"The remote address of the channel to remove was not the type EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
             logger.error(message)
-            throw new ChainException(ErrorCode.InternalError, message )
+            throw ChainException(ErrorCode.InternalError, message )
           }
         }
         case _ => {
           val message = s"The remote address of the channel to remove was not the type InetSocketAddress or EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
           logger.error(message)
-          throw new ChainException(ErrorCode.InternalError, message )
+          throw ChainException(ErrorCode.InternalError, message )
         }
       }
     }
   }
 /*
-  def any() : Option[Peer] = {
+  fun any() : Option<Peer> {
     synchronized{
       val livePeers = peerByAddress.values.filter(_.isLive)
       if (livePeers.isEmpty) {
@@ -199,14 +199,14 @@ class PeerSet {
     }
   }
 */
-  def all() : Iterable[Peer] = {
+  fun all() : Iterable<Peer> {
     synchronized {
       // BUGBUG : Make sure if it is safe to return an iterable from the synchronized block.
       peerByAddress.values.filter(_.isLive)
     }
   }
 
-  def peers() : Iterable[(InetSocketAddress, Peer)] = {
+  fun peers() : Iterable<(InetSocketAddress, Peer)> {
     synchronized {
       for ((address, peer) <- peerByAddress ;
            if peer.isLive )
@@ -219,7 +219,7 @@ class PeerSet {
     * @param address The address of the peer to find.
     * @return true if a peer from the address was found; false otherwise.
     */
-  def hasPeer(address : InetSocketAddress) = {
+  fun hasPeer(address : InetSocketAddress) {
     ! peers.filter { case (inetSocketAddress, peer) =>
       inetSocketAddress.getAddress == address && peer.isLive
     }.isEmpty

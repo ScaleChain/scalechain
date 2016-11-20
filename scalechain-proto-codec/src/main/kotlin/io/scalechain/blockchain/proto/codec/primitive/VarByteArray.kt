@@ -10,15 +10,15 @@ import io.scalechain.util.ByteArrayAndVectorConverter._
   */
 object VarByteArray {
 /*
-  def byteArrayToVectorWithReverse(barray : ByteArray   ) = barray.array.reverse.toVector
-  def vectorToByteArrayWithReverse(vector : Vector[Byte]) = ByteArray(vector.toArray[Byte].reverse)
+  fun byteArrayToVectorWithReverse(barray : ByteArray   ) = barray.array.reverse.toVector
+  fun vectorToByteArrayWithReverse(vector : Vector<Byte>) = ByteArray(vector.toArray<Byte>.reverse)
 
-  val reversingCodec : Codec[ByteArray] =
+  val reversingCodec : Codec<ByteArray> =
     vectorOfN(VarInt.countCodec, byte).xmap(
       vectorToByteArrayWithReverse,
       byteArrayToVectorWithReverse)
 */
-  val codec : Codec[ByteArray] =
+  val codec : Codec<ByteArray> =
     vectorOfN(VarInt.countCodec, byte).xmap(
       vectorToByteArray,
       byteArrayToVector)

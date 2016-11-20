@@ -9,10 +9,10 @@ import io.scalechain.blockchain.script.HashSupported._
   * BUGBUG : Need to call a method in this object to activate the printing methods.
   */
 object BlockPrinterSetter {
-  def initialize() = {
+  fun initialize() {
     LockingScript.printer =
-      new LockingScriptPrinter {
-        def toString(lockingScript:LockingScript): String = {
+      LockingScriptPrinter {
+        fun toString(lockingScript:LockingScript): String {
           val scriptOps = ScriptParser.parse(lockingScript)
 
           s"LockingScript(${lockingScript.data}) /* ops:$scriptOps */ "
@@ -20,8 +20,8 @@ object BlockPrinterSetter {
       }
 
     UnlockingScript.printer =
-      new UnlockingScriptPrinter {
-        def toString(unlockingScript : UnlockingScript): String = {
+      UnlockingScriptPrinter {
+        fun toString(unlockingScript : UnlockingScript): String {
           val scriptOps = ScriptParser.parse(unlockingScript)
 
           val hashType =
@@ -45,8 +45,8 @@ object BlockPrinterSetter {
       }
 
     Transaction.printer =
-      new TransactionPrinter {
-        override def toString(transaction : Transaction) : String = {
+      TransactionPrinter {
+        override fun toString(transaction : Transaction) : String {
           s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash} */)"
         }
       }

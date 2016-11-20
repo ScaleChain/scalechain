@@ -37,7 +37,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     }
 */
 
-case class GetInfoResult(
+data class GetInfoResult(
   version : Int,
   protocolversion : Int,
   walletversion : Int,
@@ -54,7 +54,7 @@ case class GetInfoResult(
   // Make sure the Json serialized format is like "5.0e-5"
   relayfee: scala.math.BigDecimal,
   errors: String
-) extends RpcResult
+) : RpcResult
 
 /** GetInfo: prints various information about the node and the network.
   *
@@ -62,8 +62,8 @@ case class GetInfoResult(
   *
   * https://bitcoin.org/en/developer-reference#getinfo
   */
-object GetInfo extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetInfo : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     Right(
       Some(
@@ -76,19 +76,19 @@ object GetInfo extends RpcCommand {
           timeoffset = -24,
           connections = 8,
           proxy = "",
-          difficulty = new java.math.BigDecimal(113354299801.47),
+          difficulty = java.math.BigDecimal(113354299801.47),
           testnet = false,
           keypoololdest = 1445528771,
           keypoolsize = 101,
           paytxfee = 0,
           // Make sure the Json serialized format is like "5.0e-5"
-          relayfee = new java.math.BigDecimal(5.0e-5),
+          relayfee = java.math.BigDecimal(5.0e-5),
           errors = ""
         )
       )
     )
   }
-  def help() : String =
+  fun help() : String =
     """getinfo
       |Returns an object containing various state info.
       |

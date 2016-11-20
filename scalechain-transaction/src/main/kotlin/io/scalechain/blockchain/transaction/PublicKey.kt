@@ -13,7 +13,7 @@ object PublicKey {
     * @param encoded The encoded public key. Can be either a compressed one or uncompressed one.
     * @return The public key.
     */
-  def from(encoded : Array[Byte]) : PublicKey = {
+  fun from(encoded : Array<Byte>) : PublicKey {
     val point : ECPoint = ECKey.decodePublicKey(encoded)
     PublicKey(point)
   }
@@ -24,8 +24,8 @@ object PublicKey {
     * @param privateKey The private key to derive the public key.
     * @return The derived public key.
     */
-  def from(privateKey : PrivateKey) : PublicKey = {
-    val encodedPublicKey : Array[Byte] = ECKey.publicKeyFromPrivate(privateKey.value, false)
+  fun from(privateKey : PrivateKey) : PublicKey {
+    val encodedPublicKey : Array<Byte> = ECKey.publicKeyFromPrivate(privateKey.value, false)
     val point : ECPoint = ECKey.decodePublicKey(encodedPublicKey)
     PublicKey(point, privateKey.isForCompressedPublicKey)
   }
@@ -38,13 +38,13 @@ object PublicKey {
   * @param shouldUseCompressedFormat true to use the compressed format; false to use the uncompressed format.
   * @param point The point on the elliptic curve, which represents a public key.
   */
-case class PublicKey(point : ECPoint, shouldUseCompressedFormat : Boolean = false) {
+data class PublicKey(point : ECPoint, shouldUseCompressedFormat : Boolean = false) {
 
   /** Encode the public key in either compressed or uncompressed format.
     *
     * @return The encoded public key.
     */
-  def encode() : Array[Byte] = {
+  fun encode() : Array<Byte> {
     point.getEncoded(shouldUseCompressedFormat)
   }
 
@@ -52,7 +52,7 @@ case class PublicKey(point : ECPoint, shouldUseCompressedFormat : Boolean = fals
     *
     * @return the public key hash.
     */
-  def getHash() : Hash160 = {
+  fun getHash() : Hash160 {
     HashFunctions.hash160(encode())
   }
 }

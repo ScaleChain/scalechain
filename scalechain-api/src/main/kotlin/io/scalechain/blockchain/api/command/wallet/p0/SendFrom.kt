@@ -70,26 +70,26 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#sendfrom
   */
-object SendFrom extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object SendFrom : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val fromAccount:   String                = request.params.get[String]("From Account", 0)
-      val toAddress:     String                = request.params.get[String]("To Address", 1)
-      val amount:        scala.math.BigDecimal = request.params.get[scala.math.BigDecimal]("Amount", 2)
-      val confirmations: Long                  = request.params.getOption[Long]("Confirmations", 3).getOrElse(1L)
-      val comment:       Option[String]        = request.params.getOption[String]("Comment", 4)
-      val commentTo:     Option[String]        = request.params.getOption[String]("Comment To", 5)
+      val fromAccount:   String                = request.params.get<String>("From Account", 0)
+      val toAddress:     String                = request.params.get<String>("To Address", 1)
+      val amount:        scala.math.BigDecimal = request.params.get<scala.math.BigDecimal>("Amount", 2)
+      val confirmations: Long                  = request.params.getOption<Long>("Confirmations", 3).getOrElse(1L)
+      val comment:       Option<String>        = request.params.getOption<String>("Comment", 4)
+      val commentTo:     Option<String>        = request.params.getOption<String>("Comment To", 5)
 /*
       // TODO : Implement
       val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
 
       Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))
 */
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+      throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
 
-  def help() : String =
+  fun help() : String =
     """sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
       |
       |DEPRECATED (use sendtoaddress). Sent an amount from an account to a bitcoin address.

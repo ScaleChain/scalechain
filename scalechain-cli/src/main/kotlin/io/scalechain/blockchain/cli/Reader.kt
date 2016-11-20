@@ -14,7 +14,7 @@ trait BlockReadListener {
    *
    * @param block The block read by the Reader.
    */
-  def onBlock(block : Block ): Unit
+  fun onBlock(block : Block ): Unit
 }
 
 
@@ -27,10 +27,10 @@ class BlockFileReader(val blockListener : BlockReadListener) {
    *
     * @param blockFile the file to read.
    */
-  def readFully(blockFile : File): Unit = {
+  fun readFully(blockFile : File): Unit {
     var stream : BlockDataInputStream= null
     try {
-      stream = new BlockDataInputStream( new DataInputStream( new BufferedInputStream (new FileInputStream(blockFile))) )
+      stream = BlockDataInputStream( DataInputStream( BufferedInputStream (FileInputStream(blockFile))) )
       while( readBlock(stream) ) {
         // do nothing
       }
@@ -52,7 +52,7 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     *
     * @return Some(Block) if we successfully read a block. None otherwise.
     */
-  def parseBlock(stream : BlockDataInputStream) : Option[Block] = {
+  fun parseBlock(stream : BlockDataInputStream) : Option<Block> {
     val magic = try {
       stream.readLittleEndianInt()
     } catch {
@@ -63,7 +63,7 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     } else {
       // BUGBUG : Does this work even though the integer we read is a signed int?
       if (magic != 0xD9B4BEF9)
-        throw new FatalException(ErrorCode.InvalidBlockMagic)
+        throw FatalException(ErrorCode.InvalidBlockMagic)
 
       val blockSize        = stream.readLittleEndianInt()
       val blockBytes = stream.readBytes(blockSize)
@@ -77,7 +77,7 @@ class BlockFileReader(val blockListener : BlockReadListener) {
    * @param stream The byte array stream where we read the block data.
    * @return True if a block was read, False if we met EOF of the input block file.
    */
-  def readBlock(stream : BlockDataInputStream): Boolean = {
+  fun readBlock(stream : BlockDataInputStream): Boolean {
     val blockOption = parseBlock(stream)
     if (blockOption.isDefined) {
       blockListener.onBlock(blockOption.get)
@@ -101,13 +101,13 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
     * @param path The path that has blkNNNNN.dat files.
     * @return
     */
-  def readFrom(path : String) : Boolean = {
-    val directory = new File(path)
+  fun readFrom(path : String) : Boolean {
+    val directory = File(path)
     if (directory.exists()) {
       // For each file in the path
       for (file <- directory.listFiles.sortBy(_.getName())) {
         if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) {
-          val fileReader = new BlockFileReader(blockListener)
+          val fileReader = BlockFileReader(blockListener)
           fileReader.readFully(file)
         }
       }

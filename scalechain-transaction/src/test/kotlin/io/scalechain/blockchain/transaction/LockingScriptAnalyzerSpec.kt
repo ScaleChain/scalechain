@@ -7,18 +7,18 @@ import org.scalatest._
 import io.scalechain.util.ByteArray
 import ByteArray._
 
-class LockingScriptAnalyzerSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with Matchers {
+class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with Matchers {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

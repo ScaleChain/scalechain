@@ -26,13 +26,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#dumpprivkey
   */
-object DumpPrivKey extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object DumpPrivKey : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """dumpprivkey "bitcoinaddress"
       |
       |Reveals the private key corresponding to 'bitcoinaddress'.

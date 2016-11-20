@@ -30,22 +30,22 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 */
 
 /** CreateRawTransaction: creates an unsigned serialized transaction that spends a previous output
-  * to a new output with a P2PKH or P2SH address.
+  * to a output with a P2PKH or P2SH address.
   *
   * The transaction is not stored in the wallet or transmitted to the network.
   *
   * https://bitcoin.org/en/developer-reference#createrawtransaction
   */
-object CreateRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object CreateRawTransaction : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """createrawtransaction [{"txid":"id","vout":n},...] {"address":amount,"data":"hex",...} ( locktime )
       |
-      |Create a transaction spending the given inputs and creating new outputs.
+      |Create a transaction spending the given inputs and creating outputs.
       |Outputs can be addresses or data.
       |Returns hex-encoded raw transaction.
       |Note that the transaction's inputs are not signed, and

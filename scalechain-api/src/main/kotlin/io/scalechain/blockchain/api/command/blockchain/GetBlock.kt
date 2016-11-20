@@ -25,9 +25,9 @@ import spray.json.DefaultJsonProtocol._
         "height" : 227252,
         "version" : 2,
         "merkleroot" : "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a",
-        "tx" : [
+        "tx" : <
             "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a"
-        ],
+        >,
         "time" : 1398824312,
         "nonce" : 1883462912,
         "bits" : "1d00ffff",
@@ -48,7 +48,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class GetBlockResult (
+data class GetBlockResult (
   // The hash of this block’s block header encoded as hex in RPC byte order. This is the same as the hash provided in parameter #1
   hash : Hash,                        // "000000000fe549a89848c76070d4132872cfb6efe5315d01d7ef77e4900f2d39"
   // The number of confirmations the transactions in this block have,
@@ -66,7 +66,7 @@ case class GetBlockResult (
   // An array containing the TXIDs of all transactions in this block.
   // The transactions appear in the array in the same order they appear in the serialized block
   // tx item : The TXID of a transaction in this block, encoded as hex in RPC byte order
-  tx : List[Hash],                    // [ "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a" ]
+  tx : List<Hash>,                    // [ "c738fb8e22750b6d3511ed0049a96558b0bc57046f3f77771ec825b22d6a6f4a" ]
   // The value of the time field in the block header, indicating approximately when the block was created
   time : Long,                        // 1398824312
   // The nonce which was successful at turning this particular block into one that could be added to the best block chain
@@ -78,10 +78,10 @@ case class GetBlockResult (
   // The estimated number of block header hashes miners had to check from the genesis block to this block, encoded as big-endian hex
 //  chainwork : Hash,                   // "000000000000000000000000000000000000000000000000083ada4a4009841a"
   // The hash of the header of the previous block, encoded as hex in RPC byte order. Not returned for genesis block
-  previousblockhash : Option[Hash]   // "00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df"
+  previousblockhash : Option<Hash>   // "00000000c7f4990e6ebf71ad7e21a47131dfeb22c759505b3998d7a814c011df"
   // The hash of the next block on the best block chain, if known, encoded as hex in RPC byte order
-//  nextblockhash : Option[Hash]        // "00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"*/
-) extends RpcResult
+//  nextblockhash : Option<Hash>        // "00000000afe1928529ac766f1237657819a11cfcc8ca6d67f119e868ed5b6188"*/
+) : RpcResult
 
 /** GetBlock: gets a block with a particular header hash
   * from the local block database either as a JSON object or as a serialized block.
@@ -102,16 +102,16 @@ case class GetBlockResult (
   *
   * https://bitcoin.org/en/developer-reference#getblock
   */
-object GetBlock extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetBlock : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val headerHashString  : String  = request.params.get[String]("Header Hash", 0)
-      val format            : Boolean = request.params.getOption[Boolean]("Format", 1).getOrElse(true)
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val headerHashString  : String  = request.params.get<String>("Header Hash", 0)
+      val format            : Boolean = request.params.getOption<Boolean>("Format", 1).getOrElse(true)
 
       val headerHash = Hash( HexUtil.bytes(headerHashString) )
 
-      val blockOption : Option[(BlockInfo, Block)] = RpcSubSystem.get.getBlock(headerHash)
+      val blockOption : Option<(BlockInfo, Block)> = RpcSubSystem.get.getBlock(headerHash)
 
       val resultOption = if (format) {
         blockOption.map{ case (blockInfo, block) => BlockFormatter.getBlockResult(blockInfo, block) }
@@ -124,7 +124,7 @@ object GetBlock extends RpcCommand {
       Right(resultOption)
     }
   }
-  def help() : String =
+  fun help() : String =
     """getblock "hash" ( verbose )
       |
       |If verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.

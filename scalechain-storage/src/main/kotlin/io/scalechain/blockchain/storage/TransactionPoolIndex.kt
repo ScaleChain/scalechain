@@ -21,7 +21,7 @@ object TransactionPoolIndex {
   * c.f. Orphan transactions are not stored in the disk-pool.
   */
 trait TransactionPoolIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPoolIndex]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionPoolIndex>) )
 
   import TransactionPoolIndex._
   import DatabaseTablePrefixes._
@@ -34,7 +34,7 @@ trait TransactionPoolIndex {
     * @param txHash The hash of the transaction to add.
     * @param transactionPoolEntry The transaction to add.
     */
-  def putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry)(implicit db : KeyValueDatabase) : Unit = {
+  fun putTransactionToPool(txHash : Hash, transactionPoolEntry : TransactionPoolEntry)(implicit db : KeyValueDatabase) : Unit {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
 
     db.putPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
@@ -45,7 +45,7 @@ trait TransactionPoolIndex {
     * @param txHash The hash of the transaction to get.
     * @return The transaction which matches the given transaction hash.
     */
-  def getTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Option[TransactionPoolEntry] = {
+  fun getTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Option<TransactionPoolEntry> {
     //logger.trace(s"getTransactionFromPool : ${txHash}")
 
     db.getPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash)(HashCodec, TransactionPoolEntryCodec)
@@ -56,7 +56,7 @@ trait TransactionPoolIndex {
     *
     * @return List of transactions in the pool. List of (transaction hash, transaction) pair.
     */
-  def getTransactionsFromPool()(implicit db : KeyValueDatabase) : List[(Hash, TransactionPoolEntry)] = {
+  fun getTransactionsFromPool()(implicit db : KeyValueDatabase) : List<(Hash, TransactionPoolEntry)> {
     (
       using(db.seekPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY)(HashCodec, TransactionPoolEntryCodec)) in {
         _.toList
@@ -68,7 +68,7 @@ trait TransactionPoolIndex {
     *
     * @param txHash The hash of the transaction to remove.
     */
-  def delTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     //logger.trace(s"delTransactionFromPool : ${txHash}")
 
     db.delPrefixedObject(PoolIndexPrefix, DUMMY_PREFIX_KEY, txHash )

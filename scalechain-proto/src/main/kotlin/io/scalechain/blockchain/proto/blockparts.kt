@@ -2,7 +2,7 @@ package io.scalechain.blockchain.proto
 
 import io.scalechain.util.*
 
-/** A hash case class that can represent transaction hash or block hash.
+/** A hash data class that can represent transaction hash or block hash.
   * Used by an inventory vector, InvVector.
   *
   * @param value
@@ -44,12 +44,12 @@ data class Hash(val value : Bytes) : ProtocolMessage, Comparable<Hash> {
 // TODO : Json formatting
 /*
 object HashFormat {
-  implicit object hashFormat extends RootJsonFormat[Hash] {
+  implicit object hashFormat : RootJsonFormat<Hash> {
     // Instead of { value : "cafebebe" }, we need to serialize the hash to "cafebebe"
-    def write(hash : Hash) = JsString( ByteArray.byteArrayToString(hash.value) )
+    fun write(hash : Hash) = JsString( ByteArray.byteArrayToString(hash.value) )
 
     // Not used.
-    def read(value:JsValue) = {
+    fun read(value:JsValue) {
       assert(false)
       null
     }
@@ -105,7 +105,7 @@ interface TransactionInput : ProtocolMessage {
         outputIndex.toInt()
     )
 
-    fun isCoinBaseInput() = {
+    fun isCoinBaseInput() {
         outputTransactionHash.isAllZero()
     }
 }

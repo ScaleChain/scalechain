@@ -7,14 +7,14 @@ import scodec.{DecodeResult, Attempt}
 import scodec.bits.{BitVector}
 
 class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
-  def encode(message : ProtocolMessage): Array[Byte] = {
+  fun encode(message : ProtocolMessage): Array<Byte> {
     val envelope = BitcoinMessageEnvelope.build(protocol, message)
     BitcoinMessageEnvelope.codec.encode(envelope) match {
       case Attempt.Successful(bitVector) => {
         bitVector.toByteArray
       }
       case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
       }
     }
   }
@@ -25,7 +25,7 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
     * @param messages The messages decoded from the given BitVector. The BitVector may have multiple messages, with or without an incomplete message. However, the BitVector itself may not have enough data to construct a message.
     * @return BitVector If we do not have enough data to construct a message, return the data as BitVector instead of constructing a message.
     */
-  def decode(bitVector : BitVector, messages : java.util.Vector[ProtocolMessage]) : BitVector = {
+  fun decode(bitVector : BitVector, messages : java.util.Vector<ProtocolMessage>) : BitVector {
     if ( bitVector.length < BitcoinMessageEnvelope.MIN_DATA_BITS) {
       bitVector
     } else {
@@ -35,7 +35,7 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
           (decoded, remainder)
         }
         case Attempt.Failure(err) => {
-          throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+          throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
         }
       }
 
@@ -47,7 +47,7 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
         val protocolMessage = protocol.decode( envelope.command, envelope.payload )
 /*
         if (envelope.command == "block") {
-          val block = protocolMessage.asInstanceOf[Block]
+          val block = protocolMessage.asInstanceOf<Block>
           if (block.header.hashPrevBlock == Hash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
             println(s"decoded:\n$protocolMessage\nprotocol data:\n${HexUtil.hex(bitVector.bytes.toArray)}\n")
             System.exit(-1)

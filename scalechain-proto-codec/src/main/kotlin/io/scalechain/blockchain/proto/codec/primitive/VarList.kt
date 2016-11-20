@@ -11,7 +11,7 @@ import scodec.codecs.listOfN
 
 object VarList {
 
-  implicit def varList[A](codec: Codec[A]): Codec[List[A]] = {
+  implicit fun varList<A>(codec: Codec<A>): Codec<List<A>> {
     listOfN(VarInt.countCodec, codec)
   }
 }

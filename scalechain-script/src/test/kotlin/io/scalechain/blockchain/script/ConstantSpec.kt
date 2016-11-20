@@ -9,18 +9,18 @@ import org.scalatest.prop.Tables.Table
 /** Test pseudo word operations in PseudoWord.scala
   *
   */
-class ConstantSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class ConstantSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -56,7 +56,7 @@ class ConstantSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTr
       (stack(), Op1(), stack(1)),
       (stack("a"), Op1(), stack("a", 1)),
 
-      // OpNum; A common case class for OP_2 to OP_16(0x52 to 0x60).
+      // OpNum; A common data class for OP_2 to OP_16(0x52 to 0x60).
       // For OP_N, push the value "N" onto the stack. E.g., OP_2 pushes "2"
       (stack(), OpNum(2), stack(2)),
       (stack(), OpNum(3), stack(3)),
@@ -76,7 +76,7 @@ class ConstantSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTr
     )
 
   "operations" should "run and push expected value on the stack." in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+    forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
       verifyOperations(inputValues, List(operation), expectation);
     }
   }

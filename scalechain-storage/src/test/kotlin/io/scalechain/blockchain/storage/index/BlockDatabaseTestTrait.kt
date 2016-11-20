@@ -9,7 +9,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 3/24/16.
   */
-trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
+trait BlockDatabaseTestTrait : FlatSpec with Matchers with CodecTestUtil {
   var blockDb : BlockDatabase
   implicit var db : KeyValueDatabase
 
@@ -65,13 +65,13 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
     blockDb.putBlockInfo(TestData.blockHash, blockInfo)
 
     // hit an assertion : put a block info with different height
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         height = blockInfo.height + 1
       ))
     }
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         height = blockInfo.height - 1
       ))
@@ -83,14 +83,14 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
     ))
 
     // hit an assertion : put a block info with a different block locator
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockLocatorOption = Some(BLOCK_LOCATOR2)
       ))
     }
 
     // hit an assertion : change any field on the block header
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           version = blockInfo.blockHeader.version + 1
@@ -98,7 +98,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
       ))
     }
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           hashPrevBlock = Hash(DUMMY_HASH1.value)
@@ -106,7 +106,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
       ))
     }
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           hashMerkleRoot = Hash(DUMMY_HASH1.value)
@@ -115,7 +115,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
     }
 
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           timestamp = blockInfo.blockHeader.timestamp + 1
@@ -124,7 +124,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
     }
 
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           target = blockInfo.blockHeader.target + 1
@@ -133,7 +133,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
     }
 
 
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.putBlockInfo(TestData.blockHash, blockInfo.copy(
         blockHeader = blockInfo.blockHeader.copy(
           nonce = blockInfo.blockHeader.nonce + 1
@@ -190,7 +190,7 @@ trait BlockDatabaseTestTrait extends FlatSpec with Matchers with CodecTestUtil {
   }
 
   "updateNextBlockHash" should "hit an assertion if the block hash does not exist" in {
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       blockDb.updateNextBlockHash(DUMMY_HASH1, None)
     }
   }

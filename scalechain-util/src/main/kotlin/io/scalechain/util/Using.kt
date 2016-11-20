@@ -1,11 +1,9 @@
 package io.scalechain.util
 
-import java.io._
-
 // Create one while writing Kotlin code that requires resource close.
 /*
-class Using[A <: AutoCloseable](resource: A) {
-  def in[B](block: A => B) = {
+class Using<A <: AutoCloseable>(resource: A) {
+  fun in<B>(block: A => B) {
     var t: Throwable = null
     try {
       block(resource)
@@ -28,6 +26,6 @@ class Using[A <: AutoCloseable](resource: A) {
 }
 
 object Using {
-  def using[A <: AutoCloseable](resource: A) = new Using(resource)
+  fun using<A <: AutoCloseable>(resource: A) = Using(resource)
 }
 */

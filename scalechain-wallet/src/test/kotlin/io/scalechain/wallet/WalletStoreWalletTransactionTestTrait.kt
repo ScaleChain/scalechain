@@ -6,7 +6,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreWalletTransactionTestTrait extends FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
+trait WalletStoreWalletTransactionTestTrait : FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
   var store : WalletStore
   implicit var db : KeyValueDatabase
 

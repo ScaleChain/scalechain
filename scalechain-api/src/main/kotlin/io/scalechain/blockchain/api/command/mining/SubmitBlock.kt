@@ -57,20 +57,20 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#submitblock
   */
-object SubmitBlock extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object SubmitBlock : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val serializedBlock : String  = request.params.get[String]("Block", 0)
+      val serializedBlock : String  = request.params.get<String>("Block", 0)
       val parameters      : JsObject = request.params.paramValues(1) match {
         case jsObject : JsObject => jsObject
-        case _ => throw new RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
+        case _ => throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
       }
 /*
       // Step 1 : decode the block
       val block = BlockDecoder.decodeBlock(serializedBlock)
 
       // Step 2 : verify the block, including all transactions in it.
-      new BlockVerifier(block).verify()
+      BlockVerifier(block).verify()
 
       // Step 3 : try to save block
       val isNewBlock = SubSystem.blockDatabaseService.putBlock(block)
@@ -89,13 +89,13 @@ object SubmitBlock extends RpcCommand {
       val resultOption = errorMessageOption.map(StringResult(_))
       Right(resultOption)
 */
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+      throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
-  def help() : String =
+  fun help() : String =
     """submitblock "hexdata" ( "jsonparametersobject" )
       |
-      |Attempts to submit new block to network.
+      |Attempts to submit block to network.
       |The 'jsonparametersobject' parameter is currently ignored.
       |See https://en.bitcoin.it/wiki/BIP_0022 for full specification.
       |

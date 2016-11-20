@@ -29,7 +29,7 @@ class ConfigSpec : FlatSpec(), Matchers {
                 peers = [
                   { address:"127.0.0.1", port:"7643" },
                   { address:"127.0.0.1", port:"7644" }
-                ]
+                ] 
               }
               network {
                 name = "testnet"

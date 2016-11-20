@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.{InvVector, GetData, Hash}
   *  The factory that creates GetData messages.
   */
 object GetDataFactory {
-  def create(inventories:List[InvVector]) : GetData = {
+  fun create(inventories:List<InvVector>) : GetData {
     GetData(inventories)
   }
 }

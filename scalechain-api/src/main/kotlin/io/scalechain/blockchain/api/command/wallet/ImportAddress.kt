@@ -39,13 +39,13 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#importaddress
   */
-object ImportAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object ImportAddress : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val scriptOrAddress  : String = request.params.get[String]("Script", 0)
-      val account          : String = request.params.getOption[String]("Account" , 1).getOrElse("")
-      val rescanBlockchain : Boolean = request.params.getOption[Boolean]("Rescan Blockchain", 2).getOrElse(true)
-///      val p2sh  : Boolean = request.params.getOption[Boolean]("Allow P2SH Scripts"  , 3).getOrElse(false)
+      val scriptOrAddress  : String = request.params.get<String>("Script", 0)
+      val account          : String = request.params.getOption<String>("Account" , 1).getOrElse("")
+      val rescanBlockchain : Boolean = request.params.getOption<Boolean>("Rescan Blockchain", 2).getOrElse(true)
+///      val p2sh  : Boolean = request.params.getOption<Boolean>("Allow P2SH Scripts"  , 3).getOrElse(false)
 
       val coinOwnership =
         // Step 1 : Check if it is an address.
@@ -61,7 +61,7 @@ object ImportAddress extends RpcCommand {
               case e : ScriptParseException => {
                 // Step 3 : If it is neither an address nor an script, throw an exception.
                 // The RpcInvalidAddress is converted to an RPC error, RPC_INVALID_ADDRESS_OR_KEY by handlingException.
-                throw new GeneralException(ErrorCode.RpcInvalidAddress)
+                throw GeneralException(ErrorCode.RpcInvalidAddress)
               }
             }
           }
@@ -82,7 +82,7 @@ object ImportAddress extends RpcCommand {
   // BUGBUG : Add fourth parameter.
   // 4. p2sh                 (boolean, optional, default=false) Add the P2SH version of the script as well
 
-  def help() : String =
+  fun help() : String =
     """importaddress "address" ( "label" rescan p2sh )
       |
       |Adds a script (in hex) or address that can be watched as if it were in your wallet but cannot be used to spend.

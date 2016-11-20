@@ -11,16 +11,16 @@ import HashSupported._
 /**
   * Created by kangmo on 6/16/16.
   */
-class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-TransactionOrphangeSpec/")
+  val testPath = File("./target/unittests-TransactionOrphangeSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
   var o : TransactionOrphanage = null
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
@@ -32,7 +32,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
     o = chain.txOrphanage
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     keyValueDB = null
@@ -41,7 +41,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "putOrphan" should "put an orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -52,7 +52,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
 
   "delOrphan" should "del orphans matching the given hashes" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -72,7 +72,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "getOrphan" should "return None for a non-existent orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -81,7 +81,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "getOrphan" should "return Some(orphan) for an orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -94,7 +94,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "hasOrphan" should "return false for a non-existent orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -103,7 +103,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "hasOrphan" should "return true for an orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -120,7 +120,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
     *            ↘ → → → → TX04
     */
   "getOrphansDependingOn" should "be able to put dependent orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -137,7 +137,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
 
 
   "getOrphansDependingOn" should "be able to put depending orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -153,7 +153,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "removeDependenciesOn" should "remove dependencies on a transaction" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -186,7 +186,7 @@ class TransactionOrphanageSpec extends BlockchainTestTrait with TransactionTestD
   }
 
   "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._

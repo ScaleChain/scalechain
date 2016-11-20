@@ -13,7 +13,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class BlockWriterSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   import TestData._
@@ -23,19 +23,19 @@ class BlockWriterSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   // Use record storage with maxFileSize 1M, instead of using BlockRecordStorage, which uses 100M file size limit.
   var writer : BlockWriter = null
   var storage : BlockRecordStorage = null
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-BlockWriterSpec/")
+    val testPath = File("./target/unittests-BlockWriterSpec/")
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    storage = new BlockRecordStorage(testPath, TEST_RECORD_FILE_SIZE)
-    writer = new BlockWriter(storage)
+    storage = BlockRecordStorage(testPath, TEST_RECORD_FILE_SIZE)
+    writer = BlockWriter(storage)
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     storage.close()

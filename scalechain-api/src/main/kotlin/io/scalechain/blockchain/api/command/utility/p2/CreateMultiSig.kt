@@ -34,13 +34,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#createmultisig
   */
-object CreateMultiSig extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object CreateMultiSig : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """createmultisig nrequired ["key",...]
       |
       |Creates a multi-signature address with n signature of m keys required.
@@ -56,7 +56,7 @@ object CreateMultiSig extends RpcCommand {
       |
       |Result:
       |{
-      |  "address":"multisigaddress",  (string) The value of the new multisig address.
+      |  "address":"multisigaddress",  (string) The value of the multisig address.
       |  "redeemScript":"script"       (string) The string value of the hex-encoded redemption script.
       |}
       |

@@ -14,28 +14,28 @@ import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 class NodeServer(peerSet : PeerSet) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeClient]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<NodeClient>) )
 
-  protected[net] val bossGroup : EventLoopGroup = new NioEventLoopGroup(1)
-  protected[net] val workerGroup : EventLoopGroup = new NioEventLoopGroup()
+  protected<net> val bossGroup : EventLoopGroup = NioEventLoopGroup(1)
+  protected<net> val workerGroup : EventLoopGroup = NioEventLoopGroup()
 
-  def listen(port : Int) : ChannelFuture = {
+  fun listen(port : Int) : ChannelFuture {
     // TODO : BUGBUG : SelfSignedCertificate is insecure. Replace it with another one.
-    val ssc : SelfSignedCertificate = new SelfSignedCertificate()
+    val ssc : SelfSignedCertificate = SelfSignedCertificate()
     val sslCtx : SslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
       .build()
 
-    val b : ServerBootstrap = new ServerBootstrap()
+    val b : ServerBootstrap = ServerBootstrap()
 
     b.group(bossGroup, workerGroup)
-      .channel(classOf[NioServerSocketChannel])
+      .channel(classOf<NioServerSocketChannel>)
       .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
-      .handler(new LoggingHandler(LogLevel.INFO))
-      .childHandler(new NodeServerInitializer(sslCtx, peerSet))
+      .handler(LoggingHandler(LogLevel.INFO))
+      .childHandler(NodeServerInitializer(sslCtx, peerSet))
 
     //b.bind(port).sync().channel().closeFuture().sync()
-    b.bind(port).addListener(new ChannelFutureListener() {
-      def operationComplete(future:ChannelFuture) {
+    b.bind(port).addListener(ChannelFutureListener() {
+      fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.info(s"Successfully bound port : ${port}")
@@ -52,7 +52,7 @@ class NodeServer(peerSet : PeerSet) {
     })
   }
 
-  def shutdown() : Unit = {
+  fun shutdown() : Unit {
     bossGroup.shutdownGracefully()
     workerGroup.shutdownGracefully()
   }

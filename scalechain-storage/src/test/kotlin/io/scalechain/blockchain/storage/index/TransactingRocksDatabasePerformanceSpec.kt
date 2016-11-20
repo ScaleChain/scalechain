@@ -6,7 +6,7 @@ import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-class TransactingRocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
+class TransactingRocksDatabasePerformanceSpec : FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -14,18 +14,18 @@ class TransactingRocksDatabasePerformanceSpec extends FlatSpec with KeyValueData
   var db : KeyValueDatabase = null
   var transactingDB : TransactingRocksDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-RocksDatabasePerformanceSpec")
+    val testPath = File("./target/unittests-RocksDatabasePerformanceSpec")
     FileUtils.deleteDirectory( testPath )
-    transactingDB = new TransactingRocksDatabase( new RocksDatabase( testPath ) )
+    transactingDB = TransactingRocksDatabase( RocksDatabase( testPath ) )
     transactingDB.beginTransaction()
     db = transactingDB
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     transactingDB.commitTransaction()

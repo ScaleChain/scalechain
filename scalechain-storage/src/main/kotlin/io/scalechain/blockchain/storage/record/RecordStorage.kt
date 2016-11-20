@@ -18,9 +18,9 @@ import scala.collection.mutable
   *   which hash the file index of the multiple record files.
   */
 class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Long) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[RecordStorage]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<RecordStorage>) )
 
-  val files = mutable.ArrayBuffer.empty[RecordFile]
+  val files = mutable.ArrayBuffer.empty<RecordFile>
 
   if (directoryPath.exists()) {
     // For each file in the path
@@ -36,7 +36,7 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
                 files += newFile(file)
               } else {
                 logger.error(s"Invalid Block File Number. Expected : ${files.length}, Actual : ${fileNumber}")
-                throw new BlockStorageException(ErrorCode.InvalidFileNumber)
+                throw BlockStorageException(ErrorCode.InvalidFileNumber)
               }
             }
           }
@@ -47,7 +47,7 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
       }
     }
   } else {
-    throw new BlockStorageException(ErrorCode.BlockFilePathNotExists)
+    throw BlockStorageException(ErrorCode.BlockFilePathNotExists)
   }
 
   /** If there is no file at all, add a file.
@@ -55,33 +55,33 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
   if (files.isEmpty)
     files += newFile()
 
-  protected[storage] def lastFile = files(lastFileIndex)
+  protected<storage> fun lastFile = files(lastFileIndex)
 
   /** Because we are appending records, flushing the last file is enough.
-    * We also flush the last file when a new file is added, so flushing the current last file is enough.
+    * We also flush the last file when a file is added, so flushing the current last file is enough.
     */
-  protected[storage] def flush = lastFile.flush
+  protected<storage> fun flush = lastFile.flush
 
-  protected[storage] def lastFileIndex = files.length-1
+  protected<storage> fun lastFileIndex = files.length-1
 
-  protected[storage] def newFile(blockFile : File) : RecordFile = new RecordFile(blockFile, maxFileSize )
+  protected<storage> fun newFile(blockFile : File) : RecordFile = RecordFile(blockFile, maxFileSize )
 
-  protected[storage] def newFile() : RecordFile = {
+  protected<storage> fun newFile() : RecordFile {
     val fileNumber = lastFileIndex + 1
-    val blockFile = new File( directoryPath.getAbsolutePath + File.separatorChar + BlockFileName(filePrefix, fileNumber))
+    val blockFile = File( directoryPath.getAbsolutePath + File.separatorChar + BlockFileName(filePrefix, fileNumber))
     newFile(blockFile)
   }
 
-  /** Add a new file. Also flush the last file, so that we do not lose any file contents when the system crashes.
+  /** Add a file. Also flush the last file, so that we do not lose any file contents when the system crashes.
     */
-  protected[storage] def addNewFile() = {
+  protected<storage> fun addNewFile() {
     lastFile.flush
     files += newFile()
   }
 
   // TODO : Make FileRecordLocator to have a type parameter, T so that we can have a compile error when an incorrect codec is used for a record locator.
 
-  def appendRecord[T <: ProtocolMessage ](record : T)(implicit codec : MessagePartCodec[T]): FileRecordLocator = {
+  fun appendRecord<T <: ProtocolMessage >(record : T)(implicit codec : MessagePartCodec<T>): FileRecordLocator {
     try {
       val recordLocator = lastFile.appendRecord(record)
       FileRecordLocator( lastFileIndex, recordLocator )
@@ -98,9 +98,9 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
     }
   }
 
-  def readRecord[T <: ProtocolMessage ](locator : FileRecordLocator)(implicit codec : MessagePartCodec[T]) : T = {
+  fun readRecord<T <: ProtocolMessage >(locator : FileRecordLocator)(implicit codec : MessagePartCodec<T>) : T {
     if (locator.fileIndex < 0 || locator.fileIndex >= files.length) {
-      throw new BlockStorageException(ErrorCode.InvalidFileNumber)
+      throw BlockStorageException(ErrorCode.InvalidFileNumber)
     }
 
     val file = files(locator.fileIndex)
@@ -108,7 +108,7 @@ class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Lon
     file.readRecord(locator.recordLocator)
   }
 
-  def close() = {
+  fun close() {
     // Flush the last file first not to lose any data.
     lastFile.flush()
 

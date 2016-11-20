@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-  *  [Bitcoin Core Packets Not Captured]
+  *  <Bitcoin Core Packets Not Captured>
   *
   *  01000000 ........................... Block version: 1
   *  82bb869cf3a793432a66e826e05a6fc3
@@ -34,7 +34,7 @@ import scodec.bits.BitVector
   *
   */
 /*
-class MerkleBlockSpec extends PayloadTestSuite[MerkleBlock]  {
+class MerkleBlockSpec : PayloadTestSuite<MerkleBlock>  {
 
   val codec = MerkleBlockCodec.codec
 

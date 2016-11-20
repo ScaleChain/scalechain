@@ -14,15 +14,15 @@ import io.scalechain.util.{HexUtil, ByteArray}
 import scala.annotation.tailrec
 
 
-object SigHash extends Enumeration {
+object SigHash : Enumeration {
   type SigHash = Value
-  val ALL                    = new Val(nextId, "ALL")
-  val NONE                   = new Val(nextId, "NONE")
-  val SINGLE                 = new Val(nextId, "SINGLE")
+  val ALL                    = Val(nextId, "ALL")
+  val NONE                   = Val(nextId, "NONE")
+  val SINGLE                 = Val(nextId, "SINGLE")
   // BUGBUG : Should we use bitwise OR??
-  val ALL_OR_ANYONECANPAY    = new Val(nextId, "ALL|ANYONECANPAY")
-  val NONE_OR_ANYONECANPAY   = new Val(nextId, "NONE|ANYONECANPAY")
-  val SINGLE_OR_ANYONECANPAY = new Val(nextId, "SINGLE|ANYONECANPAY")
+  val ALL_OR_ANYONECANPAY    = Val(nextId, "ALL|ANYONECANPAY")
+  val NONE_OR_ANYONECANPAY   = Val(nextId, "NONE|ANYONECANPAY")
+  val SINGLE_OR_ANYONECANPAY = Val(nextId, "SINGLE|ANYONECANPAY")
 }
 
 /** The result of signing a transaction.
@@ -30,7 +30,7 @@ object SigHash extends Enumeration {
   * @param transaction the transaction with signatures.
   * @param complete true if transaction is fully signed; false if more signatures are required
   */
-case class SignedTransaction(transaction : Transaction, complete : Boolean)
+data class SignedTransaction(transaction : Transaction, complete : Boolean)
 
 /**
   * Created by kangmo on 5/13/16.
@@ -47,7 +47,7 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The signed input.
     */
-  protected [transaction] def signInput(transaction: Transaction, inputIndex : Int, normalTxInput : NormalTransactionInput, privateKeys : List[PrivateKey], lockingScript : LockingScript, sigHash : SigHash, chainView : BlockchainView) : TransactionInput = {
+  protected <transaction> fun signInput(transaction: Transaction, inputIndex : Int, normalTxInput : NormalTransactionInput, privateKeys : List<PrivateKey>, lockingScript : LockingScript, sigHash : SigHash, chainView : BlockchainView) : TransactionInput {
     // We already checked if the number of private keys is 1. Multisig is not supported yet.
     assert(!privateKeys.isDefinedAt(1))
     // We already checked that we have at least one private key.
@@ -55,7 +55,7 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
 
     val keyToUse = privateKeys.head
 
-    val scriptData : Array[Byte] = TransactionSignature.getScriptForCheckSig(
+    val scriptData : Array<Byte> = TransactionSignature.getScriptForCheckSig(
       lockingScript.data,  // The locking script data.
       0, // The data to sign starts from offset 0
       Array() ) // We have no signatures to scrub from the locking script.
@@ -101,20 +101,20 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return Some(transaction) if the given input was signed and the signature was verified. None otherwise.
     */
-  protected[transaction] def tryToSignInput(transaction: Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Option[Transaction] = {
+  protected<transaction> fun tryToSignInput(transaction: Transaction, inputIndex : Int, privateKeys : List<PrivateKey>, sigHash : SigHash, chainView : BlockchainView) : Option<Transaction> {
     val inputToSign = transaction.inputs(inputIndex)
 
     inputToSign match {
       case normalTxInput : NormalTransactionInput => {
-        val lockingScript : LockingScript = new NormalTransactionVerifier(normalTxInput, transaction, inputIndex).getLockingScript(chainView)
-        val addresses : List[CoinAddress] = LockingScriptAnalyzer.extractAddresses(lockingScript)
+        val lockingScript : LockingScript = NormalTransactionVerifier(normalTxInput, transaction, inputIndex).getLockingScript(chainView)
+        val addresses : List<CoinAddress> = LockingScriptAnalyzer.extractAddresses(lockingScript)
 
         // TODO : Sign an input with multiple public key hashes.
         if (addresses.isDefinedAt(1)) {
-          throw new TransactionSignException(ErrorCode.UnsupportedFeature, "Multisig is not supported yet. Input Index : " + inputIndex)
+          throw TransactionSignException(ErrorCode.UnsupportedFeature, "Multisig is not supported yet. Input Index : " + inputIndex)
         }
         if (addresses.isEmpty) {
-          throw new TransactionSignException(ErrorCode.UnsupportedFeature, "Unsupported locking script for the transaction input. Input Index : " + inputIndex)
+          throw TransactionSignException(ErrorCode.UnsupportedFeature, "Unsupported locking script for the transaction input. Input Index : " + inputIndex)
         }
 
         val address = addresses.head
@@ -135,20 +135,20 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
         if (keysToUse.isEmpty) { // We don't have the private key to sign the input.
           None
         } else {
-          // Get the signed input to create a new transaction that has the signed input instead of the original one.
+          // Get the signed input to create a transaction that has the signed input instead of the original one.
           val signedInput : TransactionInput = signInput(transaction, inputIndex, normalTxInput, keysToUse, lockingScript, sigHash, chainView)
           val transactionWithSignedInput = transaction.copy(
             inputs = transaction.inputs.updated(inputIndex, signedInput)
           )
 
           // TODO : Uncomment.
-          //new TransactionVerifier(transactionWithSignedInput).verifyInput(inputIndex, blockIndex)
+          //TransactionVerifier(transactionWithSignedInput).verifyInput(inputIndex, blockIndex)
 
           Some( transactionWithSignedInput )
         }
       }
       case tx => {
-        throw new TransactionSignException( ErrorCode.InvalidTransactionInput, "An input to sign should be a normal transaction input, not a generation transaction input. Input Index : " + inputIndex)
+        throw TransactionSignException( ErrorCode.InvalidTransactionInput, "An input to sign should be a normal transaction input, not a generation transaction input. Input Index : " + inputIndex)
       }
     }
   }
@@ -162,7 +162,7 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @return The transaction with the newly signed input updated.
     */
   @tailrec
-  final protected[transaction] def signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List[PrivateKey], sigHash : SigHash, chainView : BlockchainView) : Transaction = {
+  final protected<transaction> fun signInputsFrom(transaction : Transaction, inputIndex : Int, privateKeys : List<PrivateKey>, sigHash : SigHash, chainView : BlockchainView) : Transaction {
 
     // TODO : List.length is costly. Optimize it by passing an input itself by dropping one item at head for each invocation of this method.
     if (inputIndex >= transaction.inputs.length) { // The base case. We try to sign all inputs.
@@ -183,7 +183,7 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @return The transaction with merged inputs.
     */
-  protected[transaction] def mergeSignatures(beforeSigning : Transaction, afterSigning : Transaction, chainView : BlockchainView): SignedTransaction = {
+  protected<transaction> fun mergeSignatures(beforeSigning : Transaction, afterSigning : Transaction, chainView : BlockchainView): SignedTransaction {
     assert(beforeSigning.inputs.length == afterSigning.inputs.length)
 
     var allInputsSigned = true
@@ -208,12 +208,12 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
       }
     }
 
-    // Get the final transaction by copying the new merged inputs.
+    // Get the final transaction by copying the merged inputs.
     val finalTransaction = beforeSigning.copy(inputs = mergedInputs)
 
     // Make sure that the transaction verification passes if all inputs are signed.
     if (allInputsSigned) {
-      new TransactionVerifier(finalTransaction).verify(chainView)
+      TransactionVerifier(finalTransaction).verify(chainView)
     }
 
     SignedTransaction(
@@ -231,24 +231,24 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
     * @param sigHash The type of signature hash to use for all of the signatures performed.
     * @return true if all inputs are signed, false otherwise.
     */
-  def sign(transaction   : Transaction,
+  fun sign(transaction   : Transaction,
            chainView     : BlockchainView,
-           dependencies  : List[UnspentTransactionOutput],
-           privateKeys   : List[PrivateKey],
+           dependencies  : List<UnspentTransactionOutput>,
+           privateKeys   : List<PrivateKey>,
            sigHash       : SigHash
-          ) : SignedTransaction = {
+          ) : SignedTransaction {
     // Only ALL SigHash type is supported for now.
     if (sigHash != SigHash.ALL) {
-      throw new UnsupportedFeature(ErrorCode.UnsupportedHashType)
+      throw UnsupportedFeature(ErrorCode.UnsupportedHashType)
     }
     // dependencies parameter is not supported yet.
     if ( ! dependencies.isEmpty ) {
-      throw new UnsupportedFeature(ErrorCode.UnsupportedFeature)
+      throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
 
     // TODO : Make the error code compatible with Bitcoin.
     if (transaction.inputs.head.isCoinBaseInput()) {
-      throw new TransactionSignException( ErrorCode.UnableToSignCoinbaseTransaction )
+      throw TransactionSignException( ErrorCode.UnableToSignCoinbaseTransaction )
     }
 
     val signedTranasction = signInputsFrom(transaction, inputIndex = 0, privateKeys, sigHash, chainView)

@@ -16,15 +16,15 @@ import scala.annotation.tailrec
   * Created by kangmo on 5/26/16.
   */
 class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[RetryingConnector]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<RetryingConnector>) )
 
-  def connect(address : String, port : Int) : Unit = {
+  fun connect(address : String, port : Int) : Unit {
     // TODO : BUGBUG : Need to call nodeClient.close when the connection closes?
-    val nodeClient = new NodeClient(peerSet)
+    val nodeClient = NodeClient(peerSet)
     val channelFuture : ChannelFuture = nodeClient.connect(address, port)
 
-    channelFuture.addListener( new ChannelFutureListener() {
-      def operationComplete(future : ChannelFuture) : Unit = {
+    channelFuture.addListener( ChannelFutureListener() {
+      fun operationComplete(future : ChannelFuture) : Unit {
         val channel : Channel = future.channel()
         if ( future.isSuccess() ) {
           logger.info(s"Sending version message to ${channel.remoteAddress()}")
@@ -33,8 +33,8 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
           channel.writeAndFlush( VersionFactory.create )
 
 
-          future.channel().closeFuture.addListener( new ChannelFutureListener() {
-            def operationComplete(future:ChannelFuture) {
+          future.channel().closeFuture.addListener( ChannelFutureListener() {
+            fun operationComplete(future:ChannelFuture) {
               assert( future.isDone )
 
               if (future.isSuccess) { // completed successfully

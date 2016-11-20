@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.RecordLocator
 import io.scalechain.blockchain.proto.codec.{PayloadTestSuite, RecordLocatorCodec}
 import io.scalechain.util.HexUtil._
 
-class RecordLocatorCodecSpec extends PayloadTestSuite[RecordLocator]  {
+class RecordLocatorCodecSpec : PayloadTestSuite<RecordLocator>  {
 
   val codec = RecordLocatorCodec.codec
 

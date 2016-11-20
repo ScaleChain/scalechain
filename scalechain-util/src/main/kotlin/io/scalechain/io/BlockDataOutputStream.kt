@@ -27,21 +27,21 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
     Original code from Mike Hearn's BitcoinJ.
     core/src/main/java/org/bitcoinj/core/VarInt.java
 
-    public byte[] encode() {
-    byte[] bytes;
+    public byte<> encode() {
+    byte<> bytes;
     switch (sizeOf(value)) {
     case 1:
-    return new byte[]{(byte) value};
+    return byte<>{(byte) value};
     case 3:
-    return new byte[]{(byte) 253, (byte) (value), (byte) (value >> 8)};
+    return byte<>{(byte) 253, (byte) (value), (byte) (value >> 8)};
     case 5:
-    bytes = new byte[5];
-    bytes[0] = (byte) 254;
+    bytes = byte<5>;
+    bytes<0> = (byte) 254;
     Utils.uint32ToByteArrayLE(value, bytes, 1);
     return bytes;
     default:
-    bytes = new byte[9];
-    bytes[0] = (byte) 255;
+    bytes = byte<9>;
+    bytes<0> = (byte) 255;
     Utils.uint64ToByteArrayLE(value, bytes, 1);
     return bytes;
     }
@@ -74,7 +74,7 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
     /** Write a byte array.
      * @param bytes The byte array to write.
      */
-    // BUGBUG : Interface Change, Array[Byte] -> ByteArray
+    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
     fun writeBytes(bytes : ByteArray)  {
         write(bytes)
     }

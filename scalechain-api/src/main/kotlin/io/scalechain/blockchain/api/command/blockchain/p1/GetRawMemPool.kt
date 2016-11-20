@@ -47,14 +47,14 @@ import org.slf4j.LoggerFactory
   *
   * https://bitcoin.org/en/developer-reference#getrawmempool
   */
-object GetRawMemPool extends RpcCommand {
+object GetRawMemPool : RpcCommand {
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """getrawmempool ( verbose )
       |
       |Returns all transaction ids in memory pool as a json array of string transaction ids.

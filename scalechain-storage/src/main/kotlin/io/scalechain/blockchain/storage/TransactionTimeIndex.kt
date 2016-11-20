@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 object TransactionTimeIndex {
   val maxBase58EncodedLength = Base58Util.encode( LongValueCodec.serialize( LongValue( Long.MaxValue ) ) ).length
 
-  def timeToString(nanoSeconds : Long) : String = {
+  fun timeToString(nanoSeconds : Long) : String {
     val encodedString = Base58Util.encode( LongValueCodec.serialize( LongValue( nanoSeconds) ) )
     if (encodedString.length > maxBase58EncodedLength ) {
       assert(false)
@@ -33,7 +33,7 @@ object TransactionTimeIndex {
   * Maintains an index from the creation time of a transaction to the transaction hash.
   */
 trait TransactionTimeIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionTimeIndex]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionTimeIndex>) )
 
   import TransactionTimeIndex._
   import DatabaseTablePrefixes._
@@ -46,7 +46,7 @@ trait TransactionTimeIndex {
     * @param creationTime The time when the transaction was created (in nano seconds)
     * @param txHash The hash of the transaction to add
     */
-  def putTransactionTime(creationTime : Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun putTransactionTime(creationTime : Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
 
     val keyPrefix = timeToString(creationTime)
@@ -59,13 +59,13 @@ trait TransactionTimeIndex {
     * @param count The number of hashes to get.
     * @return The transaction which matches the given transaction hash.
     */
-  def getOldestTransactionHashes(count : Int)(implicit db : KeyValueDatabase) : List[CStringPrefixed[Hash]] = {
+  fun getOldestTransactionHashes(count : Int)(implicit db : KeyValueDatabase) : List<CStringPrefixed<Hash>> {
     assert(count > 0)
     //logger.trace(s"getTransactionFromPool : ${txHash}")
 
     using( db.seekPrefixedObject(TimeIndexPrefix)(HashCodec, OneByteCodec) ) in {
       iter =>
-        val buffer = new ListBuffer[CStringPrefixed[Hash]]
+        val buffer = ListBuffer<CStringPrefixed<Hash>>
         var copied = 0
         while(copied < count && iter.hasNext) {
           val (key, _) = iter.next()
@@ -81,7 +81,7 @@ trait TransactionTimeIndex {
     * @param creationTime The time when the transaction was created (in nano seconds)
     * @param txHash The hash of the transaction to remove
     */
-  def delTransactionTime(creationTime: Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delTransactionTime(creationTime: Long, txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
 
     val keyPrefix = timeToString(creationTime)
 
@@ -89,7 +89,7 @@ trait TransactionTimeIndex {
  //   assert(db.getPrefixedObject(TimeIndexPrefix, keyPrefix, txHash)(HashCodec, OneByteCodec).isEmpty)
   }
 
-  def delTransactionTime(key : CStringPrefixed[Hash])(implicit db : KeyValueDatabase) : Unit = {
+  fun delTransactionTime(key : CStringPrefixed<Hash>)(implicit db : KeyValueDatabase) : Unit {
     db.delPrefixedObject(TimeIndexPrefix, key )
   }
 

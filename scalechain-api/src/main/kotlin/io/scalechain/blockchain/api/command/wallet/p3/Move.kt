@@ -26,13 +26,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#move
   */
-object Move extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object Move : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """move "fromaccount" "toaccount" amount ( minconf "comment" )
       |
       |DEPRECATED. Move a specified amount from one account in your wallet to another.

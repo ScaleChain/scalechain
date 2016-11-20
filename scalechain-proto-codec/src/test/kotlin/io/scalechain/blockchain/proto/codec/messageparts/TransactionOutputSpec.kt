@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.{TransactionOutputCodec, PayloadTest
 import io.scalechain.util.HexUtil._
 
 /**
- * [Bitcoin Core Packets Captured]
+ * <Bitcoin Core Packets Captured>
  *
  *  f0ca052a01000000 ......................... Satoshis (49.99990000 BTC)
  *
@@ -18,7 +18,7 @@ import io.scalechain.util.HexUtil._
  *  | 88 ..................................... OP_EQUALVERIFY
  *  | ac ..................................... OP_CHECKSIG
  */
-class TransactionOutputSpec extends PayloadTestSuite[TransactionOutput]  {
+class TransactionOutputSpec : PayloadTestSuite<TransactionOutput>  {
 
   val codec = TransactionOutputCodec.codec
 

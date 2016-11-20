@@ -25,13 +25,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#getconnectioncount
   */
-object GetConnectionCount extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetConnectionCount : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """getconnectioncount
       |
       |Returns the number of connections to other nodes.

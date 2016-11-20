@@ -27,21 +27,21 @@ import scala.util.Random
   * Created by kangmo on 7/4/16.
   */
 
-class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-WalletPerformanceSpec-storage/")
+  val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")
 
   implicit var keyValueDB : KeyValueDatabase = null
-  override def beforeEach() {
+  override fun beforeEach() {
 
     super.beforeEach()
 
     keyValueDB = db
   }
 
-  override def afterEach() {
+  override fun afterEach() {
 
     super.afterEach()
 
@@ -49,14 +49,14 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
   "perftest" should "measure performance on register transaction" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
 
 
     import ch.qos.logback.classic.Logger
-    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
     root.setLevel(ch.qos.logback.classic.Level.WARN);
 
 
@@ -103,7 +103,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     }
   }
 
-  def prepareTestTransactions(txCount : Long, data : BlockSampleData = new BlockSampleData(), genTxOption : Option[Transaction] = None) : ListBuffer[(Hash, Transaction)] = {
+  fun prepareTestTransactions(txCount : Long, data : BlockSampleData = BlockSampleData(), genTxOption : Option<Transaction> = None) : ListBuffer<(Hash, Transaction)> {
     import data._
     import data.Block._
     import data.Tx._
@@ -117,7 +117,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
       }
 
     // Prepare test data.
-    val transactions = new ListBuffer[(Hash, Transaction)]()
+    val transactions = ListBuffer<(Hash, Transaction)>()
 
     var mergedCoin = getOutput(generationTx,0)
 
@@ -171,13 +171,13 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
   "encoding/decoding key/value" should "measure performance" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
 
     import ch.qos.logback.classic.Logger
-    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
     root.setLevel(ch.qos.logback.classic.Level.WARN);
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
@@ -189,12 +189,12 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     implicit val TEST_LOOP_COUNT = 1000
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
-    val hashes = new ListBuffer[Array[Byte]]()
+    val hashes = ListBuffer<Array<Byte>>()
     measureWithSize("encode hash") {
       var totalSize = 0
 
       transactions foreach { case (txHash, tx) =>
-        val rawHash : Array[Byte] = HashCodec.serialize(txHash)
+        val rawHash : Array<Byte> = HashCodec.serialize(txHash)
         val prefixedRawHash = Array('A'.toByte) ++ rawHash
         hashes.append(prefixedRawHash)
         totalSize += rawHash.length
@@ -219,12 +219,12 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     }
 
 
-    val rawTransactions = new ListBuffer[Array[Byte]]()
+    val rawTransactions = ListBuffer<Array<Byte>>()
     measureWithSize("encode transaction") {
       var totalSize = 0
 
       transactions foreach { case (txHash, tx) =>
-        //val rawTx: Array[Byte] = TransactionCodec.serialize(tx)
+        //val rawTx: Array<Byte> = TransactionCodec.serialize(tx)
         val rawTx = TransactionCodec.serialize(tx)
         rawTransactions.append(rawTx)
         totalSize += rawTx.length
@@ -248,13 +248,13 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
   "single thread perf test" should "measure performance for mining blocks" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
 
     import ch.qos.logback.classic.Logger
-    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
     root.setLevel(ch.qos.logback.classic.Level.WARN);
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
@@ -275,7 +275,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
 
     measure("single thread Add Transaction") {
-      val poolIndex = new TransactionPoolIndex {}
+      val poolIndex = TransactionPoolIndex {}
       // Drop the first transaction, which is the generation transaction already included in the first block.
       transactions.drop(1) foreach { case (txHash, tx) =>
         chain.withTransaction { transactingDatabase =>
@@ -295,7 +295,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
       }
     }
 
-    val w = new StopWatch()
+    val w = StopWatch()
 
     //val MaxBlockSize = 1024 * 1024 * 2
     val MaxBlockSize = 128 * 1024
@@ -310,8 +310,8 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
       if (bestBlockHash.isDefined) {
 
         w.start("blockTemplate")
-        val blockTemplate = {
-          val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(chain.db)
+        val blockTemplate {
+          val blockMining = BlockMining(chain.txDescIndex, chain.txPool, chain)(chain.db)
           Some(blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, MaxBlockSize))
         }
         w.stop("blockTemplate")
@@ -362,13 +362,13 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
   "single thread perf test" should "measure performance by adding transactions to the pool" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
 
     import ch.qos.logback.classic.Logger
-    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
     root.setLevel(ch.qos.logback.classic.Level.WARN);
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
@@ -384,7 +384,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
     measure("single thread Add Transaction") {
-      val poolIndex = new TransactionPoolIndex {}
+      val poolIndex = TransactionPoolIndex {}
       transactions foreach { case (txHash, tx) =>
         chain.withTransaction { transactingDatabase =>
           /*
@@ -405,13 +405,13 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
   }
 
   "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._
 
     import ch.qos.logback.classic.Logger
-    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf[Logger]
+    val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
     root.setLevel(ch.qos.logback.classic.Level.WARN);
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
@@ -425,7 +425,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     val TEST_LOOP_COUNT = 1000
     var testLoop = TEST_LOOP_COUNT
 
-    var transactionsMap = scala.collection.mutable.Map[Int, ListBuffer[(Hash, Transaction)]]()
+    var transactionsMap = scala.collection.mutable.Map<Int, ListBuffer<(Hash, Transaction)>>()
 
     val threadCount = 4
     0 until threadCount foreach { i =>
@@ -436,8 +436,8 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
     val threads =
       (0 until threadCount).map { i =>
-        new Thread() {
-          override def run(): Unit = {
+        Thread() {
+          override fun run(): Unit {
             val transactions = transactionsMap(i)
             var addedCount = 0
             transactions foreach { case (hash, tx) =>

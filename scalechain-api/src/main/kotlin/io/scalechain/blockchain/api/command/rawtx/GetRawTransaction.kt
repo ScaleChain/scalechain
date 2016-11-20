@@ -106,7 +106,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class RawTransaction(
+data class RawTransaction(
   // The serialized, hex-encoded data for 'txid'
   hex           : String, // "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000"
   // The transaction’s TXID encoded as hex in RPC byte order
@@ -118,23 +118,23 @@ case class RawTransaction(
   // An array of objects with each object being an input vector (vin) for this transaction.
   // Input objects will have the same order within the array as they have in the transaction,
   // so the first input listed will be input 0
-  vin           : List[RawTransactionInput],
+  vin           : List<RawTransactionInput>,
   // An array of objects each describing an output vector (vout) for this transaction.
   // Output objects will have the same order within the array as they have in the transaction,
   // so the first output listed will be output 0
-  vout          : List[RawTransactionOutput],
+  vout          : List<RawTransactionOutput>,
   // If the transaction has been included in a block on the local best block chain,
   // this is the hash of that block encoded as hex in RPC byte order
-  blockhash     : Option[Hash],   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
+  blockhash     : Option<Hash>,   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
   // If the transaction has been included in a block on the local best block chain,
   // this is how many confirmations it has. Otherwise, this is 0
   confirmations : Long,   // 88192,
   // If the transaction has been included in a block on the local best block chain,
   // this is the block header time of that block (may be in the future)
-  time          : Option[Long],   // 1398734825,
+  time          : Option<Long>,   // 1398734825,
   // This field is currently identical to the time field described above
-  blocktime     : Option[Long]    // 1398734825
-) extends RpcResult
+  blocktime     : Option<Long>    // 1398734825
+) : RpcResult
 
 /** GetRawTransaction: gets a hex-encoded serialized transaction or a JSON object describing the transaction.
   * By default, Bitcoin Core only stores complete transaction data for UTXOs and your own transactions,
@@ -160,11 +160,11 @@ case class RawTransaction(
   *
   * https://bitcoin.org/en/developer-reference#getrawtransaction
   */
-object GetRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetRawTransaction : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     //handlingException {
-      val txHashString : String                = request.params.get[String]("TXID", 0)
-      val verbose      : scala.math.BigDecimal = request.params.getOption[scala.math.BigDecimal]("Verbose", 1).getOrElse(scala.math.BigDecimal(0))
+      val txHashString : String                = request.params.get<String>("TXID", 0)
+      val verbose      : scala.math.BigDecimal = request.params.getOption<scala.math.BigDecimal>("Verbose", 1).getOrElse(scala.math.BigDecimal(0))
 
       val txHash = Hash ( HexUtil.bytes(txHashString) )
 
@@ -187,7 +187,7 @@ object GetRawTransaction extends RpcCommand {
       Right(rawTransactionOption)
     //}
   }
-  def help() : String =
+  fun help() : String =
     """getrawtransaction "txid" ( verbose )
       |
       |NOTE: By default this function only works sometimes. This is when the tx is in the mempool

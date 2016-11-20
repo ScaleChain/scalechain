@@ -10,18 +10,18 @@ import org.scalatest.prop.Tables.Table
 /** Test crypto operations in Crypto.scala
   *
   */
-class CryptoSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class CryptoSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -68,7 +68,7 @@ class CryptoSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrai
     )
 
   "operations" should "run and push expected value on the stack." in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+    forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
       verifyOperations(inputValues, List(operation), expectation);
     }
   }

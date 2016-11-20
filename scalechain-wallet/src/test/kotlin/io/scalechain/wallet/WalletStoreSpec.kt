@@ -9,7 +9,7 @@ import org.scalatest._
 
 import scala.util.Random
 
-class WalletStoreSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with ChainTestTrait with Matchers
+class WalletStoreSpec : FlatSpec with WalletTestTrait with BeforeAndAfterEach with ChainTestTrait with Matchers
   with WalletStoreAccountTestTrait
   with WalletStoreOutPointTestTrait
   with WalletStoreTransactionHashTestTrait
@@ -23,15 +23,15 @@ class WalletStoreSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterE
   if (!Storage.isInitialized)
     Storage.initialize()
 
-  val testPath = new File(s"./target/unittests-WalletStoreSpec-${Random.nextLong}")
+  val testPath = File(s"./target/unittests-WalletStoreSpec-${Random.nextLong}")
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
-    store = new WalletStore()
+    store = WalletStore()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     store = null

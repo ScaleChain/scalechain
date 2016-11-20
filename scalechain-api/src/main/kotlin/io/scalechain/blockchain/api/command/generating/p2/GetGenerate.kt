@@ -25,13 +25,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#getgenerate
   */
-object GetGenerate extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetGenerate : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """getgenerate
       |
       |Return if the server is set to generate coins or not. The default is false.

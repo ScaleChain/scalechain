@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-  *  [Bitcoin Core Packets Not Captured]
+  *  <Bitcoin Core Packets Not Captured>
   *
   *  02 ......... Filter bytes: 2
   *  b50f ....... Filter: 1010 1101 1111 0000
@@ -16,7 +16,7 @@ import scodec.bits.BitVector
   *
   */
 /*
-class FilterLoadSpec extends PayloadTestSuite[FilterLoad]  {
+class FilterLoadSpec : PayloadTestSuite<FilterLoad>  {
 
   val codec = FilterLoadCodec.codec
 

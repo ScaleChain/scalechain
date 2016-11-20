@@ -47,24 +47,24 @@ data class Bytes(val array : ByteArray) {
 }
 /*
 object ComparableArray {
-    implicit def comparableArrayToArray[T](carray : ComparableArray[T]) = carray.array
-    implicit def arrayToComparableArray[T](array:Array[T]) = new ComparableArray[T](array)
+    implicit fun comparableArrayToArray<T>(carray : ComparableArray<T>) = carray.array
+    implicit fun arrayToComparableArray<T>(array:Array<T>) = ComparableArray<T>(array)
 }
 */
 
 /*
 object ByteArray {
-    implicit def byteArrayToArray (barray : ByteArray   ) = barray.array
-    implicit def arrayToByteArray (array  : Array[Byte] ) = ByteArray(array)
+    implicit fun byteArrayToArray (barray : ByteArray   ) = barray.array
+    implicit fun arrayToByteArray (array  : Array<Byte> ) = ByteArray(array)
 
-    implicit def stringToByteArray(value : String)
+    implicit fun stringToByteArray(value : String)
     = ByteArray.arrayToByteArray(HexUtil.bytes(value))
-    implicit def byteArrayToString(value : ByteArray)
+    implicit fun byteArrayToString(value : ByteArray)
     = HexUtil.hex( ByteArray.byteArrayToArray(value) )
 }
 
 object ByteArrayAndVectorConverter {
-    implicit def byteArrayToVector(barray : ByteArray   ) = barray.array.toVector
-    implicit def vectorToByteArray(vector : Vector[Byte]) = ByteArray(vector.toArray[Byte])
+    implicit fun byteArrayToVector(barray : ByteArray   ) = barray.array.toVector
+    implicit fun vectorToByteArray(vector : Vector<Byte>) = ByteArray(vector.toArray<Byte>)
 }
 */

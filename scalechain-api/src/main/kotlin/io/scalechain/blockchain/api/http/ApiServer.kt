@@ -11,30 +11,30 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import org.slf4j.LoggerFactory
 
 class ApiServer {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[ApiServer]) )
-  private val bossGroup: EventLoopGroup = new NioEventLoopGroup(1)
-  private val workerGroup: EventLoopGroup = new NioEventLoopGroup
+  private val logger = Logger( LoggerFactory.getLogger(classOf<ApiServer>) )
+  private val bossGroup: EventLoopGroup = NioEventLoopGroup(1)
+  private val workerGroup: EventLoopGroup = NioEventLoopGroup
 
-  @throws(classOf[Exception])
-  def listen(port : Int, useSSL : Boolean = false) {
+  @throws(classOf<Exception>)
+  fun listen(port : Int, useSSL : Boolean = false) {
     val sslCtx: SslContext =
       if (useSSL) {
-        val ssc: SelfSignedCertificate = new SelfSignedCertificate
+        val ssc: SelfSignedCertificate = SelfSignedCertificate
         SslContextBuilder.forServer(ssc.certificate, ssc.privateKey).build
       }
       else {
         null
       }
-    val b: ServerBootstrap = new ServerBootstrap
-    //b.option[Integer](ChannelOption.SO_BACKLOG, 1024)
+    val b: ServerBootstrap = ServerBootstrap
+    //b.option<Integer>(ChannelOption.SO_BACKLOG, 1024)
     b.group(bossGroup, workerGroup)
-     .channel(classOf[NioServerSocketChannel])
+     .channel(classOf<NioServerSocketChannel>)
      .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
-     .handler(new LoggingHandler(LogLevel.INFO))
-     .childHandler(new ApiServerInitializer(sslCtx))
+     .handler(LoggingHandler(LogLevel.INFO))
+     .childHandler(ApiServerInitializer(sslCtx))
 
-    b.bind(port).addListener(new ChannelFutureListener() {
-      def operationComplete(future:ChannelFuture) {
+    b.bind(port).addListener(ChannelFutureListener() {
+      fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.info(s"ScaleChain API available at ${(if (useSSL) "https" else "http")}://127.0.0.1:${port}")
@@ -51,7 +51,7 @@ class ApiServer {
     })
   }
 
-  def shutdown() : Unit = {
+  fun shutdown() : Unit {
     bossGroup.shutdownGracefully()
     workerGroup.shutdownGracefully()
   }

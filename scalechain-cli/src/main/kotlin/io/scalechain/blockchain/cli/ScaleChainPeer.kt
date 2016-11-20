@@ -26,11 +26,11 @@ import scala.collection.mutable.ArrayBuffer
   */
 object ScaleChainPeer {
 
-  case class Parameters(
-                         peerAddress: Option[String] = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         peerPort: Option[Int] = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         cassandraAddress: Option[String] = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.address")) Some(io.scalechain.util.Config.getString("scalechain.storage.cassandra.address")) else None,
-                         cassandraPort: Option[Int] = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.port")) Some(io.scalechain.util.Config.getInt("scalechain.storage.cassandra.port")) else None,
+  data class Parameters(
+                         peerAddress: Option<String> = None, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+                         peerPort: Option<Int> = None, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+                         cassandraAddress: Option<String> = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.address")) Some(io.scalechain.util.Config.getString("scalechain.storage.cassandra.address")) else None,
+                         cassandraPort: Option<Int> = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.port")) Some(io.scalechain.util.Config.getInt("scalechain.storage.cassandra.port")) else None,
                          p2pInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.p2p.port"),
                          apiInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.api.port"),
                          miningAccount: String = io.scalechain.util.Config.getString("scalechain.mining.account"),
@@ -40,47 +40,47 @@ object ScaleChainPeer {
                          minerHashDelayMS : Int = 200
                        )
 
-  def main(args: Array[String]) = {
-    val parser = new scopt.OptionParser[Parameters]("scalechain") {
+  fun main(args: Array<String>) {
+    val parser = scopt.OptionParser<Parameters>("scalechain") {
       head("scalechain", "1.0")
-      opt[Int]('p', "p2pPort") action { (x, c) =>
+      opt<Int>('p', "p2pPort") action { (x, c) =>
         c.copy(p2pInboundPort = x)
       } text ("The P2P inbound port to use to accept connection from other peers.")
-      opt[String]("cassandraAddress") action { (x, c) =>
+      opt<String>("cassandraAddress") action { (x, c) =>
         c.copy(cassandraAddress = Some(x))
       } text ("The address of the cassandra instance for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
-      opt[Int]("cassandraPort") action { (x, c) =>
+      opt<Int>("cassandraPort") action { (x, c) =>
         c.copy(peerPort = Some(x))
       } text ("The port of the cassandra instance  for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
       // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
-      opt[Int]('c', "apiPort") action { (x, c) =>
+      opt<Int>('c', "apiPort") action { (x, c) =>
         c.copy(apiInboundPort = x)
       } text ("The API inbound port to use to accept connection from RPC clients.")
-      opt[String]('a', "peerAddress") action { (x, c) =>
+      opt<String>('a', "peerAddress") action { (x, c) =>
         c.copy(peerAddress = Some(x))
       } text ("The address of the peer we want to connect.")
-      opt[Int]('x', "peerPort") action { (x, c) =>
+      opt<Int>('x', "peerPort") action { (x, c) =>
         c.copy(peerPort = Some(x))
       } text ("The port of the peer we want to connect.")
       // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
-      opt[String]('m', "miningAccount") action { (x, c) =>
+      opt<String>('m', "miningAccount") action { (x, c) =>
         c.copy(miningAccount = x)
       } text ("The account to get the coins mined. The receiving address of the account will get the coins mined.")
       // TODO : Bitcoin Compatibility - Check the parameter of bitcoind.
-      opt[String]('n', "network") action { (x, c) =>
+      opt<String>('n', "network") action { (x, c) =>
         c.copy(network = x)
       } text ("The network to use. currently 'testnet' is supported. Will support 'mainnet' as well as 'regtest' soon.")
-      opt[Int]("minerInitialDelayMS") action { (x, c) =>
+      opt<Int>("minerInitialDelayMS") action { (x, c) =>
         c.copy(minerInitialDelayMS = x) } validate { x =>
         if (x > 0) success else failure("Value <minerInitialDelayMS> must be >0")
       } text ("Seconds to sleep before starting the miner.")
-      opt[Int]("minerHashDelayMS") action { (x, c) =>
+      opt<Int>("minerHashDelayMS") action { (x, c) =>
         c.copy(minerHashDelayMS = x) } validate { x =>
           if (x > 0) success else failure("Value <minerHashDelayMS> must be >0")
         } text ("Maximum seconds to sleep for each hash calculation.")
       }
 
-    // parser.parse returns Option[C]
+    // parser.parse returns Option<C>
     parser.parse(args, Parameters()) match {
       case Some(params) => {
         initializeSystem(params)
@@ -91,9 +91,9 @@ object ScaleChainPeer {
     }
   }
 
-  protected[cli] def initializeNetLayer(params: Parameters, indexDb : RocksDatabase, wallet: Wallet)(implicit db : KeyValueDatabase): PeerCommunicator = {
+  protected<cli> fun initializeNetLayer(params: Parameters, indexDb : RocksDatabase, wallet: Wallet)(implicit db : KeyValueDatabase): PeerCommunicator {
 
-    def isMyself(addr: PeerAddress) = {
+    fun isMyself(addr: PeerAddress) {
       NetUtil.getLocalAddresses().contains(addr.address) && addr.port == params.p2pInboundPort
     }
 //      (addr.address == "localhost" || addr.address == "127.0.0.1") && (addr.port == params.p2pInboundPort)
@@ -104,16 +104,16 @@ object ScaleChainPeer {
       * It contains list of peer address and port.
       *
       * scalechain {
-      * p2p {
-      * peers = [
-      * { address:"127.0.0.1", port:"7643" },
-      * { address:"127.0.0.1", port:"7644" },
-      * { address:"127.0.0.1", port:"7645" }
-      * ]
-      * }
+      *   p2p {
+      *     peers = [
+      *       { address:"127.0.0.1", port:"7643" },
+      *       { address:"127.0.0.1", port:"7644" },
+      *       { address:"127.0.0.1", port:"7645" }
+      *     ]
+      *   }
       * }
       */
-    val peerAddresses: List[PeerAddress] =
+    val peerAddresses: List<PeerAddress> =
     // If the command parameter has -peerAddress and -peerPort, connect to the given peer.
       if (params.peerAddress.isDefined && params.peerPort.isDefined) {
         List(PeerAddress(params.peerAddress.get, params.peerPort.get))
@@ -134,7 +134,7 @@ object ScaleChainPeer {
     *
     * @param params The command line parameter of ScaleChain.
     */
-  def initializeSystem(params: Parameters) {
+  fun initializeSystem(params: Parameters) {
 
     PropertyConfigurator.configure(this.getClass().getClassLoader().getResource("log4j.properties"));
 
@@ -149,17 +149,17 @@ object ScaleChainPeer {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
+    val blockStoragePath = File(s"./target/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
 
-    val indexDb : RocksDatabase = new CachedRocksDatabase(blockStoragePath)
+    val indexDb : RocksDatabase = CachedRocksDatabase(blockStoragePath)
     implicit val db : KeyValueDatabase = indexDb
 
 
     val storage: BlockStorage =
       if (params.cassandraAddress.isDefined && params.cassandraPort.isDefined) {
         // Cassandra is not supported.
-        throw new UnsupportedOperationException
+        throw UnsupportedOperationException
 //        CassandraBlockStorage.create(blockStoragePath, params.cassandraAddress.get, params.cassandraPort.get)
       } else {
         // Initialize the block storage.
@@ -182,7 +182,7 @@ object ScaleChainPeer {
 
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
+    val walletPath = File(s"./target/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create()
     chain.setEventListener(wallet)
 

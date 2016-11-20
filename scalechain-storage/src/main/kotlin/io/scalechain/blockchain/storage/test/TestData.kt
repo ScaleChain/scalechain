@@ -12,7 +12,7 @@ import scodec.bits.BitVector
 /**
   * Created by kangmo on 3/13/16.
   */
-object TestData extends ProtoTestData with CodecTestUtil {
+object TestData : ProtoTestData with CodecTestUtil {
 
   val txHash1 = transaction1.hash
   val txHash2 = transaction2.hash

@@ -9,21 +9,21 @@ import scodec.codecs._
 
 /*
 object ByteArrayCodec {
-  val codec : Codec[ByteArray] = {
+  val codec : Codec<ByteArray> {
     ("array" | VarByteArray.codec)
-  }.as[ByteArray]
+  }.as<ByteArray>
 }
 */
 
-object CoinAddressCodec extends MessagePartCodec[CoinAddress] {
-  val codec: Codec[CoinAddress] = utf8_32.xmap(
+object CoinAddressCodec : MessagePartCodec<CoinAddress> {
+  val codec: Codec<CoinAddress> = utf8_32.xmap(
     addressString => CoinAddress.from(addressString),
     coinAddress => coinAddress.base58)
 }
 
 
-object ParsedPubKeyScriptCodec extends MessagePartCodec[ParsedPubKeyScript] {
-  val codec: Codec[ParsedPubKeyScript] = LockingScriptCodec.codec.xmap(
+object ParsedPubKeyScriptCodec : MessagePartCodec<ParsedPubKeyScript> {
+  val codec: Codec<ParsedPubKeyScript> = LockingScriptCodec.codec.xmap(
     lockingScript => ParsedPubKeyScript.from(lockingScript),
     parsedPubKeyScript => parsedPubKeyScript.lockingScript)
 }
@@ -32,14 +32,14 @@ object ParsedPubKeyScriptCodec extends MessagePartCodec[ParsedPubKeyScript] {
 /*
     "support building a codec for an ADT" in {
       sealed trait Direction
-      case object Stay extends Direction
-      case class Go(units: Int) extends Direction
+      case object Stay : Direction
+      data class Go(units: Int) : Direction
 
       val stayCodec = provide(Stay)
-      val goCodec = int32.widenOpt[Go](Go.apply, Go.unapply)
+      val goCodec = int32.widenOpt<Go>(Go.apply, Go.unapply)
 
       val codec =
-        discriminated[Direction].by(uint8).
+        discriminated<Direction>.by(uint8).
           typecase(0, stayCodec).
           typecase(1, goCodec)
 
@@ -48,9 +48,9 @@ object ParsedPubKeyScriptCodec extends MessagePartCodec[ParsedPubKeyScript] {
     }
 */
 
-object OutputOwnershipCodec extends MessagePartCodec[OutputOwnership] {
-  val codec : Codec[OutputOwnership] =
-    discriminated[OutputOwnership].by(uint8).
+object OutputOwnershipCodec : MessagePartCodec<OutputOwnership> {
+  val codec : Codec<OutputOwnership> =
+    discriminated<OutputOwnership>.by(uint8).
       typecase(1, CoinAddressCodec.codec).
       typecase(2, ParsedPubKeyScriptCodec.codec)
 }

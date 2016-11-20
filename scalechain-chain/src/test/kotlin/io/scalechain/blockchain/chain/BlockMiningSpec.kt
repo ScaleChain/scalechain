@@ -11,22 +11,22 @@ import HashSupported._
 
 // Need to rewrite test case
 @Ignore
-class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockMiningSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockMiningSpec/")
+  val testPath = File("./target/unittests-BlockMiningSpec/")
 
   var bm : BlockMining = null
   implicit var keyValueDB : KeyValueDatabase = null
   var data : TransactionSampleData = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
     keyValueDB = db
 
-    data = new TransactionSampleData()
+    data = TransactionSampleData()
     val d = data
     import d._
     import d.Tx._
@@ -38,11 +38,11 @@ class BlockMiningSpec extends BlockchainTestTrait with TransactionTestDataTrait 
     chain.putBlock(BLK02.header.hash, BLK02)
     chain.putBlock(BLK03.header.hash, BLK03)
 
-    bm = new BlockMining(chain.txDescIndex, chain.txPool, chain)(keyValueDB.asInstanceOf[RocksDatabase])
+    bm = BlockMining(chain.txDescIndex, chain.txPool, chain)(keyValueDB.asInstanceOf<RocksDatabase>)
 
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     bm = null
     keyValueDB = null
 

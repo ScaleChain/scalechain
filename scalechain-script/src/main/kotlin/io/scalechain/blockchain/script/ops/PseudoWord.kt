@@ -3,15 +3,15 @@ package io.scalechain.blockchain.script.ops
 import io.scalechain.blockchain.script.{ScriptInterpreter, ScriptOpList, ScriptEnvironment}
 import io.scalechain.util.Utils
 
-trait PseudoWord extends ScriptOp
+trait PseudoWord : ScriptOp
 
 /** OP_SMALLDATA(0xf9) : Represents small data field
  * Node : This operation is not listed in the Bitcoin Script wiki, but in Mastering Bitcoin book.
  */
-case class OpSmallData() extends PseudoWord with InternalScriptOp {
-  def opCode() = OpCode(0xf9)
+data class OpSmallData() : PseudoWord with InternalScriptOp {
+  fun opCode() = OpCode(0xf9)
 
-  override def execute(env : ScriptEnvironment): Unit = {
+  override fun execute(env : ScriptEnvironment): Unit {
     // TODO : Implement
     assert(false);
   }
@@ -20,10 +20,10 @@ case class OpSmallData() extends PseudoWord with InternalScriptOp {
 /** OP_SMALLINTEGER(0xfa) : Represents small integer data field
   * Node : This operation is not listed in the Bitcoin Script wiki, but in Mastering Bitcoin book.
   */
-case class OpSmallInteger() extends PseudoWord with InternalScriptOp {
-  def opCode() = OpCode(0xfa)
+data class OpSmallInteger() : PseudoWord with InternalScriptOp {
+  fun opCode() = OpCode(0xfa)
 
-  override def execute(env : ScriptEnvironment): Unit = {
+  override fun execute(env : ScriptEnvironment): Unit {
     // TODO : Implement
     assert(false);
   }
@@ -33,10 +33,10 @@ case class OpSmallInteger() extends PseudoWord with InternalScriptOp {
 
 /** OP_PUBKEYHASH(0xfd) : Represents a public key hash field
   */
-case class OpPubKeyHash() extends PseudoWord with InternalScriptOp {
-  def opCode() = OpCode(0xfd)
+data class OpPubKeyHash() : PseudoWord with InternalScriptOp {
+  fun opCode() = OpCode(0xfd)
 
-  override def execute(env : ScriptEnvironment): Unit = {
+  override fun execute(env : ScriptEnvironment): Unit {
     // TODO : Implement
     assert(false);
   }
@@ -45,10 +45,10 @@ case class OpPubKeyHash() extends PseudoWord with InternalScriptOp {
 
 /** OP_PUBKEY(0xfe) : Represents a public key field
   */
-case class OpPubKey() extends PseudoWord with InternalScriptOp {
-  def opCode() = OpCode(0xfe)
+data class OpPubKey() : PseudoWord with InternalScriptOp {
+  fun opCode() = OpCode(0xfe)
 
-  override def execute(env : ScriptEnvironment): Unit = {
+  override fun execute(env : ScriptEnvironment): Unit {
     // TODO : Implement
     assert(false);
   }
@@ -56,10 +56,10 @@ case class OpPubKey() extends PseudoWord with InternalScriptOp {
 
 /** OP_INVALIDOPCODE(0xff) : Represents any OP code not currently assigned
   */
-case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
-  def opCode() = OpCode(0xff)
+data class OpInvalidOpCode() : PseudoWord with InternalScriptOp {
+  fun opCode() = OpCode(0xff)
 
-  override def execute(env : ScriptEnvironment): Unit = {
+  override fun execute(env : ScriptEnvironment): Unit {
     // TODO : Implement
     assert(false);
   }
@@ -111,18 +111,18 @@ case class OpInvalidOpCode() extends PseudoWord with InternalScriptOp {
  *   2. run then-statement-list if the item is true.
  *   3. run else-statement-list part otherwise.
  */
-case class OpCond(val invert : Boolean,
+data class OpCond(val invert : Boolean,
                   thenStatementList : ScriptOpList,
-                  elseStatementList : ScriptOpList) extends PseudoWord with InternalScriptOp with ScriptOpWithoutCode {
+                  elseStatementList : ScriptOpList) : PseudoWord with InternalScriptOp with ScriptOpWithoutCode {
 
-  def opCode() = {
+  fun opCode() {
     // We should never try to serialize OpCond, which is a temporary operation stays in memory.
     // IOW, OpCond is implementation specific.
     assert(false)
     null
   }
 
-  override def execute(env : ScriptEnvironment) : Unit = {
+  override fun execute(env : ScriptEnvironment) : Unit {
     assert(thenStatementList != null)
     val top = env.stack.top()
     val evaluatedValue = Utils.castToBool(top.value)

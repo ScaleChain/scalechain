@@ -31,7 +31,7 @@ import io.scalechain.blockchain.script.HashSupported._
   *     ↘       ↘
   *       ↘ → → → → TX04
   */
-class BlockSampleData()(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
+class BlockSampleData()(protected implicit val db : KeyValueDatabase) : BlockBuildingTestTrait {
 
   val Addr1 = generateAccountAddress("Address1") // address 1
   val Addr2 = generateAccountAddress("Address2") // address 2

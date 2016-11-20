@@ -17,12 +17,12 @@ import HashSupported._
 object RpcSubSystem {
   var theRpcSubSystem : RpcSubSystem = null
 
-  def create(chain : Blockchain, peerCommunicator: PeerCommunicator) = {
-    theRpcSubSystem = new RpcSubSystem(chain, peerCommunicator)(chain.db)
+  fun create(chain : Blockchain, peerCommunicator: PeerCommunicator) {
+    theRpcSubSystem = RpcSubSystem(chain, peerCommunicator)(chain.db)
     theRpcSubSystem
   }
 
-  def get = {
+  fun get {
     assert(theRpcSubSystem != null)
     theRpcSubSystem
   }
@@ -37,7 +37,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param blockHeight The height of the block.
     * @return The hash of the block header.
     */
-  def getBlockHash(blockHeight : Long) : Hash = {
+  fun getBlockHash(blockHeight : Long) : Hash {
     chain.getBlockHash(blockHeight)
   }
 
@@ -48,7 +48,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  def getBlock(blockHash: Hash): Option[(BlockInfo, Block)] = {
+  fun getBlock(blockHash: Hash): Option<(BlockInfo, Block)> {
     chain.getBlock(blockHash)
   }
 
@@ -58,7 +58,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     *
     * @return The header hash of the most recent block.
     */
-  def getBestBlockHash(): Option[Hash] = {
+  fun getBestBlockHash(): Option<Hash> {
     chain.getBestBlockHash()
   }
 
@@ -70,7 +70,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     *
     * @return The height of the best block.
     */
-  def getBestBlockHeight() : Long = {
+  fun getBestBlockHeight() : Long {
     chain.getBestBlockHeight()
   }
 
@@ -80,7 +80,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
     * @return Some(block info) if the transaction is included in a block; None otherwise.
     */
-  def getTransactionBlockInfo(txHash : Hash) : Option[BlockInfo] = {
+  fun getTransactionBlockInfo(txHash : Hash) : Option<BlockInfo> {
     chain.getTransactionBlockInfo(txHash)
   }
 
@@ -91,18 +91,18 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param txHash The header hash of the transaction to search.
     * @return The searched block.
     */
-  def getTransaction(txHash : Hash): Option[Transaction] = {
+  fun getTransaction(txHash : Hash): Option<Transaction> {
     chain.getTransaction(txHash)
   }
 
 
   /** List of responses for submitblock RPC.
     */
-  object SubmitBlockResult extends Enumeration {
-    val DUPLICATE         = new Val(nextId, "duplicate")
-    val DUPLICATE_INVALID = new Val(nextId, "duplicate-invalid")
-    val INCONCLUSIVE      = new Val(nextId, "inconclusive")
-    val REJECTED          = new Val(nextId, "rejected")
+  object SubmitBlockResult : Enumeration {
+    val DUPLICATE         = Val(nextId, "duplicate")
+    val DUPLICATE_INVALID = Val(nextId, "duplicate-invalid")
+    val INCONCLUSIVE      = Val(nextId, "inconclusive")
+    val REJECTED          = Val(nextId, "rejected")
   }
 
   /** Accepts a block, verifies it is a valid addition to the block chain, and broadcasts it to the network.
@@ -113,7 +113,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param parameters The JsObject we got from the second parameter of submitblock RPC. A common parameter is a workid string.
     * @return Some(SubmitBlockResult) if any error happend; None otherwise.
     */
-  def submitBlock(block : Block, parameters : JsObject) : Option[SubmitBlockResult.Value] = {
+  fun submitBlock(block : Block, parameters : JsObject) : Option<SubmitBlockResult.Value> {
     // TODO : BUGBUG : parameters is not used.
     val blockHash = block.header.hash
     if (chain.hasBlock(blockHash)) {
@@ -135,7 +135,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param allowHighFees Whether to allow the transaction to pay a high transaction fee.
     * @return
     */
-  def sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) = {
+  fun sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) {
     TransactionProcessor.putTransaction(transaction.hash, transaction)(Blockchain.get.db)
 
     peerCommunicator.propagateTransaction(transaction)
@@ -147,14 +147,14 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     *
     * @return The list of peer information.
     */
-  def getPeerInfos() : List[PeerInfo] = {
+  fun getPeerInfos() : List<PeerInfo> {
     peerCommunicator.getPeerInfos()
   }
 
-  def verifyTransaction( transaction : Transaction ) : Unit = {
+  fun verifyTransaction( transaction : Transaction ) : Unit {
     implicit val db : KeyValueDatabase = Blockchain.get.db
 
-    new TransactionVerifier(transaction).verify(Blockchain.get)
+    TransactionVerifier(transaction).verify(Blockchain.get)
   }
 }
 

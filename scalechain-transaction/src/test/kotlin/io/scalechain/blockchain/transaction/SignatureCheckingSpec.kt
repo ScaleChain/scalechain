@@ -11,18 +11,18 @@ import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 /** Test signature validation operations in Crypto.scala
   *
   */
-class SignatureCheckingSpec extends FlatSpec with BeforeAndAfterEach with SignatureTestTrait {
+class SignatureCheckingSpec : FlatSpec with BeforeAndAfterEach with SignatureTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

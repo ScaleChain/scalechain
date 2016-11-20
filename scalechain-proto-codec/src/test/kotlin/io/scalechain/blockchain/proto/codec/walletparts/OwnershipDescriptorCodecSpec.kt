@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec._
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
-class OwnershipDescriptorCodecSpec extends CodecSuite with ProtoTestData {
+class OwnershipDescriptorCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val ownershipDescriptorCodec = OwnershipDescriptorCodec.codec
 

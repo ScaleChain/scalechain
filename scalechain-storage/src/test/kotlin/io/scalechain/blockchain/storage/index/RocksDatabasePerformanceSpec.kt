@@ -13,23 +13,23 @@ import org.scalatest._
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class RocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
+class RocksDatabasePerformanceSpec : FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
 
   var db : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-RocksDatabasePerformanceSpec")
+    val testPath = File("./target/unittests-RocksDatabasePerformanceSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new RocksDatabase( testPath )
+    db = RocksDatabase( testPath )
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

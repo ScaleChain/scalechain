@@ -16,7 +16,7 @@ object VersionMessageHandler {
     * @param version The Version message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, version : Version ) : Unit = {
+  fun handle( context : MessageHandlerContext, version : Version ) : Unit {
     logger.info(s"Version accepted : ${version}")
     context.peer.updateVersion(version)
     context.peer.send(Verack())

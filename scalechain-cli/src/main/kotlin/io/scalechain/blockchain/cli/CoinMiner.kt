@@ -21,38 +21,38 @@ import scala.collection.JavaConverters._
 
 import scala.util.Random
 
-case class CoinMinerParams(P2PPort : Int, InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
+data class CoinMinerParams(P2PPort : Int, InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
 /**
   * Created by kangmo on 3/15/16.
   */
 object CoinMiner {
   var theCoinMiner : CoinMiner = null
 
-  def create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) = {
-    theCoinMiner = new CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
+  fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
+    theCoinMiner = CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
     theCoinMiner.start()
     theCoinMiner
   }
 
-  def get = {
+  fun get {
     assert(theCoinMiner != null)
     theCoinMiner
   }
 
-  // For every 10 seconds, create a new block template for mining a block.
+  // For every 10 seconds, create a block template for mining a block.
   // This means that transactions received within the time window may not be put into the mined block.
   val MINING_TRIAL_WINDOW_MILLIS = 10000
 
 
 
-  def coinbaseData(height : Long) = {
+  fun coinbaseData(height : Long) {
     CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
   }
 }
 
 
 class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[CoinMiner]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<CoinMiner>) )
 
   import CoinMiner._
   implicit val db : KeyValueDatabase = rocksDB
@@ -62,7 +62,7 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
     *
     * @return true if we can mine; false otherwise.
     */
-  def canMine() : Boolean = {
+  fun canMine() : Boolean {
     val peerCount = Config.peerAddresses.length
     if (peerCount == 1) {
       // regression test mode with only one node.
@@ -93,11 +93,11 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
   }
 
 
-  def start() : Unit = {
-    val thread = new Thread {
-      override def run {
+  fun start() : Unit {
+    val thread = Thread {
+      override fun run {
         logger.info(s"Miner started. Params : ${params}")
-        val random = new Random(System.currentTimeMillis())
+        val random = Random(System.currentTimeMillis())
 
         // TODO : Need to eliminate this code.
         // Sleep for one minute to wait for each peer to start.
@@ -161,8 +161,8 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                 val blockHeight = chain.getBlockInfo(bestBlockHash.get)(rocksDB).get.height
                 val COINBASE_MESSAGE = coinbaseData(blockHeight + 1)
 
-                val blockTemplate = {
-                  val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
+                val blockTemplate {
+                  val blockMining = BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
                   Some(blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize))
                 }
 

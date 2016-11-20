@@ -11,11 +11,11 @@ import io.scalechain.blockchain.script.HashSupported._
 /**
   * Created by kangmo on 6/30/16.
   */
-class TransactionPriorityQueueSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class TransactionPriorityQueueSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-TransactionPriorityQueueSpec/")
+  val testPath = File("./target/unittests-TransactionPriorityQueueSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
@@ -23,12 +23,12 @@ class TransactionPriorityQueueSpec extends BlockchainTestTrait with TransactionT
 
   var data : TransactionSampleData = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
     keyValueDB = db
 
-    data = new TransactionSampleData()
+    data = TransactionSampleData()
     val d = data
     import d._
     import d.Tx._
@@ -40,10 +40,10 @@ class TransactionPriorityQueueSpec extends BlockchainTestTrait with TransactionT
     chain.putBlock(BLK02.header.hash, BLK02)
     chain.putBlock(BLK03.header.hash, BLK03)
 
-    q = new TransactionPriorityQueue(chain)
+    q = TransactionPriorityQueue(chain)
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     q = null
@@ -57,7 +57,7 @@ class TransactionPriorityQueueSpec extends BlockchainTestTrait with TransactionT
     import d.Tx._
     import d.Block._
 
-    a[ChainException] should be thrownBy {
+    a<ChainException> should be thrownBy {
       q.enqueue(TX04_02.transaction)
     }
   }

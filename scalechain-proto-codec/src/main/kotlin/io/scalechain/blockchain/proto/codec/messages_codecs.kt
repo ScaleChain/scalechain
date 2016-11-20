@@ -11,7 +11,7 @@ import scodec.codecs._
 
 
 /**
-  * [Description]
+  * <Description>
   * The version message provides information about the transmitting node
   * to the receiving node at the beginning of a connection.
   *
@@ -21,10 +21,10 @@ import scodec.codecs._
   * but no node should send a verack message before initializing its half of the connection
   * by first sending a version message.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#version
   *
-  * [Protocol]
+  * <Protocol>
   *  72110100 ........................... Protocol version: 70002
   *  0100000000000000 ................... Services: NODE_NETWORK
   *  bc8f5e5400000000 ................... Epoch time: 1415483324
@@ -45,12 +45,12 @@ import scodec.codecs._
   *  cf050500 ........................... Start height: 329167
   *  01 ................................. Relay flag: true
   */
-object VersionCodec extends ProtocolMessageCodec[Version] {
+object VersionCodec : ProtocolMessageCodec<Version> {
   val command = "version"
-  val clazz = classOf[Version]
+  val clazz = classOf<Version>
 
   // TODO : Implement
-  val codec : Codec[Version] = {
+  val codec : Codec<Version> {
     ("version"       | int32L                    ) ::
     ("services"      | BigIntForLongCodec.codec   ) ::
     ("timestamp"     | int64L                    ) ::
@@ -60,31 +60,31 @@ object VersionCodec extends ProtocolMessageCodec[Version] {
     ("userAgent"     | VarStr.codec              ) :: // version ≥ 106
     ("startHeight"   | int32L                    ) :: // version ≥ 106
     ("relay"         | Bool.codec                )    // version ≥ 70001
-  }.as[Version]
+  }.as<Version>
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * The verack message acknowledges a previously-received version message,
   * informing the connecting node that it can begin to send other messages.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#verack
   *
-  * [Protocol]
+  * <Protocol>
   *  No payload.
   */
-object VerackCodec extends ProtocolMessageCodec[Verack] {
+object VerackCodec : ProtocolMessageCodec<Verack> {
   val command = "verack"
-  val clazz = classOf[Verack]
+  val clazz = classOf<Verack>
 
-  val codec : Codec[Verack] = provide(Verack())
+  val codec : Codec<Verack> = provide(Verack())
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * The addr (IP address) message relays connection information for peers on the network.
   * Each peer which wants to accept incoming connections creates an addr message
   * providing its connection information and then sends that message to its peers unsolicited.
@@ -93,10 +93,10 @@ object VerackCodec extends ProtocolMessageCodec[Verack] {
   * some of which further distribute it, allowing decentralized peer discovery
   * for any program already on the network.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#addr
   *
-  * [Protocol]
+  * <Protocol>
   *  fde803 ............................. Address count: 1000
   *
   *  d91f4854 ........................... Epoch time: 1414012889
@@ -104,31 +104,31 @@ object VerackCodec extends ProtocolMessageCodec[Verack] {
   *  00000000000000000000ffffc0000233 ... IP Address: ::ffff:192.0.2.51
   *  208d ............................... Port: 8333
   *
-  *  [...] .............................. (999 more addresses omitted)
+  *  <...> .............................. (999 more addresses omitted)
   */
-object AddrCodec extends ProtocolMessageCodec[Addr] {
+object AddrCodec : ProtocolMessageCodec<Addr> {
   val command = "addr"
-  val clazz = classOf[Addr]
+  val clazz = classOf<Addr>
 
-  val codec : Codec[Addr] = {
+  val codec : Codec<Addr> {
     ( "addresses" | VarList.varList(NetworkAddressWithTimestampCodec.codec) )
-  }.as[Addr]
+  }.as<Addr>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The inv message (inventory message) transmits one or more inventories of objects
-  * known to the transmitting peer. It can be sent unsolicited to announce new transactions or blocks,
+  * known to the transmitting peer. It can be sent unsolicited to announce transactions or blocks,
   * or it can be sent in reply to a getblocks message or mempool message.
   *
   * The receiving peer can compare the inventories from an inv message against
   * the inventories it has already seen, and then use a follow-up message
   * to request unseen objects.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#inv
   *
-  * [Protocol]
+  * <Protocol>
   *  02 ................................. Count: 2
   *
   *  01000000 ........................... Type: MSG_TX
@@ -139,32 +139,32 @@ object AddrCodec extends ProtocolMessageCodec[Addr] {
   *  91d36d997037e08018262978766f24b8
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
-object InvCodec extends ProtocolMessageCodec[Inv] {
+object InvCodec : ProtocolMessageCodec<Inv> {
   val command = "inv"
-  val clazz = classOf[Inv]
+  val clazz = classOf<Inv>
 
   import io.scalechain.blockchain.proto.InvType.InvType
 
-  val invTypeCodec : Codec[InvType] = {
+  val invTypeCodec : Codec<InvType> {
     mappedEnum(uint32L,
         InvType.ERROR -> 0L,
         InvType.MSG_TX -> 1L,
         InvType.MSG_BLOCK -> 2L,
         InvType.MSG_FILTERED_BLOCK -> 3L )
-  }.as[InvType]
+  }.as<InvType>
 
-  val invVectorCodec : Codec[InvVector] = {
+  val invVectorCodec : Codec<InvVector> {
     ("inventory_type" | invTypeCodec) ::
     ("hash" | HashCodec.codec)
-  }.as[InvVector]
+  }.as<InvVector>
 
-  val codec : Codec[Inv] = {
+  val codec : Codec<Inv> {
     ( "inventories" | VarList.varList(invVectorCodec) )
-  }.as[Inv]
+  }.as<Inv>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The getdata message requests one or more data objects from another node.
   * The objects are requested by an inventory, which the requesting node typically
   * previously received by way of an inv message.
@@ -180,10 +180,10 @@ object InvCodec extends ProtocolMessageCodec[Inv] {
   * to request data from a node which previously advertised
   * it had that data by sending an inv message.
   *
-  * [Reference]
+  * <Reference>
   *  https://bitcoin.org/en/developer-reference#getdata
   *
-  * [Protocol]
+  * <Protocol>
   * ( Identical to Inv message )
   *  02 ................................. Count: 2
   *
@@ -195,17 +195,17 @@ object InvCodec extends ProtocolMessageCodec[Inv] {
   *  91d36d997037e08018262978766f24b8
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
-object GetDataCodec extends ProtocolMessageCodec[GetData] {
+object GetDataCodec : ProtocolMessageCodec<GetData> {
   val command = "getdata"
-  val clazz = classOf[GetData]
+  val clazz = classOf<GetData>
 
-  val codec : Codec[GetData] = {
+  val codec : Codec<GetData> {
     ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
-  }.as[GetData]
+  }.as<GetData>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The notfound message is a reply to a getdata message
   * which requested an object the receiving node does not have available for relay.
   *
@@ -213,13 +213,13 @@ object GetDataCodec extends ProtocolMessageCodec[GetData] {
   *  Nodes may also have pruned spent transactions from older blocks,
   *  making them unable to send those blocks.)
   *
-  * [Since]
+  * <Since>
   * Added in protocol version 70001.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#notfound
   *
-  * [Protocol]
+  * <Protocol>
   * ( Identical to Inv message )
   *  02 ................................. Count: 2
   *
@@ -231,28 +231,28 @@ object GetDataCodec extends ProtocolMessageCodec[GetData] {
   *  91d36d997037e08018262978766f24b8
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
-object NotFoundCodec extends ProtocolMessageCodec[NotFound] {
+object NotFoundCodec : ProtocolMessageCodec<NotFound> {
   val command = "notfound"
-  val clazz = classOf[NotFound]
+  val clazz = classOf<NotFound>
 
-  val codec : Codec[NotFound] = {
+  val codec : Codec<NotFound> {
     ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
-  }.as[NotFound]
+  }.as<NotFound>
 
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * The getblocks message requests an inv message that provides block header hashes
   * starting from a particular point in the block chain. It allows a peer
   * which has been disconnected or started for the first time to get the data it needs
   * to request the blocks it hasn’t seen.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#getblocks
   *
-  * [Protocol]
+  * <Protocol>
   *  71110100 ........................... Protocol version: 70001
   *  02 ................................. Hash count: 2
   *
@@ -265,28 +265,28 @@ object NotFoundCodec extends ProtocolMessageCodec[NotFound] {
   *  00000000000000000000000000000000
   *  00000000000000000000000000000000 ... Stop hash
   */
-object GetBlocksCodec extends ProtocolMessageCodec[GetBlocks] {
+object GetBlocksCodec : ProtocolMessageCodec<GetBlocks> {
   val command = "getblocks"
-  val clazz = classOf[GetBlocks]
+  val clazz = classOf<GetBlocks>
 
-  val codec : Codec[GetBlocks] = {
+  val codec : Codec<GetBlocks> {
     ("version"              | uint32L                         ) ::
     ("block_locator_hashes" | VarList.varList(HashCodec.codec)) ::
     ("hash_stop"            | HashCodec.codec                 )
-  }.as[GetBlocks]
+  }.as<GetBlocks>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The block message transmits a single serialized block in the format
   * described in the serialized blocks section.
   *
   * See that section for an example hexdump.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#block
   *
-  * [Protocol]
+  * <Protocol>
   *  01000000 ........................... Block version: 1
   *  82bb869cf3a793432a66e826e05a6fc3
   *  7469f8efb7421dc88067010000000000 ... Hash of previous block's header
@@ -299,18 +299,18 @@ object GetBlocksCodec extends ProtocolMessageCodec[GetBlocks] {
   *  01 ................................. Transaction Count
   *  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Raw transactions ( See TransactionCodec )
   */
-object BlockCodec extends ProtocolMessageCodec[Block] {
+object BlockCodec : ProtocolMessageCodec<Block> {
   val command = "block"
-  val clazz = classOf[Block]
+  val clazz = classOf<Block>
 
-  val codec : Codec[Block] = {
+  val codec : Codec<Block> {
     ("blockcheader"          | BlockHeaderCodec.codec                 ) ::
     ("transactions"          | VarList.varList(TransactionCodec.codec))
-  }.as[Block]
+  }.as<Block>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The getheaders message requests a headers message that provides block headers
   * starting from a particular point in the block chain.
   *
@@ -322,14 +322,14 @@ object BlockCodec extends ProtocolMessageCodec[Block] {
   * no more than 500 block header hashes; the headers reply to the getheaders message will include
   * as many as 2,000 block headers.
   *
-  * [Since]
+  * <Since>
   *  Added in protocol version 31800.
   *
-  * [Reference]
+  * <Reference>
   *  https://bitcoin.org/en/developer-reference#getheaders
   *  https://en.bitcoin.it/wiki/Protocol_documentation#getheaders
   *
-  * [Protocol]
+  * <Protocol>
   *  71110100 ........................... Protocol version: 70001
   *  02 ................................. Hash count: 2
   *
@@ -342,30 +342,30 @@ object BlockCodec extends ProtocolMessageCodec[Block] {
   *  00000000000000000000000000000000
   *  00000000000000000000000000000000 ... Stop hash
   */
-object GetHeadersCodec extends ProtocolMessageCodec[GetHeaders] {
+object GetHeadersCodec : ProtocolMessageCodec<GetHeaders> {
   val command = "getheaders"
-  val clazz = classOf[GetHeaders]
+  val clazz = classOf<GetHeaders>
 
-  val codec : Codec[GetHeaders] = {
+  val codec : Codec<GetHeaders> {
     ("version"              | uint32L                         ) ::
     ("block_locator_hashes" | VarList.varList(HashCodec.codec)) ::
     ("hash_stop"            | HashCodec.codec                 )
-  }.as[GetHeaders]
+  }.as<GetHeaders>
 }
 
 
 
 /**
-  * [Description]
+  * <Description>
   * The tx message transmits a single transaction in the raw transaction format.
   * It can be sent in a variety of situations
   * 1. Transaction Response
   * 2. MerkleBlock Response
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#raw-transaction-format
   *
-  * [Protocol]
+  * <Protocol>
   *  01000000 ................................... Version
   *
   *  01 ......................................... Number of inputs
@@ -399,30 +399,30 @@ object GetHeadersCodec extends ProtocolMessageCodec[GetHeaders] {
   *  00000000 ................................... locktime: 0 (a block height)
   *
   */
-object TransactionCodec extends ProtocolMessageCodec[Transaction] {
+object TransactionCodec : ProtocolMessageCodec<Transaction> {
   val command = "tx"
-  val clazz = classOf[Transaction]
+  val clazz = classOf<Transaction>
 
-  val codec : Codec[Transaction] = {
+  val codec : Codec<Transaction> {
     ("version"             | int32L                                        ) ::
     ("inputs"  | VarList.varList(TransactionInputCodec.codec ) ) ::
     ("outputs" | VarList.varList(TransactionOutputCodec.codec) ) ::
     ("lock_time"           | uint32L                                       )
-  }.as[Transaction]
+  }.as<Transaction>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The headers message sends one or more block headers to a node
   * which previously requested certain headers with a getheaders message.
   *
-  * [Since]
+  * <Since>
   * Added in protocol version 31800.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#headers
   *
-  * [Protocol]
+  * <Protocol>
   *
   *  01 ................................. Header count: 1
   *
@@ -437,32 +437,32 @@ object TransactionCodec extends ProtocolMessageCodec[Transaction] {
   *
   *  00 ................................. Transaction count (0x00)
   */
-object HeadersCodec extends ProtocolMessageCodec[Headers] {
+object HeadersCodec : ProtocolMessageCodec<Headers> {
   val command = "headers"
-  val clazz = classOf[Headers]
+  val clazz = classOf<Headers>
 
-  val ZERO = Array[Byte](0)
+  val ZERO = Array<Byte>(0)
 
-  case class BlockHeaderWithDummy (
+  data class BlockHeaderWithDummy (
      header : BlockHeader,
      dummy : Unit )
 
-  private val BlockHeaderWithDummyCodec : Codec[BlockHeaderWithDummy] = {
+  private val BlockHeaderWithDummyCodec : Codec<BlockHeaderWithDummy> {
     ("block_header" | BlockHeaderCodec.codec) ::
     ("transaction_count" | constant(ByteVector.view(ZERO)))
-  }.as[BlockHeaderWithDummy]
+  }.as<BlockHeaderWithDummy>
 
-  val blockHeaderCoodec : Codec[BlockHeader] = BlockHeaderWithDummyCodec.xmap(
+  val blockHeaderCoodec : Codec<BlockHeader> = BlockHeaderWithDummyCodec.xmap(
     _.header, BlockHeaderWithDummy(_:BlockHeader, ())
   )
 
-  val codec : Codec[Headers] = {
+  val codec : Codec<Headers> {
     ("headers" | VarList.varList(blockHeaderCoodec))
-  }.as[Headers]
+  }.as<Headers>
 }
 
 /**
-  * [Description]
+  * <Description>
   * The getaddr message requests an addr message from the receiving node,
   * preferably one with lots of IP addresses of other receiving nodes.
   *
@@ -470,21 +470,21 @@ object HeadersCodec extends ProtocolMessageCodec[Headers] {
   * its database of available nodes rather than waiting for
   * unsolicited addr messages to arrive over time.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#getaddr
   *
-  * [Protocol]
+  * <Protocol>
   *  No Payload.
   */
-object GetAddrCodec extends ProtocolMessageCodec[GetAddr] {
+object GetAddrCodec : ProtocolMessageCodec<GetAddr> {
   val command = "getaddr"
-  val clazz = classOf[GetAddr]
+  val clazz = classOf<GetAddr>
 
-  val codec : Codec[GetAddr] = provide(GetAddr())
+  val codec : Codec<GetAddr> = provide(GetAddr())
 }
 
 /**
-  * [Description]
+  * <Description>
   * The mempool message requests the TXIDs of transactions that the receiving node has verified as valid
   * but which have not yet appeared in a block. That is, transactions which are
   * in the receiving node’s memory pool. The response to the mempool message is
@@ -502,25 +502,25 @@ object GetAddrCodec extends ProtocolMessageCodec[GetAddr] {
   * The inv response to the mempool message is, at best, one node’s view of the network—
   * not a complete list of unconfirmed transactions on the network.
   *
-  * [Since]
+  * <Since>
   * Added in protocol version 60002.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#mempool
   *
-  * [Protocol]
+  * <Protocol>
   * No payload.
   */
-object MempoolCodec extends ProtocolMessageCodec[Mempool] {
+object MempoolCodec : ProtocolMessageCodec<Mempool> {
   val command = "mempool"
-  val clazz = classOf[Mempool]
+  val clazz = classOf<Mempool>
 
-  val codec : Codec[Mempool] = provide(Mempool())
+  val codec : Codec<Mempool> = provide(Mempool())
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * The ping message helps confirm that the receiving peer is still connected.
   * If a TCP/IP error is encountered when sending the ping message (such as a connection timeout),
   * the transmitting node can assume that the receiving node is disconnected.
@@ -530,23 +530,23 @@ object MempoolCodec extends ProtocolMessageCodec[Mempool] {
   * Before protocol version 60000, the ping message had no payload.
   * As of protocol version 60001 and all later versions, the message includes a single field, the nonce.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#ping
   *
-  * [Protocol]
+  * <Protocol>
   *  0094102111e2af4d ... Nonce
   */
-object PingCodec extends ProtocolMessageCodec[Ping] {
+object PingCodec : ProtocolMessageCodec<Ping> {
   val command = "ping"
-  val clazz = classOf[Ping]
+  val clazz = classOf<Ping>
 
-  val codec : Codec[Ping] = {
+  val codec : Codec<Ping> {
     ( "nonce" | BigIntForLongCodec.codec )
-  }.as[Ping]
+  }.as<Ping>
 }
 
 /**
-  * [Description]
+  * <Description>
   *
   * Added in protocol version 60001 as described by BIP31.
   *
@@ -558,32 +558,32 @@ object PingCodec extends ProtocolMessageCodec[Ping] {
   * To allow nodes to keep track of latency, the pong message sends back
   * the same nonce received in the ping message it is replying to.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#pong
   *
-  * [Protocol]
+  * <Protocol>
   *  0094102111e2af4d ... Nonce
   */
-object PongCodec extends ProtocolMessageCodec[Pong] {
+object PongCodec : ProtocolMessageCodec<Pong> {
   val command = "pong"
-  val clazz = classOf[Pong]
+  val clazz = classOf<Pong>
 
-  val codec : Codec[Pong] = {
+  val codec : Codec<Pong> {
     ( "nonce" | BigIntForLongCodec.codec )
-  }.as[Pong]
+  }.as<Pong>
 }
 
 /**
-  * [Description]
+  * <Description>
   * Added in protocol version 70002 as described by BIP61.
   *
   * The reject message informs the receiving node that
   * one of its previous messages has been rejected.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#reject
   *
-  * [Protocol]
+  * <Protocol>
   *  02 ................................. Number of bytes in message: 2
   *  7478 ............................... Type of message rejected: tx
   *  12 ................................. Reject code: 0x12 (duplicate)
@@ -593,13 +593,13 @@ object PongCodec extends ProtocolMessageCodec[Pong] {
   *  394715fcab51093be7bfca5a31005972
   *  947baf86a31017939575fb2354222821 ... TXID
   */
-object RejectCodec extends ProtocolMessageCodec[Reject] {
+object RejectCodec : ProtocolMessageCodec<Reject> {
   val command = "reject"
-  val clazz = classOf[Reject]
+  val clazz = classOf<Reject>
 
   import io.scalechain.blockchain.proto.RejectType.RejectType
 
-  val rejectTypeCodec : Codec[RejectType] = {
+  val rejectTypeCodec : Codec<RejectType> {
     mappedEnum(uint8,
       RejectType.REJECT_MALFORMED -> 0x01,
       RejectType.REJECT_INVALID -> 0x10,
@@ -610,18 +610,18 @@ object RejectCodec extends ProtocolMessageCodec[Reject] {
       RejectType.REJECT_INSUFFICIENTFEE -> 0x42,
       RejectType.REJECT_CHECKPOINT -> 0x43
     )
-  }.as[RejectType]
+  }.as<RejectType>
 
-  val codec : Codec[Reject] = {
+  val codec : Codec<Reject> {
     ("message" | VarStr.codec ) ::
     ("rejectType" | rejectTypeCodec) ::
     ("reason" | VarStr.codec ) ::
     ("data" | FixedByteArray.codec())
-  }.as[Reject]
+  }.as<Reject>
 }
 
 /**
-  * [Description]
+  * <Description>
   * Added in protocol version 70001 as described by BIP37.
   *
   * The filterload message tells the receiving peer to filter all relayed transactions
@@ -631,75 +631,75 @@ object RejectCodec extends ProtocolMessageCodec[Reject] {
   * plus a configurable rate of false positive transactions
   * which can provide plausible-deniability privacy.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#filterload
   *
-  * [Protocol]
+  * <Protocol>
   *  02 ......... Filter bytes: 2
   *  b50f ....... Filter: 1010 1101 1111 0000
   *  0b000000 ... nHashFuncs: 11
   *  00000000 ... nTweak: 0/none
   *  00 ......... nFlags: BLOOM_UPDATE_NONE
   */
-object FilterLoadCodec extends ProtocolMessageCodec[FilterLoad] {
+object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
   val command = "filterload"
-  val clazz = classOf[FilterLoad]
+  val clazz = classOf<FilterLoad>
 
   // TODO : Implement
-  val codec : Codec[FilterLoad] = null
+  val codec : Codec<FilterLoad> = null
 }
 
 /**
-  * [Description]
+  * <Description>
   * Added in protocol version 70001 as described by BIP37.
   *
   * The filteradd message tells the receiving peer to add a single element
-  * to a previously-set bloom filter, such as a new public key.
+  * to a previously-set bloom filter, such as a public key.
   *
   * The element is sent directly to the receiving peer;
   * the peer then uses the parameters set in the filterload message
   * to add the element to the bloom filter.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#filteradd
   *
-  * [Protocol]
+  * <Protocol>
   *  20 ................................. Element bytes: 32
   *  fdacf9b3eb077412e7a968d2e4f11b9a
   *  9dee312d666187ed77ee7d26af16cb0b ... Element (A TXID)
   *
   */
-object FilterAddCodec extends ProtocolMessageCodec[FilterAdd] {
+object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
   val command = "filteradd"
-  val clazz = classOf[FilterAdd]
+  val clazz = classOf<FilterAdd>
 
   // TODO : Implement
-  val codec : Codec[FilterAdd] = null
+  val codec : Codec<FilterAdd> = null
 }
 
 /**
-  * [Description]
+  * <Description>
   * Added in protocol version 70001 as described by BIP37.
   *
   * The filterclear message tells the receiving peer to remove a previously-set bloom filter.
   * This also undoes the effect of setting the relay field in the version message to 0,
-  * allowing unfiltered access to inv messages announcing new transactions.
+  * allowing unfiltered access to inv messages announcing transactions.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#filterclear
   *
-  * [Protocol]
+  * <Protocol>
   * No Payload.
   */
-object FilterClearCodec extends ProtocolMessageCodec[FilterClear] {
+object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
   val command = "filterclear"
-  val clazz = classOf[FilterClear]
+  val clazz = classOf<FilterClear>
 
-  val codec : Codec[FilterClear] = provide(FilterClear())
+  val codec : Codec<FilterClear> = provide(FilterClear())
 }
 
 /**
-  * [Description]
+  * <Description>
   * The merkleblock message is a reply to a getdata message
   * which requested a block using the inventory type MSG_MERKLEBLOCK.
   *
@@ -715,13 +715,13 @@ object FilterClearCodec extends ProtocolMessageCodec[FilterClear] {
   * The message also contains a complete copy of the block header
   * to allow the client to hash it and confirm its proof of work.
   *
-  * [Since]
+  * <Since>
   * Added in protocol version 70001 as described by BIP37.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#merkleblock
   *
-  * [Protocol]
+  * <Protocol>
   *  01000000 ........................... Block version: 1
   *  82bb869cf3a793432a66e826e05a6fc3
   *  7469f8efb7421dc88067010000000000 ... Hash of previous block's header
@@ -747,26 +747,26 @@ object FilterClearCodec extends ProtocolMessageCodec[FilterClear] {
   *  1d ................................. Flags: 1 0 1 1 1 0 0 0
   *
   */
-object MerkleBlockCodec extends ProtocolMessageCodec[MerkleBlock] {
+object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
   val command = "merkleblock"
-  val clazz = classOf[MerkleBlock]
+  val clazz = classOf<MerkleBlock>
 
   // TODO : Implement
-  val codec : Codec[MerkleBlock] = null
+  val codec : Codec<MerkleBlock> = null
 }
 
 /**
-  * [Description]
+  * <Description>
   * Added in protocol version 311.
   *
   * The alert message warns nodes of problems that may affect them or the rest of the network.
   * Each alert message is signed using a key controlled by respected community members,
   * mostly Bitcoin Core developers.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#alert
   *
-  * [Protocol]
+  * <Protocol>
   *
   *  73 ................................. Bytes in encapsulated alert: 115
   *  01000000 ........................... Version: 1
@@ -788,7 +788,7 @@ object MerkleBlockCodec extends ProtocolMessageCodec[MerkleBlock] {
   *  666562323020696620796f7520686176
   *  652074726f75626c6520636f6e6e6563
   *  74696e67206166746572203230204665
-  *  627275617279 ....................... Status Bar String: "See [...]"
+  *  627275617279 ....................... Status Bar String: "See <...>"
   *  00 ................................. Bytes In Reserved String: 0
   *
   *  47 ................................. Bytes in signature: 71
@@ -799,29 +799,29 @@ object MerkleBlockCodec extends ProtocolMessageCodec[MerkleBlock] {
   *  723326e4e8a4f1 ..................... Signature
   *
   */
-object AlertCodec extends ProtocolMessageCodec[Alert] {
+object AlertCodec : ProtocolMessageCodec<Alert> {
   val command = "alert"
-  val clazz = classOf[Alert]
+  val clazz = classOf<Alert>
 
   // TODO : Implement
-  val codec : Codec[Alert] = null
+  val codec : Codec<Alert> = null
 }
 
 /**
-  * [Description]
-  * The sendheaders message tells the receiving peer to send new block announcements
+  * <Description>
+  * The sendheaders message tells the receiving peer to send block announcements
   * using a headers message rather than an inv message.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#sendheaders
   *
-  * [Protocol]
+  * <Protocol>
   *  No payload.
   */
-object SendHeadersCodec extends ProtocolMessageCodec[SendHeaders] {
+object SendHeadersCodec : ProtocolMessageCodec<SendHeaders> {
   val command = "sendheaders"
-  val clazz = classOf[SendHeaders]
+  val clazz = classOf<SendHeaders>
 
-  val codec : Codec[SendHeaders] = provide(SendHeaders())
+  val codec : Codec<SendHeaders> = provide(SendHeaders())
 }
 

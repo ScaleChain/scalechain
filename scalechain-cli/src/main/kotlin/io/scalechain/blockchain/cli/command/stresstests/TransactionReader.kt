@@ -23,7 +23,7 @@ class TransactionReader(transactionFile : File) {
     *
     * @param listener The listener, which will be notified for each transaction in the file.
     */
-  def read(listener : RawTransactionListener) : Unit = {
+  fun read(listener : RawTransactionListener) : Unit {
     for( rawTransactionString <- Source.fromFile(transactionFile).getLines()) {
       listener(rawTransactionString)
     }

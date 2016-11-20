@@ -7,17 +7,17 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
 trait RpcCommand {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[RpcCommand]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<RpcCommand>) )
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]]
-  def help() : String
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>>
+  fun help() : String
 
-  def handlingException( block : => Either[RpcError, Option[RpcResult]]) : Either[RpcError, Option[RpcResult]] = {
+  fun handlingException( block : => Either<RpcError, Option<RpcResult>>) : Either<RpcError, Option<RpcResult>> {
     try {
       block
     } catch {
       case e : ExceptionWithErrorCode => {
-        if (e.isInstanceOf[RpcException] ) {
+        if (e.isInstanceOf<RpcException> ) {
           // We had an invalid RPC call such as missing mandatory parameters.
           // do not log anything about this, because the cause of this exception is not ScaleChain server, but users calling RPCs.
         } else {

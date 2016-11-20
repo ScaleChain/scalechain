@@ -10,15 +10,15 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ArrayBuffer
 
 object BlockProcessor {
-  protected[chain] var theBlockProcessor : BlockProcessor = null
-  def create(chain : Blockchain) = {
+  protected<chain> var theBlockProcessor : BlockProcessor = null
+  fun create(chain : Blockchain) {
     if (theBlockProcessor == null) {
-      theBlockProcessor = new BlockProcessor(chain)(chain.db)
+      theBlockProcessor = BlockProcessor(chain)(chain.db)
     }
     theBlockProcessor
   }
 
-  def get = {
+  fun get {
     assert( theBlockProcessor != null)
     theBlockProcessor
   }
@@ -42,7 +42,7 @@ object BlockProcessor {
   *
   */
 class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockProcessor]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockProcessor>) )
 
 
 
@@ -51,7 +51,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The hash of the block to get.
     * @return Some(block) if the block exists; None otherwise.
     */
-  def getBlock(blockHash : Hash) : Option[Block] = {
+  fun getBlock(blockHash : Hash) : Option<Block> {
     chain.getBlock(blockHash).map(_._2)
   }
 
@@ -61,7 +61,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The hash of the block to check.
     * @return true if the block exist; false otherwise.
     */
-  def exists(blockHash : Hash) : Boolean  = {
+  fun exists(blockHash : Hash) : Boolean  {
     return hasNonOrphan(blockHash) || hasOrphan(blockHash)
   }
 
@@ -70,7 +70,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The hash of the block to check.
     * @return true if the block exists as an orphan; false otherwise.
     */
-  def hasOrphan(blockHash : Hash) : Boolean = {
+  fun hasOrphan(blockHash : Hash) : Boolean {
     chain.blockOrphanage.hasOrphan(blockHash)
   }
 
@@ -79,7 +79,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash the hash of the block to check.
     * @return true if the block exists as a non-orphan; false otherwise.
     */
-  def hasNonOrphan(blockHash : Hash) : Boolean = {
+  fun hasNonOrphan(blockHash : Hash) : Boolean {
     chain.hasBlock(blockHash)
   }
 
@@ -87,7 +87,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     *
     * @param block the block to put as an orphan block.
     */
-  def putOrphan(block : Block) : Unit = {
+  fun putOrphan(block : Block) : Unit {
     chain.blockOrphanage.putOrphan(block)
   }
 
@@ -98,7 +98,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The block to find the root parent of it.
     * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
-  def getOrphanRoot(blockHash : Hash) : Hash = {
+  fun getOrphanRoot(blockHash : Hash) : Hash {
     chain.blockOrphanage.getOrphanRoot(blockHash)
   }
 
@@ -108,7 +108,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param block
     * @return
     */
-  def validateBlock(block : Block) : Unit = {
+  fun validateBlock(block : Block) : Unit {
     // Step 1. check the serialized block size.
     // Step 2. check the proof of work - block hash vs target hash
     // Step 3. check the block timestamp.
@@ -122,7 +122,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
 /*
     val message = s"The block is invalid(${outPoint})."
     logger.warn(message)
-    throw new ChainException(ErrorCode.InvalidBlock, message)
+    throw ChainException(ErrorCode.InvalidBlock, message)
 */
   }
 
@@ -133,7 +133,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param block The block to accept.
     * @return true if the newly accepted block became the new best block.
     */
-  def acceptBlock(blockHash : Hash, block : Block) : Boolean = {
+  fun acceptBlock(blockHash : Hash, block : Block) : Boolean {
     // Step 1. Need to check if the same blockheader hash exists by looking up mapBlockIndex
     // Step 2. Need to increase DoS score if an orphan block was received.
     // Step 3. Need to increase DoS score if the block hash does not meet the required difficulty.
@@ -154,14 +154,14 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param initialParentBlockHash The hash of the newly accepted parent block. As a result of it, we can accept the children of the newly accepted block.
     * @return A list of block hashes which were newly accepted.
     */
-  def acceptChildren(initialParentBlockHash : Hash) : List[Hash] = {
-    val acceptedChildren = new ArrayBuffer[Hash]
+  fun acceptChildren(initialParentBlockHash : Hash) : List<Hash> {
+    val acceptedChildren = ArrayBuffer<Hash>
 
     var i = -1;
     do {
       val parentTxHash = if (acceptedChildren.length == 0) initialParentBlockHash else acceptedChildren(i)
 
-      val dependentChildren : List[Hash] = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
+      val dependentChildren : List<Hash> = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
       dependentChildren foreach { dependentChildHash : Hash =>
         val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
 
@@ -205,7 +205,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The hash of the block to get.
     * @return Some(blockHeader) if the block header exists; None otherwise.
     */
-  def getBlockHeader(blockHash : Hash) : Option[BlockHeader] = {
+  fun getBlockHeader(blockHash : Hash) : Option<BlockHeader> {
     chain.getBlockHeader(blockHash)
   }
 
@@ -213,7 +213,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     *
     * @param blockHeader The block header to accept.
     */
-  def acceptBlockHeader(blockHeader :BlockHeader ) : Unit = {
+  fun acceptBlockHeader(blockHeader :BlockHeader ) : Unit {
     // Step 1 : Check if the block header already exists, return the block index of it if it already exists.
     // Step 2 : Check the proof of work and block timestamp.
 

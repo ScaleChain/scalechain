@@ -4,10 +4,10 @@ import java.io.File
 
 import org.scalatest._
 
-class AddrMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
+class AddrMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-AddrMessageHandlerSpec/")
+  val testPath = File("./target/unittests-AddrMessageHandlerSpec/")
 
   "handle" should "" in {
   }

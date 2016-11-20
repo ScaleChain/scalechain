@@ -51,8 +51,8 @@ object RpcResultJsonFormat {
   implicit val implicitUnspentCoin                   = jsonFormat9(UnspentCoinDescriptor.apply)
 
 
-  implicit object format extends RootJsonFormat[RpcResult] {
-    def write(result : RpcResult) = result match {
+  implicit object format : RootJsonFormat<RpcResult> {
+    fun write(result : RpcResult) = result match {
 
       case StringResult(value)            => JsString(value)
       case StringListResult(values)       => JsArray(values.map(JsString(_)).toVector)
@@ -85,7 +85,7 @@ object RpcResultJsonFormat {
     }
 
     // Not used.
-    def read(value:JsValue) = {
+    fun read(value:JsValue) {
       assert(false)
       null
     }
@@ -103,8 +103,8 @@ object RpcResponseJsonFormat {
 
   implicit val implicitJsonRpcError = jsonFormat3(RpcError.apply)
 
-  implicit object formatter extends RootJsonFormat[RpcResponse] {
-    def write(rpcResponse: RpcResponse) =
+  implicit object formatter : RootJsonFormat<RpcResponse> {
+    fun write(rpcResponse: RpcResponse) =
       JsObject(
         "result" -> rpcResponse.result.map( _.toJson ).getOrElse(JsNull),
         "error"  -> rpcResponse.error.map( _.toJson ).getOrElse(JsNull),
@@ -112,18 +112,18 @@ object RpcResponseJsonFormat {
       )
 
     // Not used.
-    def read(value: JsValue) = {
+    fun read(value: JsValue) {
       assert(false)
       null
     }
   }
 }
 
-object JsonRpcMicroservice extends JsonRpcMicroservice
+object JsonRpcMicroservice : JsonRpcMicroservice
 
 class JsonRpcMicroservice {
-  def runService(inboundPort : Int) = {
-    new ApiServer().listen(inboundPort)
+  fun runService(inboundPort : Int) {
+    ApiServer().listen(inboundPort)
   }
 }
 

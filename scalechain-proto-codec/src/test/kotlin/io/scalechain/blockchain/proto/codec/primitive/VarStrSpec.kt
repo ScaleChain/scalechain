@@ -4,7 +4,7 @@ package io.scalechain.blockchain.proto.codec.primitive
   * Thanks to : https://github.com/yzernik
   */
 
-class VarStrSpec extends CodecSuite {
+class VarStrSpec : CodecSuite {
 
   import VarStr._
 

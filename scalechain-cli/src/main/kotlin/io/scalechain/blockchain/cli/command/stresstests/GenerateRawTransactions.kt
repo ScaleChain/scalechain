@@ -18,11 +18,11 @@ import HashSupported._
 /**
   * Created by kangmo on 7/28/16.
   */
-object GenerateRawTransactions extends Command {
-  def initialSplitTransactionFileName() = "initial-split-transaction.txt"
-  def transactionGroupFileName(groupNumber : Int) = s"transaction-group-${groupNumber}.txt"
+object GenerateRawTransactions : Command {
+  fun initialSplitTransactionFileName() = "initial-split-transaction.txt"
+  fun transactionGroupFileName(groupNumber : Int) = s"transaction-group-${groupNumber}.txt"
 
-  def createSplitTransaction( privateKey : PrivateKey, transactionGroupCount : Int) : Transaction = {
+  fun createSplitTransaction( privateKey : PrivateKey, transactionGroupCount : Int) : Transaction {
     // Assumption : The output of the generation transaction of the block height 1 (right above the genesis block)
     //              can be spent by using the given private key.
     //              (1) For a node, scalechain.mining.address in scalechain.conf should have the address generated from the given private key.
@@ -40,14 +40,14 @@ object GenerateRawTransactions extends Command {
     txGenerator.addTransaction(initialSplitTransaction)
 
     // Write the initial split transaction.
-    val writer = new PrintWriter(new File( initialSplitTransactionFileName() ))
+    val writer = PrintWriter(File( initialSplitTransactionFileName() ))
     val rawInitialSplitTransaction = HexUtil.hex(TransactionCodec.serialize(initialSplitTransaction))
     writer.append(rawInitialSplitTransaction)
     writer.close
 
     initialSplitTransaction
   }
-  def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
+  fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
     val privateKeyString = args(1)
     val outputSplitCount = Integer.parseInt(args(2))
     val transactionGroupCount = Integer.parseInt(args(3))
@@ -60,14 +60,14 @@ object GenerateRawTransactions extends Command {
 
     val threads =
       (0 until transactionGroupCount).map { i =>
-        new Thread() {
+        Thread() {
           var outputIndex = i
           val txGenerator = TransactionGenerator.create
           txGenerator.addTransaction(initialSplitTransaction)
           val splitAddresses = txGenerator.newAddresses(outputSplitCount)
           val mergeAddresses = txGenerator.newAddresses(1)
-          override def run(): Unit = {
-            val writer = new PrintWriter(new File(transactionGroupFileName(i)))
+          override fun run(): Unit {
+            val writer = PrintWriter(File(transactionGroupFileName(i)))
             var txHash : Hash = initialSplitTxHash
             for (t <- 1 to transactionCountPerGroup/2) {
               if ( ((t >> 7) << 7) == t) { // t % 128 = 0

@@ -8,7 +8,7 @@ import scodec.bits._
 import scodec.codecs._
 
 
-case class StringMessage(value:String) extends ProtocolMessage
+data class StringMessage(value:String) : ProtocolMessage
 /**
   * String codec that uses the `US-ASCII` charset that encodes strings with a trailing `NUL` termination byte
   * and decodes a string up to the next `NUL` termination byte.
@@ -16,13 +16,13 @@ case class StringMessage(value:String) extends ProtocolMessage
   *
   * Code copied from : https://gitter.im/scodec/scodec/archives/2015/06/17
   */
-object CString extends SerializeParseUtil[String] {
-  val codec :Codec[String] = filtered(ascii, new Codec[BitVector] {
+object CString : SerializeParseUtil<String> {
+  val codec :Codec<String> = filtered(ascii, Codec<BitVector> {
 
     val nul = ByteVector.fromByte(0)
 
-    override def sizeBound: SizeBound = SizeBound.unknown
-    override def encode(bits: BitVector): Attempt[BitVector] = {
+    override fun sizeBound: SizeBound = SizeBound.unknown
+    override fun encode(bits: BitVector): Attempt<BitVector> {
       val bytes = bits.bytes
       if (bytes.containsSlice(nul)) {
         Failure(Err("cstring cannot encode character 'NUL'"))
@@ -30,7 +30,7 @@ object CString extends SerializeParseUtil[String] {
         Successful(bits ++ nul.bits)
       }
     }
-    override def decode(bits: BitVector): Attempt[DecodeResult[BitVector]] = {
+    override fun decode(bits: BitVector): Attempt<DecodeResult<BitVector>> {
       val bytes = bits.bytes
       bytes.indexOfSlice(nul) match {
         case -1 => Failure(Err("Does not contain a 'NUL' termination byte."))
@@ -40,7 +40,7 @@ object CString extends SerializeParseUtil[String] {
   }).withToString("cstring")
 }
 
-case class CStringPrefixed[T](prefix : String, data : T) extends ProtocolMessage
+data class CStringPrefixed<T>(prefix : String, data : T) : ProtocolMessage
 
 /** A codec that prefixes data with a null terminated string.
   * This codec is used for creating prefixed keys in the storage layer.
@@ -48,9 +48,9 @@ case class CStringPrefixed[T](prefix : String, data : T) extends ProtocolMessage
   * @param codecT The codec that decodes and encodes data right after the null terminated prefix string.
   * @tparam T The type of the data right after the null terminated prefix string.
   */
-class CStringPrefixedCodec[T <: ProtocolMessage](codecT : MessagePartCodec[T]) extends MessagePartCodec[CStringPrefixed[T]] {
-  val codec : Codec[CStringPrefixed[T]] = {
+class CStringPrefixedCodec<T <: ProtocolMessage>(codecT : MessagePartCodec<T>) : MessagePartCodec<CStringPrefixed<T>> {
+  val codec : Codec<CStringPrefixed<T>> {
     ("prefix" | CString.codec ) ::
     ("data"   | codecT.codec )
-  }.as[CStringPrefixed[T]]
+  }.as<CStringPrefixed<T>>
 }

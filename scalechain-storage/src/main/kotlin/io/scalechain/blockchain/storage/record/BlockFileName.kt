@@ -17,7 +17,7 @@ object BlockFileName {
     * @param fileNumber The file number that comes after the prefix.
     * @return The file name with the prefix and the file number.
     */
-  def apply(prefix : String, fileNumber : Int) = {
+  fun apply(prefix : String, fileNumber : Int) {
     assert(fileNumber >= 0)
     assert(prefix.length == PREFIX_LENGTH)
     s"${prefix}${"%05d".format(fileNumber)}.dat"
@@ -37,7 +37,7 @@ object BlockFileName {
     * @param fileName The file name, where we extract the prefix and the file number.
     * @return Some of (prefix, file number) pair, if the given file name matches the pattern. None otherwise.
     */
-  def unapply(fileName : String) : Option[(String, Int)] = {
+  fun unapply(fileName : String) : Option<(String, Int)> {
     if (fileName.endsWith(POSTFIX)) {
       val prefix = fileName.substring(0, PREFIX_LENGTH)
       val fileNumberPart =

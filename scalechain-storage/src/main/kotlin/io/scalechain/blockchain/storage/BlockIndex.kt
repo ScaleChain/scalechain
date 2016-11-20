@@ -11,11 +11,11 @@ trait BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)]
+  fun getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<(BlockInfo, Block)>
 
   /** Get a transaction by its hash.
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction]
+  fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction>
 }

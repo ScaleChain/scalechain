@@ -17,41 +17,41 @@ import collection.convert.wrapAll._
 import java.util
 
 object ApiServerHandler {
-  private def send100Continue(ctx: ChannelHandlerContext) {
-    val response: FullHttpResponse = new DefaultFullHttpResponse(HTTP_1_1, CONTINUE)
+  private fun send100Continue(ctx: ChannelHandlerContext) {
+    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, CONTINUE)
     ctx.write(response)
   }
 }
 
-class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[ApiServerHandler]) )
+class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
+  private val logger = Logger( LoggerFactory.getLogger(classOf<ApiServerHandler>) )
 
 
   private var request: HttpRequest = null
   /** Buffer that stores the response content */
-  private final val requestData: StringBuilder = new StringBuilder
+  private final val requestData: StringBuilder = StringBuilder
 
-  override def channelReadComplete(ctx: ChannelHandlerContext) {
+  override fun channelReadComplete(ctx: ChannelHandlerContext) {
     ctx.flush
   }
 
-  protected def channelRead0(ctx: ChannelHandlerContext, msg: AnyRef) {
-    if (msg.isInstanceOf[HttpRequest]) {
-      val request: HttpRequest = msg.asInstanceOf[HttpRequest]
+  protected fun channelRead0(ctx: ChannelHandlerContext, msg: AnyRef) {
+    if (msg.isInstanceOf<HttpRequest>) {
+      val request: HttpRequest = msg.asInstanceOf<HttpRequest>
       this.request = request
       if (HttpHeaders.is100ContinueExpected(request)) {
         ApiServerHandler.send100Continue(ctx)
       }
       requestData.setLength(0)
     }
-    if (msg.isInstanceOf[HttpContent]) {
-      val httpContent: HttpContent = msg.asInstanceOf[HttpContent]
+    if (msg.isInstanceOf<HttpContent>) {
+      val httpContent: HttpContent = msg.asInstanceOf<HttpContent>
       val content: ByteBuf = httpContent.content
       if (content.isReadable) {
         requestData.append(content.toString(CharsetUtil.UTF_8))
       }
-      if (msg.isInstanceOf[LastHttpContent]) {
-        val trailer: LastHttpContent = msg.asInstanceOf[LastHttpContent]
+      if (msg.isInstanceOf<LastHttpContent>) {
+        val trailer: LastHttpContent = msg.asInstanceOf<LastHttpContent>
 
         val responseString = RequestHandler.handleRequest(requestData.toString)
 
@@ -64,9 +64,9 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
     }
   }
 
-  private def writeResponse(currentObj: HttpObject, ctx: ChannelHandlerContext, responseString : String): Boolean = {
+  private fun writeResponse(currentObj: HttpObject, ctx: ChannelHandlerContext, responseString : String): Boolean {
     val keepAlive: Boolean = HttpHeaders.isKeepAlive(request)
-    val response: FullHttpResponse = new DefaultFullHttpResponse(HTTP_1_1, if (currentObj.getDecoderResult.isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
+    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, if (currentObj.getDecoderResult.isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
     response.headers.set(CONTENT_TYPE, "application/json; charset=UTF-8")
     if (keepAlive) {
       response.headers.set(CONTENT_LENGTH, response.content.readableBytes)
@@ -75,7 +75,7 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
     /*
     val cookieString: String = request.headers.get(COOKIE)
     if (cookieString != null) {
-      val cookies: util.Set[Cookie] = CookieDecoder.decode(cookieString)
+      val cookies: util.Set<Cookie> = CookieDecoder.decode(cookieString)
       if (!cookies.isEmpty) {
         import scala.collection.JavaConversions._
         for (cookie <- cookies) {
@@ -92,7 +92,7 @@ class ApiServerHandler extends SimpleChannelInboundHandler[AnyRef] {
     return keepAlive
   }
 
-  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+  override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     val causeDescription = ExceptionUtil.describe( cause.getCause )
     logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     ctx.close

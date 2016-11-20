@@ -15,7 +15,7 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
   * @param sortedTransactions the sorted transactions to add to the block.
   *
   */
-class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction]) {
+class BlockTemplate(difficultyBits : Long, sortedTransactions : List<Transaction>) {
 
   // TODO : Use difficultyBits
 
@@ -24,7 +24,7 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     * @param prevBlockHash the hash of the previous block header.
     * @return The block header created from this template.
     */
-  def getBlockHeader(prevBlockHash : Hash) : BlockHeader = {
+  fun getBlockHeader(prevBlockHash : Hash) : BlockHeader {
     // Step 1 : Calculate the merkle root hash.
     val merkleRootHash = MerkleRootCalculator.calculate(sortedTransactions)
 
@@ -40,7 +40,7 @@ class BlockTemplate(difficultyBits : Long, sortedTransactions : List[Transaction
     * @param nonce The nonce we found by calling findNonce method.
     * @return The created block that has all transactions in this template with a valid block header.
     */
-  def createBlock(blockHeader : BlockHeader, nonce : Long) = {
+  fun createBlock(blockHeader : BlockHeader, nonce : Long) {
     Block( blockHeader.copy(nonce = nonce),
       sortedTransactions )
   }

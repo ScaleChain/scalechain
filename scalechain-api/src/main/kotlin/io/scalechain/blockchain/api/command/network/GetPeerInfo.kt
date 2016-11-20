@@ -50,7 +50,7 @@ import io.scalechain.blockchain.net.PeerInfo
 */
 
 
-case class GetPeerInfoResult(peerInfos : List[PeerInfo]) extends RpcResult
+data class GetPeerInfoResult(peerInfos : List<PeerInfo>) : RpcResult
 
 /** GetPeerInfo: returns data about each connected network node.
   *
@@ -64,14 +64,14 @@ case class GetPeerInfoResult(peerInfos : List[PeerInfo]) extends RpcResult
   *
   * https://bitcoin.org/en/developer-reference#getpeerinfo
   */
-object GetPeerInfo extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetPeerInfo : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
       val peerInfos = RpcSubSystem.get.getPeerInfos()
       Right(Some(GetPeerInfoResult(peerInfos)))
     }
   }
-  def help() : String =
+  fun help() : String =
     """getpeerinfo
       |
       |Returns data about each connected network node as a json array of objects.

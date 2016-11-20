@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.OneByte
 import io.scalechain.blockchain.proto.codec.{OneByteCodec, PayloadTestSuite}
 import io.scalechain.util.HexUtil._
 
-class OneByteCodecSpec extends PayloadTestSuite[OneByte]  {
+class OneByteCodecSpec : PayloadTestSuite<OneByte>  {
 
   val codec = OneByteCodec.codec
 

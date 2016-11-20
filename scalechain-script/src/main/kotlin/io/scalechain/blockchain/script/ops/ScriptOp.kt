@@ -12,18 +12,18 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @param code The OP code.
  */
-case class OpCode(code : Short) {
+data class OpCode(code : Short) {
   assert(code < 255)
 }
 
 trait ScriptOp {
-  def opCode() : OpCode
+  fun opCode() : OpCode
 
  /** Execute the script operation using the given script execution environment.
    *
    * @param env The script execution environment.
    */
-  def execute(env : ScriptEnvironment) : Unit
+  fun execute(env : ScriptEnvironment) : Unit
 
 
   /**
@@ -48,7 +48,7 @@ trait ScriptOp {
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  def create(script : Script, offset : Int) : (ScriptOp, Int) = {
+  fun create(script : Script, offset : Int) : (ScriptOp, Int) {
     (this, 0)
   }
 
@@ -59,7 +59,7 @@ trait ScriptOp {
    * @param index The index from the base OP code.
    * @return The calculated OP code.
    */
-  protected def opCodeFromBase(baseOpCode: Int, index : Int) : OpCode = {
+  protected fun opCodeFromBase(baseOpCode: Int, index : Int) : OpCode {
     val result = baseOpCode + index
 
     OpCode(result.toShort)
@@ -70,11 +70,11 @@ trait ScriptOp {
    * @param env The script execution environment.
    * @throws ScriptEvalException if the top value of the stack was not true. code : ErrorCode.InvalidTransaction
    */
-  def verify(env: ScriptEnvironment) : Unit = {
+  fun verify(env: ScriptEnvironment) : Unit {
     val top = env.stack.pop()
 
     if (!Utils.castToBool(top.value)) {
-      throw new ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
+      throw ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
     }
   }
 
@@ -82,8 +82,8 @@ trait ScriptOp {
    *
    * @param env The script execution environment.
    */
-  def pushFalse(env:ScriptEnvironment) : Unit = {
-    env.stack.push(ScriptValue.valueOf(Array[Byte]()))
+  fun pushFalse(env:ScriptEnvironment) : Unit {
+    env.stack.push(ScriptValue.valueOf(Array<Byte>()))
   }
 
 
@@ -91,7 +91,7 @@ trait ScriptOp {
    *
    * @param env The script execution environment.
    */
-  def pushTrue(env:ScriptEnvironment) : Unit = {
+  fun pushTrue(env:ScriptEnvironment) : Unit {
     env.stack.pushInt( BigInteger.valueOf(1))
   }
 
@@ -99,11 +99,11 @@ trait ScriptOp {
    *
    * @param buffer The array buffer where the script is serialized.
    */
-  def serialize(buffer: ArrayBuffer[Byte]): Unit = {
+  fun serialize(buffer: ArrayBuffer<Byte>): Unit {
     buffer.append(opCode().code.toByte)
   }
 
-  def unaryOperation(env : ScriptEnvironment, mutate : (ScriptValue) => (ScriptValue) ): Unit = {
+  fun unaryOperation(env : ScriptEnvironment, mutate : (ScriptValue) => (ScriptValue) ): Unit {
     val value1 =  env.stack.pop()
 
     val result = mutate( value1 )
@@ -111,7 +111,7 @@ trait ScriptOp {
     env.stack.push( result )
   }
 
-  def binaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue) => (ScriptValue) ): Unit = {
+  fun binaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue) => (ScriptValue) ): Unit {
     val value2 = env.stack.pop()
     val value1 =  env.stack.pop()
 
@@ -120,7 +120,7 @@ trait ScriptOp {
     env.stack.push( result )
   }
 
-  def ternaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue, ScriptValue) => (ScriptValue) ): Unit = {
+  fun ternaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue, ScriptValue) => (ScriptValue) ): Unit {
     val value3 = env.stack.pop()
     val value2 = env.stack.pop()
     val value1 =  env.stack.pop()
@@ -133,15 +133,15 @@ trait ScriptOp {
 }
 
 trait DisabledScriptOp {
-  def execute(env : ScriptEnvironment) : Unit = {
-    throw new ScriptEvalException(ErrorCode.DisabledScriptOperation, s"ScriptOp:${this.getClass.getName}")
+  fun execute(env : ScriptEnvironment) : Unit {
+    throw ScriptEvalException(ErrorCode.DisabledScriptOperation, s"ScriptOp:${this.getClass.getName}")
   }
 }
 
 /**
  * Just for checking if an operation does not support opCode() method.
  */
-trait ScriptOpWithoutCode extends ScriptOp {
+trait ScriptOpWithoutCode : ScriptOp {
 
 }
 
@@ -149,7 +149,7 @@ trait ScriptOpWithoutCode extends ScriptOp {
  *
  */
 trait InternalScriptOp {
-  def execute(env : ScriptEnvironment) : Unit = {
+  fun execute(env : ScriptEnvironment) : Unit {
     // do nothing.
   }
 }
@@ -160,14 +160,14 @@ trait AlwaysInvalidScriptOp {
    *
    * @param env
    */
-  def execute(env : ScriptEnvironment) : Unit = {
+  fun execute(env : ScriptEnvironment) : Unit {
     assert(false)
   }
 }
 
 trait InvalidScriptOpIfExecuted {
-  def execute(env : ScriptEnvironment) : Unit = {
-    throw new ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
+  fun execute(env : ScriptEnvironment) : Unit {
+    throw ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
   }
 }
 

@@ -5,20 +5,20 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder, HttpServerCodec}
 import io.netty.handler.ssl.SslContext
 
-class ApiServerInitializer(sslCtx: SslContext)  extends ChannelInitializer[SocketChannel] {
+class ApiServerInitializer(sslCtx: SslContext)  : ChannelInitializer<SocketChannel> {
 
-  def initChannel(ch: SocketChannel) {
+  fun initChannel(ch: SocketChannel) {
     val p: ChannelPipeline = ch.pipeline
     if (sslCtx != null) {
       p.addLast(sslCtx.newHandler(ch.alloc))
     }
-//    p.addLast(new HttpServerCodec)
-    p.addLast(new HttpRequestDecoder)
+//    p.addLast(HttpServerCodec)
+    p.addLast(HttpRequestDecoder)
     // Uncomment the following line if you don't want to handle HttpChunks.
-    //p.addLast(new HttpObjectAggregator(1048576));
-    p.addLast(new HttpResponseEncoder)
+    //p.addLast(HttpObjectAggregator(1048576));
+    p.addLast(HttpResponseEncoder)
     // Remove the following line if you don't want automatic content compression.
-    //p.addLast(new HttpContentCompressor());
-    p.addLast(new ApiServerHandler)
+    //p.addLast(HttpContentCompressor());
+    p.addLast(ApiServerHandler)
   }
 }

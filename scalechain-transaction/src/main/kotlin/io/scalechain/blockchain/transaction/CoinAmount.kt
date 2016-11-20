@@ -13,7 +13,7 @@ object CoinAmount {
     * @param coinUnits
     * @return
     */
-  def from(coinUnits : Long) = {
+  fun from(coinUnits : Long) {
     CoinAmount( scala.math.BigDecimal(coinUnits) / ONE_COIN_IN_UNITS )
   }
 }
@@ -22,12 +22,12 @@ object CoinAmount {
   *
   * @param value The amount of coin value.
   */
-case class CoinAmount(value : scala.math.BigDecimal) {
+data class CoinAmount(value : scala.math.BigDecimal) {
   /** Return the coin amount in coin units.
     *
     * @return The coin units calculated from the CoinAmount. In Bitcoin, the units of coin is satoshi.
     */
-  def coinUnits() : Long = {
+  fun coinUnits() : Long {
     (value * CoinAmount.ONE_COIN_IN_UNITS).toLongExact
   }
 }

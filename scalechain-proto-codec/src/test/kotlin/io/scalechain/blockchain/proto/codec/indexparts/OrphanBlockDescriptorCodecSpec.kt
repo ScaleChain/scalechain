@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 
 
 
-class OrphanBlockDescriptorCodecSpec extends PayloadTestSuite[OrphanBlockDescriptor]  {
+class OrphanBlockDescriptorCodecSpec : PayloadTestSuite<OrphanBlockDescriptor>  {
 
   val codec = OrphanBlockDescriptorCodec.codec
 

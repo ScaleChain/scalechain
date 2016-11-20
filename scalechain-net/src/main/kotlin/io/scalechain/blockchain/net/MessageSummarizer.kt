@@ -8,7 +8,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * Created by kangmo on 6/20/16.
   */
 object MessageSummarizer {
-  def summarize(message : ProtocolMessage) = {
+  fun summarize(message : ProtocolMessage) {
     message match {
       case m : Block => {
         s"Block. Hash : ${m.header.hash}"

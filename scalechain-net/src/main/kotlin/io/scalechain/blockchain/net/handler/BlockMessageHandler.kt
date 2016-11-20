@@ -27,13 +27,13 @@ object BlockMessageHandler {
     * @param block The Block message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, block : Block ) : Unit = {
+  fun handle( context : MessageHandlerContext, block : Block ) : Unit {
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     val blockHash = block.header.hash
 
-    logger.trace(s"[P2P] Received a block. Hash : ${blockHash}, Header : ${block.header}")
+    logger.trace(s"<P2P> Received a block. Hash : ${blockHash}, Header : ${block.header}")
 
     BlockGateway.putReceivedBlock(blockHash, block)
 
@@ -51,7 +51,7 @@ object BlockMessageHandler {
         val acceptedAsNewBestBlock = BlockProcessor.acceptBlock(blockHash, block)
 
         // Step 1.2 : Recursively bring any orphan blocks to blockchain, if the new block is the previous block of any orphan block.
-        val newlyBestBlockHashes : List[Hash] = BlockProcessor.acceptChildren(blockHash)
+        val newlyBestBlockHashes : List<Hash> = BlockProcessor.acceptChildren(blockHash)
 
         val newBlockHashes = if (acceptedAsNewBestBlock) {
           blockHash :: newlyBestBlockHashes

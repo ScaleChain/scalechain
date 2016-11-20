@@ -5,10 +5,10 @@ import java.io.File
 import io.netty.channel.embedded.EmbeddedChannel
 import org.scalatest._
 
-class GetDataMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
+class GetDataMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-GetDataMessageHandlerSpec/")
+  val testPath = File("./target/unittests-GetDataMessageHandlerSpec/")
 
   "handle" should "" in {
   }

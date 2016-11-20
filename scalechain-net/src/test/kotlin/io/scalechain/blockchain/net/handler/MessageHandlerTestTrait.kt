@@ -7,21 +7,21 @@ import io.scalechain.blockchain.net.{PeerCommunicator, PeerSet, Peer}
 /**
   * Created by kangmo on 6/4/16.
   */
-trait MessageHandlerTestTrait extends BlockchainTestTrait {
+trait MessageHandlerTestTrait : BlockchainTestTrait {
 
   var context : MessageHandlerContext = null
   var channel : EmbeddedChannel = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialization code.
-    channel = new EmbeddedChannel()
+    channel = EmbeddedChannel()
     context = context(channel)
 
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // finalization code
@@ -29,9 +29,9 @@ trait MessageHandlerTestTrait extends BlockchainTestTrait {
     channel.close()
   }
 
-  def context(embeddedChannel: EmbeddedChannel) = {
+  fun context(embeddedChannel: EmbeddedChannel) {
     val peerSet = PeerSet.create
     val peer : Peer = peerSet.add(embeddedChannel)
-    new MessageHandlerContext(peer, new PeerCommunicator(peerSet) )
+    MessageHandlerContext(peer, PeerCommunicator(peerSet) )
   }
 }

@@ -6,12 +6,12 @@ import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
 
 
-case class TransactionLocator(txHash : Hash, txLocator : FileRecordLocator)
+data class TransactionLocator(txHash : Hash, txLocator : FileRecordLocator)
 
-case class AppendBlockResult(blockLocator : FileRecordLocator, headerLocator : FileRecordLocator, txLocators : List[TransactionLocator])
+data class AppendBlockResult(blockLocator : FileRecordLocator, headerLocator : FileRecordLocator, txLocators : List<TransactionLocator>)
 
 object BlockWriter {
-  private class RecordFileChangedWhileWritingBlock extends Exception
+  private class RecordFileChangedWhileWritingBlock : Exception
 
   /**
     *
@@ -23,7 +23,7 @@ object BlockWriter {
     * @param block The block data.
     * @return The list of transaction locators for each transaction in the block.
     */
-  def getTxLocators(blockLocator : FileRecordLocator, block : Block) : List[TransactionLocator] = {
+  fun getTxLocators(blockLocator : FileRecordLocator, block : Block) : List<TransactionLocator> {
     // Step 1 : Calculate the size of block header
     val blockHeaderSize = BlockHeaderCodec.serialize(block.header).length
 
@@ -66,7 +66,7 @@ class BlockWriter(storage : BlockRecordStorage) {
     * (An out point points to an output of a transaction using transaction hash and output index. )
     *
     * Note : When a new record file is created between appending a block header and appending transactions,
-    *        we have to append block on the new file again.
+    *        we have to append block on the file again.
     *
     *        Otherwise, our logic to calculate the size of the block is too complicated,
     *        as we assume that the block header and transactions are written in the same record file.
@@ -74,11 +74,11 @@ class BlockWriter(storage : BlockRecordStorage) {
     * @param block The block to write.
     * @return AppendBlockResult, which is the header locator and transaction locators.
     */
-  def appendBlock(block:Block) :AppendBlockResult = {
+  fun appendBlock(block:Block) :AppendBlockResult {
     try {
       appendBlockInternal(block)
     } catch  {
-      // A new block was created while writing bloc
+      // A new block was created while writing a block
       case e : BlockWriter.RecordFileChangedWhileWritingBlock => {
         // Call appendBlockInternal again, to append the block on the new file.
         appendBlockInternal(block)
@@ -96,12 +96,12 @@ class BlockWriter(storage : BlockRecordStorage) {
     *                                                        The caller should call this function again, to append the block on the new file.
     * @return The AppendBlockResult.
     */
-  def appendBlockInternal(block:Block): AppendBlockResult = {
+  fun appendBlockInternal(block:Block): AppendBlockResult {
     /**
       * To get a record locator of each transaction we write while we write a block,
       * We need to write (1) block header (2) transaction count (3) each transaction.
       *
-      * This is why we need a separate case class for the transaction count.
+      * This is why we need a separate data class for the transaction count.
       * If we write a block as a whole, we can't get record locators for each transaction in a block.
       */
 
@@ -116,10 +116,10 @@ class BlockWriter(storage : BlockRecordStorage) {
       for( transaction <- block.transactions;
            txLocator = storage.appendRecord(transaction)(TransactionCodec)
       ) yield {
-        // Step 31 : Check if a new file was created during step 2 or step 3.
+        // Step 31 : Check if a file was created during step 2 or step 3.
         if (blockHeaderLocator.fileIndex != txLocator.fileIndex) {
-          // BUGBUG : We have written a transaction on the new file, and the space is wasted.
-          throw new BlockWriter.RecordFileChangedWhileWritingBlock()
+          // BUGBUG : We have written a transaction on the file, and the space is wasted.
+          throw BlockWriter.RecordFileChangedWhileWritingBlock()
         }
         TransactionLocator(transaction.hash, txLocator)
       }
@@ -130,7 +130,7 @@ class BlockWriter(storage : BlockRecordStorage) {
     val lastTxLocator = txLocators.last.txLocator.recordLocator
     val blockSizeExceptTheLastTransaction = lastTxLocator.offset - blockHeaderLocator.recordLocator.offset
 
-    // CRITICAL BUGBUG : If a new record storage file is added, the last transaction and the block header is written in different file.
+    // CRITICAL BUGBUG : If a record storage file is added, the last transaction and the block header is written in different file.
     val blockSize = blockSizeExceptTheLastTransaction + lastTxLocator.size
 
     //println(s"blockHeaderLocator=${blockHeaderLocator}, txLocators.last.txLocator=${txLocators.last.txLocator}, blockSizeExceptTheLastTransaction=$blockSizeExceptTheLastTransaction, blockSize=$blockSize")

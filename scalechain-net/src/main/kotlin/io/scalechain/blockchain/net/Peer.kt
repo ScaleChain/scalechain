@@ -15,21 +15,21 @@ import org.slf4j.LoggerFactory
   *
   * @param channel The netty channel where we send messages.
   */
-case class Peer(private val channel : Channel) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[Peer]) )
+data class Peer(private val channel : Channel) {
+  private val logger = Logger( LoggerFactory.getLogger(classOf<Peer>) )
 
   /**
     * The version we got from the peer. This is set to some value only if we received the Version message.
     */
-  var versionOption : Option[Version] = None
-  var pongReceived : Option[Int] = None
+  var versionOption : Option<Version> = None
+  var pongReceived : Option<Int> = None
 
   /**
     * Update version received from the peer.
     *
     * @param version The version received from the peer.
     */
-  def updateVersion(version : Version) : Unit = {
+  fun updateVersion(version : Version) : Unit {
     versionOption = Some(version)
   }
 
@@ -37,14 +37,14 @@ case class Peer(private val channel : Channel) {
     * Keep block hashes requested using getblocks message.
     * Only keep up to 4 block hashes in the cache.
     */
-  //protected[net] val blocksRequested = new LRUMap[Hash, Unit](4)
-  var requestedBlockHashOption : Option[Hash] = None
+  //protected<net> val blocksRequested = LRUMap<Hash, Unit>(4)
+  var requestedBlockHashOption : Option<Hash> = None
   /**
     * Keep a block as requested using getblocks message.
  *
     * @param blockHash The hash of block requested using getblocks message.
     */
-  def blockRequested(blockHash : Hash) : Unit = {
+  fun blockRequested(blockHash : Hash) : Unit {
     requestedBlockHashOption = Some(blockHash)
   }
 
@@ -54,16 +54,16 @@ case class Peer(private val channel : Channel) {
     * @param blockHash The block hash to check.
     * @return true if the block was requested; false otherwise.
     */
-  def isBlockRequested(blockHash : Hash) = {
+  fun isBlockRequested(blockHash : Hash) {
     requestedBlockHashOption == Some(blockHash)
   }
 
-  def requestedBlock() = requestedBlockHashOption
+  fun requestedBlock() = requestedBlockHashOption
 
   /**
     * Clear all requested blocks.
     */
-  def clearRequestedBlock() = {
+  fun clearRequestedBlock() {
     requestedBlockHashOption = None
   }
 
@@ -73,7 +73,7 @@ case class Peer(private val channel : Channel) {
     *
     * @return True if this peer is live, false otherwise.
     */
-  def isLive : Boolean = {
+  fun isLive : Boolean {
     // TODO : Implement this based on the time we received pong from this peer.
     channel.isOpen && channel.isActive
     // Check if the time we received pong is within a threshold.
@@ -81,10 +81,10 @@ case class Peer(private val channel : Channel) {
 //    true
   }
 
-  def send(message : ProtocolMessage) = {
+  fun send(message : ProtocolMessage) {
     val messageString = MessageSummarizer.summarize(message)
-    channel.writeAndFlush(message).addListener(new ChannelFutureListener() {
-      def operationComplete(future:ChannelFuture) {
+    channel.writeAndFlush(message).addListener(ChannelFutureListener() {
+      fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.debug(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
@@ -103,14 +103,14 @@ case class Peer(private val channel : Channel) {
 }
 
 
-case class PeerInfo(
+data class PeerInfo(
                      // (Since : 0.10.0) The node’s index number in the local node address database.
                      id : Int, // 9
                      // The IP address and port number used for the connection to the remote node.
                      addr : String, // "192.0.2.113:18333"
                      // Our IP address and port number according to the remote node. M
                      // May be incorrect due to error or lying. Many SPV nodes set this to 127.0.0.1:8333
-                     //  addrlocal : Option[String], // "192.0.2.51:18333"
+                     //  addrlocal : Option<String>, // "192.0.2.51:18333"
                      // The services advertised by the remote node in its version message
                      //  services : String, // "0000000000000002"
                      // The Unix epoch time when we last successfully sent data to the TCP socket for this node
@@ -127,16 +127,16 @@ case class PeerInfo(
                      //  pingtime : scala.math.BigDecimal, // 0.05617800
                      // The number of seconds we’ve been waiting for this node to respond to a P2P ping message.
                      // Only shown if there’s an outstanding ping message
-                     //  pingwait : Option[scala.math.BigDecimal], // 0.04847123
+                     //  pingwait : Option<scala.math.BigDecimal>, // 0.04847123
                      // The protocol version number used by this node. See the protocol versions section for more information
-                     version : Option[Int], // 70001
+                     version : Option<Int>, // 70001
                      // The user agent this node sends in its version message.
                      // This string will have been sanitized to prevent corrupting the JSON results. May be an empty string
-                     subver : Option[String], // "/Satoshi:0.8.6/"
+                     subver : Option<String>, // "/Satoshi:0.8.6/"
                      // Set to true if this node connected to us; set to false if we connected to this node
                      //  inbound : Boolean, // false
                      // The height of the remote node’s block chain when it connected to us as reported in its version message
-                     startingheight : Option[Long] // 315280
+                     startingheight : Option<Long> // 315280
                      // The ban score we’ve assigned the node based on any misbehavior it’s made.
                      // By default, Bitcoin Core disconnects when the ban score reaches 100
                      //  banscore : Int,  // 0
@@ -148,7 +148,7 @@ case class PeerInfo(
                      //  synced_blocks : Long, // -1
                      // ( Since : 0.10.0 ) An array of blocks which have been requested from this peer. May be empty
                      // inflight item : The height of a block being requested from the remote peer.
-                     //  inflight : List[Long], // [],
+                     //  inflight : List<Long>, // <>,
                      // ( Since : 0.10.0 )
                      // Set to true if the remote peer has been whitelisted; otherwise, set to false.
                      // Whitelisted peers will not be banned if their ban score exceeds the maximum (100 by default).
@@ -158,7 +158,7 @@ case class PeerInfo(
 
 
 object PeerInfo {
-  def create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo = {
+  fun create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo {
     PeerInfo(
       id=peerIndex,
       addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",

@@ -27,13 +27,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#getreceivedbyaccount
   */
-object GetReceivedByAccount extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetReceivedByAccount : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """getreceivedbyaccount "account" ( minconf )
       |
       |DEPRECATED. Returns the total amount received by addresses with <account> in transactions with at least [minconf] confirmations.

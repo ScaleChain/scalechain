@@ -11,17 +11,17 @@ import HashSupported._
 /**
   * Created by kangmo on 6/16/16.
   */
-class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockMagnetSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockMagnetSpec/")
+  val testPath = File("./target/unittests-BlockMagnetSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
   var bm : BlockMagnet = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
     keyValueDB = db
@@ -31,7 +31,7 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
     bm = chain.blockMagnet
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     bm = null
     keyValueDB = null
 
@@ -41,7 +41,7 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
   }
 
   "setEventListener" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -49,28 +49,28 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
   }
 
   "detachBlock" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
   }
 
   "detachBlocksAfter" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
   }
 
   "attachBlock" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
   }
 
   "collectBlockInfos" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -78,21 +78,21 @@ class BlockMagnetSpec extends BlockchainTestTrait with TransactionTestDataTrait 
 
 
   "attachBlocksAfter" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
   }
 
   "reorganize" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
   }
 
   "findCommonBlock" should "" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._

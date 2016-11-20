@@ -11,21 +11,21 @@ import io.scalechain.util.PeerAddress
 import scala.concurrent.{ExecutionContext, Future}
 
 object PeerToPeerNetworking {
-  def getPeerCommunicator(inboundPort : Int, peerAddresses : List[PeerAddress] ) : PeerCommunicator = {
+  fun getPeerCommunicator(inboundPort : Int, peerAddresses : List<PeerAddress> ) : PeerCommunicator {
 
     // The peer set that keeps multiple PeerNode(s).
     val peerSet = PeerSet.create
 
     // TODO : BUGBUG : Need to call nodeServer.shutdown before the process finishes ?
-    val nodeServer = new NodeServer(peerSet)
+    val nodeServer = NodeServer(peerSet)
     val bindChannelFuture : ChannelFuture = nodeServer.listen(inboundPort)
     // Wait until the inbound port is bound.
     bindChannelFuture.sync()
 
     peerAddresses.map { peer =>
-      new RetryingConnector(peerSet, retryIntervalSeconds=1).connect(peer.address, peer.port)
+      RetryingConnector(peerSet, retryIntervalSeconds=1).connect(peer.address, peer.port)
     }
 
-    new PeerCommunicator(peerSet)
+    PeerCommunicator(peerSet)
   }
 }

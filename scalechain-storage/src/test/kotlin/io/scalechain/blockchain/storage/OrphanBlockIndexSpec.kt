@@ -12,7 +12,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 6/4/16.
   */
-class OrphanBlockIndexSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
+class OrphanBlockIndexSpec : FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -23,7 +23,7 @@ class OrphanBlockIndexSpec extends FlatSpec with Matchers with BeforeAndAfterEac
     * @param num should be a one digit integer such as 1 or 2
     * @return The dummy hash value which fills the hash with the given digit.
     */
-  def dummyHash(num : Int) = {
+  fun dummyHash(num : Int) {
     assert(num >= 0 && num <= 9)
     Hash(bytes(num.toString*64))
   }
@@ -33,7 +33,7 @@ class OrphanBlockIndexSpec extends FlatSpec with Matchers with BeforeAndAfterEac
     * @param num should be an integer value to create different dummy orphan blocks.
     * @return The created orphan block.
     */
-  def orphanBlock(num : Int) = OrphanBlockDescriptor(
+  fun orphanBlock(num : Int) = OrphanBlockDescriptor(
     Block(
       header = BlockHeader(
         version = 4,
@@ -49,20 +49,20 @@ class OrphanBlockIndexSpec extends FlatSpec with Matchers with BeforeAndAfterEac
 
   var index : OrphanBlockIndex = null
 
-  val testPath = new File("./target/unittests-OrphanBlockIndexSpec")
+  val testPath = File("./target/unittests-OrphanBlockIndexSpec")
   implicit var db : KeyValueDatabase = null
 
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
     FileUtils.deleteDirectory( testPath )
-    index = new OrphanBlockIndex() {}
-    db = new RocksDatabase( testPath )
+    index = OrphanBlockIndex() {}
+    db = RocksDatabase( testPath )
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

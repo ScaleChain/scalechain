@@ -8,7 +8,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
     bitcoin-cli -testnet getchaintips
 
   CLI output :
-    [
+    <
         {
             "height" : 312647,
             "hash" : "000000000b1be96f87b31485f62c1361193304a5ad78acf47f9164ea4773a843",
@@ -27,7 +27,7 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
             "branchlen" : 1,
             "status" : "valid-headers"
         }
-    ]
+    >
 
   Json-RPC request :
     {"jsonrpc": "1.0", "id":"curltest", "method": "getchaintips", "params": [] }
@@ -46,13 +46,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#getchaintips
   */
-object GetChainTips extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetChainTips : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """getchaintips
       |Return information about all known tips in the block tree, including the main chain as well as orphaned branches.
       |

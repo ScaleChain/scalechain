@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.TransactionCount
 import io.scalechain.blockchain.proto.codec._
 import io.scalechain.util.HexUtil._
 
-class TransactionCountCodecSpec extends PayloadTestSuite[TransactionCount]  {
+class TransactionCountCodecSpec : PayloadTestSuite<TransactionCount>  {
 
   val codec = TransactionCountCodec.codec
 

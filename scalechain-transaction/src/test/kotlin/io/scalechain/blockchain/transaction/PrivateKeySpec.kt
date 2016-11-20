@@ -2,17 +2,17 @@ package io.scalechain.blockchain.transaction
 
 import org.scalatest._
 
-class PrivateKeySpec extends FlatSpec with BeforeAndAfterEach with ChainTestTrait with Matchers {
+class PrivateKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

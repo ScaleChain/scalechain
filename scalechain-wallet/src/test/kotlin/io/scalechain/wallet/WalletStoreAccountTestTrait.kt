@@ -7,7 +7,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait with Matchers{
+trait WalletStoreAccountTestTrait : FlatSpec with WalletStoreTestDataTrait with Matchers{
   var store: WalletStore
   implicit var db : KeyValueDatabase
 
@@ -232,7 +232,7 @@ trait WalletStoreAccountTestTrait extends FlatSpec with WalletStoreTestDataTrait
 
 
   "putPrivateKey" should "throw an exception if the output ownership for the private key does not exist." in {
-    val thrown = the[WalletException] thrownBy {
+    val thrown = the<WalletException> thrownBy {
       store.putPrivateKeys(ADDR1.address, List(ADDR1.privateKey))
     }
     thrown.code shouldBe ErrorCode.OwnershipNotFound

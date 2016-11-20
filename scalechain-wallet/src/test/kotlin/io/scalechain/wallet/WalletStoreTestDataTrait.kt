@@ -8,12 +8,12 @@ import org.scalatest.Matchers
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreTestDataTrait extends TransactionTestDataTrait with Matchers {
+trait WalletStoreTestDataTrait : TransactionTestDataTrait with Matchers {
   val ACCOUNT1 = "acc1"
   val ACCOUNT2 = "acc2"
   val ACCOUNT3 = "acc3"
 
-  def generateWalletOutput(transaction : Transaction) : WalletOutput = {
+  fun generateWalletOutput(transaction : Transaction) : WalletOutput {
     WalletOutput(
       blockindex    = Some(100L),
       coinbase      = true,
@@ -22,7 +22,7 @@ trait WalletStoreTestDataTrait extends TransactionTestDataTrait with Matchers {
     )
   }
 
-  def generateWalletTransaction(transaction : Transaction) : WalletTransaction = {
+  fun generateWalletTransaction(transaction : Transaction) : WalletTransaction {
     WalletTransaction(
       blockHash        = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
       blockIndex       = Some(11),
@@ -34,7 +34,7 @@ trait WalletStoreTestDataTrait extends TransactionTestDataTrait with Matchers {
     )
   }
 
-  def checkElementEquality(actualOwnerships : List[OutputOwnership], expectedOwnerships : Set[OutputOwnership] )  {
+  fun checkElementEquality(actualOwnerships : List<OutputOwnership>, expectedOwnerships : Set<OutputOwnership> )  {
 //    scrubScript( actualOwnerships.toList.sortBy(_.stringKey()) ) shouldBe expectedOwnerships.sortBy(_.stringKey())
       scrubScript( actualOwnerships ).toSet  shouldBe expectedOwnerships
   }

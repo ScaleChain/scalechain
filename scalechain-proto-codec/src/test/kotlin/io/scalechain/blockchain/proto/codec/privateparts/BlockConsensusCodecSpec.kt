@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.codec.{BlockConsensusCodec, TransactionPoo
 import io.scalechain.util.HexUtil._
 
 
-class BlockConsensusCodecSpec extends PayloadTestSuite[BlockConsensus]  {
+class BlockConsensusCodecSpec : PayloadTestSuite<BlockConsensus>  {
 
   val codec = BlockConsensusCodec.codec
 

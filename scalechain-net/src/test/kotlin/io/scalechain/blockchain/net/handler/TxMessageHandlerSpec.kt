@@ -13,14 +13,14 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.scalatest._
 import HashSupported._
 
-class TxMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
+class TxMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-TransactionMessageHandlerSpec/")
+  val testPath = File("./target/unittests-TransactionMessageHandlerSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
@@ -32,7 +32,7 @@ class TxMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
     chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     keyValueDB = null
@@ -42,7 +42,7 @@ class TxMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
 
   // TODO : Block Mining : Rewrite test case
   "transaction message handler" should "be able to filter incomplete transaction while mining" ignore {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._

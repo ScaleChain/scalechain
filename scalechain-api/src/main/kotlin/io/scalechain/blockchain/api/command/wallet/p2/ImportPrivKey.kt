@@ -29,13 +29,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#importprivkey
   */
-object ImportPrivKey extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object ImportPrivKey : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """importprivkey "bitcoinprivkey" ( "label" rescan )
       |
       |Adds a private key (as returned by dumpprivkey) to your wallet.

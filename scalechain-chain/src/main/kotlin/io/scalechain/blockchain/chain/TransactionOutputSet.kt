@@ -12,21 +12,21 @@ import scala.collection.mutable
   *
   * TODO : Add test cases.
   */
-class TransactionOutputSet extends CoinsView {
+class TransactionOutputSet : CoinsView {
   /** The map from an out point to a transaction output.
     */
-  val outputsByOutPoint = new ConcurrentHashMap[OutPoint, TransactionOutput]()
+  val outputsByOutPoint = ConcurrentHashMap<OutPoint, TransactionOutput>()
 
   /** The map from a transaction output to an out point
     */
-  val outPointsByOutput = new ConcurrentHashMap[TransactionOutput, OutPoint]()
+  val outPointsByOutput = ConcurrentHashMap<TransactionOutput, OutPoint>()
 
   /** Add a coin to the set.
     *
     * @param outPoint The out point that points to the output.
     * @param transactionOutput The transaction output to put.
     */
-  def addTransactionOutput(outPoint : OutPoint, transactionOutput : TransactionOutput) : Unit = {
+  fun addTransactionOutput(outPoint : OutPoint, transactionOutput : TransactionOutput) : Unit {
     outputsByOutPoint.put(outPoint, transactionOutput)
     outPointsByOutput.put(transactionOutput, outPoint)
   }
@@ -37,7 +37,7 @@ class TransactionOutputSet extends CoinsView {
     * @param transactionOutput The transaction output to search.
     * @return The found output.
     */
-  def getOutPoint(transactionOutput : TransactionOutput) : Option[OutPoint] = {
+  fun getOutPoint(transactionOutput : TransactionOutput) : Option<OutPoint> {
     val output = outPointsByOutput.get(transactionOutput)
     if (output == null) None else Some(output)
   }
@@ -48,10 +48,10 @@ class TransactionOutputSet extends CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
+  fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
     val output = outputsByOutPoint.get(outPoint)
     if (output == null) {
-      throw new ChainException( ErrorCode.InvalidTransactionOutPoint )
+      throw ChainException( ErrorCode.InvalidTransactionOutPoint )
     }
     output
   }

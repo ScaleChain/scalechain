@@ -10,7 +10,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class BlockAccessFileSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   Storage.initialize()
@@ -18,12 +18,12 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers
   var file : BlockAccessFile = null
   val MAX_SIZE = 64
 
-  val underlyingFile = new File("./target/unittests-BlockAccessFileSpec")
-  def openFile() = {
-    new BlockAccessFile(underlyingFile, MAX_SIZE)
+  val underlyingFile = File("./target/unittests-BlockAccessFileSpec")
+  fun openFile() {
+    BlockAccessFile(underlyingFile, MAX_SIZE)
   }
 
-  override def beforeEach() {
+  override fun beforeEach() {
     if (underlyingFile.exists())
       underlyingFile.delete()
 
@@ -32,7 +32,7 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     file.close()
@@ -43,7 +43,7 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers
     * @param value The value to convert.
     * @return A byte buffer we got from the string value.
     */
-  def B(value : String) : ByteBuffer = {
+  fun B(value : String) : ByteBuffer {
     ByteBuffer.wrap( value.getBytes )
   }
 
@@ -52,7 +52,7 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers
     * @param buffer The byte buffer to convert.
     * @return The converted array of byte.
     */
-  def L(buffer : ByteBuffer) : Array[Byte] = {
+  fun L(buffer : ByteBuffer) : Array<Byte> {
     buffer.array
   }
 
@@ -61,7 +61,7 @@ class BlockAccessFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers
     * @param offset The offset where we are reading/writing the file.
     * @param size The size of the file.
     */
-  def expect(offset : Long, size : Long): Unit = {
+  fun expect(offset : Long, size : Long): Unit {
     file.offset() shouldBe offset
     file.size() shouldBe size
   }

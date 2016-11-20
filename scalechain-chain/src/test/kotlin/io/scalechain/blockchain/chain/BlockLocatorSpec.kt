@@ -13,19 +13,19 @@ import org.scalatest._
   * Created by kangmo on 5/28/16.
   */
 // Remove the ignore annotation after creating the "by block height" index
-class BlockLocatorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockLocatorSpec/")
+  val testPath = File("./target/unittests-BlockLocatorSpec/")
   var locator : BlockLocator = null
 
   // For testing, override the MAX_HASH_COUNT to 5 so that we get only 5 hashes if the hashStop is all zero.
   val MAX_HASH_COUNT = 5
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
 
-    locator = new BlockLocator(chain)
+    locator = BlockLocator(chain)
 
     // put hashes into chain.
     chain.putBlock(
@@ -35,7 +35,7 @@ class BlockLocatorSpec extends BlockchainTestTrait with TransactionTestDataTrait
 
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     locator = null
 
     super.afterEach()

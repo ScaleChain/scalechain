@@ -11,11 +11,11 @@ import io.netty.handler.ssl.SslContext
 import io.scalechain.blockchain.net.p2p.{BitcoinProtocolEncoder, BitcoinProtocolDecoder}
 
 /**
-  * Creates a newly configured {@link ChannelPipeline} for a new channel.
+  * Creates a newly configured {@link ChannelPipeline} for a channel.
   */
-class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int, peerSet : PeerSet) extends ChannelInitializer[SocketChannel]{
+class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int, peerSet : PeerSet) : ChannelInitializer<SocketChannel>{
 
-  override def initChannel(ch : SocketChannel) : Unit = {
+  override fun initChannel(ch : SocketChannel) : Unit {
     val pipeline : ChannelPipeline = ch.pipeline()
 
     // Add SSL handler first to encrypt and decrypt everything.
@@ -25,10 +25,10 @@ class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int, p
     // and server in the real world.
     pipeline.addLast(sslCtx.newHandler(ch.alloc(), address, port))
 
-    pipeline.addLast(new BitcoinProtocolDecoder())
-    pipeline.addLast(new BitcoinProtocolEncoder())
+    pipeline.addLast(BitcoinProtocolDecoder())
+    pipeline.addLast(BitcoinProtocolEncoder())
 
     // and then business logic.
-    pipeline.addLast(new NodeClientHandler(peerSet))
+    pipeline.addLast(NodeClientHandler(peerSet))
   }
 }

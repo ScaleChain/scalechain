@@ -17,7 +17,7 @@ object LockingScriptAnalyzer {
     * @param scriptOps The parsed script operations.
     * @return The list of extracted addresses.
     */
-  protected[transaction] def extractAddresses(scriptOps: ScriptOpList ) : List[CoinAddress] = {
+  protected<transaction> fun extractAddresses(scriptOps: ScriptOpList ) : List<CoinAddress> {
     scriptOps.operations match {
       // TODO : Extract multisig addresses
       // Pay to public key
@@ -41,7 +41,7 @@ object LockingScriptAnalyzer {
     *
     * @param lockingScript The locking script where we extract addreses.
     */
-  def extractAddresses(lockingScript: LockingScript) : List[CoinAddress] = {
+  fun extractAddresses(lockingScript: LockingScript) : List<CoinAddress> {
     val scriptOperations: ScriptOpList = ScriptParser.parse(lockingScript)
     extractAddresses(scriptOperations)
   }
@@ -51,7 +51,7 @@ object LockingScriptAnalyzer {
     * @param lockingScript The locking script where we extract an output ownership.
     * @return The extracted output ownership.
     */
-  def extractOutputOwnership(lockingScript : LockingScript ) : OutputOwnership = {
+  fun extractOutputOwnership(lockingScript : LockingScript ) : OutputOwnership {
     // Step 1 : parse the script operations
     val scriptOperations : ScriptOpList = ScriptParser.parse(lockingScript)
 
@@ -74,7 +74,7 @@ object LockingScriptAnalyzer {
     * @param lockingScript The locking script to analyze
     * @return The list of all possible output ownerships.
     */
-  def extractPossibleOutputOwnerships(lockingScript : LockingScript ) : List[OutputOwnership] = {
+  fun extractPossibleOutputOwnerships(lockingScript : LockingScript ) : List<OutputOwnership> {
     // Step 1 : parse the script operations
     val scriptOperations : ScriptOpList = ScriptParser.parse(lockingScript)
 

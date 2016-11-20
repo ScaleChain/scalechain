@@ -11,28 +11,28 @@ import org.rocksdb.{RocksDB, WriteOptions, WriteBatchWithIndex}
 /**
   * Created by kangmo on 7/9/16.
   */
-class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
+class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
   assert(db != null)
 
   var writeBatch : WriteBatchWithIndex = null
 
-  var putCache : scala.collection.mutable.Map[ByteBuffer, Array[Byte]] = null // key, value
-  var delCache : scala.collection.mutable.Map[ByteBuffer, Unit] = null // key, dummy
+  var putCache : scala.collection.mutable.Map<ByteBuffer, Array<Byte>> = null // key, value
+  var delCache : scala.collection.mutable.Map<ByteBuffer, Unit> = null // key, dummy
 
   /**
     * Begin a database transaction.
     */
-  def beginTransaction() : Unit = {
+  fun beginTransaction() : Unit {
     assert(writeBatch == null)
-    writeBatch = new WriteBatchWithIndex(true)
-    putCache = scala.collection.mutable.Map[ByteBuffer, Array[Byte]]()
-    delCache = scala.collection.mutable.Map[ByteBuffer, Unit]()
+    writeBatch = WriteBatchWithIndex(true)
+    putCache = scala.collection.mutable.Map<ByteBuffer, Array<Byte>>()
+    delCache = scala.collection.mutable.Map<ByteBuffer, Unit>()
   }
 
   /**
     * Commit the database transaction began.
     */
-  def commitTransaction() : Unit = {
+  fun commitTransaction() : Unit {
     assert(writeBatch != null)
 /*
     putCache foreach { case (key, value) =>
@@ -43,7 +43,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     }
 */
     //    println(s"Committing a transaction. Write count : ${writeBatch.count}")
-    val writeOptions = new WriteOptions()
+    val writeOptions = WriteOptions()
     // BUGBUG : Need to set to true?
     writeOptions.setSync(false)
     //writeOptions.setDisableWAL(true)
@@ -56,7 +56,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
   /**
     * Abort the database transaction began.
     */
-  def abortTransaction() : Unit = {
+  fun abortTransaction() : Unit {
     assert(writeBatch != null)
 //    println(s"Aborting a transaction. Write count : ${writeBatch.count}")
     writeBatch = null
@@ -64,7 +64,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     delCache = null
   }
 
-  def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
     val rocksIterator =
       if (writeBatch!= null)
         writeBatch.newIteratorWithBase( db.db.newIterator() )
@@ -74,7 +74,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     db.seek(rocksIterator, keyOption)
   }
 
-  def get(key : Array[Byte] ) : Option[Array[Byte]] = {
+  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
     val wrappedKey = ByteBuffer.wrap(key)
     if (delCache == null || putCache == null) {
       db.get(key)
@@ -119,7 +119,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
 */
   }
 
-  def put(key : Array[Byte], value : Array[Byte] ) : Unit = {
+  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
 //    println(s"put ${HexUtil.hex(key)}, ${HexUtil.hex(value)}")
     assert(writeBatch != null)
     writeBatch.put(key, value)
@@ -129,7 +129,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     delCache.remove(wrappedKey)
   }
 
-  def del(key : Array[Byte]) : Unit = {
+  fun del(key : Array<Byte>) : Unit {
 //    println(s"del ${HexUtil.hex(key)}")
     assert(writeBatch != null)
     writeBatch.remove(key)
@@ -139,7 +139,7 @@ class TransactingRocksDatabase(db : RocksDatabase) extends KeyValueDatabase {
     putCache.remove(wrappedKey)
   }
 
-  def close() : Unit = {
+  fun close() : Unit {
     db.close()
   }
 }

@@ -4,26 +4,26 @@ import java.security.MessageDigest
 import org.spongycastle.crypto.digests.RIPEMD160Digest
 
 trait HashValue {
-  val value: Array[Byte]
+  val value: Array<Byte>
 }
 
-case class SHA1(bytes:Array[Byte]) extends HashValue {
+data class SHA1(bytes:Array<Byte>) : HashValue {
   override val value = bytes
 }
 
-case class SHA256(bytes:Array[Byte]) extends HashValue {
+data class SHA256(bytes:Array<Byte>) : HashValue {
   override val value = bytes
 }
 
-case class RIPEMD160(bytes:Array[Byte]) extends HashValue {
+data class RIPEMD160(bytes:Array<Byte>) : HashValue {
   override val value = bytes
 }
 
-case class Hash160(bytes:Array[Byte]) extends HashValue {
+data class Hash160(bytes:Array<Byte>) : HashValue {
   override val value = bytes
 }
 
-case class Hash256(bytes:Array[Byte]) extends HashValue {
+data class Hash256(bytes:Array<Byte>) : HashValue {
   override val value = bytes
 }
 
@@ -36,7 +36,7 @@ object HashFunctions {
    * @param input
    * @return
    */
-  def sha1(input: Array[Byte]) : SHA1 = {
+  fun sha1(input: Array<Byte>) : SHA1 {
     val sha1md = MessageDigest.getInstance("SHA-1")
     SHA1( sha1md.digest(input) )
   }
@@ -46,7 +46,7 @@ object HashFunctions {
    * @param input
    * @return
    */
-  def sha256(input: Array[Byte]) : SHA256 = {
+  fun sha256(input: Array<Byte>) : SHA256 {
     val sha256md = MessageDigest.getInstance("SHA-256")
     SHA256( sha256md.digest(input) )
   }
@@ -56,10 +56,10 @@ object HashFunctions {
    * @param input
    * @return
    */
-  def ripemd160(input: Array[Byte]) : RIPEMD160 = {
-    val md = new RIPEMD160Digest()
+  fun ripemd160(input: Array<Byte>) : RIPEMD160 {
+    val md = RIPEMD160Digest()
     md.update(input, 0, input.length)
-    val out = Array.fill[Byte](md.getDigestSize())(0)
+    val out = Array.fill<Byte>(md.getDigestSize())(0)
     md.doFinal(out, 0)
     RIPEMD160(out)
   }
@@ -69,7 +69,7 @@ object HashFunctions {
    * @param input
    * @return
    */
-  def hash160(input: Array[Byte]) : Hash160 = {
+  fun hash160(input: Array<Byte>) : Hash160 {
     Hash160( ripemd160( sha256(input).value ).value )
   }
 
@@ -78,7 +78,7 @@ object HashFunctions {
    * @param input
    * @return
    */
-  def hash256(input: Array[Byte]) : Hash256 = {
+  fun hash256(input: Array<Byte>) : Hash256 {
     Hash256( sha256( sha256(input).value ).value )
   }
 }

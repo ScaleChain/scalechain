@@ -11,18 +11,18 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 /** Test splice operations in Splice.scala
   *
   */
-class SpliceSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class SpliceSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -48,7 +48,7 @@ class SpliceSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrai
     )
 
   "operations" should "run and push expected value on the stack." in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+    forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
       verifyOperations(inputValues, List(operation), expectation);
     }
   }

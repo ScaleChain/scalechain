@@ -6,10 +6,10 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
- *  [Bitcoin Core Packets Not Captured]
+ *  <Bitcoin Core Packets Not Captured>
  *  No payload.
  */
-class MempoolSpec extends PayloadTestSuite[Mempool]  {
+class MempoolSpec : PayloadTestSuite<Mempool>  {
 
   val codec = MempoolCodec.codec
 

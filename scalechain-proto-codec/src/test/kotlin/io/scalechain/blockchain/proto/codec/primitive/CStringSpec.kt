@@ -4,7 +4,7 @@ package io.scalechain.blockchain.proto.codec.primitive
   * Thanks to : https://github.com/yzernik
   */
 
-class CStringSpec extends CodecSuite {
+class CStringSpec : CodecSuite {
 
   "CString codec" should {
 

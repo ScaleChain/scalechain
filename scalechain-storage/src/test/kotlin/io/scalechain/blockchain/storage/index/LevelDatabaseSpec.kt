@@ -13,7 +13,7 @@ import org.scalatest.junit.JUnitRunner
 // This test fails if it runs with sbt.
 // https://github.com/eligosource/eventsourced/wiki/Installation#native
 @Ignore
-class LevelDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
+class LevelDatabaseSpec : KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -21,16 +21,16 @@ class LevelDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestT
   var db : KeyValueDatabase = null
 
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-LevelDatabaseSpec")
+    val testPath = File("./target/unittests-LevelDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new LevelDatabase( testPath )
+    db = LevelDatabase( testPath )
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

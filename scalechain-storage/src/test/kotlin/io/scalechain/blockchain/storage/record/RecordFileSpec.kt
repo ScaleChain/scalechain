@@ -10,7 +10,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers with CodecTestUtil {
+class RecordFileSpec : FlatSpec with BeforeAndAfterEach with Matchers with CodecTestUtil {
   this: Suite =>
 
   Storage.initialize()
@@ -18,30 +18,30 @@ class RecordFileSpec extends FlatSpec with BeforeAndAfterEach with Matchers with
   var file : RecordFile = null
   val MAX_SIZE = 64
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val f = new File("./target/unittests-RecordFileSpec")
+    val f = File("./target/unittests-RecordFileSpec")
     if (f.exists())
       f.delete()
 
-    file = new RecordFile(f, MAX_SIZE)
+    file = RecordFile(f, MAX_SIZE)
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     file.close()
   }
 
-  "appendRecord/readRecord" should "be able to append/read a case class instance" in {
+  "appendRecord/readRecord" should "be able to append/read a data class instance" in {
     val record = FileNumber(1)
     val locator = file.appendRecord(record)(FileNumberCodec)
     file.readRecord(locator)(FileNumberCodec) shouldBe record
   }
 
-  "appendRecord/readRecord" should "be able to append/read multiple case class instance" in {
+  "appendRecord/readRecord" should "be able to append/read multiple data class instance" in {
     val record1 = FileNumber(1)
     val record2 = FileNumber(2)
     val record3 = FileNumber(3)

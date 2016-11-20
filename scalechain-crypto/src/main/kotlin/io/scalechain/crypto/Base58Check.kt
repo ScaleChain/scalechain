@@ -23,7 +23,7 @@ import io.scalechain.util.Base58Util
   *
   */
 object Base58Check {
-  def checksum(data: Array[Byte]) = HashFunctions.hash256(data).value.take(4)
+  fun checksum(data: Array<Byte>) = HashFunctions.hash256(data).value.take(4)
 
   /**
     * Encode data in Base58Check format.
@@ -33,7 +33,7 @@ object Base58Check {
     * @param data date to be encoded
     * @return a Base58 string
     */
-  def encode(prefix: Byte, data: Array[Byte]) : String = {
+  fun encode(prefix: Byte, data: Array<Byte>) : String {
     val prefixAndData = prefix +: data
     Base58Util.encode(prefixAndData ++ checksum(prefixAndData))
   }
@@ -44,7 +44,7 @@ object Base58Check {
     * @param data data to be encoded
     * @return a Base58 String
     */
-  def encode(prefix: Array[Byte], data: Array[Byte]) : String = {
+  fun encode(prefix: Array<Byte>, data: Array<Byte>) : String {
     val prefixAndData = prefix ++ data
     Base58Util.encode(prefixAndData ++ checksum(prefixAndData))
   }
@@ -56,12 +56,12 @@ object Base58Check {
     * @return a (prefix, data) tuple
     * @throws RuntimeException if the checksum that is part of the encoded data cannot be verified
     */
-  def decode(encoded: String) : (Byte, Array[Byte]) = {
+  fun decode(encoded: String) : (Byte, Array<Byte>) {
     val raw = Base58Util.decode(encoded)
     val versionAndHash = raw.dropRight(4)
     val checksum = raw.takeRight(4)
     if (!util.Arrays.equals(checksum, Base58Check.checksum(versionAndHash))) {
-      throw new GeneralException(ErrorCode.InvalidChecksum)
+      throw GeneralException(ErrorCode.InvalidChecksum)
     }
     (versionAndHash(0), versionAndHash.tail)
   }

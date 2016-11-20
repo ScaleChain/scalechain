@@ -47,7 +47,7 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#help
   */
-object Help extends RpcCommand {
+object Help : RpcCommand {
   val helpForAllCommands =
     """
       |== Blockchain ==
@@ -82,10 +82,10 @@ object Help extends RpcCommand {
       |sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
     """.stripMargin
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val rpcName: Option[String] = request.params.getOption[String]("RPC", 0)
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val rpcName: Option<String> = request.params.getOption<String>("RPC", 0)
 
       if (rpcName.isEmpty) {
         Right(Some(StringResult(helpForAllCommands)))
@@ -102,7 +102,7 @@ object Help extends RpcCommand {
     }
   }
 
-  def help() : String =
+  fun help() : String =
     """help ( "command" )
       |
       |List all commands, or get help for a specified command.

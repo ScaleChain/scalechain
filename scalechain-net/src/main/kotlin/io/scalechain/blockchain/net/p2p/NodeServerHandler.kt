@@ -20,18 +20,18 @@ import java.net.InetAddress
 /**
   * Handles a server-side channel.
   */
-class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[ProtocolMessage] {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[NodeServerHandler]) )
+class NodeServerHandler(peerSet : PeerSet) : SimpleChannelInboundHandler<ProtocolMessage> {
+  private val logger = Logger( LoggerFactory.getLogger(classOf<NodeServerHandler>) )
 
   var messageHandler : ProtocolMessageHandler = null
 
 
-  override def channelActive(ctx : ChannelHandlerContext) : Unit = {
+  override fun channelActive(ctx : ChannelHandlerContext) : Unit {
     // Once session is secured, send a greeting and register the channel to the global channel
     // list so the channel received the messages from others.
-    ctx.pipeline().get(classOf[SslHandler]).handshakeFuture().addListener(
-      new GenericFutureListener[Future[Channel]]() {
-        override def operationComplete(future : Future[Channel])  {
+    ctx.pipeline().get(classOf<SslHandler>).handshakeFuture().addListener(
+      GenericFutureListener<Future<Channel>>() {
+        override fun operationComplete(future : Future<Channel>)  {
           val remoteAddress = ctx.channel().remoteAddress()
           logger.info(s"Connection accepted from ${remoteAddress}")
           /*
@@ -39,19 +39,19 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
             "Welcome to " + InetAddress.getLocalHost().getHostName() + " secure chat service!\n")
           ctx.writeAndFlush(
             "Your session is protected by " +
-              ctx.pipeline().get(classOf[SslHandler]).engine().getSession().getCipherSuite() +
+              ctx.pipeline().get(classOf<SslHandler>).engine().getSession().getCipherSuite() +
             " cipher suite.\n")
           */
 
           assert(messageHandler == null)
           val peer = peerSet.add(ctx.channel())
-          messageHandler = new ProtocolMessageHandler(peer, new PeerCommunicator(peerSet))
+          messageHandler = ProtocolMessageHandler(peer, PeerCommunicator(peerSet))
 
           // Upon successful connection, send the version message.
           peer.send( VersionFactory.create )
 
-          ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
-            def operationComplete(future:ChannelFuture) {
+          ctx.channel().closeFuture().addListener(ChannelFutureListener() {
+            fun operationComplete(future:ChannelFuture) {
               assert( future.isDone )
 
               peerSet.remove(remoteAddress)
@@ -76,7 +76,7 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
     )
   }
 
-  override def channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit = {
+  override fun channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit {
     assert(messageHandler != null)
     // Process the received message, and send message to peers if necessary.
 
@@ -90,7 +90,7 @@ class NodeServerHandler(peerSet : PeerSet) extends SimpleChannelInboundHandler[P
     */
   }
 
-  override def exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {
+  override fun exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) {
     val causeDescription = ExceptionUtil.describe( cause.getCause )
     logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     // TODO : BUGBUG : Need to close connection when an exception is thrown?

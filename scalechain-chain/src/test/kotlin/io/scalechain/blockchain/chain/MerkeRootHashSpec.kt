@@ -7,24 +7,24 @@ import org.scalatest._
 
 import scala.collection.mutable.ArrayBuffer
 
-class MerkleRootHashSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class MerkleRootHashSpec : FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
   "mergeHash" should "merge two hash values" in {
     val expectedHash = Hash( HashFunctions.hash256(TXHASH1.value.array ++ TXHASH2.value.array).value )
     MerkleRootCalculator.mergeHash( TXHASH1, TXHASH2 ) shouldBe expectedHash
   }
 
   "mergeHashes" should "hit an assertion if the number of hashes is zero" in {
-    an[AssertionError] should be thrownBy {
+    an<AssertionError> should be thrownBy {
       MerkleRootCalculator.mergeHashes(ArrayBuffer())
     }
   }
 
   "mergeHashes" should "hit an assertion if the number of hashes is even" in {
-    an[AssertionError] should be thrownBy {
+    an<AssertionError> should be thrownBy {
       MerkleRootCalculator.mergeHashes(ArrayBuffer(TXHASH1))
     }
 
-    an[AssertionError] should be thrownBy {
+    an<AssertionError> should be thrownBy {
       MerkleRootCalculator.mergeHashes(ArrayBuffer(TXHASH1, TXHASH1, TXHASH1))
     }
   }
@@ -44,7 +44,7 @@ class MerkleRootHashSpec extends FlatSpec with BeforeAndAfterEach with Transacti
 
 
   "calculateMerkleRoot" should "hit an assertion with hash count zero" in {
-    an[AssertionError] should be thrownBy {
+    an<AssertionError> should be thrownBy {
       MerkleRootCalculator.calculateMerkleRoot(ArrayBuffer())
     }
   }
@@ -67,7 +67,7 @@ class MerkleRootHashSpec extends FlatSpec with BeforeAndAfterEach with Transacti
   }
 
   "calculate" should "hit an assertion with transaction count zero" in {
-    an[AssertionError] should be thrownBy {
+    an<AssertionError> should be thrownBy {
       MerkleRootCalculator.calculate(List())
     }
   }

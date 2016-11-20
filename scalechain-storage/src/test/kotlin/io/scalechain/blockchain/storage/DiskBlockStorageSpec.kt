@@ -12,7 +12,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach  {
+class DiskBlockStorageSpec : BlockStorageTestTrait with BeforeAndAfterEach  {
   this: Suite =>
 
   import TestData._
@@ -25,21 +25,21 @@ class DiskBlockStorageSpec extends BlockStorageTestTrait with BeforeAndAfterEach
 
   var diskBlockStorage : DiskBlockStorage = null
   var storage : BlockStorage = null
-  val testPath = new File("./target/unittests-DiskBlockStorageSpec/")
-  override def beforeEach() {
+  val testPath = File("./target/unittests-DiskBlockStorageSpec/")
+  override fun beforeEach() {
 
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    db = new RocksDatabase( testPath )
-    diskBlockStorage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
+    db = RocksDatabase( testPath )
+    diskBlockStorage = DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
 
     storage = diskBlockStorage
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

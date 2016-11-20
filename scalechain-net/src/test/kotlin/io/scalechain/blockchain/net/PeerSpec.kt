@@ -5,17 +5,17 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class PeerSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class PeerSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code

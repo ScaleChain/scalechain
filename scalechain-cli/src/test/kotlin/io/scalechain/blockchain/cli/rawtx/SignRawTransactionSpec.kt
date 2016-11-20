@@ -10,17 +10,17 @@ import org.scalatest._
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class SignRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class SignRawTransactionSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code

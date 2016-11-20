@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.PayloadTestSuite
 import io.scalechain.util.HexUtil._
 
 /**
-  * [Bitcoin Core Packets Not Captured]
+  * <Bitcoin Core Packets Not Captured>
   *
   * 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
   * 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 .... The first field is Tx Hash(32 bytes). All bits are zero
@@ -29,7 +29,7 @@ import io.scalechain.util.HexUtil._
 
 // No need to create GenerationTransactionInputCodec, as it is converted from thje NormalTransactionInputCodec.
 /*
-class GenerationTransactionInputSpec extends PayloadTestSuite[GenerationTransactionInput]  {
+class GenerationTransactionInputSpec : PayloadTestSuite<GenerationTransactionInput>  {
 
   val codec = GenerationTransactionInputCodec.codec
 

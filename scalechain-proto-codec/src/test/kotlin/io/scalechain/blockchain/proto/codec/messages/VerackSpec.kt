@@ -6,14 +6,14 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  [NET] recv; header:
+<Bitcoin Core Packets Captured>
+  <NET> recv; header:
   <Header> Magic:ù¾´Ù, Command:verack, Size:0, Checksum:-488573347
   dumping data len : 24
   00000000  f9 be b4 d9 76 65 72 61  63 6b 00 00 00 00 00 00  ù¾´Ùverack......
-  00000010  00 00 00 00 5d f6 e0 e2                           ....]öàâ
+  00000010  00 00 00 00 5d f6 e0 e2                           ....>öàâ
   */
-class VerackSpec extends EnvelopeTestSuite[Verack]  {
+class VerackSpec : EnvelopeTestSuite<Verack>  {
 
   val codec = VerackCodec.codec
 

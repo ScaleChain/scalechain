@@ -16,21 +16,21 @@ import scodec.{DecodeResult, Attempt, Codec}
   *
   * Source : https://en.bitcoin.it/wiki/Protocol_documentation
   */
-trait ProtocolMessageCodec[T <: ProtocolMessage] extends MessagePartCodec[T] {
+trait ProtocolMessageCodec<T <: ProtocolMessage> : MessagePartCodec<T> {
 
   val command : String
-  val clazz : Class[T]
+  val clazz : Class<T>
 
-  def encode( message : ProtocolMessage ) = {
+  fun encode( message : ProtocolMessage ) {
     val castedMessage = clazz.cast(message)
     codec.encode(castedMessage)
   }
 }
 
 trait NetworkProtocol {
-  def getCommand(message : ProtocolMessage) : String
-  def encode(message : ProtocolMessage) : BitVector
-  def decode(command:String, bitVector:BitVector) : ProtocolMessage
+  fun getCommand(message : ProtocolMessage) : String
+  fun encode(message : ProtocolMessage) : BitVector
+  fun decode(command:String, bitVector:BitVector) : ProtocolMessage
 }
 
 
@@ -41,10 +41,10 @@ trait NetworkProtocol {
   * Design decisions made to have only minimal amount of maintenance cost.
   * 1. Implement protocol in only one method.
   * No need to implement both encoder and decoder for each message even though we have only one on-the-wire format for a message.
-  * 2. No need to change codes here and there to modify the protocol or add a new protocol message.
-  * Just add a case class for the message and add an entry on codecs array of ProtocolMessageCodecs class.
+  * 2. No need to change codes here and there to modify the protocol or add a protocol message.
+  * Just add a data class for the message and add an entry on codecs array of ProtocolMessageCodecs class.
   */
-class BitcoinProtocol extends NetworkProtocol {
+class BitcoinProtocol : NetworkProtocol {
   val codecs = Seq(
     VersionCodec,
     VerackCodec,
@@ -69,14 +69,14 @@ class BitcoinProtocol extends NetworkProtocol {
     AlertCodec )
 
   val codecMapByCommand = (codecs.map(_.command) zip codecs).toMap
-  val codecMapByClass   = (codecs.map(_.clazz) zip codecs).toMap[Class[_ <:ProtocolMessage], ProtocolMessageCodec[_ <: ProtocolMessage]]
+  val codecMapByClass   = (codecs.map(_.clazz) zip codecs).toMap<Class<_ <:ProtocolMessage>, ProtocolMessageCodec<_ <: ProtocolMessage>>
 
-  def getCommand(message : ProtocolMessage) : String = {
+  fun getCommand(message : ProtocolMessage) : String {
     val codec = codecMapByClass(message.getClass)
     codec.command
   }
 
-  def encode(message : ProtocolMessage) : BitVector = {
+  fun encode(message : ProtocolMessage) : BitVector {
     val codec = codecMapByClass(message.getClass)
 
     codec.encode(message) match {
@@ -84,23 +84,23 @@ class BitcoinProtocol extends NetworkProtocol {
         bitVector
       }
       case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
       }
     }
   }
 
-  def decode(command:String, bitVector: BitVector) : ProtocolMessage = {
+  fun decode(command:String, bitVector: BitVector) : ProtocolMessage {
     val codec = codecMapByCommand(command).codec
     val message = codec.decode(bitVector) match {
       case Attempt.Successful(DecodeResult(decoded, remainder)) => {
         if ( remainder.isEmpty ) {
           decoded
         } else {
-          throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+          throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
         }
       }
       case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
       }
     }
     message

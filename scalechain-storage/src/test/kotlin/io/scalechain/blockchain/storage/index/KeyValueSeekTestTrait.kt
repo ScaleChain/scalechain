@@ -9,7 +9,7 @@ import Using._
 /**
   * Test seek, seekObject(rawKey), seekObject(prefix, key) method of KeyValueDatabase.
   */
-trait KeyValueSeekTestTrait extends FlatSpec with KeyValueCommonTrait with Matchers {
+trait KeyValueSeekTestTrait : FlatSpec with KeyValueCommonTrait with Matchers {
   var db: KeyValueDatabase
 
   "seek(None)" should "iterate nothing if not key exists" in {

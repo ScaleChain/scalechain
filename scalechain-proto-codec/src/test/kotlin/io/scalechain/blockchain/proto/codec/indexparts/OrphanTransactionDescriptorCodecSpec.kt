@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.{OrphanTransactionDescriptor, TransactionC
 import io.scalechain.blockchain.proto.codec.{OrphanTransactionDescriptorCodec, TransactionCountCodec, PayloadTestSuite}
 import io.scalechain.util.HexUtil._
 
-class OrphanTransactionDescriptorCodecSpec extends PayloadTestSuite[OrphanTransactionDescriptor]  {
+class OrphanTransactionDescriptorCodecSpec : PayloadTestSuite<OrphanTransactionDescriptor>  {
 
   val codec = OrphanTransactionDescriptorCodec.codec
 

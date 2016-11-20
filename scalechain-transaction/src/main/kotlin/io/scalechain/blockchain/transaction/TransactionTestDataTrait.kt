@@ -10,8 +10,8 @@ import io.scalechain.util.HexUtil
 /**
   * Created by kangmo on 5/18/16.
   */
-trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
-  case class AddressData(privateKey : PrivateKey, publicKey : PublicKey, pubKeyScript : ParsedPubKeyScript, address : CoinAddress)
+trait TransactionTestDataTrait : ProtoTestData with ChainTestTrait {
+  data class AddressData(privateKey : PrivateKey, publicKey : PublicKey, pubKeyScript : ParsedPubKeyScript, address : CoinAddress)
 
   /** Get rid of bytes data in OpCheckSig in the operations of ParsedPubKeyScript.
     *
@@ -21,7 +21,7 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     * @param pubKeyScript The ParsedPubKeyScript to scrub script operations it it.
     * @return The ParsedPubKeyScript which has scrubbed script operations.
     */
-  def scrubScript(pubKeyScript : ParsedPubKeyScript) : ParsedPubKeyScript = {
+  fun scrubScript(pubKeyScript : ParsedPubKeyScript) : ParsedPubKeyScript {
     pubKeyScript.copy(
       scriptOps = ScriptOpList(pubKeyScript.scriptOps.operations.map { op =>
         op match {
@@ -38,7 +38,7 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     * @param ownerships the list of ownerships to scrub scripts. Only ParsedPubKeyScript is scrubbed. CoinAddress remains untouched.
     * @return The scrubbed scripts.
     */
-  def scrubScript(ownerships : List[OutputOwnership]) : List[OutputOwnership] = {
+  fun scrubScript(ownerships : List<OutputOwnership>) : List<OutputOwnership> {
     ownerships.map { ownership =>
       ownership match {
         case p : ParsedPubKeyScript => scrubScript(p)
@@ -47,14 +47,14 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     }
   }
 
-  def scrubScript(ownership : OutputOwnership) : OutputOwnership = {
+  fun scrubScript(ownership : OutputOwnership) : OutputOwnership {
     ownership match {
       case p : ParsedPubKeyScript => scrubScript(p)
       case ownership => ownership
     }
   }
 
-  def generateAddress() : AddressData = {
+  fun generateAddress() : AddressData {
 
     val privateKey   = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
@@ -69,7 +69,7 @@ trait TransactionTestDataTrait extends ProtoTestData with ChainTestTrait {
     )
   }
 
-  def generateTransactionOutput(value : Long, pubKeyScript : ParsedPubKeyScript) = {
+  fun generateTransactionOutput(value : Long, pubKeyScript : ParsedPubKeyScript) {
     TransactionOutput( value, pubKeyScript.lockingScript )
   }
 

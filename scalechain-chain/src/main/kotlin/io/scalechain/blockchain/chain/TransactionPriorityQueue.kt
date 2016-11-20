@@ -10,7 +10,7 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.blockchain.transaction.CoinsView
 
-case class TransactionWithFee(transaction : Transaction, fee : CoinAmount)
+data class TransactionWithFee(transaction : Transaction, fee : CoinAmount)
 
 /**
   * Calculate the transaction fee.
@@ -23,7 +23,7 @@ object TransactionFeeCalculator {
     * @param tx The transaction to calculate the fee.
     * @return The amount of the fee.
     */
-  def fee(coinsView : CoinsView, tx : Transaction)(implicit db : KeyValueDatabase) : CoinAmount = {
+  fun fee(coinsView : CoinsView, tx : Transaction)(implicit db : KeyValueDatabase) : CoinAmount {
     val totalInputAmount = tx.inputs.foldLeft(0L) { (acc : Long, input : TransactionInput) =>
       acc + coinsView.getTransactionOutput( OutPoint( input.outputTransactionHash, input.outputIndex.toInt) ).value
     }
@@ -35,8 +35,8 @@ object TransactionFeeCalculator {
   }
 }
 
-class DescendingTransactionFeeComparator extends Comparator[TransactionWithFee] {
-  override def compare(x : TransactionWithFee, y : TransactionWithFee): Int = {
+class DescendingTransactionFeeComparator : Comparator<TransactionWithFee> {
+  override fun compare(x : TransactionWithFee, y : TransactionWithFee): Int {
     - (x.fee.value - y.fee.value).toInt
   }
 }
@@ -44,11 +44,11 @@ class DescendingTransactionFeeComparator extends Comparator[TransactionWithFee] 
   * Created by kangmo on 6/30/16.
   */
 class TransactionPriorityQueue(coinsView : CoinsView) {
-  val queue = new PriorityQueue( new DescendingTransactionFeeComparator() )
-  def enqueue(tx : Transaction)(implicit db : KeyValueDatabase) = {
+  val queue = PriorityQueue( DescendingTransactionFeeComparator() )
+  fun enqueue(tx : Transaction)(implicit db : KeyValueDatabase) {
     queue.add(TransactionWithFee(tx, TransactionFeeCalculator.fee(coinsView, tx) ))
   }
-  def dequeue() : Option[Transaction] = {
+  fun dequeue() : Option<Transaction> {
     val txWithFee = queue.poll()
     if (txWithFee == null) None else Some(txWithFee.transaction)
   }

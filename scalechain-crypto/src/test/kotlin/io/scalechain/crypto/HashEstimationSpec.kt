@@ -3,7 +3,7 @@ package io.scalechain.crypto
 import org.scalatest._
 import io.scalechain.util.HexUtil._
 
-class HashEstimationSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class HashEstimationSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   "getHashCalculations" should "calculate the number of hash calculations based on a hash value" in {
     HashEstimation.getHashCalculations(bytes("F000000000000000000000000000000000000000000000000000000000000000")) shouldBe 1
     HashEstimation.getHashCalculations(bytes("E000000000000000000000000000000000000000000000000000000000000000")) shouldBe 1

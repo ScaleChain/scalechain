@@ -10,16 +10,16 @@ import io.scalechain.util.{ByteArray, HexUtil}
 import org.slf4j.LoggerFactory
 
 
-// [API layer] Convert a block to a specific block format.
+// <API layer> Convert a block to a specific block format.
 object BlockFormatter {
-  /** Get the GetBlockResult case class instance from a block.
+  /** Get the GetBlockResult data class instance from a block.
     *
     * Used by : getblock RPC.
     *
     * @param block The block to format.
     * @return The GetBlockResult instance.
     */
-  def getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult = {
+  fun getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult {
     val serializedBlock = BlockCodec.serialize(block)
 
     val blockHash = block.header.hash
@@ -46,13 +46,13 @@ object BlockFormatter {
     * @param block The block to format.
     * @return The serialized string value.
     */
-  def getSerializedBlock(block : Block) : String = {
-    val rawBlockData : Array[Byte] = BlockCodec.serialize(block)
+  fun getSerializedBlock(block : Block) : String {
+    val rawBlockData : Array<Byte> = BlockCodec.serialize(block)
     HexUtil.hex(rawBlockData)
   }
 }
 
-// [API Layer] decode a transaction.
+// <API Layer> decode a transaction.
 object TransactionDecoder {
   /** Decodes a serialized transaction hex string into a Transaction.
     *
@@ -62,7 +62,7 @@ object TransactionDecoder {
     * @param serializedTransaction The serialized transaction.
     * @return The decoded transaction, Transaction instance.
     */
-  def decodeTransaction(serializedTransaction : String) : Transaction = {
+  fun decodeTransaction(serializedTransaction : String) : Transaction {
     val rawTransaction = HexUtil.bytes(serializedTransaction)
     TransactionCodec.parse(rawTransaction)
   }
@@ -74,14 +74,14 @@ object TransactionDecoder {
     * @param serializedTransactions The hex string that has multiple(or single) transactions to decode.
     * @return A list of transactions.
     */
-  def decodeTransactions(serializedTransactions : String) : List[Transaction] = {
+  fun decodeTransactions(serializedTransactions : String) : List<Transaction> {
     val rawTransactions = HexUtil.bytes(serializedTransactions)
     TransactionCodec.parseMany(rawTransactions)
   }
 
 }
 
-// [API Layer] encode a transaction
+// <API Layer> encode a transaction
 object TransactionEncoder {
   /** Encodes a transaction into a serialized transaction hex string.
     *
@@ -90,13 +90,13 @@ object TransactionEncoder {
     * @param transaction The transaction to encode.
     * @return The serialized transaction.
     */
-  def encodeTransaction(transaction : Transaction) : Array[Byte] = {
+  fun encodeTransaction(transaction : Transaction) : Array<Byte> {
     TransactionCodec.serialize(transaction)
   }
 }
 
 
-// [API Layer] decode a transaction.
+// <API Layer> decode a transaction.
 object BlockDecoder {
   /** Decodes a serialized block hex string into a Block.
     *
@@ -105,27 +105,27 @@ object BlockDecoder {
     * @param serializedBlock The serialized block.
     * @return The decoded block, Block instance.
     */
-  def decodeBlock(serializedBlock : String) : Block = {
+  fun decodeBlock(serializedBlock : String) : Block {
     val rawBlock = HexUtil.bytes(serializedBlock)
     BlockCodec.parse(rawBlock)
   }
 }
 
 
-// [API layer] Convert a transaction into a specific transaction format.
+// <API layer> Convert a transaction into a specific transaction format.
 object TransactionFormatter {
   private lazy val logger = Logger( LoggerFactory.getLogger(TransactionFormatter.getClass) )
   /** Get a serialized version of a transaction.
     *
     * Used by : sign raw transaction
     */
-  def getSerializedTranasction(transaction : Transaction) : String = {
-    val rawTransactionData : Array[Byte] = TransactionCodec.serialize(transaction)
+  fun getSerializedTranasction(transaction : Transaction) : String {
+    val rawTransactionData : Array<Byte> = TransactionCodec.serialize(transaction)
     HexUtil.hex(rawTransactionData)
   }
 
 
-  protected[command] def convertTransactionInputs( inputs : List[TransactionInput] ) : List[RawTransactionInput] = {
+  protected<command> fun convertTransactionInputs( inputs : List<TransactionInput> ) : List<RawTransactionInput> {
     inputs.map { input =>
       input match {
         case in : NormalTransactionInput => {
@@ -149,7 +149,7 @@ object TransactionFormatter {
     }
   }
 
-  protected[command] def convertTransactionOutputs(outputs : List[TransactionOutput]) : List[RawTransactionOutput] = {
+  protected<command> fun convertTransactionOutputs(outputs : List<TransactionOutput>) : List<RawTransactionOutput> {
     var outputIndex = -1 // Because we add 1 to the outputIndex, we set it to -1 to start from 0.
     val rawTxOutputs = outputs.map { output =>
         outputIndex += 1
@@ -173,7 +173,7 @@ object TransactionFormatter {
     * @param blockInfoOption Some(blockInfo) if the transaction is included in a block; None otherwise.
     * @return The converted RawTransaction instance.
     */
-  def getRawTransaction(transaction : Transaction, bestBlockHeight : Long, blockInfoOption : Option[BlockInfo]) : RawTransaction = {
+  fun getRawTransaction(transaction : Transaction, bestBlockHeight : Long, blockInfoOption : Option<BlockInfo>) : RawTransaction {
     val serializedTransaction = getSerializedTranasction(transaction)
 
     val confirmations =
@@ -211,7 +211,7 @@ object TransactionFormatter {
     * @param transaction The transaction to convert.
     * @return The converted DecodedRawTransaction instance.
     */
-  def getDecodedRawTransaction(transaction : Transaction) : DecodedRawTransaction = {
+  fun getDecodedRawTransaction(transaction : Transaction) : DecodedRawTransaction {
     DecodedRawTransaction(
       txid     = transaction.hash,
       version  = transaction.version,

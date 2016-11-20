@@ -14,11 +14,11 @@ object GetBlocksFactory {
     * @param blockHashToGet The hash of the block to get.
     * @return
     */
-  def create(blockHashToGet : Hash) : GetBlocks = {
+  fun create(blockHashToGet : Hash) : GetBlocks {
     val env = ChainEnvironment.get
     implicit val db : KeyValueDatabase = Blockchain.get.db
 
-    val locator = new BlockLocator(Blockchain.get)
+    val locator = BlockLocator(Blockchain.get)
     val blockLocatorHashes = locator.getLocatorHashes().hashes
     GetBlocks(env.DefaultBlockVersion, blockLocatorHashes, blockHashToGet)
   }

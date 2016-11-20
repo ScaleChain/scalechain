@@ -15,13 +15,13 @@ import scodec.codecs.uint16L
 import scodec.codecs.uint32L
 import scodec.codecs.uint8L
 
-case class VarInt(value: Long)
+data class VarInt(value: Long)
 
 object VarInt {
 
   import scodec.codecs._
 
-  implicit val varIntCodec = Codec[Long](
+  implicit val varIntCodec = Codec<Long>(
     (n: Long) =>
       n match {
         case i if (i < 0xfd) =>
@@ -39,7 +39,7 @@ object VarInt {
         case i =>
           for {
             a <- uint8L.encode(0xff)
-            b <- Codec[BigInt].encode(BigInt(i))
+            b <- Codec<BigInt>.encode(BigInt(i))
           } yield a ++ b
       },
     (buf: BitVector) => {
@@ -47,7 +47,7 @@ object VarInt {
         case Successful(byte) =>
           byte.value match {
             case 0xff =>
-              Codec[BigInt].decode(byte.remainder)
+              Codec<BigInt>.decode(byte.remainder)
                 .map { case b => b.map(_.toLong) }
             case 0xfe =>
               uint32L.decode(byte.remainder)
@@ -64,6 +64,6 @@ object VarInt {
 
   // The codec for getting the number of variable items to construct a new codec with listOfN or variableSizeBytes.
   // TODO : Add a unit test.
-  val countCodec : Codec[Int] = VarInt.varIntCodec.xmap((_:Long).toInt, (_:Int).toLong)
+  val countCodec : Codec<Int> = VarInt.varIntCodec.xmap((_:Long).toInt, (_:Int).toLong)
 }
 

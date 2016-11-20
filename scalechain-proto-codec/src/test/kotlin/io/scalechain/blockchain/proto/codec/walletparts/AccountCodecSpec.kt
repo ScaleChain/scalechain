@@ -9,7 +9,7 @@ import org.scalatest.matchers.HavePropertyMatcher
 /**
   * Created by kangmo on 5/19/16.
   */
-class AccountCodecSpec extends CodecSuite with ProtoTestData {
+class AccountCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val accountCodec = AccountCodec.codec
 

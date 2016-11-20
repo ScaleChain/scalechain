@@ -8,7 +8,7 @@ import io.scalechain.blockchain.proto.Ping
 import io.scalechain.blockchain.proto.codec.PingCodec
 import scodec.Codec
 
-class VarListSpec extends CodecSuite {
+class VarListSpec : CodecSuite {
 
   import VarList._
 

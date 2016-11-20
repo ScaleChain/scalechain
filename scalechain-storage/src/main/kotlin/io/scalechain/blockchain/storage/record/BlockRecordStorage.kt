@@ -7,7 +7,7 @@ object BlockRecordStorage {
 }
 
 class BlockRecordStorage(directoryPath : File, maxFileSize : Int)
-  extends RecordStorage(
+  : RecordStorage(
             directoryPath,
             BlockRecordStorage.FILE_PREFIX,
             maxFileSize)

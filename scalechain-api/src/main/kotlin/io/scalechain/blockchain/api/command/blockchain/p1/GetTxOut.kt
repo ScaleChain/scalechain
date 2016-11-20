@@ -39,31 +39,31 @@ import org.slf4j.LoggerFactory
     }
 */
 
-case class ScriptPubKey(
+data class ScriptPubKey(
                          asm: String,
                          hex: String,
                          reqSigs: Int,
                          `type` : String,
-                         addresses : Array[String]
+                         addresses : Array<String>
                        )
 
-case class GetTxOutResult(
+data class GetTxOutResult(
                            bestblock : String,
                            confirmations: Int,
                            value: Int,
                            scriptPubKey: ScriptPubKey,
                            version: Int,
                            coinbase : Boolean
-                         ) extends RpcResult
+                         ) : RpcResult
 
 /** GetTxOut: returns details about a transaction output.
   * Only unspent transaction outputs (UTXOs) are guaranteed to be available.
   *
   * https://bitcoin.org/en/developer-reference#gettxout
   */
-object GetTxOut extends RpcCommand {
+object GetTxOut : RpcCommand {
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     Right(
       Some(
@@ -76,7 +76,7 @@ object GetTxOut extends RpcCommand {
             hex = "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
             reqSigs = 1,
             `type` = "pubkeyhash",
-            addresses = Array[String]( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
+            addresses = Array<String>( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
           ),
           version = 1,
           coinbase = false
@@ -84,7 +84,7 @@ object GetTxOut extends RpcCommand {
       )
     )
   }
-  def help() : String =
+  fun help() : String =
     """gettxout "txid" n ( includemempool )
       |
       |Returns details about an unspent transaction output.

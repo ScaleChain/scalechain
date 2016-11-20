@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 6/9/16.
   */
 class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionPool]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionPool>) )
 
-  def getOldestTransactions(count:Int)(implicit db : KeyValueDatabase) : List[(Hash, Transaction)] = {
+  fun getOldestTransactions(count:Int)(implicit db : KeyValueDatabase) : List<(Hash, Transaction)> {
     storage.getOldestTransactionHashes(count).map{ case key @ CStringPrefixed(createdAtString,txHash) =>
       val txOption = storage.getTransactionFromPool(txHash)
       if (txOption.isDefined) {
@@ -37,7 +37,7 @@ class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) 
     * @param transaction The transaction to add to the disk-pool.
     * @return true if the transaction was valid with all inputs connected. false otherwise. (ex> orphan transactions return false )
     */
-  def addTransactionToPool(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit = {
+  fun addTransactionToPool(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit {
     // Step 01 : Check if the transaction exists in the disk-pool.
     if ( storage.getTransactionFromPool(txHash).isDefined ) {
       logger.info(s"A duplicate transaction in the pool was discarded. Hash : ${txHash}")
@@ -66,7 +66,7 @@ class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) 
         // Step 09 : Add to the disk-pool
         txMagnet.attachTransaction(txHash, transaction, checkOnly = false)
 
-        logger.trace(s"A new transaction was put into pool. Hash : ${txHash}")
+        logger.trace(s"A transaction was put into pool. Hash : ${txHash}")
       }
     }
   }
@@ -77,9 +77,9 @@ class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) 
     *
     * @param txHash The hash of the transaction to remove.
     */
-  def removeTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun removeTransactionFromPool(txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     // Note : We should not touch the TransactionDescriptor.
-    val txOption : Option[TransactionPoolEntry] = storage.getTransactionFromPool(txHash)
+    val txOption : Option<TransactionPoolEntry> = storage.getTransactionFromPool(txHash)
     if (txOption.isDefined) {
       // BUGBUG : Need to remove these two records atomically
       storage.delTransactionTime( txOption.get.createdAtNanos, txHash)

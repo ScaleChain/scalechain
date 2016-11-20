@@ -4,17 +4,17 @@ import org.scalatest._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
-class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class RpcParamsDeserializationSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -67,7 +67,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       "params" -> params
       )
 
-    val request = jsObject.convertTo[RpcRequest]
+    val request = jsObject.convertTo<RpcRequest>
 
     request.jsonrpc shouldBe Some(jsonrpcValue)
     request.id shouldBe id
@@ -83,7 +83,7 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       "params" -> JsArray( JsString("arg1") )
     )
 
-    jsObject.convertTo[RpcRequest]
+    jsObject.convertTo<RpcRequest>
   }
 
   "RpcParams" should "throw DeserializationException if id field is missing " in {
@@ -94,8 +94,8 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       "params" -> JsArray( JsString("arg1") )
     )
 
-    the [spray.json.DeserializationException] thrownBy {
-      jsObject.convertTo[RpcRequest]
+    the <spray.json.DeserializationException> thrownBy {
+      jsObject.convertTo<RpcRequest>
     } should have message "Object is missing required member 'id'"
   }
 
@@ -107,8 +107,8 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       "params" -> JsArray( JsString("arg1") )
     )
 
-    the [spray.json.DeserializationException] thrownBy {
-      jsObject.convertTo[RpcRequest]
+    the <spray.json.DeserializationException> thrownBy {
+      jsObject.convertTo<RpcRequest>
     } should have message "Object is missing required member 'method'"
   }
 
@@ -120,8 +120,8 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       //"params" -> JsArray( JsString("arg1") )
     )
 
-    the [spray.json.DeserializationException] thrownBy {
-      jsObject.convertTo[RpcRequest]
+    the <spray.json.DeserializationException> thrownBy {
+      jsObject.convertTo<RpcRequest>
     } should have message "Object is missing required member 'params'"
   }
 
@@ -133,8 +133,8 @@ class RpcParamsDeserializationSpec extends FlatSpec with BeforeAndAfterEach with
       "params" -> JsString("arg1")
     )
 
-    the [spray.json.DeserializationException] thrownBy {
-      jsObject.convertTo[RpcRequest]
+    the <spray.json.DeserializationException> thrownBy {
+      jsObject.convertTo<RpcRequest>
     } should have message "JsArray expected for the params field."
   }
 

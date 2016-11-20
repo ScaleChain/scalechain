@@ -13,7 +13,7 @@ object PrivateKey {
     * @param walletImportFormat A private key in the wallet import format.
     * @return The translated private key.
     */
-  def from(walletImportFormat : String) : PrivateKey = {
+  fun from(walletImportFormat : String) : PrivateKey {
     val (versionPrefix, rawPrivateKeyBytes) = Base58Check.decode(walletImportFormat)
     // TODO : Investigate : Bitcoin allows the private keys whose lengths are not 32
 
@@ -33,12 +33,12 @@ object PrivateKey {
     *
     * @return The generated private key.
     */
-  def generate() : PrivateKey = {
+  fun generate() : PrivateKey {
     // Step 1 : Generate Random number. The random number is 32 bytes, and the range is [0 ~ 2^256)
-    val random = new SecureRandom()
+    val random = SecureRandom()
     // On Java 8 this hangs. Need more investigation.
 //    random.setSeed( random.generateSeed(32) )
-    val keyValue : Array[Byte] = new Array[Byte](32)
+    val keyValue : Array<Byte> = Array<Byte>(32)
     assert(keyValue.length == 32)
     random.nextBytes(keyValue)
 
@@ -58,12 +58,12 @@ object PrivateKey {
   * Details :
   * https://en.bitcoin.it/wiki/Wallet_import_format
   */
-case class PrivateKey(version:Byte, value:BigInteger, isForCompressedPublicKey : Boolean) {
+data class PrivateKey(version:Byte, value:BigInteger, isForCompressedPublicKey : Boolean) {
   /** Return the address in base58 encoding format.
     *
     * @return The base 58 check encoded private key.
     */
-  def base58(): String = {
+  fun base58(): String {
     val privateKeyBytes = Utils.bigIntegerToBytes(value, 32)
     assert( privateKeyBytes.length == 32)
     Base58Check.encode(version, privateKeyBytes)

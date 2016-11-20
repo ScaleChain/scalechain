@@ -25,22 +25,22 @@ import scala.collection.SortedSet
   * Created by kangmo on 5/12/16.
   */
 //@Ignore
-class WalletSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletSpec : FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-WalletSpec-storage/")
+  val testPath = File("./target/unittests-WalletSpec-storage/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
     super.beforeEach()
 
     keyValueDB = db
   }
 
-  override def afterEach() {
+  override fun afterEach() {
 
     super.afterEach()
 
@@ -51,7 +51,7 @@ class WalletSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach w
   // Methods for signrawtransaction RPC
   ////////////////////////////////////////////////////////////////////////////////
   "signTransaction" should "sign successfully with the private keys argument" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
@@ -64,11 +64,11 @@ class WalletSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach w
     signedTransaction.complete shouldBe true
 
     // Should not throw an exception.
-    new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
+    TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
   }
 
   "signTransaction" should "fail without the private keys argument if the wallet does not have required private keys" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     val signedTransaction = Wallet.get.signTransaction(
       S.S4_AliceToCarryTx.transaction,
@@ -81,13 +81,13 @@ class WalletSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach w
     signedTransaction.complete shouldBe false
 
     // Should throw an exception.
-    a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
+    a <TransactionVerificationException> should be thrownBy {
+      TransactionVerifier(signedTransaction.transaction).verify(S.TestBlockchainView)
     }
   }
 
   /*
-String Request : {"id":1463979961277,"method":"signrawtransaction","params":["010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000",[],["cMvpcxdeLot2Zn7Ps99RZ4HC2fqst5FZ5mgyzf8TgENmsSd2qtAm","cR8oUtf44zW4gahPews8JtsAPknXX9sdTxjYNqzw462C43pWMYg4"]]}
+String Request : {"id":1463979961277,"method":"signrawtransaction","params":<"010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000",<>,<"cMvpcxdeLot2Zn7Ps99RZ4HC2fqst5FZ5mgyzf8TgENmsSd2qtAm","cR8oUtf44zW4gahPews8JtsAPknXX9sdTxjYNqzw462C43pWMYg4">>}
 String Response : {
   "result": {
     "hex": "010000000143d4a9d00c80c34a1b3e9955f891e102265068aa2cd4936f23ac0503d7c648da0000000000ffffffff0358020000000000001976a9144dc568a1f934c64402e5674f62e3cf33dcaccd2988ac00000000000000001d6a1b4f410100001568e761d3bce89e8a3f346354d361fb2e3e610aad54c8bc0200000000001976a914f58cfa86c6b7c746de8293701734594adf81180f88ac00000000",
@@ -100,13 +100,13 @@ String Response : {
    */
 
   "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     // TODO : Implement
   }
 
   "signTransaction" should "sign two inputs from different address in two steps" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     //////////////////////////////////////////////////////////////////////////
     // Step 1 : sign for the first input.
@@ -120,8 +120,8 @@ String Response : {
 
     signedTransaction1.complete shouldBe false
 
-    a [TransactionVerificationException] should be thrownBy {
-      new TransactionVerifier(signedTransaction1.transaction).verify(S.TestBlockchainView)
+    a <TransactionVerificationException> should be thrownBy {
+      TransactionVerifier(signedTransaction1.transaction).verify(S.TestBlockchainView)
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ String Response : {
     )
 
     finalTransaction.complete shouldBe true
-    new TransactionVerifier(finalTransaction.transaction).verify(S.TestBlockchainView)
+    TransactionVerifier(finalTransaction.transaction).verify(S.TestBlockchainView)
   }
 
 
@@ -143,7 +143,7 @@ String Response : {
   // Methods for getreceivedbyaddress RPC
   ////////////////////////////////////////////////////////////////////////////////
   "getReceivedByAddress" should "show the amount of coins received for an address." in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 /*
     println(s"address000(${S.Alice.Addr1.address.base58})")
     println(s"outputs000=${wallet.getTransactionOutputs(Some(S.Alice.Addr1.address))}")
@@ -159,8 +159,8 @@ String Response : {
   // Methods for listransaction RPC
   ////////////////////////////////////////////////////////////////////////////////
   "getTransactionHashes(None)" should "return all transaction hashes" in {
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.getTransactionHashes(None).toSet shouldBe Set(
@@ -204,7 +204,7 @@ String Response : {
 
 
   "getTransactionHashes(Some(account))" should "return transaction hashes for an account" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     wallet.getTransactionHashes(Some("Alice")) shouldBe Set(
       S.S1_AliceGenTxHash,
@@ -231,8 +231,8 @@ String Response : {
 
   "getWalletTransactions(None)" should "return all wallet transactions for all accounts" ignore {
     // TODO : Implement
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.getWalletTransactions(None) shouldBe Set(1)
@@ -258,7 +258,7 @@ String Response : {
 
     // TODO : Implement
 
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     wallet.getWalletTransactions(Some("Alice")) shouldBe Set(1)
     wallet.getWalletTransactions(Some("Bob")) shouldBe Set(1)
@@ -266,7 +266,7 @@ String Response : {
   }
 
 
-  def tx(blockIndexOption : Option[Long], txIndexOption : Option[Int], addedTime : Long) = {
+  fun tx(blockIndexOption : Option<Long>, txIndexOption : Option<Int>, addedTime : Long) {
     WalletTransaction(
       blockHash        = Some(Hash("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
       blockIndex       = blockIndexOption,
@@ -292,12 +292,12 @@ String Response : {
   }
 
   "isMoreRecentThan" should "should hit an assertion if two transactions has the same timestamp" in {
-    an [AssertionError] should be thrownBy {
+    an <AssertionError> should be thrownBy {
       wallet.isMoreRecentThan( tx(Some(1), Some(100), 100), tx(Some(1), Some(100), 101) )
     }
   }
 
-  def walletTx(transactionWithName : TransactionWithName, block : Option[Block], blockHeight : Long) = {
+  fun walletTx(transactionWithName : TransactionWithName, block : Option<Block>, blockHeight : Long) {
     WalletTransaction(
       blockHash        = block.map( _.header.hash ),
       blockIndex       = block.map( b => blockHeight ),
@@ -310,14 +310,14 @@ String Response : {
   }
 
   "getTransactionDescriptor(Left(input), includeWatchOnly=true)" should "return some valid descriptor" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     val txDesc = wallet.getTransactionDescriptor(
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
         S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
-        UnlockingScript(Array[Byte]()),
+        UnlockingScript(Array<Byte>()),
         0L
       )),
       0,
@@ -345,14 +345,14 @@ String Response : {
   }
 
   "getTransactionDescriptor(Left(input), includeWatchOnly=false)" should "return None" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     wallet.getTransactionDescriptor(
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Left(NormalTransactionInput(
         S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
-        UnlockingScript(Array[Byte]()),
+        UnlockingScript(Array<Byte>()),
         0L
       )),
       0,
@@ -363,7 +363,7 @@ String Response : {
   }
 
   "getTransactionDescriptor(Right(output))" should "return some valid descriptor" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     val txDesc = wallet.getTransactionDescriptor(
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
@@ -393,7 +393,7 @@ String Response : {
   }
 
   "getTransactionDescriptor(Right(output), includeWatchOnly=false)" should "return None" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     wallet.getTransactionDescriptor(
       S.TestBlockchainView,
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
@@ -408,7 +408,7 @@ String Response : {
   "listTransactions(None, includeWatchOnly=false)" should "return no transaction" ignore {
     // TODO : Implement
 
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     // Because we did not call wallet.newAddress but wallet.importOutputOwnership,
     // we should not have any transcation with includeWatchOnly = false.
@@ -424,8 +424,8 @@ String Response : {
   "listTransactions(None, includeWatchOnly=true)" should "return all transactions" ignore {
     // TODO : Implement
 
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.listTransactions(
@@ -480,7 +480,7 @@ String Response : {
   "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" ignore {
     // TODO : Implement
 
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     wallet.listTransactions(
       S.TestBlockchainView,
@@ -508,7 +508,7 @@ String Response : {
 
   }
 
-  def walletOutputWithInfo(output : OutputWithOutPoint, blockHeightOption : Option[Long], coinbase : Boolean, spent : Boolean) = {
+  fun walletOutputWithInfo(output : OutputWithOutPoint, blockHeightOption : Option<Long>, coinbase : Boolean, spent : Boolean) {
     WalletOutputWithInfo(
       output.outPoint,
       WalletOutput(
@@ -524,8 +524,8 @@ String Response : {
   // Methods for listunspent RPC
   ////////////////////////////////////////////////////////////////////////////////
   "getTransactionOutputs(None)" should "return all transaction outputs" in {
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.getTransactionOutputs(None).toSet shouldBe Set(
@@ -598,8 +598,8 @@ String Response : {
   }
 
   "getTransactionOutputs(Some(account))" should "return transaction outputs for an account" in {
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step: Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step: Int): Unit {
         step match {
           case 1 => {
             wallet.getTransactionOutputs(Some(Alice.Addr1.address)).toSet shouldBe Set(
@@ -631,7 +631,7 @@ String Response : {
 
 
   "getUnspentCoinDescription" should "return the description of the UTXO for generation transaction(spendable=false)" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     val utxoDesc = wallet.getUnspentCoinDescription(
       S.TestBlockchainView,
       Some(S.Carry.Addr1.address),
@@ -664,7 +664,7 @@ String Response : {
   }
 
   "getUnspentCoinDescription" should "return the description of the UTXO for normal transaction" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     val utxoDesc = wallet.getUnspentCoinDescription(
       S.TestBlockchainView,
       Some(S.Alice.Addr2.address),
@@ -693,7 +693,7 @@ String Response : {
   }
 
   "getUnspentCoinDescription" should "return nothing if a coin is spent." in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     val utxoDesc = wallet.getUnspentCoinDescription(
       S.TestBlockchainView,
       Some(S.Alice.Addr1.address),
@@ -710,8 +710,8 @@ String Response : {
   }
 
   "getConfirmations" should "" in {
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.getConfirmations(TestBlockchainView, 0) shouldBe 2
@@ -739,7 +739,7 @@ String Response : {
 
   }
 
-  def utxo(account:String, output : OutputWithOutPoint, confirmations : Int, spendable : Boolean) : UnspentCoinDescriptor = {
+  fun utxo(account:String, output : OutputWithOutPoint, confirmations : Int, spendable : Boolean) : UnspentCoinDescriptor {
     UnspentCoinDescriptor(
       txid          = output.outPoint.transactionHash,
       vout          = output.outPoint.outputIndex,
@@ -754,8 +754,8 @@ String Response : {
   }
 
   "listUnspent(all addresses)" should "" in {
-    val S = new WalletSampleData(wallet)(db) {
-      override def onStepFinish(step : Int): Unit = {
+    val S = WalletSampleData(wallet)(db) {
+      override fun onStepFinish(step : Int): Unit {
         step match {
           case 1 => {
             wallet.listUnspent(TestBlockchainView, 0, 100, None).toSet shouldBe Set(
@@ -805,7 +805,7 @@ String Response : {
   }
 
   "listUnspent(some addresses)" should "list UTXO for an account." in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
 
     wallet.listUnspent(S.TestBlockchainView, 0, 100, Some(List(S.Alice.Addr1.address))).toSet shouldBe Set(
       utxo("Alice", S.S5_AliceCoin3_A4, confirmations = 0, spendable = true)
@@ -833,17 +833,17 @@ String Response : {
   ////////////////////////////////////////////////////////////////////////////////
 
   "importOutputOwnership(rescan=true)" should "rescan current blockchain" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "importOutputOwnership(rescan=false)" should "should not rescan the current blockchain" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "importOutputOwnership" should "change the receiving address to the imported address" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     wallet.importOutputOwnership(
       S.TestBlockchainView,
       "test1",
@@ -853,8 +853,8 @@ String Response : {
   }
 
   "importOutputOwnership" should "throw an exception if ParsedPubKeyScript was provided" in {
-    val S = new WalletSampleData(wallet)(db)
-    val e = the[WalletException] thrownBy {
+    val S = WalletSampleData(wallet)(db)
+    val e = the<WalletException> thrownBy {
       val parsedPubKeyScript = ParsedPubKeyScript.from(S.Alice.Addr1.address.lockingScript())
       wallet.importOutputOwnership(
         S.TestBlockchainView,
@@ -893,7 +893,7 @@ String Response : {
   // Methods for newaddress RPC
   ////////////////////////////////////////////////////////////////////////////////
 
-  "newAddress" should "generate a new address and it should become the receiving address" in {
+  "newAddress" should "generate a address and it should become the receiving address" in {
     val address1 = wallet.newAddress("test1")
     address1 shouldBe wallet.getReceivingAddress("test1")
 
@@ -917,43 +917,43 @@ String Response : {
   ////////////////////////////////////////////////////////////////////////////////
 
   "registerTransaction" should "ignore transactions that are not related to addresses of an account" ignore {
-    val S = new ChainSampleData(None)
+    val S = ChainSampleData(None)
     // wallet.registerTransaction(List(), S.S1_AliceGenTx, None, None)
     // TODO : Implement
   }
 
   "registerTransaction" should "" ignore {
-    val S = new ChainSampleData(None)
+    val S = ChainSampleData(None)
     // TODO : Implement
   }
 
   "unregisterTransaction" should "" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "onNewTransaction" should "" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "onRemoveTransaction" should "" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "onNewBlock" should "" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "onRemoveBlock" should "" ignore {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     // TODO : Implement test case
   }
 
   "getPrivateKeys" should "return an empty list if the address was imported" in {
-    val S = new WalletSampleData(wallet)(db)
+    val S = WalletSampleData(wallet)(db)
     wallet.importOutputOwnership(
       S.TestBlockchainView,
       "test1",

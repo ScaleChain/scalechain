@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.primitive.{CString, VarInt, CodecSui
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
-class WalletTransactionCodecSpec extends CodecSuite with ProtoTestData {
+class WalletTransactionCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val walletTxCodec = WalletTransactionCodec.codec
 

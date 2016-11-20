@@ -21,7 +21,7 @@ trait OrphanTransactionIndex {
     * @param hash The hash of the transaction header.
     * @param orphanTransactionDescriptor The descriptor of the orphan transaction.
     */
-  def putOrphanTransaction(hash : Hash, orphanTransactionDescriptor : OrphanTransactionDescriptor)(implicit db : KeyValueDatabase) : Unit = {
+  fun putOrphanTransaction(hash : Hash, orphanTransactionDescriptor : OrphanTransactionDescriptor)(implicit db : KeyValueDatabase) : Unit {
     db.putObject(ORPHAN_TRANSACTION, hash, orphanTransactionDescriptor)
   }
 
@@ -30,7 +30,7 @@ trait OrphanTransactionIndex {
     * @param hash The orphan transaction header.
     * @return Some(transaction) if an orphan transaction was found by the hash. None otherwise.
     */
-  def getOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Option[OrphanTransactionDescriptor] = {
+  fun getOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Option<OrphanTransactionDescriptor> {
     db.getObject(ORPHAN_TRANSACTION, hash)(HashCodec, OrphanTransactionDescriptorCodec)
   }
 
@@ -38,7 +38,7 @@ trait OrphanTransactionIndex {
     *
     * @param hash The hash of the orphan transaction.
     */
-  def delOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Unit {
     db.delObject(ORPHAN_TRANSACTION, hash)
   }
 
@@ -47,7 +47,7 @@ trait OrphanTransactionIndex {
     * @param missingTransactionHash The hash of the missing transaction that the orphan transaction depends on.
     * @param orphanTransactionHash The hash of the orphan transaction.
     */
-  def addOrphanTransactionByParent(missingTransactionHash : Hash, orphanTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun addOrphanTransactionByParent(missingTransactionHash : Hash, orphanTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     // TODO : Optimize : Reduce the length of the prefix string by using base64 encoding?
     db.putPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value), orphanTransactionHash, OneByte(1) )
   }
@@ -57,7 +57,7 @@ trait OrphanTransactionIndex {
     * @param missingTransactionHash The hash of the missing transaction that the orphan transaction depends on.
     * @return Hash of all orphan transactions that depend on the given missing transaction.
     */
-  def getOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : List[Hash] = {
+  fun getOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : List<Hash> {
     (
       using(db.seekPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value))(HashCodec, OneByteCodec)) in {
         _.toList
@@ -69,7 +69,7 @@ trait OrphanTransactionIndex {
     *
     * @param missingTransactionHash The hash of the missing transaction that the orphan transactions depend on.
     */
-  def delOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     getOrphanTransactionsByParent(missingTransactionHash) foreach { transactionHash : Hash =>
       db.delPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value), transactionHash)
     }

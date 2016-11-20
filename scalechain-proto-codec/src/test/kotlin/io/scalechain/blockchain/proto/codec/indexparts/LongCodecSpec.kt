@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.LongValue
 import io.scalechain.blockchain.proto.codec.{LongValueCodec, OneByteCodec, PayloadTestSuite}
 import io.scalechain.util.HexUtil._
 
-class LongValueCodecSpec extends PayloadTestSuite[LongValue]  {
+class LongValueCodecSpec : PayloadTestSuite<LongValue>  {
 
   val codec = LongValueCodec.codec
 

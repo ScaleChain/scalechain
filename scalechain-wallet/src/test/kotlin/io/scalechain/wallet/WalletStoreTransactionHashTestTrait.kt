@@ -7,11 +7,11 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
+trait WalletStoreTransactionHashTestTrait : FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
   var store : WalletStore
   implicit var db : KeyValueDatabase
 
-  def prepareTxHashTest() {
+  fun prepareTxHashTest() {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT2, ADDR2.address)
     store.putOutputOwnership(ACCOUNT3, ADDR3.address)
@@ -110,7 +110,7 @@ trait WalletStoreTransactionHashTestTrait extends FlatSpec with WalletStoreTestD
   "putTransactionHash" should "throw an exception if the output ownership does not exist." in {
     prepareTxHashTest()
 
-    val thrown = the[WalletException] thrownBy {
+    val thrown = the<WalletException> thrownBy {
       store.putTransactionHash(ADDR1.pubKeyScript, TXHASH1)
     }
     thrown.code shouldBe ErrorCode.OwnershipNotFound

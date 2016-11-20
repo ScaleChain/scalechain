@@ -21,7 +21,7 @@ trait OrphanBlockIndex {
     * @param hash The hash of the block header.
     * @param orphanBlockDescriptor The descriptor of the orphan block.
     */
-  def putOrphanBlock(hash : Hash, orphanBlockDescriptor : OrphanBlockDescriptor)(implicit db : KeyValueDatabase) : Unit = {
+  fun putOrphanBlock(hash : Hash, orphanBlockDescriptor : OrphanBlockDescriptor)(implicit db : KeyValueDatabase) : Unit {
     db.putObject(ORPHAN_BLOCK, hash, orphanBlockDescriptor)
   }
 
@@ -30,7 +30,7 @@ trait OrphanBlockIndex {
     * @param hash The orphan block header.
     * @return Some(block) if an orphan block was found by the hash. None otherwise.
     */
-  def getOrphanBlock(hash : Hash)(implicit db : KeyValueDatabase) : Option[OrphanBlockDescriptor] = {
+  fun getOrphanBlock(hash : Hash)(implicit db : KeyValueDatabase) : Option<OrphanBlockDescriptor> {
     db.getObject(ORPHAN_BLOCK, hash)(HashCodec, OrphanBlockDescriptorCodec)
   }
 
@@ -38,7 +38,7 @@ trait OrphanBlockIndex {
     *
     * @param hash The hash of the orphan block.
     */
-  def delOrphanBlock(hash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delOrphanBlock(hash : Hash)(implicit db : KeyValueDatabase) : Unit {
     db.delObject(ORPHAN_BLOCK, hash)
   }
 
@@ -47,7 +47,7 @@ trait OrphanBlockIndex {
     * @param parentBlockHash The hash of the parent block.
     * @param orphanBlockHash The hash of the orphan block.
     */
-  def addOrphanBlockByParent(parentBlockHash : Hash, orphanBlockHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun addOrphanBlockByParent(parentBlockHash : Hash, orphanBlockHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     // TODO : Optimize : Reduce the length of the prefix string by using base64 encoding?
     db.putPrefixedObject(ORPHAN_BLOCKS_BY_PARENT, hex(parentBlockHash.value), orphanBlockHash, OneByte(1) )
   }
@@ -57,7 +57,7 @@ trait OrphanBlockIndex {
     * @param parentBlockHash The hash of the parent block.
     * @return Hash of all orphan blocks that depend on the parent.
     */
-  def getOrphanBlocksByParent(parentBlockHash : Hash)(implicit db : KeyValueDatabase) : List[Hash] = {
+  fun getOrphanBlocksByParent(parentBlockHash : Hash)(implicit db : KeyValueDatabase) : List<Hash> {
     (
       using(db.seekPrefixedObject(ORPHAN_BLOCKS_BY_PARENT, hex(parentBlockHash.value))(HashCodec, OneByteCodec)) in {
         _.toList
@@ -69,7 +69,7 @@ trait OrphanBlockIndex {
     *
     * @param parentBlockHash The hash of the parent block.
     */
-  def delOrphanBlocksByParent(parentBlockHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delOrphanBlocksByParent(parentBlockHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     getOrphanBlocksByParent(parentBlockHash) foreach { blockHash : Hash =>
       db.delPrefixedObject(ORPHAN_BLOCKS_BY_PARENT, hex(parentBlockHash.value), blockHash)
     }

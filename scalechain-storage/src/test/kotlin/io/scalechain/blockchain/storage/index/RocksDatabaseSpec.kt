@@ -10,7 +10,7 @@ import org.scalatest._
   * Created by kangmo on 11/2/15.
   */
 // Currently RocksDB crashes while seeking a key and iterating (key,value) pairs.
-class RocksDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
+class RocksDatabaseSpec : KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -18,16 +18,16 @@ class RocksDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestT
   var db : KeyValueDatabase = null
 
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-RocksDatabaseSpec")
+    val testPath = File("./target/unittests-RocksDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    db = new RocksDatabase( testPath )
+    db = RocksDatabase( testPath )
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

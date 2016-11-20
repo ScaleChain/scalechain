@@ -10,7 +10,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorageTestTrait extends FlatSpec with Matchers {
+trait BlockStorageTestTrait : FlatSpec with Matchers {
   var storage : BlockStorage
   implicit var db : KeyValueDatabase
 
@@ -258,7 +258,7 @@ trait BlockStorageTestTrait extends FlatSpec with Matchers {
   }
 
   "updateNextBlockHash" should "hit an assertion if the block hash does not exist" in {
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       storage.updateNextBlockHash(blockHash1, None)
     }
   }

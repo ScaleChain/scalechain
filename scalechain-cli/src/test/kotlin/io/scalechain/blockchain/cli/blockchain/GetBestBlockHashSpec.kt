@@ -10,17 +10,17 @@ import org.scalatest._
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class GetBestBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class GetBestBlockHashSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -29,6 +29,6 @@ class GetBestBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITest
 
   "GetBestBlockHash" should "return the best block hash" in {
     val result = invoke(GetBestBlockHash)
-    result.right.get.get.asInstanceOf[StringResult].value.length shouldBe 64
+    result.right.get.get.asInstanceOf<StringResult>.value.length shouldBe 64
   }
 }

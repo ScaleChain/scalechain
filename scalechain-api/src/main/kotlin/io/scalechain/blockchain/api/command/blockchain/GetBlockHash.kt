@@ -39,12 +39,12 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getblockhash
   */
-object GetBlockHash extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetBlockHash : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
 
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val blockHeight : Long = request.params.get[Long]("Block Height", 0)
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val blockHeight : Long = request.params.get<Long>("Block Height", 0)
 
       val blockHash = RpcSubSystem.get.getBlockHash(blockHeight)
 
@@ -58,7 +58,7 @@ object GetBlockHash extends RpcCommand {
 */
     }
   }
-  def help() : String =
+  fun help() : String =
     """getblockhash index
       |
       |Returns hash of block in best-block-chain at index provided.

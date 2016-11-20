@@ -23,8 +23,8 @@ import scala.collection._
  */
 object DumpChain {
 
-  def dump(blocksPath : String, blockListener : BlockReadListener ) : Unit = {
-    val reader = new BlockDirectoryReader(blockListener)
+  fun dump(blocksPath : String, blockListener : BlockReadListener ) : Unit {
+    val reader = BlockDirectoryReader(blockListener)
     if (!reader.readFrom(blocksPath)) {
       println("The directory that has blkNNNNN.dat files does not exist : " + blocksPath )
     }
@@ -36,15 +36,15 @@ object DumpChain {
     *
     * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
-  def dumpBlocks(blocksPath : String) : Unit = {
+  fun dumpBlocks(blocksPath : String) : Unit {
 
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         println(block)
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
   /** For loading to Spark, dump all blocks in blkNNNNN.dat files in a directory.
@@ -52,10 +52,10 @@ object DumpChain {
    *
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
-  def dumpBlockIndexData(blocksPath : String) : Unit = {
+  fun dumpBlockIndexData(blocksPath : String) : Unit {
 
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         val serializedBlock = BlockCodec.serialize(block)
         val blockHeaderHash = block.header.hash
 
@@ -63,7 +63,7 @@ object DumpChain {
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
   /** Dump all hash values.
@@ -73,9 +73,9 @@ object DumpChain {
     *
     * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
-  def dumpHashes(blocksPath : String) : Unit = {
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+  fun dumpHashes(blocksPath : String) : Unit {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         println( "bk:"+ block.header.hashPrevBlock.toHex );
         println( "mk:"+ block.header.hashMerkleRoot.toHex );
         for (tx : Transaction <- block.transactions ) {
@@ -86,16 +86,16 @@ object DumpChain {
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
   /** Dump all transactions.
    *
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
-  def dumpTransactions(blocksPath: String) : Unit = {
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+  fun dumpTransactions(blocksPath: String) : Unit {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         println( "bh:"+ block.header );
         for (tx : Transaction <- block.transactions ) {
           println( "tx:"+tx )
@@ -103,32 +103,32 @@ object DumpChain {
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
 
   val DISK_BLOCK_FILE_SIZE = 1024 * 1024 * 128
-  def verifyBlocks(blocksPath: String) : Unit = {
+  fun verifyBlocks(blocksPath: String) : Unit {
 
-    val blockStoragePath = new File("./target/tempblockstorage/")
+    val blockStoragePath = File("./target/tempblockstorage/")
     blockStoragePath.mkdir()
-    implicit val db = new RocksDatabase(blockStoragePath)
-    val storage = new DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
+    implicit val db = RocksDatabase(blockStoragePath)
+    val storage = DiskBlockStorage(blockStoragePath, DISK_BLOCK_FILE_SIZE)
     val chain = Blockchain.create(db, storage)
     BlockProcessor.create(chain)
     chain.putBlock( GenesisBlock.HASH, GenesisBlock.BLOCK )
 
     var blockHeight = 0
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         storage.putBlock(block)
-        new BlockVerifier(block).verify(chain)
+        BlockVerifier(block).verify(chain)
         println(s"At block height : $blockHeight, ${BlockVerifier.statistics()}")
         blockHeight += 1
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
 
@@ -141,9 +141,9 @@ object DumpChain {
    *
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    */
-  def verifySerialization(blocksPath: String) : Unit = {
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+  fun verifySerialization(blocksPath: String) : Unit {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         println( "bh:"+ block.header )
         implicit val codec = BlockCodec.codec
         val serializedBlock1 = BlockCodec.serialize(block)
@@ -152,7 +152,7 @@ object DumpChain {
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
   type ScriptFilter = (UnlockingScript, LockingScript) => Boolean
@@ -162,9 +162,9 @@ object DumpChain {
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    * @param filterOption Specify the type of transaction script. "p2pkh"
    */
-  def mergeScripts(blocksPath : String, filterOption : String) : Unit = {
+  fun mergeScripts(blocksPath : String, filterOption : String) : Unit {
     // Return a filter by checking a specific prefix of the public key in the unlocking script.
-    def p2pkh_filter(pkPrefix : Byte) : ScriptFilter = {
+    fun p2pkh_filter(pkPrefix : Byte) : ScriptFilter {
       (unlockingScript, lockingScript) => {
         val scriptOps = ScriptParser.parse(unlockingScript)
 
@@ -190,7 +190,7 @@ object DumpChain {
       * @param opCode
      * @return
      */
-    def locking_script_has(opCode : OpCode) : ScriptFilter = {
+    fun locking_script_has(opCode : OpCode) : ScriptFilter {
       (unlockingScript, lockingScript) => {
         val scriptOps = ScriptParser.parse(lockingScript)
         val count = scriptOps.operations.count( _.opCode() == opCode )
@@ -199,7 +199,7 @@ object DumpChain {
     }
 
     /* Find out a P2SH transaction */
-    def p2sh_filter() : ScriptFilter = {
+    fun p2sh_filter() : ScriptFilter {
       (unlockingScript, lockingScript) => {
         val scriptOps = ScriptParser.parse(lockingScript)
 
@@ -237,13 +237,13 @@ object DumpChain {
    * @param blocksPath path to the blocks directory which has blkNNNNN.dat files.
    * @param filter the filter to apply. it receives both locking script and unlocking script.
    */
-  def mergeScripts(blocksPath : String, filter : ScriptFilter) : Unit = {
+  fun mergeScripts(blocksPath : String, filter : ScriptFilter) : Unit {
     // Step 1) Create a map from transaction hash to Transaction object.
     // c.f. Need List here instead of Array, which implements reference equality.
-    val txMap = mutable.Map[ByteArray, Transaction]()
+    val txMap = mutable.Map<ByteArray, Transaction>()
 
-    class BlockListener extends BlockReadListener {
-      def onBlock(block: Block): Unit = {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block: Block): Unit {
         //println( "bh:"+ block.header )
         for (tx : Transaction <- block.transactions ) {
           //println( "tx:"+tx )
@@ -282,14 +282,14 @@ object DumpChain {
       }
     }
 
-    dump( blocksPath, new BlockListener() )
+    dump( blocksPath, BlockListener() )
   }
 
   /** The main method of this program. Get the path to directory that has blkNNNNN.dat files, and dump all blocks to stdout.
    *
    * @param args Has only one element, the path to blocks directory.
    */
-  def main(args:Array[String]) : Unit = {
+  fun main(args:Array<String>) : Unit {
     // Enable printing script operations
     BlockPrinterSetter.initialize
 
@@ -326,7 +326,7 @@ object DumpChain {
     }
   }
 
-  def printUsage(): Unit = {
+  fun printUsage(): Unit {
     println("DumpChain <path to the blocks folder which has blkNNNNN.dat files> <command>");
     println("ex> DumpChain <path> dump-blocks");
     println("ex> DumpChain <path> verify-blocks");

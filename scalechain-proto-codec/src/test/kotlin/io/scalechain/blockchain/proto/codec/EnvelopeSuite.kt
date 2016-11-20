@@ -11,13 +11,13 @@ import scodec.bits.BitVector
 /**
   * Created by kangmo on 1/29/16.
   */
-trait PayloadTestSuite[T] extends FlatSpec with Matchers with CodecTestUtil {
-  implicit val codec : Codec[T]
+trait PayloadTestSuite<T> : FlatSpec with Matchers with CodecTestUtil {
+  implicit val codec : Codec<T>
 
   val message : T
-  val payload : Array[Byte]
+  val payload : Array<Byte>
 
-  def payloadBits() = BitVector.view(payload)
+  fun payloadBits() = BitVector.view(payload)
 
   "payload" should "be correctly encoded" in {
     if (message != null) {
@@ -46,13 +46,13 @@ trait PayloadTestSuite[T] extends FlatSpec with Matchers with CodecTestUtil {
 /**
   * Created by kangmo on 1/29/16.
   */
-trait EnvelopeTestSuite[T] extends PayloadTestSuite[T] {
+trait EnvelopeTestSuite<T> : PayloadTestSuite<T> {
   val envelopeCodec = BitcoinMessageEnvelope.codec
 
   val envelope : BitcoinMessageEnvelope
-  val envelopeHeader : Array[Byte]
+  val envelopeHeader : Array<Byte>
 
-  def envelopeBits() = BitVector.view(envelopeHeader) ++ payloadBits
+  fun envelopeBits() = BitVector.view(envelopeHeader) ++ payloadBits
 
   "envelope" should "be correctly encoded" in {
 //    println(s"encoded111 : ${HexUtil.hex(envelopeCodec.encode(envelope).require.toByteArray)}")

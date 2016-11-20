@@ -6,18 +6,18 @@ import io.scalechain.util.HexUtil._
 /**
   * Created by kangmo on 5/18/16.
   */
-class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ChainTestTrait with Matchers {
+class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ChainTestTrait with Matchers {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -88,6 +88,6 @@ class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with Before
     // invalid length
     val invalidAddress = CoinAddress(env.ScriptAddressVersion, bytes("0"*38))
 
-    an [AssertionError] should be thrownBy invalidAddress.base58
+    an <AssertionError> should be thrownBy invalidAddress.base58
   }
 }

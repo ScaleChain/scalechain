@@ -7,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 
 
 object BlockBuilder {
-  def newBuilder() = new BlockBuilder
+  fun newBuilder() = BlockBuilder
 }
 
 /**
@@ -17,13 +17,13 @@ class BlockBuilder {
   /** A list buffer that has transactions for this block.
     *
     */
-  val transactionsBuffer = new ListBuffer[Transaction]()
+  val transactionsBuffer = ListBuffer<Transaction>()
 
   /** Add a transaction.
     *
     * @param transaction the transaction to add.
     */
-  def addTransaction(transaction : Transaction) : BlockBuilder = {
+  fun addTransaction(transaction : Transaction) : BlockBuilder {
     transactionsBuffer.append(transaction)
     this
   }
@@ -34,7 +34,7 @@ class BlockBuilder {
     *
     * @param block The block to use to calculate the serialized size of it.
     */
-  protected[chain] def checkValidity(block : Block) : Unit = {
+  protected<chain> fun checkValidity(block : Block) : Unit {
     // TODO : Implement it.
   }
 
@@ -47,11 +47,11 @@ class BlockBuilder {
     * @param nonce The nonce value.
     * @return The built block.
     */
-  def build(hashPrevBlock : Hash,
+  fun build(hashPrevBlock : Hash,
             timestamp : Long,
             version : Int = ChainEnvironment.get.DefaultBlockVersion,
             target : Long = 0, /* TODO : Set The default target */
-            nonce : Long = 0) : Block = {
+            nonce : Long = 0) : Block {
     val transactions = transactionsBuffer.toList
     val merkleRootHash = MerkleRootCalculator.calculate(transactions)
     val blockHeader = BlockHeader(version, hashPrevBlock, merkleRootHash, timestamp, target, nonce)

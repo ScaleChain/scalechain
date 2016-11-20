@@ -13,7 +13,7 @@ import scodec.codecs.variableSizeBytes
 object VarStr {
   import VarInt._
 
-  implicit val codec: Codec[String] = {
+  implicit val codec: Codec<String> {
     variableSizeBytes(VarInt.countCodec, ascii)
   }
 }

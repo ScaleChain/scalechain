@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-  *  [Bitcoin Core Packets Not Captured]
+  *  <Bitcoin Core Packets Not Captured>
   *  73 ................................. Bytes in encapsulated alert: 115
   *  01000000 ........................... Version: 1
   *  3766404f00000000 ................... RelayUntil: 1329620535
@@ -27,7 +27,7 @@ import scodec.bits.BitVector
   *  666562323020696620796f7520686176
   *  652074726f75626c6520636f6e6e6563
   *  74696e67206166746572203230204665
-  *  627275617279 ....................... Status Bar String: "See [...]"
+  *  627275617279 ....................... Status Bar String: "See <...>"
   *  00 ................................. Bytes In Reserved String: 0
   *
   *  47 ................................. Bytes in signature: 71
@@ -38,7 +38,7 @@ import scodec.bits.BitVector
   *  723326e4e8a4f1 ..................... Signature
   */
 /*
-class AlertSpec extends PayloadTestSuite[Alert]  {
+class AlertSpec : PayloadTestSuite<Alert>  {
 
   val codec = AlertCodec.codec
 

@@ -11,17 +11,17 @@ import spray.json.{JsBoolean, JsString}
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class SendRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class SendRawTransactionSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -34,7 +34,7 @@ class SendRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITe
 
   "SendRawTransaction" should "send a serialized transaction. (Without allowHighFees argument)" in {
     val response = invoke(SendRawTransaction, List(SERIALIZED_TRANSACTION))
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
 
     // The result should have the transaction hash.
     result.value.length shouldBe 64
@@ -42,7 +42,7 @@ class SendRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITe
 
   "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument true)" in {
     val response = invoke(SendRawTransaction, List(SERIALIZED_TRANSACTION, JsBoolean(true)))
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
 
     // The result should have the transaction hash.
     result.value.length shouldBe 64
@@ -50,7 +50,7 @@ class SendRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITe
 
   "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument false)" in {
     val response = invoke(SendRawTransaction, List(SERIALIZED_TRANSACTION, JsBoolean(false)))
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
 
     // The result should have the transaction hash.
     result.value.length shouldBe 64

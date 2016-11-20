@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
+<Bitcoin Core Packets Captured>
  4471018 <Header> Magic:ù¾´Ù, Command:notfound, Size:37, Checksum:376371400
  4471019 dumping data len : 61
  4471020 00000000  f9 be b4 d9 6e 6f 74 66  6f 75 6e 64 00 00 00 00  ù¾´Ùnotfound....
@@ -15,7 +15,7 @@ import scodec.bits.BitVector
  4471023 00000030  ee 0a c1 97 12 4e 8d f8  f8 62 06 1d 35           î.Á<97>.N<8d>øøb..5
 
   */
-class NotFoundSpec extends EnvelopeTestSuite[NotFound]  {
+class NotFoundSpec : EnvelopeTestSuite<NotFound>  {
 
   val codec = NotFoundCodec.codec
 

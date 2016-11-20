@@ -47,7 +47,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class ListTransactionsResult( transactionDescs : List[WalletTransactionDescriptor] ) extends RpcResult
+data class ListTransactionsResult( transactionDescs : List<WalletTransactionDescriptor> ) : RpcResult
 
 
 /** ListTransactions: returns the most recent transactions that affect the wallet.
@@ -79,18 +79,18 @@ case class ListTransactionsResult( transactionDescs : List[WalletTransactionDesc
   *
   * https://bitcoin.org/en/developer-reference#listtransactions
   */
-object ListTransactions extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object ListTransactions : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
 
     handlingException {
-      val account         : String  = request.params.getOption[String] ("Account", 0).getOrElse("")
-      val count           : Int     = request.params.getOption[Int]    ("Count", 1).getOrElse(10)
-      val skip            : Long    = request.params.getOption[Long]   ("Skip", 2).getOrElse(0)
-      val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
+      val account         : String  = request.params.getOption<String> ("Account", 0).getOrElse("")
+      val count           : Int     = request.params.getOption<Int>    ("Count", 1).getOrElse(10)
+      val skip            : Long    = request.params.getOption<Long>   ("Skip", 2).getOrElse(0)
+      val includeWatchOnly: Boolean = request.params.getOption<Boolean>("Include WatchOnly", 3).getOrElse(false)
 
       // None means to list transactions from all accounts in the wallet.
       val accountOption = if (account == "*") None else Some(account)
-      val transactionDescs : List[WalletTransactionDescriptor] = Wallet.get.listTransactions(
+      val transactionDescs : List<WalletTransactionDescriptor> = Wallet.get.listTransactions(
         Blockchain.get, accountOption, count, skip, includeWatchOnly
       )(Blockchain.get.db)
 
@@ -125,7 +125,7 @@ object ListTransactions extends RpcCommand {
       Right(Some(ListTransactionsResult(transactionDescs)))
     }
   }
-  def help() : String =
+  fun help() : String =
     """listtransactions ( "account" count from includeWatchonly)
       |
       |Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.

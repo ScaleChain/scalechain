@@ -11,17 +11,17 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class Base58CheckSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class Base58CheckSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -32,10 +32,10 @@ class Base58CheckSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   "Base58Check" should "decode encoded string" in {
     val VERSION : Byte = 1
     for (i <- 1 to 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
-    val random = new SecureRandom()
+    val random = SecureRandom()
       random.setSeed( random.generateSeed(32) )
 
-      val originalValue : Array[Byte] = new Array[Byte](32)
+      val originalValue : Array<Byte> = Array<Byte>(32)
       assert(originalValue.length == 32)
       random.nextBytes(originalValue)
 

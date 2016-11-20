@@ -10,18 +10,18 @@ import org.scalatest.prop.Tables.Table
 /**
  * Created by kangmo on 11/12/15.
  */
-class ScriptSerializerSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class ScriptSerializerSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -43,12 +43,12 @@ class ScriptSerializerSpec extends FlatSpec with BeforeAndAfterEach with Operati
               OpNum(8),
             OpEndIf(),
           OpEndIf()),
-        Array[Byte](0x63, 0x54, 0x63, 0x58, 0x68, 0x68) // (expected) serialized bytes.
+        Array<Byte>(0x63, 0x54, 0x63, 0x58, 0x68, 0x68) // (expected) serialized bytes.
       )
     )
 
   "serializedOperations" should "be serialized to a correct byte array." in {
-    forAll(serializedOperations) { (operations: List[ScriptOp], expectedSerializedBytes: Array[Byte]) =>
+    forAll(serializedOperations) { (operations: List<ScriptOp>, expectedSerializedBytes: Array<Byte>) =>
       val serializedBytes = ScriptSerializer.serialize(operations)
       // TODO : how to write this in "should .. " form?
       assert( serializedBytes.sameElements(expectedSerializedBytes) )

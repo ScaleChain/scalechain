@@ -7,17 +7,17 @@ import org.scalatest._
 /**
  * Created by kangmo on 11/2/15.
  */
-class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class BlockDirectoryReaderSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -25,11 +25,11 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Mat
 
   "readFrom" should "read all blocks in a file" in {
     val READ_BLOCKS_UP_TO = 500
-    val blocks = new Array[Block](READ_BLOCKS_UP_TO)
+    val blocks = Array<Block>(READ_BLOCKS_UP_TO)
     var blocksRead = 0
 
-    class BlockListener extends BlockReadListener {
-      def onBlock(block : Block ): Unit = {
+    class BlockListener : BlockReadListener {
+      fun onBlock(block : Block ): Unit {
         //println("onBlock("+blocksRead+") : " + block.header)
 
         if (blocksRead < READ_BLOCKS_UP_TO) {
@@ -39,8 +39,8 @@ class BlockDirectoryReaderSpec extends FlatSpec with BeforeAndAfterEach with Mat
       }
     }
 
-    val blockListener = new BlockListener()
-    val reader = new BlockDirectoryReader(blockListener)
+    val blockListener = BlockListener()
+    val reader = BlockDirectoryReader(blockListener)
 
     try {
       reader.readFrom("scalechain-script/src/test/resources/blocks")

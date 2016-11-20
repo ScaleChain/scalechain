@@ -9,7 +9,7 @@ import io.scalechain.util.HexUtil._
   * Created by kangmo on 6/27/16.
   */
 object VersionFactory {
-  def create() : Version = {
+  fun create() : Version {
     implicit val db : KeyValueDatabase = Blockchain.get.db
 
     // ScaleChain uses Long type for the block height, but the Version.startHeight is encoded in 32bit little endian integer.

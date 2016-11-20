@@ -3,22 +3,22 @@ package io.scalechain.test
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import org.scalatest._
+import org.scalatest.*
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 // Create one when we write a performance testing case using Kotlin.
 /*
-trait PerformanceTestTrait extends FlatSpec with Matchers {
+trait PerformanceTestTrait : FlatSpec with Matchers {
 
-  def sha256(value : Array[Byte]) : Array[Byte] = {
+  fun sha256(value : Array<Byte>) : Array<Byte> {
     MessageDigest.getInstance("SHA-1").digest(value).array
   }
 
-  def rand32bytes = sha256(BigInteger.valueOf(Random.nextLong).toByteArray)
+  fun rand32bytes = sha256(BigInteger.valueOf(Random.nextLong).toByteArray)
 
-  def measure[T](subject: String)(block: => T)(implicit loopCount: Int) : T = {
+  fun measure<T>(subject: String)(block: => T)(implicit loopCount: Int) : T {
     println(s"Performance test started. ${subject}.")
     val startTimestamp = System.currentTimeMillis()
 
@@ -32,7 +32,7 @@ trait PerformanceTestTrait extends FlatSpec with Matchers {
     returnValue
   }
 
-  def measureWithSize(subject: String)(block: => Int)(implicit loopCount: Int) : Unit = {
+  fun measureWithSize(subject: String)(block: => Int)(implicit loopCount: Int) : Unit {
     println(s"Performance test started. ${subject}.")
     val startTimestamp = System.currentTimeMillis()
 
@@ -45,8 +45,8 @@ trait PerformanceTestTrait extends FlatSpec with Matchers {
     println(s"Size per second : ${totalSizeProcessed / elapsedSecond} /s ")
   }
 
-  def prepareKeyValue(count: Long): List[(Array[Byte], Array[Byte])] = {
-    val buffer = ListBuffer[(Array[Byte], Array[Byte])]()
+  fun prepareKeyValue(count: Long): List<(Array<Byte>, Array<Byte>)> {
+    val buffer = ListBuffer<(Array<Byte>, Array<Byte>)>()
     for (i <- 0L to count) {
       // 32 byte key
       val key = rand32bytes

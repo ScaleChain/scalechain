@@ -16,7 +16,7 @@ object PingMessageHandler {
     * @param ping The ping message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, ping : Ping ) : Unit = {
+  fun handle( context : MessageHandlerContext, ping : Ping ) : Unit {
     // TODO : Implement
   }
 }

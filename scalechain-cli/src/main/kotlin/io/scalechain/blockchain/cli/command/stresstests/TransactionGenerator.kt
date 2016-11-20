@@ -18,18 +18,18 @@ import scala.util.Random
 
 object TransactionGenerator {
   Storage.initialize()
-  val walletDbPath = new File(s"./target/transaction-generator-${Random.nextLong}")
+  val walletDbPath = File(s"./target/transaction-generator-${Random.nextLong}")
   FileUtils.deleteDirectory(walletDbPath)
   walletDbPath.mkdir()
 
-  val db : KeyValueDatabase = new RocksDatabase(walletDbPath)
+  val db : KeyValueDatabase = RocksDatabase(walletDbPath)
   val wallet = Wallet.create
 
-  def create : TransactionGenerator = {
-    new TransactionGenerator(wallet)(db)
+  fun create : TransactionGenerator {
+    TransactionGenerator(wallet)(db)
   }
 
-  def generationTransaction( height : Long, privateKey: PrivateKey) = {
+  fun generationTransaction( height : Long, privateKey: PrivateKey) {
     val minerAddress = CoinAddress.from(privateKey)
     val coinbaseData = CoinMiner.coinbaseData(1)
     TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
@@ -38,31 +38,31 @@ object TransactionGenerator {
 
 
 
-class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) extends AutoCloseable {
+class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) : AutoCloseable {
 
-  val chainView = new BlockchainView {
-    val txMap = new ConcurrentHashMap[Hash, Transaction]()
-    val availableOutputs = new TransactionOutputSet()
+  val chainView = BlockchainView {
+    val txMap = ConcurrentHashMap<Hash, Transaction>()
+    val availableOutputs = TransactionOutputSet()
 
-    def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
+    fun getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator<ChainBlock> {
       assert(false)
       null
     }
-    def getBestBlockHeight() : Long = {
+    fun getBestBlockHeight() : Long {
       assert(false)
       0
     }
 
-    def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
+    fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction> {
       val tx = txMap.get(transactionHash)
       if (tx == null) None else Some(tx)
     }
 
-    def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
+    fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
       availableOutputs.getTransactionOutput(outPoint)
     }
 
-    def addTransaction(transaction : Transaction) = {
+    fun addTransaction(transaction : Transaction) {
       val txHash = transaction.hash
       txMap.put(txHash, transaction)
 
@@ -73,15 +73,15 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) exte
     }
   }
 
-  def addTransaction(tx : Transaction) = {
+  fun addTransaction(tx : Transaction) {
     chainView.addTransaction(tx)
   }
 
-  def close() = {
+  fun close() {
     db.close
   }
 
-  def newTransaction(inputTxHash : Hash, inputStartIndex : Int, inputEndIndex : Int, newOwnerAddresses : IndexedSeq[CoinAddress]) : Transaction = {
+  fun newTransaction(inputTxHash : Hash, inputStartIndex : Int, inputEndIndex : Int, newOwnerAddresses : IndexedSeq<CoinAddress>) : Transaction {
     val builder = TransactionBuilder.newBuilder()
 
     for (i <- inputStartIndex to inputEndIndex) {
@@ -89,7 +89,7 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) exte
       builder.addInput(chainView, outPoint)
     }
 
-    val sumOfInputAmounts = {
+    val sumOfInputAmounts {
       builder.inputs.map { input =>
         chainView.getTransactionOutput(input.getOutPoint())
       }.foldLeft(0L)(_ + _.value)
@@ -108,13 +108,13 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) exte
     transaction
   }
 
-  def newAddresses(addressCount : Int) : IndexedSeq[CoinAddress] = {
+  fun newAddresses(addressCount : Int) : IndexedSeq<CoinAddress> {
     (0 until addressCount).map { i =>
       wallet.newAddress("")
     }
   }
 
-  def signTransaction(transaction : Transaction, privateKeysOption : Option[List[PrivateKey]] = None ) : Transaction = {
+  fun signTransaction(transaction : Transaction, privateKeysOption : Option<List<PrivateKey>> = None ) : Transaction {
     val signedTransaction : SignedTransaction =
       Wallet.get.signTransaction(
         transaction,

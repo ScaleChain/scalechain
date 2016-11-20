@@ -12,16 +12,16 @@ import org.slf4j.LoggerFactory
   * @param communicator The peer communicator that can communicate with any of peers connected to this node.
   */
 class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
-  val context = new MessageHandlerContext(peer, communicator)
-  private val logger = Logger( LoggerFactory.getLogger(classOf[ProtocolMessageHandler]) )
+  val context = MessageHandlerContext(peer, communicator)
+  private val logger = Logger( LoggerFactory.getLogger(classOf<ProtocolMessageHandler>) )
 
   /** Handle a message coming from the TCP stream.
     *
     * @param message The messages to handle.
     * @return The list of responses we created after handling each message in messages.
     */
-  def handle(message : ProtocolMessage): Unit = {
-    // Return Some[ProtocolMessage] if we need to reply a message. Return None otherwise.
+  fun handle(message : ProtocolMessage): Unit {
+    // Return Some<ProtocolMessage> if we need to reply a message. Return None otherwise.
     message match {
       case version: Version => {
         VersionMessageHandler.handle(context, version)

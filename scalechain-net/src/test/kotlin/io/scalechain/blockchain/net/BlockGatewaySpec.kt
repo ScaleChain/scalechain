@@ -20,16 +20,16 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matchers {
+class BlockGatewaySpec : BlockchainTestTrait with ChainTestTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockGatewaySpec/")
+  val testPath = File("./target/unittests-BlockGatewaySpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
   var bgate : BlockGateway = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
@@ -38,10 +38,10 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
     assert(keyValueDB != null)
 
     chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
-    bgate = new BlockGateway()
+    bgate = BlockGateway()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     keyValueDB = null
@@ -49,11 +49,11 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
     bgate = null
   }
 
-  def putConsensualHeader(header : BlockHeader) = bgate.putConsensualHeader(header)
-  def putBlock(block : Block) = bgate.putReceivedBlock(block.header.hash, block)
+  fun putConsensualHeader(header : BlockHeader) = bgate.putConsensualHeader(header)
+  fun putBlock(block : Block) = bgate.putReceivedBlock(block.header.hash, block)
 
   "CH(Consensual Header)1 only" should "not be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -61,7 +61,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "Block1 only" should "not be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK01)
@@ -69,7 +69,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, Block1" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -78,7 +78,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "Block1, CH(Consensual Header)1" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK01)
@@ -88,7 +88,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
 
   "CH(Consensual Header)1, Block1, CH2, Block2" should "be attached to the blockchain" in {
 
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -105,7 +105,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, Block1, Block2, CH2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -122,7 +122,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, Block2, Block1, CH2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -139,7 +139,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, Block2, CH2, Block1" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -156,7 +156,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, CH2, Block2, Block1" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -173,7 +173,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "CH(Consensual Header)1, CH2, Block1, Block2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putConsensualHeader(BLK01.header)
@@ -191,7 +191,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
 
 
   "Block1, CH(Consensual Header)1, CH2, Block2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK01)
@@ -208,7 +208,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "Block1, CH(Consensual Header)1, Block2, CH2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK01)
@@ -225,7 +225,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "Block1, Block2, CH(Consensual Header)1, CH2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK01)
@@ -266,7 +266,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   */
 
   "Block2, CH(Consensual Header)1, Block1, CH2" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK02)
@@ -283,7 +283,7 @@ class BlockGatewaySpec extends BlockchainTestTrait with ChainTestTrait with Matc
   }
 
   "Block2, CH(Consensual Header)1, CH2, Block1" should "be attached to the blockchain" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data.Block._
 
     putBlock(BLK02)

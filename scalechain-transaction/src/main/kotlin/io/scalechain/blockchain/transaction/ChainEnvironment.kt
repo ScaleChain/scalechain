@@ -38,7 +38,7 @@ trait ChainEnvironment {
 
   /** The magic value used by messages for the peer to peer communication and the block data file.
     */
-  val MagicValue : Array[Byte]
+  val MagicValue : Array<Byte>
 
   /** The default transaction version
     */
@@ -58,7 +58,7 @@ trait ChainEnvironment {
 /** The mainnet environment.
   *
   */
-object MainNetEnvironment extends ChainEnvironment {
+object MainNetEnvironment : ChainEnvironment {
   private val SERIALIZED_GENESIS_BLOCK =
     bytes(
       """
@@ -111,7 +111,7 @@ object MainNetEnvironment extends ChainEnvironment {
 /** The class that has environment values for the testnet and regtest.
   *
   */
-class TestEnvironment extends ChainEnvironment {
+class TestEnvironment : ChainEnvironment {
   private val SERIALIZED_GENESIS_BLOCK =
     bytes(
       """
@@ -163,12 +163,12 @@ class TestEnvironment extends ChainEnvironment {
 
 /** The singleton for the testnet environment.
   */
-object TestNetEnvironment extends TestEnvironment {
+object TestNetEnvironment : TestEnvironment {
 }
 
 /** The singleton for the regtest environment.
   */
-object RegTestEnvironment extends TestEnvironment {
+object RegTestEnvironment : TestEnvironment {
 }
 
 /** The chain environment factory which returns an environment based on an environment name.
@@ -186,14 +186,14 @@ object ChainEnvironment {
 
   /** The current environment.
     */
-  protected[transaction] var activeEnvironmentOption : Option[ChainEnvironment] = None
+  protected<transaction> var activeEnvironmentOption : Option<ChainEnvironment> = None
 
   /** Create an environment object based on the given environment name.
     *
     * @param environmentName The name of the environment.
     * @return The environment object.
     */
-  def create(environmentName : String) : Option[ChainEnvironment] = {
+  fun create(environmentName : String) : Option<ChainEnvironment> {
     activeEnvironmentOption = EnvironmentByName.get(environmentName)
     activeEnvironmentOption
   }
@@ -202,7 +202,7 @@ object ChainEnvironment {
     *
     * @return Some(env) if any chain environment is active. None otherwise.
     */
-  def get() : ChainEnvironment = {
+  fun get() : ChainEnvironment {
     activeEnvironmentOption.get
   }
 }

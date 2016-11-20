@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory
 import scala.collection._
 
 object BlockVerifier {
-  case class TransactionTracker(block : Block, transaction : Transaction, mergedScriptOption : Option[MergedScript], count : Int)
+  data class TransactionTracker(block : Block, transaction : Transaction, mergedScriptOption : Option<MergedScript>, count : Int)
 
-  val txFailureMapByMessage = mutable.HashMap[String, TransactionTracker]()
-  def putTransactionVerificationFailure(message : String, block : Block, transaction : Transaction, mergedScriptOption : Option[MergedScript]): Unit = {
+  val txFailureMapByMessage = mutable.HashMap<String, TransactionTracker>()
+  fun putTransactionVerificationFailure(message : String, block : Block, transaction : Transaction, mergedScriptOption : Option<MergedScript>): Unit {
     val tracker = txFailureMapByMessage.get(message)
     val count = if (tracker.isDefined) tracker.get.count else 0
 
@@ -32,10 +32,10 @@ object BlockVerifier {
     txFailureMapByMessage(message) = TransactionTracker(simplestBlock, simplestTransaction, simplestMergedScriptOption, count + 1)
   }
 
-  def getFailures() : String = {
-    val builder = new StringBuilder()
+  fun getFailures() : String {
+    val builder = StringBuilder()
     for ( (message, tracker) <- txFailureMapByMessage) {
-      builder.append(s"[$message] count = ${tracker.count}\n")
+      builder.append(s"<$message> count = ${tracker.count}\n")
       builder.append("------------------------------------\n")
       builder.append(s"blockHash=${tracker.block.header.hash}\n")
 /*
@@ -56,15 +56,15 @@ object BlockVerifier {
     builder.toString
   }
 
-  def statistics() : String = {
-    val builder = new StringBuilder()
+  fun statistics() : String {
+    val builder = StringBuilder()
     builder.append(s"Transaction verification statistics : ${NormalTransactionVerifier.stats()}" )
     builder.append(s"List of transaction failures : \n ${BlockVerifier.getFailures}")
     builder.toString
   }
 
   var blockCount = -1
-  def increaseBlockCount() : Int = {
+  fun increaseBlockCount() : Int {
     blockCount += 1
     blockCount
   }
@@ -73,23 +73,23 @@ object BlockVerifier {
   * Created by kangmo on 3/15/16.
   */
 class BlockVerifier(block : Block)(implicit db : KeyValueDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockVerifier]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockVerifier>) )
 
-  def verify(chainView : BlockchainView) : Unit = {
+  fun verify(chainView : BlockchainView) : Unit {
     // (1) verify the hash of the block is within the difficulty level
     // TODO : Implement
 
     // (2) verify each transaction in the block
     block.transactions.map { transaction =>
       try {
-        new TransactionVerifier(transaction).verify(chainView)
+        TransactionVerifier(transaction).verify(chainView)
       } catch {
         case e: TransactionVerificationException => {
           // Because the exception is defined in the util layer, we could not use the MergedScript type, but AnyRef.
           // We need to convert the AnyRef back to MergedScript.
           val mergedScriptOption = if (e.debuggingInfo.isDefined) {
-            if (e.debuggingInfo.get.isInstanceOf[MergedScript]) {
-              Some( e.debuggingInfo.get.asInstanceOf[MergedScript] )
+            if (e.debuggingInfo.get.isInstanceOf<MergedScript>) {
+              Some( e.debuggingInfo.get.asInstanceOf<MergedScript> )
             } else None
           } else None
 
@@ -109,9 +109,9 @@ class BlockVerifier(block : Block)(implicit db : KeyValueDatabase) {
 
     // For every 2000 blocks, print statistics.
     if (blockCount % 2000 == 0) {
-      logger.trace(s"[${blockCount}] block verifier statistics : ${BlockVerifier.statistics()}" )
+      logger.trace(s"<${blockCount}> block verifier statistics : ${BlockVerifier.statistics()}" )
     }
 
-    // throw new BlockVerificationException
+    // throw BlockVerificationException
   }
 }

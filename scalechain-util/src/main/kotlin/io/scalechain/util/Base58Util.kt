@@ -37,7 +37,7 @@ object Base58Util {
      * @param input binary data
      * @return the base-58 representation of input
      */
-    // BUGBUG : Interface Change, Seq[Byte] => ByteArray
+    // BUGBUG : Interface Change, Seq<Byte> => ByteArray
     @JvmStatic
     fun encode(input: kotlin.ByteArray): String {
         if (input.isEmpty()) return ""

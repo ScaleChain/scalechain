@@ -24,9 +24,9 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
       0600
 
   CLI output :
-    [
+    <
       "f20e44c818ec332d95119507fbe36f1b8b735e2c387db62adbe28e50f7904683"
-    ]
+    >
 
   Json-RPC request :
     {"jsonrpc": "1.0", "id":"curltest", "method": "verifytxoutproof", "params": [] }
@@ -47,13 +47,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#verifytxoutproof
   */
-object VerifyTxOutProof extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object VerifyTxOutProof : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """verifytxoutproof "proof"
       |
       |Verifies that a proof points to a transaction in a block, returning the transaction it commits to

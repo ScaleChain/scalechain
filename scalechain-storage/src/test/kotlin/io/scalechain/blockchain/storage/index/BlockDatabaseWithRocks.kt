@@ -10,7 +10,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class BlockDatabaseWithRocks extends BlockDatabaseTestTrait with BeforeAndAfterEach {
+class BlockDatabaseWithRocks : BlockDatabaseTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -18,18 +18,18 @@ class BlockDatabaseWithRocks extends BlockDatabaseTestTrait with BeforeAndAfterE
   var blockDb : BlockDatabase = null
   implicit var db : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-BlockDatabaseWithRocks")
+    val testPath = File("./target/unittests-BlockDatabaseWithRocks")
     FileUtils.deleteDirectory( testPath )
-    db = new RocksDatabase(testPath)
-    blockDb = new BlockDatabase() {}
+    db = RocksDatabase(testPath)
+    blockDb = BlockDatabase() {}
 
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     db.close()

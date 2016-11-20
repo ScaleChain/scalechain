@@ -14,20 +14,20 @@ import HashSupported._
 /**
   * Test if Wallet returns expected data during block reorganization.
   */
-class WalletAndChainSpec extends FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
+class WalletAndChainSpec : FlatSpec with WalletTestTrait with BeforeAndAfterEach with TransactionTestDataTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-WalletAndChainSpec-storage/")
+  val testPath = File("./target/unittests-WalletAndChainSpec-storage/")
 
   implicit var keyValueDB : KeyValueDatabase = null
-  override def beforeEach() {
+  override fun beforeEach() {
 
     super.beforeEach()
 
     keyValueDB = db
   }
 
-  override def afterEach() {
+  override fun afterEach() {
 
     super.afterEach()
 
@@ -39,7 +39,7 @@ class WalletAndChainSpec extends FlatSpec with WalletTestTrait with BeforeAndAft
     *
     * @return The list of transaction hashes.
     */
-  def listTransactionHashes() : List[Hash] = {
+  fun listTransactionHashes() : List<Hash> {
     wallet.listTransactions(chain, Some("test account"), count=100000, skip=0, includeWatchOnly = true ).map{ walletTxDesc : WalletTransactionDescriptor =>
       walletTxDesc.txid.get
     }
@@ -50,14 +50,14 @@ class WalletAndChainSpec extends FlatSpec with WalletTestTrait with BeforeAndAft
     *
     * @return The list of transaction hashes.
     */
-  def listPoolTransactionHashes() : List[Hash] = {
+  fun listPoolTransactionHashes() : List<Hash> {
     chain.txPool.getOldestTransactions(100).map { case(txHash : Hash, transaction : Transaction) =>
       txHash
     }
   }
 
   "blockchain" should "reorganize blocks" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Block._
     import data.Tx._

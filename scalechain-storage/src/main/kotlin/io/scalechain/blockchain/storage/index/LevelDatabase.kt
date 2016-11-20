@@ -16,22 +16,22 @@ import io.scalechain.blockchain.storage.Storage
 /**
   * A KeyValueDatabase implementation using LevelDB.
   */
-class LevelDatabase(path : File) extends KeyValueDatabase {
+class LevelDatabase(path : File) : KeyValueDatabase {
   assert( Storage.initialized )
 
-  def beginTransaction() : Unit = {
+  fun beginTransaction() : Unit {
     // No transaction supported. do nothing.
   }
-  def commitTransaction() : Unit = {
+  fun commitTransaction() : Unit {
     // No transaction supported. do nothing.
   }
-  def abortTransaction() : Unit = {
+  fun abortTransaction() : Unit {
     // No transaction supported. do nothing.
   }
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  private val options = new Options()
+  private val options = Options()
   options.createIfMissing(true)
 
   private val db = factory.open(path, options )
@@ -43,20 +43,20 @@ class LevelDatabase(path : File) extends KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
-    class KeyValueIterator(iterator : DBIterator) extends ClosableIterator[(Array[Byte],Array[Byte])] {
-      def next : (Array[Byte],Array[Byte]) = {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
+    class KeyValueIterator(iterator : DBIterator) : ClosableIterator<(Array<Byte>,Array<Byte>)> {
+      fun next : (Array<Byte>,Array<Byte>) {
         if (!iterator.hasNext) {
-          throw new GeneralException(ErrorCode.NoMoreKeys)
+          throw GeneralException(ErrorCode.NoMoreKeys)
         }
 
         val nextKeyValue = iterator.peekNext()
         iterator.next
         (nextKeyValue.getKey, nextKeyValue.getValue)
       }
-      def hasNext : Boolean = iterator.hasNext
+      fun hasNext : Boolean = iterator.hasNext
 
-      def close : Unit = {
+      fun close : Unit {
         iterator.close()
       }
     }
@@ -69,26 +69,26 @@ class LevelDatabase(path : File) extends KeyValueDatabase {
       rocksIterator.seekToFirst()
     }
 
-    new KeyValueIterator(rocksIterator)
+    KeyValueIterator(rocksIterator)
   }
 
 
-  def get(key : Array[Byte] ) : Option[Array[Byte]] = {
+  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
     val value = db.get(key)
     if ( value != null )
       Some(value)
     else None
   }
 
-  def put(key : Array[Byte], value : Array[Byte] ) : Unit = {
+  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
     db.put(key, value)
   }
 
-  def del(key : Array[Byte]) : Unit = {
+  fun del(key : Array<Byte>) : Unit {
     db.delete(key)
   }
 
-  def close() : Unit = {
+  fun close() : Unit {
     db.close
   }
 }

@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, Transac
 import org.slf4j.LoggerFactory
 
 trait TransactionDescriptorIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[TransactionDescriptorIndex]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionDescriptorIndex>) )
 
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec
@@ -20,7 +20,7 @@ trait TransactionDescriptorIndex {
     * @param txHash The transaction hash.
     * @return Some(descriptor) if the transaction exists; None otherwise.
     */
-  def getTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Option[TransactionDescriptor] = {
+  fun getTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Option<TransactionDescriptor> {
     //logger.trace(s"getTransactionDescriptor : ${txHash}")
     db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
   }
@@ -33,7 +33,7 @@ trait TransactionDescriptorIndex {
     * @param txHash The transaction hash.
     * @param transactionDescriptor The descriptor of the transaction.
     */
-  def putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor)(implicit db : KeyValueDatabase) = {
+  fun putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor)(implicit db : KeyValueDatabase) {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
     db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
   }
@@ -45,7 +45,7 @@ trait TransactionDescriptorIndex {
     *
     * @param txHash The transaction hash
     */
-  def delTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Unit = {
+  fun delTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
     //logger.trace(s"delTransactionDescriptor : ${txHash}")
     db.delObject(TRANSACTION, txHash)(HashCodec)
   }

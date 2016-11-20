@@ -3,9 +3,9 @@ package io.scalechain.blockchain.cli.command.stresstests
 import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTransactionTester.RawTransactionWithGroupListener
 import io.scalechain.blockchain.cli.command.{RpcInvoker, RpcParameters, Command}
 
-object MultiThreadTestRPC extends Command {
+object MultiThreadTestRPC : Command {
 
-  def invoke(command : String, args : Array[String], rpcParams : RpcParameters) = {
+  fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
     val nodeCount = Integer.parseInt(args(1))
     val transactionGroupCount = Integer.parseInt(args(2))
     val nodeFilterIndexOption = if ( args(3) == "x") None else Some(Integer.parseInt(args(3)))
@@ -47,7 +47,7 @@ object MultiThreadTestRPC extends Command {
       }
 
     val startTimeMillis = System.currentTimeMillis()
-    new MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(
+    MultiThreadTransactionTester(threadGroupIndexFilter).testRawTransaction(
       sendSplitTransaction, IndexedSeq.fill(transactionGroupCount)(sendThreadTransaction))
     val elapsedMillis = System.currentTimeMillis() - startTimeMillis
 

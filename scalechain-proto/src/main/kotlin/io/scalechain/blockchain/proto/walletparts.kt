@@ -45,12 +45,12 @@ object WalletTransactionAttribute : Enumeration {
   type WalletTransactionAttribute = Value
 
 /*
-  val SEND     = new Val(nextId, "send")
-  val RECEIVE  = new Val(nextId, "receive")
-  val GENERATE = new Val(nextId, "generate")
-  val IMMATURE = new Val(nextId, "immature")
-  val ORPHAN   = new Val(nextId, "orphan")
-  val MOVE     = new Val(nextId, "move")
+  val SEND     = Val(nextId, "send")
+  val RECEIVE  = Val(nextId, "receive")
+  val GENERATE = Val(nextId, "generate")
+  val IMMATURE = Val(nextId, "immature")
+  val ORPHAN   = Val(nextId, "orphan")
+  val MOVE     = Val(nextId, "move")
 */
 
   val SEND     = Value
@@ -83,14 +83,14 @@ data class WalletTransaction(
                               // Array may be empty. Not returned for move category payments
                               // walletconflicts item : The TXID of a conflicting transaction, encoded as hex in RPC byte order
                               // P2
-                              //    walletconflicts   : List[Hash],            // : [],
+                              //    walletconflicts   : List<Hash>,            // : [],
                               // A Unix epoch time when the transaction was added to the wallet
                               val addedTime              : Long, // 1418695703,
                               // A Unix epoch time when the transaction was detected by the local node,
                               // or the time of the block on the local best block chain that included the transaction.
                               // Not returned for move category payments
                               // P2
-                              //    timereceived      : Option[Long],          // 1418925580
+                              //    timereceived      : Option<Long>,          // 1418925580
 
                               // An additional field for sorting transactions by recency.
                               // Some(transactionIndex) if the transaction is in a block on the best blockchain.

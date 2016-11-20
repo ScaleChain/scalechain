@@ -9,24 +9,24 @@ import org.scalatest.prop.Tables.Table
 /** Test stack operations in Stack.scala
   *
   */
-class StackSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class StackSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
   }
 
-  val EMPTY_ARRAY = new Array[Long](0)
+  val EMPTY_ARRAY = Array<Long>(0)
 
 
   // OP_TOALTSTACK(0x6b) : Pop top item from stack and push to alternative stack
@@ -217,7 +217,7 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait
     )
 
   "operations" should "manipulate the stack correctly" in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+    forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
       verifyOperations(inputValues, List(operation), expectation);
     }
   }
@@ -249,11 +249,11 @@ class StackSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait
     )
 
   "operations" should "manipulate the main stack and alt correctly" in {
-    forAll(altStackOperations) { ( mainStackInputs : Array[ScriptValue],
-                                   altStackInputs : Array[ScriptValue],
+    forAll(altStackOperations) { ( mainStackInputs : Array<ScriptValue>,
+                                   altStackInputs : Array<ScriptValue>,
                                    operation : ScriptOp,
                                    expectation : AnyRef,
-                                   altStackOutputs : Array[ScriptValue] )  =>
+                                   altStackOutputs : Array<ScriptValue> )  =>
       verifyOperationsWithAltStack(mainStackInputs, altStackInputs, List(operation), expectation, altStackOutputs)
     }
   }

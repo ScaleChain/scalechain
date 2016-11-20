@@ -6,17 +6,17 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class PeerIndexCalculatorSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class PeerIndexCalculatorSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -74,7 +74,7 @@ class PeerIndexCalculatorSpec extends FlatSpec with BeforeAndAfterEach with Matc
     *     ]
     *   }
     *
-    * @return The peer index from [0, peer count-1)
+    * @return The peer index from [0, peer count-1]
     */
   "getPeerIndex" should "return None if port does not match" in {
     PeerIndexCalculator.getPeerIndex(7642) shouldBe None

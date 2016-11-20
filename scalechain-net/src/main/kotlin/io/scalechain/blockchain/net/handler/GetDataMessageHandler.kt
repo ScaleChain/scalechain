@@ -20,24 +20,24 @@ object GetDataMessageHandler {
     * @param getData The GetData message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, getData : GetData ) : Unit = {
+  fun handle( context : MessageHandlerContext, getData : GetData ) : Unit {
     implicit val db = Blockchain.get.db
     // TODO : Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
-    val messagesToSend : List[ProtocolMessage] =
+    val messagesToSend : List<ProtocolMessage> =
       getData.inventories.map { inventory: InvVector =>
         inventory.invType match {
           case InvType.MSG_TX => {
             // Get the transaction we have. Orphan transactions are not returned.
             // TODO : send tx message only if it is in the relay memory. A 'tx' is put into the relay memory by sendfrom, sendtoaddress, sendmany RPC.
             // For now, send a transaction if we have it.
-            // Returns Option[Transaction]
+            // Returns Option<Transaction>
 
             TransactionProcessor.getTransaction(inventory.hash)
           }
           case InvType.MSG_BLOCK => {
             // Get the block we have. Orphan blocks are not returned.
-            // Returns Option[Block]
+            // Returns Option<Block>
             BlockProcessor.get.getBlock(inventory.hash)
           }
           case _ => {

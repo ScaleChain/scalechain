@@ -26,19 +26,19 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#keypoolrefill
   */
-object KeyPoolRefill extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object KeyPoolRefill : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """keypoolrefill ( newsize )
       |
       |Fills the keypool.
       |
       |Arguments
-      |1. newsize     (numeric, optional, default=100) The new keypool size
+      |1. newsize     (numeric, optional, default=100) The keypool size
       |
       |Examples:
       |> bitcoin-cli keypoolrefill

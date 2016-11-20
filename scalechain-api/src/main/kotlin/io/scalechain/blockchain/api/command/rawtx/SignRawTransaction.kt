@@ -38,14 +38,14 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class SignRawTransactionResult(
+data class SignRawTransactionResult(
   // The resulting serialized transaction encoded as hex with any signatures made inserted.
   // If no signatures were made, this will be the same transaction provided in parameter #1
   hex      : String,// "01000000011da9283b4ddf8d89eb996988b89ead56cecdc44041ab38bf787f1206cd90b51e000000006a47304402200ebea9f630f3ee35fa467ffc234592c79538ecd6eb1c9199eb23c4a16a0485a20220172ecaf6975902584987d295b8dddf8f46ec32ca19122510e22405ba52d1f13201210256d16d76a49e6c8e2edc1c265d600ec1a64a45153d45c29a2fd0228c24c3a524ffffffff01405dc600000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000",
 
   // The value true if transaction is fully signed; the value false if more signatures are required
   complete : Boolean//true
-) extends RpcResult
+) : RpcResult
 
 /** SignRawTransaction: signs a transaction in the serialized transaction format
   * using private keys stored in the wallet or provided in the call.
@@ -75,21 +75,21 @@ case class SignRawTransactionResult(
   *
   * https://bitcoin.org/en/developer-reference#signrawtransaction
   */
-class InvalidRpcParameter extends Exception
-object SignRawTransaction extends RpcCommand {
+class InvalidRpcParameter : Exception
+object SignRawTransaction : RpcCommand {
 
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
 
     handlingException {
       import HashFormat._
       implicit val implicitUnspentTranasctionOutput = jsonFormat4(UnspentTransactionOutput.apply)
 
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val rawTransaction    : String                                 = request.params.get[String]("Transaction", 0)
-      val dependencies      : Option[List[UnspentTransactionOutput]] = request.params.getListOption[UnspentTransactionOutput]("Dependencies", 1)
-      val privateKeyStrings : Option[List[String]]                   = request.params.getListOption[String]("Private Keys", 2)
-      val sigHashString     : String                                 = request.params.getOption[String]("SigHash", 3).getOrElse("ALL")
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val rawTransaction    : String                                 = request.params.get<String>("Transaction", 0)
+      val dependencies      : Option<List<UnspentTransactionOutput>> = request.params.getListOption<UnspentTransactionOutput>("Dependencies", 1)
+      val privateKeyStrings : Option<List<String>>                   = request.params.getListOption<String>("Private Keys", 2)
+      val sigHashString     : String                                 = request.params.getOption<String>("SigHash", 3).getOrElse("ALL")
 
       val privateKeys = privateKeyStrings.map{ keyStrings =>
         keyStrings.map( PrivateKey.from(_) )
@@ -129,7 +129,7 @@ object SignRawTransaction extends RpcCommand {
     }
 */
   }
-  def help() : String =
+  fun help() : String =
     """signrawtransaction "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...] ["privatekey1",...] sighashtype )
       |
       |Sign inputs for raw transaction (serialized, hex-encoded).

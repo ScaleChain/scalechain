@@ -5,33 +5,33 @@ import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray, 
 import scodec.Codec
 import scodec.codecs._
 
-object RecordLocatorCodec extends MessagePartCodec[RecordLocator] {
-  val codec : Codec[RecordLocator] = {
+object RecordLocatorCodec : MessagePartCodec<RecordLocator> {
+  val codec : Codec<RecordLocator> {
     ("offset" | int64L) ::
     ("size"   | int32L)
-  }.as[RecordLocator]
+  }.as<RecordLocator>
 }
 
-object FileRecordLocatorCodec extends MessagePartCodec[FileRecordLocator]{
-  val codec : Codec[FileRecordLocator] = {
+object FileRecordLocatorCodec : MessagePartCodec<FileRecordLocator>{
+  val codec : Codec<FileRecordLocator> {
     ("fileIndex" | int32L ) ::
     ("recordLocator" | RecordLocatorCodec.codec)
-  }.as[FileRecordLocator]
+  }.as<FileRecordLocator>
 }
 
-object BlockFileInfoCodec extends MessagePartCodec[BlockFileInfo]{
-  val codec : Codec[BlockFileInfo] = {
+object BlockFileInfoCodec : MessagePartCodec<BlockFileInfo>{
+  val codec : Codec<BlockFileInfo> {
     ("blockCount" | int32L) ::
     ("fileSize" | int64L) ::
     ("fistBlockHeight" | int64L) ::
     ("lastBlockHeight" | int64L) ::
     ("firstBlockTimestamp" | int64L) ::
     ("lastBlockTimestamp" | int64L)
-  }.as[BlockFileInfo]
+  }.as<BlockFileInfo>
 }
 
-object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
-  val codec : Codec[BlockInfo] = {
+object BlockInfoCodec : MessagePartCodec<BlockInfo>{
+  val codec : Codec<BlockInfo> {
     ("height" | int64L) ::
     ("chainWork" | int64L) ::
     ("nextBlockHash" | optional(bool(8), HashCodec.codec)) ::
@@ -39,68 +39,68 @@ object BlockInfoCodec extends MessagePartCodec[BlockInfo]{
     ("status" | int32L) ::
     ("blockHeader" | BlockHeaderCodec.codec) ::
     ("blockLocatorOption" | optional(bool(8), FileRecordLocatorCodec.codec) )
-  }.as[BlockInfo]
+  }.as<BlockInfo>
 }
 
-object FileNumberCodec extends MessagePartCodec[FileNumber] {
-  val codec : Codec[FileNumber] = {
+object FileNumberCodec : MessagePartCodec<FileNumber> {
+  val codec : Codec<FileNumber> {
     ("file_number" | int32L)
-  }.as[FileNumber]
+  }.as<FileNumber>
 }
 
 /** Writes only one byte, to test the case where a record file has a remaining space.
   */
-object OneByteCodec extends MessagePartCodec[OneByte]{
-  val codec : Codec[OneByte] = {
+object OneByteCodec : MessagePartCodec<OneByte>{
+  val codec : Codec<OneByte> {
     ("value" | byte)
-  }.as[OneByte]
+  }.as<OneByte>
 }
 
-object LongValueCodec extends MessagePartCodec[LongValue]{
-  val codec : Codec[LongValue] = {
+object LongValueCodec : MessagePartCodec<LongValue>{
+  val codec : Codec<LongValue> {
     ("value" | int64)
-  }.as[LongValue]
+  }.as<LongValue>
 }
 
 /** The codec for TransactionCount.
   *
   */
-object TransactionCountCodec extends MessagePartCodec[TransactionCount] {
-  val codec : Codec[TransactionCount] = {
+object TransactionCountCodec : MessagePartCodec<TransactionCount> {
+  val codec : Codec<TransactionCount> {
     ("transactionCount" | VarInt.countCodec )
-  }.as[TransactionCount]
+  }.as<TransactionCount>
 }
 
-object BlockHeightCodec extends MessagePartCodec[BlockHeight] {
-  val codec : Codec[BlockHeight] = {
+object BlockHeightCodec : MessagePartCodec<BlockHeight> {
+  val codec : Codec<BlockHeight> {
     ("blockHeight" | int64)
-  }.as[BlockHeight]
+  }.as<BlockHeight>
 }
 
-object TransactionDescriptorCodec extends MessagePartCodec[TransactionDescriptor] {
-  val codec : Codec[TransactionDescriptor] = {
+object TransactionDescriptorCodec : MessagePartCodec<TransactionDescriptor> {
+  val codec : Codec<TransactionDescriptor> {
     ("transactionLocator" | FileRecordLocatorCodec.codec) ::
     ("blockHeight"        | int64) ::
     ("outputsSpentBy"     | VarList.varList( optional(bool(8), InPointCodec.codec) ))
-  }.as[TransactionDescriptor]
+  }.as<TransactionDescriptor>
 }
 
-object OrphanBlockDescriptorCodec extends MessagePartCodec[OrphanBlockDescriptor] {
-  val codec : Codec[OrphanBlockDescriptor] = {
+object OrphanBlockDescriptorCodec : MessagePartCodec<OrphanBlockDescriptor> {
+  val codec : Codec<OrphanBlockDescriptor> {
     ("block" | BlockCodec.codec)
-  }.as[OrphanBlockDescriptor]
+  }.as<OrphanBlockDescriptor>
 }
 
-object OrphanTransactionDescriptorCodec extends MessagePartCodec[OrphanTransactionDescriptor] {
-  val codec : Codec[OrphanTransactionDescriptor] = {
+object OrphanTransactionDescriptorCodec : MessagePartCodec<OrphanTransactionDescriptor> {
+  val codec : Codec<OrphanTransactionDescriptor> {
     ("transaction" | TransactionCodec.codec )
-  }.as[OrphanTransactionDescriptor]
+  }.as<OrphanTransactionDescriptor>
 }
 
-object TransactionPoolEntryCodec extends MessagePartCodec[TransactionPoolEntry] {
-  val codec : Codec[TransactionPoolEntry] = {
+object TransactionPoolEntryCodec : MessagePartCodec<TransactionPoolEntry> {
+  val codec : Codec<TransactionPoolEntry> {
     ("transaction" | TransactionCodec.codec ) ::
     ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) )) ::
     ("createdAt" | int64)
-  }.as[TransactionPoolEntry]
+  }.as<TransactionPoolEntry>
 }

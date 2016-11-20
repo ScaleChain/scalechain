@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object ScaleChainBuild extends Build {
+object ScaleChainBuild : Build {
 	lazy val root =
 		Project(
 			id = "scalechain-all",

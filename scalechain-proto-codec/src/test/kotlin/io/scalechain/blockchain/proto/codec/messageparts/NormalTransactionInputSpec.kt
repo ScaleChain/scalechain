@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.{NormalTransactionInputCodec, Payloa
 import io.scalechain.util.HexUtil._
 
 /**
- * [Bitcoin Core Packets Captured]
+ * <Bitcoin Core Packets Captured>
  *
  *  7b1eabe0209b1fe794124575ef807057
  *  c77ada2138ae4fa8d6c4de0398a14f3f ......... Outpoint TXID
@@ -21,7 +21,7 @@ import io.scalechain.util.HexUtil._
  *
  *  ffffffff ................................. Sequence number: UINT32_MAX
  */
-class NormalTransactionInputSpec extends PayloadTestSuite[NormalTransactionInput]  {
+class NormalTransactionInputSpec : PayloadTestSuite<NormalTransactionInput>  {
 
   val codec = NormalTransactionInputCodec.codec
 

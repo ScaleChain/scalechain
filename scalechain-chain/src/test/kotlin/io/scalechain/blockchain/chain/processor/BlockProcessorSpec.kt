@@ -10,29 +10,29 @@ import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import org.scalatest._
 import HashSupported._
 
-class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockProcessorSpec/")
+  val testPath = File("./target/unittests-BlockProcessorSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
   var b : BlockProcessor = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
     keyValueDB = db
 
-    b = new BlockProcessor(chain)
+    b = BlockProcessor(chain)
     // Put the genesis block for testing.
     b.acceptBlock(env.GenesisBlockHash, env.GenesisBlock)
 
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     keyValueDB = null
@@ -41,7 +41,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getBlock" should "return Some(block) for a non-orphan block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -54,7 +54,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getBlock" should "return None for a non-existent block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -64,7 +64,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getBlock" should "return None for an orphan block block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -76,7 +76,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "exists" should "return false for a non-existent block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -86,7 +86,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "exists" should "return true for a block on the blockchain" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -99,7 +99,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "exists" should "return true for an orphan block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -112,7 +112,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "hasOrphan" should "return false for a non-existent block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -122,7 +122,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasOrphan" should "return false for a block on the blockchain" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -135,7 +135,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasOrphan" should "return true for an orphan block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -148,7 +148,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "hasNonOrphan" should "return false for a non-existent block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -158,7 +158,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasNonOrphan" should "return true for a block on the blockchain" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -171,7 +171,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasNonOrphan" should "return false for an orphan block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -184,7 +184,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "putOrphan" should "be able to put parent orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -207,7 +207,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "putOrphan" should "be able to put child orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -232,7 +232,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "getOrphanRoot" should "return itself if the parent of it is missing" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -244,7 +244,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getOrphanRoot" should "return an orphan which misses a parent" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -256,7 +256,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getOrphanRoot" should "return an orphan which misses a parent, and even though it has a child" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -271,7 +271,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
   // Need to implement test cases for validateBlock
   "validateBlock" should "" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -281,7 +281,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
 
   // TODO : Enable the test after implementing BlockMagnet.
   "acceptChildren" should "accept all children" ignore {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -302,7 +302,7 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
     b.acceptBlock(BLK02.header.hash, BLK02)
 
 
-    val acceptedChildren : List[Hash] = b.acceptChildren(BLK02.header.hash)
+    val acceptedChildren : List<Hash> = b.acceptChildren(BLK02.header.hash)
 
     acceptedChildren.toSet shouldBe Set(BLK03a.header.hash, BLK04a.header.hash, BLK05a.header.hash, BLK03b.header.hash, BLK04b.header.hash )
 
@@ -331,14 +331,14 @@ class BlockProcessorSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "acceptChildren" should "accept nothing if no child exists" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
 
     b.acceptBlock(BLK01.header.hash, BLK01)
 
-    val acceptedChildren : List[Hash] = b.acceptChildren(BLK01.header.hash)
+    val acceptedChildren : List<Hash> = b.acceptChildren(BLK01.header.hash)
 
     acceptedChildren shouldBe List()
   }

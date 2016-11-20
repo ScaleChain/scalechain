@@ -10,11 +10,11 @@ import org.scalatest._
 /**
   * Created by kangmo on 5/18/16.
   */
-trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
+trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with BeforeAndAfterEach with Matchers{
   var store : WalletStore
   implicit var db : KeyValueDatabase
 
-  def prepareOutPointTest() {
+  fun prepareOutPointTest() {
     store.putOutputOwnership(ACCOUNT1, ADDR1.address)
     store.putOutputOwnership(ACCOUNT2, ADDR2.address)
     store.putOutputOwnership(ACCOUNT3, ADDR3.address)
@@ -78,7 +78,7 @@ trait WalletStoreOutPointTestTrait extends FlatSpec with WalletStoreTestDataTrai
   "putTransactionOutPoint" should "throw an exception if the output ownership does not exist." in {
     prepareOutPointTest()
 
-    val thrown = the[WalletException] thrownBy {
+    val thrown = the<WalletException> thrownBy {
       store.putTransactionOutPoint(ADDR1.pubKeyScript, OUTPOINT1)
     }
     thrown.code shouldBe ErrorCode.OwnershipNotFound

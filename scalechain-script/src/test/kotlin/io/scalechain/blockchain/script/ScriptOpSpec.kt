@@ -5,18 +5,18 @@ import org.scalatest._
 /** Test common super classes of script operations in ScriptOp.scala
   *
   */
-class ScriptOpSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class ScriptOpSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

@@ -49,12 +49,12 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getreceivedbyaddress
   */
-object GetReceivedByAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetReceivedByAddress : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val addressString      : String                = request.params.get[String]("Address", 0)
-      val confirmation : Long = request.params.getOption[Long]("Confirmations", 1).getOrElse(1L)
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val addressString      : String                = request.params.get<String>("Address", 0)
+      val confirmation : Long = request.params.getOption<Long>("Confirmations", 1).getOrElse(1L)
 
       val address = CoinAddress.from(addressString)
 
@@ -64,7 +64,7 @@ object GetReceivedByAddress extends RpcCommand {
 
     }
   }
-  def help() : String =
+  fun help() : String =
     """getreceivedbyaddress "bitcoinaddress" ( minconf )
       |
       |Returns the total amount received by the given bitcoinaddress in transactions with at least minconf confirmations.

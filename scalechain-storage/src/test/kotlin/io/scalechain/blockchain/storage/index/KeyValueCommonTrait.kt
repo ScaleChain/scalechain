@@ -6,13 +6,13 @@ import org.scalatest.Matchers
 /**
   * Common util methods for testing key/value store.
   */
-trait KeyValueCommonTrait extends Matchers{
+trait KeyValueCommonTrait : Matchers{
   /** Convert a string to a byte array.
     *
     * @param value The string to convert to a byte array.
     * @return The converted byte array.
     */
-  def B(value : String) = value.getBytes
+  fun B(value : String) = value.getBytes
 
   /** Convert an option of a byte array to an option of a byte list.
     * Because Scala uses referential equality check on arrays,
@@ -22,7 +22,7 @@ trait KeyValueCommonTrait extends Matchers{
     *
     * @param arrayOption The option of an array to convert.
     */
-  def L(arrayOption : Option[Array[Byte]]) =
+  fun L(arrayOption : Option<Array<Byte>>) =
     arrayOption.map(_.toList)
 
   val PREFIX1 : Byte = '1'

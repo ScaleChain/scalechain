@@ -12,24 +12,24 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 5/22/16.
   */
 class PeerCommunicator(peerSet : PeerSet) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[PeerCommunicator]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<PeerCommunicator>) )
 
   /*
-    protected[net] def sendToAny(message : ProtocolMessage): Unit = {
+    protected<net> fun sendToAny(message : ProtocolMessage): Unit {
     }
-    protected[net] def sendTo(remoteAddress : InetSocketAddress, message : ProtocolMessage): Unit = {
+    protected<net> fun sendTo(remoteAddress : InetSocketAddress, message : ProtocolMessage): Unit {
     }
   */
 
-  protected[net] def sendToAll(message : ProtocolMessage): Unit = {
+  protected<net> fun sendToAll(message : ProtocolMessage): Unit {
     peerSet.sendToAll(message)
   }
 
-  /** Propagate a newly mined block to the peers. Called by a miner, whenever a new block was mined.
+  /** Propagate a newly mined block to the peers. Called by a miner, whenever a block was mined.
     *
     * @param block The newly mined block to propagate.
     */
-  def propagateBlock(block : Block) : Unit = {
+  fun propagateBlock(block : Block) : Unit {
     // Propagating a block is an urgent job to do. Without broadcasting the inventories, send the block itself to the network.
     sendToAll(block)
   }
@@ -38,7 +38,7 @@ class PeerCommunicator(peerSet : PeerSet) {
     *
     * @param transaction The transaction to propagate.
     */
-  def propagateTransaction(transaction : Transaction) : Unit = {
+  fun propagateTransaction(transaction : Transaction) : Unit {
     sendToAll(transaction)
   }
 
@@ -48,7 +48,7 @@ class PeerCommunicator(peerSet : PeerSet) {
     *
     * @return The list of peer information.
     */
-  def getPeerInfos() : List[PeerInfo] = {
+  fun getPeerInfos() : List<PeerInfo> {
 
     var peerIndex = 0;
 
@@ -67,12 +67,12 @@ class PeerCommunicator(peerSet : PeerSet) {
  *
     * @return Some(best PeerInfo) if there is any connected peer; None otherwise.
     */
-  def getBestPeer() : Option[PeerInfo] = {
+  fun getBestPeer() : Option<PeerInfo> {
     val peerInfos = getPeerInfos
     if (peerInfos.isEmpty) {
       None
     } else {
-      def betterPeer(peer1 : PeerInfo, peer2 : PeerInfo) : PeerInfo = {
+      fun betterPeer(peer1 : PeerInfo, peer2 : PeerInfo) : PeerInfo {
         if (peer1.startingheight.getOrElse(0L) > peer2.startingheight.getOrElse(0L))
           peer1
         else

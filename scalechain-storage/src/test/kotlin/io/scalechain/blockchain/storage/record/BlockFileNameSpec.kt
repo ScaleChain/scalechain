@@ -6,16 +6,16 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class BlockFileNameSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class BlockFileNameSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   Storage.initialize()
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
   }
@@ -28,24 +28,24 @@ class BlockFileNameSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   }
 
   "apply" should "hit an assertion if file number is less than 0" in {
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       BlockFileName("blk", -1)
     }
   }
 
   "apply" should "hit an assertion if the length of the prefix is not equal to 3" in {
     // prefix length is two : "bl"
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       BlockFileName("bl", 0)
     }
 
     // prefix length is four : "blkk"
-    intercept[AssertionError] {
+    intercept<AssertionError> {
       BlockFileName("blkk", 0)
     }
   }
 
-  def extract(fileName: String) = {
+  fun extract(fileName: String) {
     fileName match {
       case BlockFileName(prefix, fileNumber) => Some(prefix, fileNumber)
       case _ => None

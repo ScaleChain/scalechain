@@ -11,18 +11,18 @@ import HashSupported._
 /**
   * Created by kangmo on 6/16/16.
   */
-class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockOrphanageSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockOrphangeSpec/")
+  val testPath = File("./target/unittests-BlockOrphangeSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
 
   var o: BlockOrphanage = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
@@ -35,7 +35,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
     o = chain.blockOrphanage
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     keyValueDB = null
     o = null
 
@@ -45,7 +45,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasOrphan" should "return false for a non-existent orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -54,7 +54,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "hasOrphan" should "return true for a orphan block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -64,7 +64,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "putOrphan" should "be able to put child orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -82,7 +82,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "putOrphan" should "be able to put parent orphans first" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -100,7 +100,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "putOrphan" should "be able to put orphans in mixed order" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -119,7 +119,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "getOrphan" should "return None for a non-existent orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -129,7 +129,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "getOrphan" should "return an orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -146,7 +146,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "delOrphan" should "delete an orphan" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -167,7 +167,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getOrphanRoot" should "return itself if the parent of it is missing" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -178,7 +178,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getOrphanRoot" should "return an orphan which misses a parent" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -191,7 +191,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
 
 
   "getOrphanRoot" should "return an orphan which misses a parent, and even though it has a child" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -204,7 +204,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -215,7 +215,7 @@ class BlockOrphanageSpec extends BlockchainTestTrait with TransactionTestDataTra
   }
 
   "removeDependenciesOn" should "remove dependent blocks for a block" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._

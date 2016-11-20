@@ -10,13 +10,13 @@ import io.scalechain.util.HexUtil
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class TestBlockIndex extends BlockIndex {
+class TestBlockIndex : BlockIndex {
   var bestBlockHash : Hash = null
   var bestBlockHeight = -1
-  val transactions = new mutable.HashMap[Hash, Transaction]
-  val blocks = new mutable.HashMap[Hash, (BlockInfo,Block)]
+  val transactions = mutable.HashMap<Hash, Transaction>
+  val blocks = mutable.HashMap<Hash, (BlockInfo,Block)>
 
-  def addBlock(block : Block, height : Int) : Unit = {
+  fun addBlock(block : Block, height : Int) : Unit {
     val blockHash : Hash = block.header.hash
     blocks.put(blockHash, (
       BlockInfo(
@@ -40,11 +40,11 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param blockHash
     */
-  def getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option[(BlockInfo, Block)] = {
+  fun getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<(BlockInfo, Block)> {
     blocks.get(blockHash)
   }
 
-  def addTransaction(transactionHash : Hash, transaction : Transaction) : Unit = {
+  fun addTransaction(transactionHash : Hash, transaction : Transaction) : Unit {
     transactions.put(transactionHash, transaction)
   }
 
@@ -52,7 +52,7 @@ class TestBlockIndex extends BlockIndex {
     *
     * @param transactionHash
     */
-  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
+  fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction> {
     transactions.get(transactionHash)
   }
 }
@@ -60,9 +60,9 @@ class TestBlockIndex extends BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected implicit val db : KeyValueDatabase) extends BlockBuildingTestTrait {
+class ChainSampleData(chainEventListener: Option<ChainEventListener>)(protected implicit val db : KeyValueDatabase) : BlockBuildingTestTrait {
 
-  private val blockIndex = new TestBlockIndex()
+  private val blockIndex = TestBlockIndex()
 
   object Alice {
     val Addr1 = generateAccountAddress("Alice") // for receiving from others
@@ -80,20 +80,20 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
   }
 
 
-  object TestBlockchainView extends BlockchainView {
-    def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput = {
+  object TestBlockchainView : BlockchainView {
+    fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
       availableOutputs.getTransactionOutput(outPoint)
     }
-    def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock] = {
+    fun getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator<ChainBlock> {
       // unused.
       assert(false)
       null
     }
-    def getBestBlockHeight() : Long = {
+    fun getBestBlockHeight() : Long {
       blockIndex.bestBlockHeight
     }
 
-    def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction] = {
+    fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction> {
       blockIndex.getTransaction( transactionHash )
     }
   }
@@ -104,7 +104,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
     * @param outputSet The output set where each output of the given transaction is added.
     * @param transactionWithName The transaction that has outputs to be added to the set.
     */
-  override def addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit = {
+  override fun addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit {
     super.addTransaction(outputSet, transactionWithName)
 
     val transactionHash = getTxHash(transactionWithName)
@@ -114,7 +114,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
   }
 
 
-  def addBlock(block: Block) : Unit = {
+  fun addBlock(block: Block) : Unit {
     val blockHeight = blockIndex.bestBlockHeight+1
     blockIndex.addBlock(block, blockHeight)
     var transactionIndex = -1;
@@ -129,7 +129,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
     }
   }
 
-  def newBlock(transactionsWithName : List[TransactionWithName]) : Block = {
+  fun newBlock(transactionsWithName : List<TransactionWithName>) : Block {
     val block = newBlock(blockIndex.bestBlockHash, transactionsWithName)
     addBlock(block)
     block
@@ -137,7 +137,7 @@ class ChainSampleData(chainEventListener: Option[ChainEventListener])(protected 
 
 
   // Test cases may override this method to check the status of blockchain.
-  def onStepFinish(stepNumber : Int): Unit = {
+  fun onStepFinish(stepNumber : Int): Unit {
     // to nothing
   }
 

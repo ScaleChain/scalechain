@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.{InPointCodec}
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
-class InPointCodecSpec extends CodecSuite with ProtoTestData {
+class InPointCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val inPointCodec = InPointCodec.codec
 

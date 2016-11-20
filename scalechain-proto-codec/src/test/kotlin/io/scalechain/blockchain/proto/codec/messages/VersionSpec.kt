@@ -6,13 +6,13 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  5127266 [NET] recv; header:
+<Bitcoin Core Packets Captured>
+  5127266 <NET> recv; header:
   5127267 <Header> Magic:ù¾´Ù, Command:version, Size:102, Checksum:1522660210
   5127268 dumping data len : 24
   5127269 00000000  f9 be b4 d9 76 65 72 73  69 6f 6e 00 00 00 00 00  ù¾´Ùversion.....
   5127270 00000010  66 00 00 00 72 f3 c1 5a                           f...róÁZ
-  5127271 [NET] recv; data:
+  5127271 <NET> recv; data:
   5127272 dumping data len : 102
   5127273 00000000  72 11 01 00 01 00 00 00  00 00 00 00 48 2e ab 56  r...........H.«V
   5127274 00000010  00 00 00 00 01 00 00 00  00 00 00 00 00 00 00 00  ................
@@ -22,7 +22,7 @@ import scodec.bits.BitVector
   5127278 00000050  10 2f 53 61 74 6f 73 68  69 3a 30 2e 31 31 2e 32  ./Satoshi:0.11.2
   5127279 00000060  2f 41 09 06 00 01                                 /A....
   */
-class VersionSpec extends EnvelopeTestSuite[Version]  {
+class VersionSpec : EnvelopeTestSuite<Version>  {
 
   val codec = VersionCodec.codec
 

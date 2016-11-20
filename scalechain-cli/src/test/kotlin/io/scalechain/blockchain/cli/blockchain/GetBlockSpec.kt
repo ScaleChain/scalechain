@@ -11,17 +11,17 @@ import spray.json.{JsBoolean, JsString}
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class GetBlockSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class GetBlockSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -31,13 +31,13 @@ class GetBlockSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
   // The test does not pass yet. Will make it pass soon.
   "GetBlock" should "return a GetBlockResult for a genesis block ( format = true )" in {
     val response = invoke(GetBlock, List(JsString(GENESIS_BLOCK_HASH), JsBoolean(true)))
-    val result = response.right.get.get.asInstanceOf[GetBlockResult]
+    val result = response.right.get.get.asInstanceOf<GetBlockResult>
     result.previousblockhash.get shouldBe ALL_ZERO_HASH
   }
 
   "GetBlock" should "return a GetBlockResult for a genesis block ( format = false )" in {
     val response = invoke(GetBlock, List(JsString(GENESIS_BLOCK_HASH), JsBoolean(false)))
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
     result shouldBe "COPY-PAST-DATA"
   }
 

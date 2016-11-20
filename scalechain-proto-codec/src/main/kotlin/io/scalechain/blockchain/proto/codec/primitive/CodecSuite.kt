@@ -15,13 +15,13 @@ import scala.concurrent.duration._
 import org.scalatest._
 import Arbitrary._
 
-abstract class CodecSuite extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
+abstract class CodecSuite : WordSpec with Matchers with GeneratorDrivenPropertyChecks {
 
-  protected def roundtrip[A](a: A)(implicit c: Lazy[Codec[A]]): Unit = {
+  protected fun roundtrip<A>(a: A)(implicit c: Lazy<Codec<A>>): Unit {
     roundtrip(c.value, a)
   }
 
-  protected def roundtrip[A](codec: Codec[A], value: A): Unit = {
+  protected fun roundtrip<A>(codec: Codec<A>, value: A): Unit {
     val encoded = codec.encode(value)
     encoded shouldBe 'successful
     val Attempt.Successful(DecodeResult(decoded, remainder)) = codec.decode(encoded.require)
@@ -29,33 +29,33 @@ abstract class CodecSuite extends WordSpec with Matchers with GeneratorDrivenPro
     decoded shouldEqual value
   }
 
-  protected def roundtripAll[A](codec: Codec[A], as: GenTraversable[A]): Unit = {
+  protected fun roundtripAll<A>(codec: Codec<A>, as: GenTraversable<A>): Unit {
     as foreach { a => roundtrip(codec, a) }
   }
 
-  protected def encodeError[A](codec: Codec[A], a: A, err: Err): Unit = {
+  protected fun encodeError<A>(codec: Codec<A>, a: A, err: Err): Unit {
     val encoded = codec.encode(a)
     encoded shouldBe Attempt.Failure(err)
   }
 
-  protected def shouldDecodeFullyTo[A](codec: Codec[A], buf: BitVector, expected: A): Unit = {
+  protected fun shouldDecodeFullyTo<A>(codec: Codec<A>, buf: BitVector, expected: A): Unit {
     val Attempt.Successful(DecodeResult(actual, rest)) = codec decode buf
     rest shouldBe BitVector.empty
     actual shouldBe expected
   }
 
-  protected def time[A](f: => A): (A, FiniteDuration) = {
+  protected fun time<A>(f: => A): (A, FiniteDuration) {
     val start = System.nanoTime
     val result = f
     val elapsed = (System.nanoTime - start).nanos
     (result, elapsed)
   }
 
-  protected def samples[A](gen: Gen[A]): Stream[Option[A]] =
+  protected fun samples<A>(gen: Gen<A>): Stream<Option<A>> =
     Stream.continually(gen.sample)
 
-  protected def definedSamples[A](gen: Gen[A]): Stream[A] =
+  protected fun definedSamples<A>(gen: Gen<A>): Stream<A> =
     samples(gen).flatMap { x => x }
 
-  implicit def arbBitVector: Arbitrary[BitVector] = Arbitrary(arbitrary[Array[Byte]].map(BitVector.apply))
+  implicit fun arbBitVector: Arbitrary<BitVector> = Arbitrary(arbitrary<Array<Byte>>.map(BitVector.apply))
 }

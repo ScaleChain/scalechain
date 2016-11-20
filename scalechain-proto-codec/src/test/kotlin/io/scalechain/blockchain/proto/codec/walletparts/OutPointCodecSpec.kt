@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.{Hash, OutPoint}
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
-class OutPointCodecSpec extends CodecSuite with ProtoTestData {
+class OutPointCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val outPointCodec = OutPointCodec.codec
 

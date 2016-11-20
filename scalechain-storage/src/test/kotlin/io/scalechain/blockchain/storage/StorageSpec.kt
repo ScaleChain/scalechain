@@ -5,15 +5,15 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class StorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class StorageSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
 
-  override def beforeEach() {
+  override fun beforeEach() {
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
   }

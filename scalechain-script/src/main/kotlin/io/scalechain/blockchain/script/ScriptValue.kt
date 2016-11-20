@@ -14,7 +14,7 @@ object ScriptValue {
    * @param value The string which will be converted to a byte array.
    * @return The ScriptValue we created.
    */
-  def valueOf(value : String) : ScriptValue = {
+  fun valueOf(value : String) : ScriptValue {
     ScriptBytes( value.getBytes() )
   }
 
@@ -23,7 +23,7 @@ object ScriptValue {
    * @param value The byte array.
     * @return The ScriptValue we created.
    */
-  def valueOf(value : Array[Byte]) : ScriptValue = {
+  fun valueOf(value : Array<Byte>) : ScriptValue {
     ScriptBytes( value )
   }
 
@@ -34,8 +34,8 @@ object ScriptValue {
    * @param length The number of bytes to copy.
    * @return The ScriptValue that has the given area of the byte array.
    */
-  def valueOf(source : Array[Byte], offset : Int, length : Int ) : ScriptValue = {
-    val bytes = new Array[Byte](length)
+  fun valueOf(source : Array<Byte>, offset : Int, length : Int ) : ScriptValue {
+    val bytes = Array<Byte>(length)
     Array.copy(source, offset, bytes, 0, length)
     ScriptBytes(bytes)
   }
@@ -45,7 +45,7 @@ object ScriptValue {
    * @param value The long value.
    * @return The ScriptValue we created.
    */
-  def valueOf(value : Long) : ScriptValue = {
+  fun valueOf(value : Long) : ScriptValue {
     ScriptInteger( BigInteger.valueOf( value ) )
   }
 
@@ -54,33 +54,33 @@ object ScriptValue {
    * @param value
    * @return
    */
-  def valueOf(value:BigInteger) : ScriptValue = {
+  fun valueOf(value:BigInteger) : ScriptValue {
     ScriptInteger( value )
   }
 
-  def encodeStackInt(value: BigInteger): Array[Byte] = {
+  fun encodeStackInt(value: BigInteger): Array<Byte> {
     return Utils.reverseBytes(Utils.encodeMPI(value, false))
   }
 
-  def decodeStackInt(encoded: Array[Byte]): BigInteger = {
-    if (encoded.length > 4) throw new ScriptEvalException(ErrorCode.TooBigScriptInteger, "The integer stack value to decode has more than 4 bytes.")
+  fun decodeStackInt(encoded: Array<Byte>): BigInteger {
+    if (encoded.length > 4) throw ScriptEvalException(ErrorCode.TooBigScriptInteger, "The integer stack value to decode has more than 4 bytes.")
     return Utils.castToBigInteger(encoded)
   }
 }
 
 trait ScriptValue {
-  val value : Array[Byte]
-  def copy() : ScriptValue
+  val value : Array<Byte>
+  fun copy() : ScriptValue
 
-  def canEqual(a: Any) = a.isInstanceOf[ScriptValue]
+  fun canEqual(a: Any) = a.isInstanceOf<ScriptValue>
 
-  override def equals(that: Any): Boolean =
+  override fun equals(that: Any): Boolean =
     that match {
       case that: ScriptValue => that.canEqual(this) && that.value.sameElements(this.value)
       case _ => false
     }
 
-  override def hashCode:Int = {
+  override fun hashCode:Int {
     val prime = 31
     var result = 1
     for (b : Byte <- value ) {
@@ -90,25 +90,25 @@ trait ScriptValue {
   }
 }
 
-case class ScriptInteger(val bigIntValue:BigInteger) extends ScriptValue {
+data class ScriptInteger(val bigIntValue:BigInteger) : ScriptValue {
   override val value = ScriptValue.encodeStackInt( bigIntValue )
-  def copy() : ScriptValue = ScriptInteger(bigIntValue)
-  override def toString() = s"ScriptIntger($bigIntValue)"
+  fun copy() : ScriptValue = ScriptInteger(bigIntValue)
+  override fun toString() = s"ScriptIntger($bigIntValue)"
   /*
-  override def canEqual(that:Any) = super.canEqual(that)
-  override def equals(that:Any) : Boolean = super.equals(that)
-  override def hashCode:Int = super.hashCode
+  override fun canEqual(that:Any) = super.canEqual(that)
+  override fun equals(that:Any) : Boolean = super.equals(that)
+  override fun hashCode:Int = super.hashCode
   */
 }
 
-case class ScriptBytes(bytesValue:ByteArray) extends ScriptValue {
+data class ScriptBytes(bytesValue:ByteArray) : ScriptValue {
   override val value = bytesValue.array
-  def copy() : ScriptValue = ScriptBytes(bytesValue)
-  override def toString() = s"ScriptBytes(${scalaHex(bytesValue.array)})"
+  fun copy() : ScriptValue = ScriptBytes(bytesValue)
+  override fun toString() = s"ScriptBytes(${scalaHex(bytesValue.array)})"
   /*
-  override def canEqual(that:Any) = super.canEqual(that)
-  override def equals(that:Any) : Boolean = super.equals(that)
-  override def hashCode:Int = super.hashCode
+  override fun canEqual(that:Any) = super.canEqual(that)
+  override fun equals(that:Any) : Boolean = super.equals(that)
+  override fun hashCode:Int = super.hashCode
   */
 }
 

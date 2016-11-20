@@ -10,17 +10,17 @@ import spray.json.JsString
 /**
   * Created by kangmo on 11/2/15.
   */
-class HelpSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class HelpSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -29,7 +29,7 @@ class HelpSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
 
   "Help" should "list commands if no argument is provided." in {
     val response = invoke(Help)
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
     result.value.contains("== Blockchain ==") shouldBe true
   }
 
@@ -38,7 +38,7 @@ class HelpSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
     for (command <- Services.serviceByCommand.keys) {
       println(s"Testing if help for command, $command works well.")
       val response = invoke(Help, List(JsString(command)))
-      val result = response.right.get.get.asInstanceOf[StringResult]
+      val result = response.right.get.get.asInstanceOf<StringResult>
       result.value.contains(command) shouldBe true
     }
   }

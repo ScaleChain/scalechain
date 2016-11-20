@@ -18,16 +18,16 @@ object BlockBroadcaster {
   var theBlockBroadcaster : BlockBroadcaster = null
   var theBlockConsensusServer : BlockConsensusServer = null
 
-  def create(nodeIndex : Int) : BlockBroadcaster = {
+  fun create(nodeIndex : Int) : BlockBroadcaster {
     if (theBlockBroadcaster == null) {
-      theBlockBroadcaster = new BlockBroadcaster(nodeIndex)
+      theBlockBroadcaster = BlockBroadcaster(nodeIndex)
       assert( theBlockConsensusServer == null )
-      theBlockConsensusServer = new BlockConsensusServer(nodeIndex)
+      theBlockConsensusServer = BlockConsensusServer(nodeIndex)
     }
     theBlockBroadcaster
   }
 
-  def get() : BlockBroadcaster = {
+  fun get() : BlockBroadcaster {
     assert(theBlockBroadcaster != null)
     assert(theBlockConsensusServer != null)
     theBlockBroadcaster
@@ -35,22 +35,22 @@ object BlockBroadcaster {
 }
 
 class BlockBroadcaster( nodeIndex : Int) {
-  val bftProxy : ServiceProxy = new ServiceProxy(nodeIndex)
+  val bftProxy : ServiceProxy = ServiceProxy(nodeIndex)
 
   /**
     * Try to make a header a consensual header that agrees other nodes as well.
     *
     * @param header
     */
-  def broadcastHeader(header : BlockHeader) = {
-    val rawBlockHeader : Array[Byte] = BlockHeaderCodec.serialize( header )
+  fun broadcastHeader(header : BlockHeader) {
+    val rawBlockHeader : Array<Byte> = BlockHeaderCodec.serialize( header )
     bftProxy.invokeOrdered(rawBlockHeader)
   }
 }
 
 object PeerIndexCalculator {
   @tailrec
-  final def getPeerIndexInternal(p2pPort : Int, index : Int, peers : List[PeerAddress]) : Option[Int] = {
+  final fun getPeerIndexInternal(p2pPort : Int, index : Int, peers : List<PeerAddress>) : Option<Int> {
     if (peers.isEmpty) { // base case
       None
     } else {
@@ -81,27 +81,27 @@ object PeerIndexCalculator {
     *     ]
     *   }
     *
-    * @return The peer index from [0, peer count-1)
+    * @return The peer index from <0, peer count-1)
     */
-  def getPeerIndex(p2pPort : Int) : Option[Int] = {
-    val peerAddresses : List[PeerAddress] = Config.peerAddresses()
+  fun getPeerIndex(p2pPort : Int) : Option<Int> {
+    val peerAddresses : List<PeerAddress> = Config.peerAddresses()
     getPeerIndexInternal(p2pPort, 0, peerAddresses)
   }
 }
 
-object BlockGateway extends BlockGateway
+object BlockGateway : BlockGateway
 
 /**
   * Created by kangmo on 7/18/16.
   */
 class BlockGateway {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockGateway]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockGateway>) )
 
-  val ConsensualBlockHeaderCache = new TimeBasedCache[BlockHeader](5, TimeUnit.MINUTES)
+  val ConsensualBlockHeaderCache = TimeBasedCache<BlockHeader>(5, TimeUnit.MINUTES)
 
-  val ReceivedBlockCache = new TimeBasedCache[Block](5, TimeUnit.MINUTES)
+  val ReceivedBlockCache = TimeBasedCache<Block>(5, TimeUnit.MINUTES)
 
-  def putConsensualHeader(header : BlockHeader) = {
+  fun putConsensualHeader(header : BlockHeader) {
     ConsensualBlockHeaderCache.synchronized {
       ReceivedBlockCache.synchronized {
         val chain = Blockchain.get
@@ -138,7 +138,7 @@ class BlockGateway {
     }
   }
 
-  def putReceivedBlock(blockHash : Hash, block : Block) : Unit = {
+  fun putReceivedBlock(blockHash : Hash, block : Block) : Unit {
     ConsensualBlockHeaderCache.synchronized {
       ReceivedBlockCache.synchronized {
         // Put into the received block cache.

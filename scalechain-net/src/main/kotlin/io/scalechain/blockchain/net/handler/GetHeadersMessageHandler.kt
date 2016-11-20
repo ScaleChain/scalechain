@@ -27,7 +27,7 @@ object GetHeadersMessageHandler {
     * @param getHeaders The GetHeaders message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit = {
+  fun handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit {
     // We don't support the headers first approach yet.
     logger.warn("GetHeaders message is not supported yet.")
 
@@ -47,7 +47,7 @@ object GetHeadersMessageHandler {
           }
         } else {
           // Step 1.B.1 : Get the list of block hashes to send.
-          val locator = new BlockLocator(Blockchain.get)
+          val locator = BlockLocator(Blockchain.get)
           // Step 1.B.2 : Skip the common block, start building the list of block hashes from the next block of the common block.
           //              Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
           //              Note : GetHeaders returns the hashStop. BlockLocator.getHashes also returns the hashStop. Nothing to do for the hashStop hash.
@@ -65,7 +65,7 @@ object GetHeadersMessageHandler {
       if (blockHashesToSend.isEmpty) {
         // Do nothing. Nothing to send.
       } else {
-        val blockHeaders : List[BlockHeader] = blockHashesToSend.map { hash : Hash =>
+        val blockHeaders : List<BlockHeader> = blockHashesToSend.map { hash : Hash =>
           // As we get the block header hashes from getHashes, we are sure that we have the block header.
           BlockProcessor.getBlockHeader(hash).get
         }

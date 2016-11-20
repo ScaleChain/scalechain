@@ -59,19 +59,19 @@ import io.scalechain.blockchain.transaction.TransactionVerifier
   *
   * https://bitcoin.org/en/developer-reference#sendrawtransaction
   */
-object SendRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object SendRawTransaction : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
 
     handlingException {
-      val serializedTransaction  : String  = request.params.get[String]("Transaction", 0)
-      val allowHighFees: Boolean = request.params.getOption[Boolean]("Allow High Fees", 1).getOrElse(false)
+      val serializedTransaction  : String  = request.params.get<String>("Transaction", 0)
+      val allowHighFees: Boolean = request.params.getOption<Boolean>("Allow High Fees", 1).getOrElse(false)
 
       // Step 1 : Decode the transaction and run validation.
-      val transactions : List[Transaction] = TransactionDecoder.decodeTransactions(serializedTransaction)
+      val transactions : List<Transaction> = TransactionDecoder.decodeTransactions(serializedTransaction)
 
       // If the transaction already exists, the tx hash is put into the txHashes list as Left(hash)
       // If the transaction successfully sent, the tx hash is put into the txHashes list as Right(hash)
-      val txHashes : List[ Either[Hash,Hash] ] = transactions.map { tx: Transaction =>
+      val txHashes : List< Either<Hash,Hash> > = transactions.map { tx: Transaction =>
 
         RpcSubSystem.get.verifyTransaction(tx)
 
@@ -110,7 +110,7 @@ object SendRawTransaction extends RpcCommand {
     }
   }
 
-  def help() : String =
+  fun help() : String =
     """sendrawtransaction "hexstring" ( allowhighfees )
       |
       |Submits raw transaction (serialized, hex-encoded) to local node and network.

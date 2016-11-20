@@ -15,10 +15,10 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 
-trait SerializeParseUtil[T] {
-  val codec : Codec[T]
+trait SerializeParseUtil<T> {
+  val codec : Codec<T>
 
-  def serialize(obj : T) : Array[Byte] = {
+  fun serialize(obj : T) : Array<Byte> {
 
     val bitVector = codec.encode(obj).require
 
@@ -27,7 +27,7 @@ trait SerializeParseUtil[T] {
     assert((len & 0x00000007) == 0)
     val byteLen = len >> 3
     //
-    val serializedBytes = new Array[Byte](byteLen)
+    val serializedBytes = Array<Byte>(byteLen)
 
     var i = 0
     while (i < byteLen) {
@@ -44,12 +44,12 @@ trait SerializeParseUtil[T] {
       }
       case Attempt.Failure(err) => {
         //println(s"error : ${err.toString}")
-        throw new ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
       }
     }*/
   }
 
-  def parse(data: Array[Byte]) : T = {
+  fun parse(data: Array<Byte>) : T {
     val bitVector: BitVector = BitVector.view(data)
 
     codec.decode(bitVector) match {
@@ -57,78 +57,78 @@ trait SerializeParseUtil[T] {
         if ( remainder.isEmpty ) {
           decoded
         } else {
-          throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+          throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
         }
       }
       case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
       }
     }
   }
 
   @tailrec
-  final def parseManyInternal(bitVector:BitVector, decodedItems : ListBuffer[T]) : Unit = {
+  final fun parseManyInternal(bitVector:BitVector, decodedItems : ListBuffer<T>) : Unit {
     codec.decode(bitVector) match {
       case Attempt.Successful(DecodeResult(decoded, remainder)) => {
         decodedItems.append(decoded)
         if ( !remainder.isEmpty ) {
           parseManyInternal(remainder, decodedItems)
-          // throw new ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
+          // throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
         }
       }
       case Attempt.Failure(err) => {
-        throw new ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
+        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
       }
     }
   }
 
-  def parseMany(data: Array[Byte]) : List[T] = {
-    val decodedItems = new ListBuffer[T]()
+  fun parseMany(data: Array<Byte>) : List<T> {
+    val decodedItems = ListBuffer<T>()
     val bitVector: BitVector = BitVector.view(data)
     parseManyInternal(bitVector, decodedItems)
     decodedItems.toList
   }
 }
 
-trait MessagePartCodec[T <: ProtocolMessage] extends SerializeParseUtil[T] {
+trait MessagePartCodec<T <: ProtocolMessage> : SerializeParseUtil<T> {
 }
 
-object HashCodec extends MessagePartCodec[Hash] {
-  val codec : Codec[Hash] = {
+object HashCodec : MessagePartCodec<Hash> {
+  val codec : Codec<Hash> {
     ("value" | FixedByteArray.reverseCodec(32))
-  }.as[Hash]
+  }.as<Hash>
 }
 
 // No need to create a codec for CoinbaseData, as it is converted from/to UnlockingScript by TransactionInputCodec.
 /*
-object CoinbaseDataCodec extends MessagePartCodec[CoinbaseData] {
-  val codec : Codec[CoinbaseData] = {
+object CoinbaseDataCodec : MessagePartCodec<CoinbaseData> {
+  val codec : Codec<CoinbaseData> {
     ("coinbase_data" | VarByteArray.codec)
-  }.as[CoinbaseData]
+  }.as<CoinbaseData>
 }
 */
 
-object LockingScriptCodec extends MessagePartCodec[LockingScript] {
-  val codec : Codec[LockingScript] = {
+object LockingScriptCodec : MessagePartCodec<LockingScript> {
+  val codec : Codec<LockingScript> {
     ("locking_script" | VarByteArray.codec)
-  }.as[LockingScript]
+  }.as<LockingScript>
 }
 
-object UnlockingScriptCodec extends MessagePartCodec[UnlockingScript] {
-  val codec : Codec[UnlockingScript] = {
+object UnlockingScriptCodec : MessagePartCodec<UnlockingScript> {
+  val codec : Codec<UnlockingScript> {
     ("unlocking_script" | VarByteArray.codec)
-  }.as[UnlockingScript]
+  }.as<UnlockingScript>
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * Each non-coinbase input spends an outpoint from a previous transaction.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#txin
   *
-  * [Protocol]
+  * <Protocol>
   *
   *  7b1eabe0209b1fe794124575ef807057
   *  c77ada2138ae4fa8d6c4de0398a14f3f ......... Outpoint TXID
@@ -144,13 +144,13 @@ object UnlockingScriptCodec extends MessagePartCodec[UnlockingScript] {
   *
   *  ffffffff ................................. Sequence number: UINT32_MAX
   */
-object NormalTransactionInputCodec extends MessagePartCodec[NormalTransactionInput] {
-  val codec : Codec[NormalTransactionInput] = {
+object NormalTransactionInputCodec : MessagePartCodec<NormalTransactionInput> {
+  val codec : Codec<NormalTransactionInput> {
     ( "outpoint_transaction_hash"  | HashCodec.codec            ) ::
     ( "outpoint_transaction_index" | uint32L                    ) ::
     ( "unlocking_script"           | UnlockingScriptCodec.codec ) ::
     ( "sequence_number"            | uint32L                    )
-  }.as[NormalTransactionInput]
+  }.as<NormalTransactionInput>
 }
 
 /** Convert the normal transaction input to generation transaction input
@@ -162,14 +162,14 @@ object NormalTransactionInputCodec extends MessagePartCodec[NormalTransactionInp
   * Generation transaction's UTXO hash has all bits set to zero,
   * and its UTXO index has all bits set to one.
   *
-  * [Description]
+  * <Description>
   * The first transaction in a block, called the coinbase transaction,
   * must have exactly one input, called a coinbase.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#coinbase
   *
-  * [Protocol]
+  * <Protocol>
   *
   * 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
   * 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 .... The first field is Tx Hash(32 bytes). All bits are zero
@@ -189,7 +189,7 @@ object NormalTransactionInputCodec extends MessagePartCodec[NormalTransactionInp
   *
   * ff ff ff ff                                      .... Sequence Number ( 4 bytes. Set to 0xFFFFFFFF )
   */
-object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
+object TransactionInputCodec : MessagePartCodec<TransactionInput> {
   /** See if the transaction input data represents the generation transaction input.
     *
     * Generation transaction's UTXO hash has all bits set to zero,
@@ -198,13 +198,13 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
     * @param txInput The transaction input to investigate.
     * @return true if the give transaction input is the generation transaction. false otherwise.
     */
-  private def isGenerationTransaction(txInput : TransactionInput) = {
+  private fun isGenerationTransaction(txInput : TransactionInput) {
     // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
     //println(s"${txInput.outputIndex}")
     txInput.outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
   }
 
-  private def normalTxToGenerationOrNormal(normalTxInput: NormalTransactionInput) : TransactionInput = {
+  private fun normalTxToGenerationOrNormal(normalTxInput: NormalTransactionInput) : TransactionInput {
     if (isGenerationTransaction(normalTxInput)) {
       // Generation Transaction
       // Convert to GenerationTransactionInput
@@ -219,7 +219,7 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
     }
   }
 
-  private def generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput = {
+  private fun generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput {
     txInput match {
       case generationTxInput : GenerationTransactionInput => {
         //assert(isGenerationTransaction(txInput))
@@ -237,21 +237,21 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
     }
   }
 
-  val codec : Codec[TransactionInput] = NormalTransactionInputCodec.codec.xmap(
+  val codec : Codec<TransactionInput> = NormalTransactionInputCodec.codec.xmap(
     normalTxToGenerationOrNormal _, generationOrNormalToNormalTx _
   );
 }
 
 
 /**
-  * [Description]
+  * <Description>
   * Each output spends a certain number of satoshis,
   * placing them under control of anyone who can satisfy the provided pubkey script.
   *
-  * [Reference]
+  * <Reference>
   * https://bitcoin.org/en/developer-reference#txout
   *
-  * [Protocol]
+  * <Protocol>
   *
   *  f0ca052a01000000 ......................... Satoshis (49.99990000 BTC)
   *
@@ -264,44 +264,44 @@ object TransactionInputCodec extends MessagePartCodec[TransactionInput] {
   *  | 88 ..................................... OP_EQUALVERIFY
   *  | ac ..................................... OP_CHECKSIG
   */
-object TransactionOutputCodec extends MessagePartCodec[TransactionOutput] {
-  val codec : Codec[TransactionOutput] = {
+object TransactionOutputCodec : MessagePartCodec<TransactionOutput> {
+  val codec : Codec<TransactionOutput> {
     ("value"          | int64L                   ) ::
     ("locking_script" | LockingScriptCodec.codec )
-  }.as[TransactionOutput]
+  }.as<TransactionOutput>
 }
 
 // TODO : Add a test case
-object BlockHeaderCodec extends MessagePartCodec[BlockHeader]{
-  val codec : Codec[BlockHeader] = {
+object BlockHeaderCodec : MessagePartCodec<BlockHeader>{
+  val codec : Codec<BlockHeader> {
     ("version"               | int32L                                 ) ::
     ("previous_block_hash"   | HashCodec.codec                        ) ::
     ("merkle_root_hash"      | HashCodec.codec                        ) ::
     ("timestamp"             | uint32L                                ) ::
     ("diffculty_target_bits" | uint32L                                ) ::
     ("nonce"                 | uint32L                                )
-  }.as[BlockHeader]
+  }.as<BlockHeader>
 }
 
 // TODO : Add a test case
-object IPv6AddressCodec extends MessagePartCodec[IPv6Address]{
-  val codec : Codec[IPv6Address] = {
+object IPv6AddressCodec : MessagePartCodec<IPv6Address>{
+  val codec : Codec<IPv6Address> {
     ("address" | FixedByteArray.codec(16) )
-  }.as[IPv6Address]
+  }.as<IPv6Address>
 }
 
-object NetworkAddressCodec extends MessagePartCodec[NetworkAddress]{
-  val codec : Codec[NetworkAddress] = {
+object NetworkAddressCodec : MessagePartCodec<NetworkAddress>{
+  val codec : Codec<NetworkAddress> {
     ("services" | BigIntForLongCodec.codec) ::
     ("ipv6" | IPv6AddressCodec.codec) ::
     ("port" | uint16) // Note, port is encoded with big endian, not little endian
-  }.as[NetworkAddress]
+  }.as<NetworkAddress>
 }
 
 
-object NetworkAddressWithTimestampCodec extends MessagePartCodec[NetworkAddressWithTimestamp]{
-  val codec : Codec[NetworkAddressWithTimestamp] = {
+object NetworkAddressWithTimestampCodec : MessagePartCodec<NetworkAddressWithTimestamp>{
+  val codec : Codec<NetworkAddressWithTimestamp> {
     ("timestamp" | uint32L) ::
     ("network_address" | NetworkAddressCodec.codec)
-  }.as[NetworkAddressWithTimestamp]
+  }.as<NetworkAddressWithTimestamp>
 }

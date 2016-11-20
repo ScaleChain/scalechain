@@ -10,17 +10,17 @@ import org.scalatest._
 
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class GetPeerInfoSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class GetPeerInfoSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -31,7 +31,7 @@ class GetPeerInfoSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite
 
   "GetPeerInfo" should "should get the bitcoind as a peer." in {
     val response = invoke(GetPeerInfo)
-    val result = response.right.get.get.asInstanceOf[GetPeerInfoResult]
+    val result = response.right.get.get.asInstanceOf<GetPeerInfoResult>
 
     // We should have only one peer.
     result.peerInfos.size shouldBe 1

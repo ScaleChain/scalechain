@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ListBuffer
 
 
-case class BlockLocatorHashes(hashes : List[Hash])
+data class BlockLocatorHashes(hashes : List<Hash>)
 
 /**
   * The block locator that can produce the list of block hashes that another node requires.
@@ -19,21 +19,21 @@ case class BlockLocatorHashes(hashes : List[Hash])
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
 class BlockLocator(chain : Blockchain) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[BlockLocator]) )
+  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockLocator>) )
 
   /** Get the summary of block hashes that this node has.
     * We will use these hashes to create the GetBlocks request.
     *
     * @return The list of locator hashes summarizing the blockchain.
     */
-  def getLocatorHashes() : BlockLocatorHashes = {
+  fun getLocatorHashes() : BlockLocatorHashes {
     // BUGBUG : We need to be able to get locator hashes from a block that is not on the best blockchain.
     // Ex> When we get headers to get the best blockchain that other nodes have,
     // the headers we get might not be on the best blockchain of this node.
 
     val env = ChainEnvironment.get
 
-    val listBuf = ListBuffer[Hash]()
+    val listBuf = ListBuffer<Hash>()
     chain.withTransaction { implicit transactingDB =>
       var blockHeight = chain.getBestBlockHeight() // The height of the block we are processing.
       var addedHashes = 0 // The number of hashes added to the list.
@@ -70,9 +70,9 @@ class BlockLocator(chain : Blockchain) {
     *                      If any matches, we start constructing a list of hashes from it.
     * @param hashStop While constructing the list of hashes, stop at this hash if the hash matches.
     */
-  def getHashes(locatorHashes : BlockLocatorHashes, hashStop : Hash, maxHashCount : Int) : List[Hash] = {
+  fun getHashes(locatorHashes : BlockLocatorHashes, hashStop : Hash, maxHashCount : Int) : List<Hash> {
     val env = ChainEnvironment.get
-    val listBuf = new ListBuffer[Hash]()
+    val listBuf = ListBuffer<Hash>()
 
     // TODO : Optimize : Can we remove the chain.synchronized, as putBlock is atomic? ( May require using a RocksDB snapshot )
     chain.withTransaction { implicit transactingDB =>
@@ -80,13 +80,13 @@ class BlockLocator(chain : Blockchain) {
       // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.
       //
       // scala> List(1,2,3)
-      // res0: List[Int] = List(1, 2, 3)
+      // res0: List<Int> = List(1, 2, 3)
       //
       // scala> (res0.view.map{ i=> println(s"$i"); i *2 }).head
       // 1
       // res9: Int = 2
 
-      val matchedHashOption : Option[Hash] = locatorHashes.hashes.view.filter { hash =>
+      val matchedHashOption : Option<Hash> = locatorHashes.hashes.view.filter { hash =>
         val blockInfoOption = chain.getBlockInfo( hash )
         // The block info exists, and the block is on the best block chain(nextBlockHash is defined)
         blockInfoOption.isDefined && blockInfoOption.get.nextBlockHash.isDefined

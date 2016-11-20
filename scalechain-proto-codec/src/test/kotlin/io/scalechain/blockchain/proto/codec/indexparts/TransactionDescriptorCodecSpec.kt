@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, InPoint
 import io.scalechain.blockchain.proto.codec.primitive.CodecSuite
 import io.scalechain.blockchain.proto.test.ProtoTestData
 
-class TransactionDescriptorCodecSpec extends CodecSuite with ProtoTestData {
+class TransactionDescriptorCodecSpec : CodecSuite with ProtoTestData {
   implicit val inPointCodec = TransactionDescriptorCodec.codec
 
   val DUMMY_HASH1 = Hash ( "1" * 64 )

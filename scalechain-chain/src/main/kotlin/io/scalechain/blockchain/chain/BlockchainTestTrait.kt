@@ -11,7 +11,7 @@ import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
+trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 
   this: Suite =>
 
@@ -26,16 +26,16 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
 
   implicit var db : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    val rocksDB = new RocksDatabase(testPath)
+    val rocksDB = RocksDatabase(testPath)
     db = rocksDB
-    storage = new DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
-    chain = new Blockchain(storage)(rocksDB)
+    storage = DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
+    chain = Blockchain(storage)(rocksDB)
     BlockProcessor.theBlockProcessor = null
     BlockProcessor.create(chain)
 
@@ -44,7 +44,7 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // finalize a test.
@@ -60,9 +60,9 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
   }
 
 
-  val SampleData = new ChainSampleData(None)
+  val SampleData = ChainSampleData(None)
 
-  def createBlock(height : Int ) = {
+  fun createBlock(height : Int ) {
     assert(height > 0)
     SampleData.S1_Block.copy(
       header = SampleData.S1_Block.header.copy(
@@ -72,21 +72,21 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
     )
   }
 
-  def numberToHash(blockHeight : Int) = {
+  fun numberToHash(blockHeight : Int) {
     createBlock(blockHeight).header.hash
 /*
-    new Hash( HashCalculator.blockHeaderHash( createBlock(blockHeight).header ).value ) {
+    Hash( HashCalculator.blockHeaderHash( createBlock(blockHeight).header ).value ) {
       // Put height of the block on the hash for debugging purpose.
       val height = blockHeight
-      override def equals(o : Any) = {
-        super.equals(this.asInstanceOf[Hash], o.asInstanceOf[Hash])
+      override fun equals(o : Any) {
+        super.equals(this.asInstanceOf<Hash>, o.asInstanceOf<Hash>)
       }
     }
 */
   }
 
 
-  def putBlocks(blockCount : Int) = {
+  fun putBlocks(blockCount : Int) {
     for (blockHeight <- 1 to blockCount) {
       val blockHash = numberToHash(blockHeight)
       //println(s"putblocks : ${blockCount}, ${blockHash}, ${createBlock(blockHeight)} ")
@@ -95,15 +95,15 @@ trait BlockchainTestTrait extends FlatSpec with BeforeAndAfterEach {
     }
   }
   /*
-  def numberToHash(num : Int) : Hash = {
+  fun numberToHash(num : Int) : Hash {
     val hexNum = BigInteger.valueOf(num).toString(16)
     val hexHash = ("000000000000000000000000000000" + hexNum ).takeRight(64)
     Hash(HexUtil.bytes(hexHash))
   }
 
-  def hashToNumber(hash : Hash) : Int = {
+  fun hashToNumber(hash : Hash) : Int {
     val hexValues = HexUtil.hex(hash.value)
-    new BigInteger(hexValues, 16).intValue()
+    BigInteger(hexValues, 16).intValue()
   }
   */
 }

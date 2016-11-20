@@ -25,13 +25,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#getnetworkhashps
   */
-object GetNetworkHashPS extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetNetworkHashPS : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """prioritisetransaction <txid> <priority delta> <fee delta>
       |Accepts the transaction into mined blocks at a higher (or lower) priority
       |

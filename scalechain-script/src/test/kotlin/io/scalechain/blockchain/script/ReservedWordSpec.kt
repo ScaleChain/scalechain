@@ -5,18 +5,18 @@ import org.scalatest._
 /** Test reserved word operations in ReservedWord.scala
   *
   */
-class ReservedWordSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class ReservedWordSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

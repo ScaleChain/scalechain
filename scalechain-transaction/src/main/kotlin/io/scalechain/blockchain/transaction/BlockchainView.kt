@@ -9,7 +9,7 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
   * @param height The height of the block in the best blockchain.
   * @param block The block itself.
   */
-case class ChainBlock (
+data class ChainBlock (
                         height : Long,
                         block : Block
                       )
@@ -23,12 +23,12 @@ trait CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  def getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput
+  fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput
 }
 
 /** The read-only view of the best blockchain.
   */
-trait BlockchainView extends CoinsView {
+trait BlockchainView : CoinsView {
   /** Return an iterator that iterates each ChainBlock.
     *
     * Used by importaddress RPC to rescan blockchain to put related transactions and transaction outputs into the wallet database.
@@ -36,7 +36,7 @@ trait BlockchainView extends CoinsView {
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  def getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator[ChainBlock]
+  fun getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator<ChainBlock>
 
   /** Return the block height of the best block.
     *
@@ -44,7 +44,7 @@ trait BlockchainView extends CoinsView {
     *
     * @return The best block height.
     */
-  def getBestBlockHeight() : Long
+  fun getBestBlockHeight() : Long
 
   /** Return a transaction that matches the given transaction hash.
     *
@@ -53,7 +53,7 @@ trait BlockchainView extends CoinsView {
     * @param transactionHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  def getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option[Transaction]
+  fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction>
 
 }
 

@@ -45,7 +45,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class ListUnspentResult( unspentCoins : List[UnspentCoinDescriptor] )  extends RpcResult
+data class ListUnspentResult( unspentCoins : List<UnspentCoinDescriptor> )  : RpcResult
 
 /** ListUnspent: returns an array of unspent transaction outputs belonging to this wallet.
   *
@@ -70,19 +70,19 @@ case class ListUnspentResult( unspentCoins : List[UnspentCoinDescriptor] )  exte
   *
   * https://bitcoin.org/en/developer-reference#listunspent
   */
-object ListUnspent extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object ListUnspent : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
 
     handlingException {
-      val minimumConfirmations  : Long                = request.params.getOption[Long]("Minimum Confirmations", 0).getOrElse(1L)
-      val maximumConfirmations  : Long                = request.params.getOption[Long]("Maximum Confirmations", 1).getOrElse(Long.MaxValue)
-      val addressStringsOption : Option[List[String]] = request.params.getListOption[String]("Addresses", 2)
+      val minimumConfirmations  : Long                = request.params.getOption<Long>("Minimum Confirmations", 0).getOrElse(1L)
+      val maximumConfirmations  : Long                = request.params.getOption<Long>("Maximum Confirmations", 1).getOrElse(Long.MaxValue)
+      val addressStringsOption : Option<List<String>> = request.params.getListOption<String>("Addresses", 2)
 
       val coinAddressesOption = addressStringsOption.map{ addressStrings =>
         addressStrings.map( CoinAddress.from( _ ) )
       }
 
-      val unspentCoins : List[UnspentCoinDescriptor] = Wallet.get.listUnspent(
+      val unspentCoins : List<UnspentCoinDescriptor> = Wallet.get.listUnspent(
         Blockchain.get, minimumConfirmations, maximumConfirmations, coinAddressesOption
       )(Blockchain.get.db)
 
@@ -108,7 +108,7 @@ object ListUnspent extends RpcCommand {
     }
   }
 
-  def help() : String =
+  fun help() : String =
     """listunspent ( minconf maxconf  ["address",...] )
       |
       |Returns array of unspent transaction outputs

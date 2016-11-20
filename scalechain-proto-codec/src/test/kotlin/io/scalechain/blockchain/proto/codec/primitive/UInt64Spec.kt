@@ -4,7 +4,7 @@ package io.scalechain.blockchain.proto.codec.primitive
   * Thanks to : https://github.com/yzernik
   */
 
-class UInt64Spec extends CodecSuite {
+class UInt64Spec : CodecSuite {
 
   implicit val int64codec = BigIntForLongCodec.int64codec
 
@@ -17,7 +17,7 @@ class UInt64Spec extends CodecSuite {
     }
 
     "print" in {
-      def shouldPrint(n: BigInt) = {
+      fun shouldPrint(n: BigInt) {
         UInt64(UInt64.bigIntToLong(n)).toString shouldBe s"UInt64(${n.toString}L)"
       }
 

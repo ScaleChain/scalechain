@@ -6,7 +6,7 @@ import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 import org.scalatest.{Suite, BeforeAndAfterEach}
 
-class TransactingRocksDatabaseSpec extends KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
+class TransactingRocksDatabaseSpec : KeyValueDatabaseTestTrait with KeyValueSeekTestTrait with KeyValuePrefixedSeekTestTrait with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()
@@ -15,18 +15,18 @@ class TransactingRocksDatabaseSpec extends KeyValueDatabaseTestTrait with KeyVal
   var txDb : TransactingRocksDatabase = null
 
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-TransactingRocksDatabaseSpec")
+    val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
     FileUtils.deleteDirectory( testPath )
-    val rocksDB = new RocksDatabase(testPath)
+    val rocksDB = RocksDatabase(testPath)
     db = rocksDB
-    txDb = new TransactingRocksDatabase( rocksDB )
+    txDb = TransactingRocksDatabase( rocksDB )
     txDb.beginTransaction()
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     txDb.commitTransaction()
     txDb.close()

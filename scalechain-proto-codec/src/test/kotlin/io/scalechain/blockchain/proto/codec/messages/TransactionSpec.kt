@@ -6,25 +6,25 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  [NET] recv; header:
+<Bitcoin Core Packets Captured>
+  <NET> recv; header:
   <Header> Magic:ù¾´Ù, Command:tx, Size:815, Checksum:-1561851910
   dumping data len : 24
   00000000  f9 be b4 d9 74 78 00 00  00 00 00 00 00 00 00 00  ù¾´Ùtx..........
   00000010  2f 03 00 00 fa 07 e8 a2                           /...ú.è¢
-  [NET] recv; data:
+  <NET> recv; data:
   dumping data len : 815
   00000000  01 00 00 00 05 53 25 21  90 60 8c 62 7b df c6 60  .....S%!<90>`<8c>b{ßÆ`
-  00000010  18 97 7c d2 7f 7e 0c b9  c8 6d d5 a6 4c 5b 3f 23  .<97>|Ò^?~.¹ÈmÕ¦L[?#
+  00000010  18 97 7c d2 7f 7e 0c b9  c8 6d d5 a6 4c 5b 3f 23  .<97>|Ò^?~.¹ÈmÕ¦L<?#
   00000020  f3 62 87 82 42 01 00 00  00 6b 48 30 45 02 21 00  ób<87><82>B....kH0E.!.
   00000030  e5 5e 79 7b 51 71 11 48  69 2b 9c c4 a2 c8 06 52  å^y{Qq.Hi+<9c>Ä¢È.R
   00000040  c6 9b d7 8d 41 03 43 8d  ec 41 e0 16 70 c0 46 f8  Æ<9b>×<8d>A.C<8d>ìAà.pÀFø
   00000050  02 20 7e f8 05 74 57 0c  fd e8 f6 a7 88 a6 b2 90  . ~ø.tW.ýèö§<88>¦²<90>
-  00000060  03 43 d0 11 15 64 5b 6a  03 77 73 c4 3d f5 07 49  .CÐ..d[j.wsÄ=õ.I1
+  00000060  03 43 d0 11 15 64 5b 6a  03 77 73 c4 3d f5 07 49  .CÐ..d<j.wsÄ=õ.I1
   00000070  32 94 01 21 02 77 25 55  48 3a 34 45 ba b2 cd d3  2<94>.!.w%UH:4Eº²ÍÓ
   00000080  88 6a 1c c9 b3 62 f4 e9  99 1d b5 0d 09 44 68 9a  <88>j.É³bôé<99>.µ..Dh<9a>
   00000090  ed 90 b6 7b 19 ff ff ff  ff b3 cd ca 76 41 77 1b  í<90>¶{.ÿÿÿÿ³ÍÊvAw.
-  000000a0  13 fa 5d 56 7b 81 9d 98  04 f3 2f fb 45 82 f5 20  .ú]V{<81><9d><98>.ó/ûE<82>õ
+  000000a0  13 fa 5d 56 7b 81 9d 98  04 f3 2f fb 45 82 f5 20  .ú>V{<81><9d><98>.ó/ûE<82>õ
   000000b0  0e 37 7c 60 e6 82 5f 05  b4 01 00 00 00 6b 48 30  .7|`æ<82>_.´....kH0
   000000c0  45 02 21 00 84 4f 55 bd  c9 bf a1 2f 46 85 60 ee  E.!.<84>OU½É¿¡/F<85>`î
   000000d0  29 32 19 43 3a d9 60 60  53 8a 6e e6 df 7d 09 22  )2.C:Ù``S<8a>næß}."
@@ -38,7 +38,7 @@ import scodec.bits.BitVector
   00000150  00 6b 48 30 45 02 21 00  82 ca 08 51 f3 a9 4d 4e  .kH0E.!.<82>Ê.Qó©MN
   00000160  0d 00 67 a4 7f 6b d1 32  b4 7b 79 8a 83 e4 0e 7a  ..g¤^?kÑ2´{y<8a><83>ä.z
   00000170  40 80 11 d4 02 1d 7e c5  02 20 34 b7 53 58 57 57  @<80>.Ô..~Å. 4·SXWW
-  00000180  54 bf e5 82 29 61 0d 12  74 9c 60 e7 29 5d 94 72  T¿å<82>)a..t<9c>`ç)]<94>r
+  00000180  54 bf e5 82 29 61 0d 12  74 9c 60 e7 29 5d 94 72  T¿å<82>)a..t<9c>`ç)><94>r
   00000190  79 00 14 06 7d 36 ea b8  8d d1 01 21 03 df 96 db  y...}6ê¸<8d>Ñ.!.ß<96>Û
   000001a0  89 1b 82 4f 53 f5 ac 42  33 68 b6 27 31 90 71 b9  <89>.<82>OSõ¬B3h¶'1<90>q¹
   000001b0  54 09 49 19 89 e6 41 ee  e2 d7 32 68 64 ff ff ff  T.I.<89>æAîâ×2hdÿÿÿ
@@ -50,7 +50,7 @@ import scodec.bits.BitVector
   00000210  85 4f aa 65 95 be 85 6c  64 a8 cf 50 86 82 1d 38  <85>Oªe<95>¾<85>ld¨ÏP<86><82>.8
   00000220  67 a1 da 5e 12 bc 27 ab  59 05 ab 95 01 21 02 51  g¡Ú^.¼'«Y.«<95>.!.Q
   00000230  57 1c 71 1c 89 34 3b 47  7e a2 09 60 15 42 b9 82  W.q.<89>4;G~¢.`.B¹<82>
-  00000240  7d ad 55 e1 24 9c a3 5b  b8 cc 0f 65 ef ad 1c ff  }­Uá$<9c>£[¸Ì.eï­.ÿ
+  00000240  7d ad 55 e1 24 9c a3 5b  b8 cc 0f 65 ef ad 1c ff  }­Uá$<9c>£<¸Ì.eï­.ÿ
   00000250  ff ff ff f4 d0 29 cf 2c  83 ae 07 01 94 39 d8 ce  ÿÿÿôÐ)Ï,<83>®..<94>9ØÎ
   00000260  96 05 cb 2c e6 c6 79 67  a7 6f 91 18 b7 33 6e e8  <96>.Ë,æÆyg§o<91>.·3nè
   00000270  fc 5c ae 02 00 00 00 6a  47 30 44 02 21 00 fe c8  ü\®....jG0D.!.þÈ
@@ -67,7 +67,7 @@ import scodec.bits.BitVector
   00000320  65 5e 3f b9 03 73 bf a5  bb 88 ac 00 00 00 00     e^?¹.s¿¥»<88>¬....
 
   */
-class TransactionSpec extends EnvelopeTestSuite[Transaction]  {
+class TransactionSpec : EnvelopeTestSuite<Transaction>  {
 
   val codec = TransactionCodec.codec
 

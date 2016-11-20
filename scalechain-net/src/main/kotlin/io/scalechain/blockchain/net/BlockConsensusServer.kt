@@ -13,18 +13,18 @@ import org.slf4j.LoggerFactory
 import HashSupported._
 import collection.JavaConverters._
 
-class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
-  private lazy val logger = Logger( LoggerFactory.getLogger(classOf[BlockConsensusServer]) )
+class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
+  private lazy val logger = Logger( LoggerFactory.getLogger(classOf<BlockConsensusServer>) )
 
-  private var replica: ServiceReplica = new ServiceReplica(id, this, this)
+  private var replica: ServiceReplica = ServiceReplica(id, this, this)
 
-  override def appExecuteUnordered(command: Array[Byte], msgCtx: MessageContext): Array[Byte] = {
+  override fun appExecuteUnordered(command: Array<Byte>, msgCtx: MessageContext): Array<Byte> {
     // No support for the unordered command.
     assert(false)
     null
   }
 
-  override def appExecuteOrdered(command: Array[Byte], msgCtx: MessageContext): Array[Byte] = {
+  override fun appExecuteOrdered(command: Array<Byte>, msgCtx: MessageContext): Array<Byte> {
     try {
       logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
 
@@ -35,7 +35,7 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
       BlockGateway.putConsensualHeader(blockHeader)
 
       /*
-      val consensusMesssages : java.util.Set[ConsensusMessage] = msgCtx.getProof()
+      val consensusMesssages : java.util.Set<ConsensusMessage> = msgCtx.getProof()
       consensusMesssages.asScala.map { message =>
         message.getProof()
       }*/
@@ -45,25 +45,25 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
           logger.trace(s"New consensual header : ${blockHeader.hash}, ${blockHeader}")
         }
         else {
-          logger.trace(s"[${msgCtx.getConsensusId}] New consensual header : ${blockHeader.hash}, ${blockHeader}")
+          logger.trace(s"<${msgCtx.getConsensusId}> New consensual header : ${blockHeader.hash}, ${blockHeader}")
         }
       }
       else {
         logger.trace(s"New consensual header : ${blockHeader.hash}, ${blockHeader}")
       }
       // Nothing to reply.
-      Array[Byte]()
+      Array<Byte>()
     }
     catch {
       case ex: IOException => {
         logger.error("Invalid request received!")
-        Array[Byte]()
+        Array<Byte>()
       }
     }
   }
 
   @SuppressWarnings(Array("unchecked"))
-  override def installSnapshot(state: Array[Byte]) {
+  override fun installSnapshot(state: Array<Byte>) {
     try {
       logger.trace("setState called")
       val bestBlockHash = HashCodec.parse(state)
@@ -79,12 +79,12 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
     }
     catch {
       case e: Exception => {
-        logger.error("[ERROR] Error deserializing state: " + e.getMessage)
+        logger.error("<ERROR> Error deserializing state: " + e.getMessage)
       }
     }
   }
 
-  override def getSnapshot: Array[Byte] = {
+  override fun getSnapshot: Array<Byte> {
     try {
       System.out.println("getState called")
       // TODO : Rethink syncrhonization.
@@ -94,7 +94,7 @@ class BlockConsensusServer(id: Int) extends DefaultSingleRecoverable {
     }
     catch {
       case ioe: IOException => {
-        logger.error("[ERROR] Error serializing state: " + ioe.getMessage)
+        logger.error("<ERROR> Error serializing state: " + ioe.getMessage)
         return "ERROR".getBytes
       }
     }

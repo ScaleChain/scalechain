@@ -6,13 +6,13 @@ import io.scalechain.util.HexUtil._
 import scodec.bits.BitVector
 
 /**
-[Bitcoin Core Packets Captured]
-  [NET] recv; header:
+<Bitcoin Core Packets Captured>
+  <NET> recv; header:
   <Header> Magic:ù¾´Ù, Command:getheaders, Size:997, Checksum:533007982
   dumping data len : 24
   00000000  f9 be b4 d9 67 65 74 68  65 61 64 65 72 73 00 00  ù¾´Ùgetheaders..
   00000010  e5 03 00 00 6e 0e c5 1f                           å...n.Å.
-  [NET] recv; data:
+  <NET> recv; data:
   dumping data len : 997
   00000000  72 11 01 00 1e 63 54 17  3f cc 4b 38 c2 d4 59 48  r....cT.?ÌK8ÂÔYH
   00000010  b1 9d 2a 52 7c 4f 10 ad  a6 83 47 00 06 00 00 00  ±<9d>*R|O.­¦<83>G.....
@@ -44,7 +44,7 @@ import scodec.bits.BitVector
   000001b0  7e 7f 69 c0 24 91 e2 a0  06 c4 a3 ae 03 00 00 00  ~^?iÀ$<91>â .Ä£®....
   000001c0  00 00 00 00 00 1d f4 3f  b4 70 79 d8 67 3c c9 cd  ......ô?´pyØg<ÉÍ
   000001d0  a6 97 12 a7 b7 5a 24 38  7b 05 8b d7 05 00 00 00  ¦<97>.§·Z$8{.<8b>×....
-  000001e0  00 00 00 00 00 d4 17 1b  73 9b 28 34 5d 2f aa 57  .....Ô..s<9b>(4]/ªW
+  000001e0  00 00 00 00 00 d4 17 1b  73 9b 28 34 5d 2f aa 57  .....Ô..s<9b>(4>/ªW
   000001f0  0a 0e a6 88 9e c7 4b 3f  4d ae e4 c0 05 00 00 00  ..¦<88><9e>ÇK?M®äÀ....
   00000200  00 00 00 00 00 03 7c ad  dc 86 d8 ae 7e 9f cc 62  ......|­Ü<86>Ø®~<9f>Ìb
   00000210  18 28 f2 c7 cc 33 ab 51  6c e9 25 b2 03 00 00 00  .(òÇÌ3«Qlé%²....
@@ -54,7 +54,7 @@ import scodec.bits.BitVector
   00000250  21 26 07 31 16 83 36 cc  50 cc 13 e1 01 00 00 00  !&.1.<83>6ÌPÌ.á....
   00000260  00 00 00 00 00 d5 fc 90  f9 73 f6 9f 1a 74 f4 29  .....Õü<90>ùsö<9f>.tô)
   00000270  2a 46 42 39 42 c3 0f 63  ca c3 3b 44 07 00 00 00  *FB9BÃ.cÊÃ;D....
-  00000280  00 00 00 00 00 66 64 af  1a cc 7f 5d a4 e1 f2 21  .....fd¯.Ì^?]¤áò!
+  00000280  00 00 00 00 00 66 64 af  1a cc 7f 5d a4 e1 f2 21  .....fd¯.Ì^?>¤áò!
   00000290  6d bb 2b 52 db b0 bc a3  2b 40 3c b4 05 00 00 00  m»+RÛ°¼£+@<´....
   000002a0  00 00 00 00 00 00 4d e1  fe 23 c6 95 2c fb 86 a8  ......Máþ#Æ<95>,û<86>¨
   000002b0  00 0f b6 44 6f fe 32 50  db c1 30 5c 01 00 00 00  ..¶Doþ2PÛÁ0\....
@@ -70,15 +70,15 @@ import scodec.bits.BitVector
   00000350  a0 ba 20 a0 9c 02 b3 ec  a7 da 1e 5a 12 00 00 00   º  <9c>.³ì§Ú.Z....
   00000360  00 00 00 00 00 45 e3 0f  81 8d b9 43 21 4a 6c a4  .....Eã.<81><8d>¹C!Jl¤
   00000370  7a d6 57 54 c4 9f d1 8a  ac f5 05 a9 56 09 00 00  zÖWTÄ<9f>Ñ<8a>¬õ.©V...
-  00000380  00 00 00 00 00 1d 3f 06  ce db 21 ae c8 5b f3 d7  ......?.ÎÛ!®È[ó×
-  00000390  b1 f7 61 e1 d6 81 5b 5a  79 85 cd b3 1e 1c 0b 00  ±÷aáÖ<81>[Zy<85>Í³....
+  00000380  00 00 00 00 00 1d 3f 06  ce db 21 ae c8 5b f3 d7  ......?.ÎÛ!®È<ó×
+  00000390  b1 f7 61 e1 d6 81 5b 5a  79 85 cd b3 1e 1c 0b 00  ±÷aáÖ<81><Zy<85>Í³....
   000003a0  00 00 00 00 00 6f e2 8c  0a b6 f1 b3 72 c1 a6 a2  .....oâ<8c>.¶ñ³rÁ¦¢
   000003b0  46 ae 63 f7 4f 93 1e 83  65 e1 5a 08 9c 68 d6 19  F®c÷O<93>.<83>eáZ.<9c>hÖ.
   000003c0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
   000003d0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
   000003e0  00 00 00 00 00                                    .....
   */
-class GetHeadersSpec extends EnvelopeTestSuite[GetHeaders]  {
+class GetHeadersSpec : EnvelopeTestSuite<GetHeaders>  {
 
   val codec = GetHeadersCodec.codec
 

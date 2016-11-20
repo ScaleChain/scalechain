@@ -7,7 +7,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.util.HexUtil
 
-class WalletOutputCodecSpec extends CodecSuite with ProtoTestData {
+class WalletOutputCodecSpec : CodecSuite with ProtoTestData {
 
   implicit val outputDescriptorCodec = WalletOutputCodec.codec
 

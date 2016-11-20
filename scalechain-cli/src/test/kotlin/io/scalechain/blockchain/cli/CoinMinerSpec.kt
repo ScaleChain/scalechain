@@ -14,18 +14,18 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class CoinMinerSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class CoinMinerSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
   import Hash._
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //

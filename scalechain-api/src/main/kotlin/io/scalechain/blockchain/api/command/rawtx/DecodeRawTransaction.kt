@@ -89,7 +89,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class RawScriptSig(
+data class RawScriptSig(
   // The signature script in decoded form with non-data-pushing opcodes listed
 //  asm : String, // "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
   // The signature script encoded as hex
@@ -98,7 +98,7 @@ case class RawScriptSig(
 
 trait RawTransactionInput
 
-case class RawNormalTransactionInput(
+data class RawNormalTransactionInput(
   // The TXID of the outpoint being spent, encoded as hex in RPC byte order. Not present if this is a coinbase transaction
   txid      : Hash,          // "d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26",
 
@@ -113,16 +113,16 @@ case class RawNormalTransactionInput(
 
   // The input sequence number
   sequence  : Long          // 4294967295
-) extends RawTransactionInput
+) : RawTransactionInput
 
 
-case class RawGenerationTransactionInput(
+data class RawGenerationTransactionInput(
   // The coinbase (similar to the hex field of a scriptSig) encoded as hex. Only present if this is a coinbase transaction
   coinbase  : String,
 
   // The input sequence number
   sequence  : Long          // 4294967295
-) extends RawTransactionInput
+) : RawTransactionInput
 
 object RawTransactionInputJsonFormat {
   import HashFormat._
@@ -133,14 +133,14 @@ object RawTransactionInputJsonFormat {
   implicit val implicitRawGenerationTransactionInput = jsonFormat2(RawGenerationTransactionInput.apply)
   implicit val implicitRawNormalTransactionInput     = jsonFormat4(RawNormalTransactionInput.apply)
 
-  implicit object rawTransactionInputJsonFormat extends RootJsonFormat[RawTransactionInput] {
-    def write(txInput : RawTransactionInput) = txInput match {
+  implicit object rawTransactionInputJsonFormat : RootJsonFormat<RawTransactionInput> {
+    fun write(txInput : RawTransactionInput) = txInput match {
       case tx : RawGenerationTransactionInput => tx.toJson
       case tx : RawNormalTransactionInput     => tx.toJson
     }
 
     // Not used.
-    def read(value:JsValue) = {
+    fun read(value:JsValue) {
       assert(false)
       null
     }
@@ -148,7 +148,7 @@ object RawTransactionInputJsonFormat {
 }
 
 
-case class RawScriptPubKey(
+data class RawScriptPubKey(
   // The pubkey script in decoded form with non-data-pushing opcodes listed
 //  asm       : String,      // "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
 
@@ -159,7 +159,7 @@ case class RawScriptPubKey(
   // and P2SH (including P2SH multisig because the redeem script is not available in the pubkey script).
   // It may be greater than 1 for bare multisig.
   // This value will not be returned for nulldata or nonstandard script types
-//  reqSigs   : Option[Int], // 1,
+//  reqSigs   : Option<Int>, // 1,
 
   // The type of script. This will be one of the following:
   // • pubkey for a P2PK script
@@ -168,19 +168,19 @@ case class RawScriptPubKey(
   // • multisig for a bare multisig script
   // • nulldata for nulldata scripts
   // • nonstandard for unknown scripts
-//  `type`    : Option[String],  //"pubkeyhash",
+//  `type`    : Option<String>,  //"pubkeyhash",
 
   // The P2PKH or P2SH addresses used in this transaction, or the computed P2PKH address of any pubkeys in this transaction.
   // This array will not be returned for nulldata or nonstandard script types
   //
   // addresses item : A P2PKH or P2SH address
-//  addresses : List[String] //["moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7"]
+//  addresses : List<String> //["moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7"]
 )
 
 
 
 
-case class RawTransactionOutput(
+data class RawTransactionOutput(
   // The number of bitcoins paid to this output. May be 0
   value        : scala.math.BigDecimal, // 0.39890000
   // The output index number of this output within this transaction
@@ -189,7 +189,7 @@ case class RawTransactionOutput(
   scriptPubKey : RawScriptPubKey
 )
 
-case class DecodedRawTransaction(
+data class DecodedRawTransaction(
   // The transaction’s TXID encoded as hex in RPC byte order
   txid     : Hash, // "ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e",
 
@@ -203,14 +203,14 @@ case class DecodedRawTransaction(
   // Input objects will have the same order within the array as they have in the transaction,
   // so the first input listed will be input 0
   // vin item : An object describing one of this transaction’s inputs. May be a regular input or a coinbase
-  vin      : List[RawTransactionInput],
+  vin      : List<RawTransactionInput>,
 
   // An array of objects each describing an output vector (vout) for this transaction.
   // Output objects will have the same order within the array as they have in the transaction,
   // so the first output listed will be output 0
   // vout item : An object describing one of this transaction’s outputs
-  vout     : List[RawTransactionOutput]
-) extends RpcResult
+  vout     : List<RawTransactionOutput>
+) : RpcResult
 
 
 /** DecodeRawTransaction: decodes a serialized transaction hex string into a JSON object describing the transaction.
@@ -223,18 +223,18 @@ case class DecodedRawTransaction(
   *
   * https://bitcoin.org/en/developer-reference#decoderawtransaction
   */
-object DecodeRawTransaction extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object DecodeRawTransaction : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      // Convert request.params.paramValues, which List[JsValue] to SignRawTransactionParams instance.
-      val serializedTransaction: String = request.params.get[String]("Serialized Transaction", 0)
+      // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
+      val serializedTransaction: String = request.params.get<String>("Serialized Transaction", 0)
 
       val transaction : Transaction = TransactionDecoder.decodeTransaction(serializedTransaction)
 
       Right( Some( TransactionFormatter.getDecodedRawTransaction(transaction) ) )
     }
   }
-  def help() : String =
+  fun help() : String =
     """decoderawtransaction "hexstring"
       |
       |Return a JSON object representing the serialized, hex-encoded transaction.

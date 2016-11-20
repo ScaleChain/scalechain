@@ -10,19 +10,19 @@ import org.apache.commons.io.FileUtils
 import org.scalatest._
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class BlockchainSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockchainSpec/")
+  val testPath = File("./target/unittests-BlockchainSpec/")
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // finalize a test.

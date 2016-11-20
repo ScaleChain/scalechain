@@ -9,7 +9,7 @@ import io.scalechain.crypto.HashFunctions
 /**
   * Created by kangmo on 3/23/16.
   */
-trait KeyValueDatabaseTestTrait extends FlatSpec with KeyValueCommonTrait with Matchers{
+trait KeyValueDatabaseTestTrait : FlatSpec with KeyValueCommonTrait with Matchers{
   var db : KeyValueDatabase
 
   "getObject(rawKey)" should "return a value which was put" in {

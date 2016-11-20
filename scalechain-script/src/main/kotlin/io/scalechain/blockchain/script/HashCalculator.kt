@@ -3,8 +3,8 @@ package io.scalechain.blockchain.script
 import io.scalechain.blockchain.proto.{Hash, BlockHeader, Block, Transaction}
 import io.scalechain.blockchain.proto.codec.{BlockHeaderCodec, BlockCodec, TransactionCodec}
 
-protected[script] object HashCalculator {
-  def transactionHash(transaction : Transaction ) : Hash = {
+protected<script> object HashCalculator {
+  fun transactionHash(transaction : Transaction ) : Hash {
     val serializedBytes = TransactionCodec.serialize(transaction)
 
     // Run SHA256 twice and reverse bytes.
@@ -13,7 +13,7 @@ protected[script] object HashCalculator {
     Hash( hash.value.reverse )
   }
 
-  def blockHeaderHash(blockheader:BlockHeader) : Hash = {
+  fun blockHeaderHash(blockheader:BlockHeader) : Hash {
     val serializedBlockHeader = BlockHeaderCodec.serialize(blockheader)
 
     // Run SHA256 twice and reverse bytes.
@@ -24,18 +24,18 @@ protected[script] object HashCalculator {
 }
 
 object HashSupported {
-  implicit def toHashSupportedBlockHeader(blockHeader: BlockHeader) = HashSupportedBlockHeader(blockHeader)
-  implicit def toHashSupportedTransaction(transaction : Transaction) = HashSupportedTransaction(transaction)
+  implicit fun toHashSupportedBlockHeader(blockHeader: BlockHeader) = HashSupportedBlockHeader(blockHeader)
+  implicit fun toHashSupportedTransaction(transaction : Transaction) = HashSupportedTransaction(transaction)
 }
 
-case class HashSupportedTransaction(transaction:Transaction)  {
-  def hash() = {
+data class HashSupportedTransaction(transaction:Transaction)  {
+  fun hash() {
     HashCalculator.transactionHash(transaction)
   }
 }
 
-case class HashSupportedBlockHeader(blockHeader:BlockHeader)  {
-  def hash() = {
+data class HashSupportedBlockHeader(blockHeader:BlockHeader)  {
+  fun hash() {
     HashCalculator.blockHeaderHash(blockHeader)
   }
 }

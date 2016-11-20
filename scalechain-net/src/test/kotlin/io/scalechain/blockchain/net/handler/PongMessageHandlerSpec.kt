@@ -5,10 +5,10 @@ import java.io.File
 import io.netty.channel.embedded.EmbeddedChannel
 import org.scalatest._
 
-class PongMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
+class PongMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
-  val testPath = new File("./target/unittests-PongMessageHandlerSpec/")
+  val testPath = File("./target/unittests-PongMessageHandlerSpec/")
 
   "handle" should "" in {
   }

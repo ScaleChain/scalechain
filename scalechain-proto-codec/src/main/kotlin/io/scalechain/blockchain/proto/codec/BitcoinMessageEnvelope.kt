@@ -26,17 +26,17 @@ import HexUtil.scalaHex
 object Checksum {
   val VALUE_SIZE = 4
 
-  def fromHex(hexString : String) = Checksum(HexUtil.bytes(hexString))
+  fun fromHex(hexString : String) = Checksum(HexUtil.bytes(hexString))
 
-  val codec: Codec[Checksum] = bytes(VALUE_SIZE).xmap(
+  val codec: Codec<Checksum> = bytes(VALUE_SIZE).xmap(
     b => Checksum.apply(b.toArray), // internal byte order, should not reverse bytes.
     c => ByteVector(c.value.array)) // internal byte order, should not reverse bytes.
 }
 
-case class Checksum(value : ByteArray) {
+data class Checksum(value : ByteArray) {
   assert(value.length == Checksum.VALUE_SIZE)
 
-  override def toString = s"Checksum($value)"
+  override fun toString = s"Checksum($value)"
 }
 
 object Magic {
@@ -47,32 +47,32 @@ object Magic {
   val TESTNET3 = fromHex("0709110B")
   val NAMECOIN = fromHex("FEB4BEF9")
 
-  def fromHex(hexString : String) = Magic(HexUtil.bytes(hexString))
+  fun fromHex(hexString : String) = Magic(HexUtil.bytes(hexString))
 
-  val codec: Codec[Magic] = bytes(VALUE_SIZE).xmap(
+  val codec: Codec<Magic> = bytes(VALUE_SIZE).xmap(
     b => Magic.apply(b.reverse.toArray),
     m => ByteVector(m.value.array.reverse))
 }
 
-case class Magic(value : ByteArray) {
+data class Magic(value : ByteArray) {
   assert(value.length == Magic.VALUE_SIZE )
-  override def toString = s"Magic($value)"
+  override fun toString = s"Magic($value)"
 }
 
-case class BitcoinMessageEnvelope(
+data class BitcoinMessageEnvelope(
   magic    : Magic,
   command  : String,
   length   : Int,
   checksum : Checksum,
   payload  : BitVector) {
-  //   override def toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
+  //   override fun toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
 
-  override def toString() = {
+  override fun toString() {
     s"""BitcoinMessageEnvelope($magic, \"${command}\", $length, $checksum, $payload)"""
   }
 }
 
-case class BitcoinConfiguration( magic : Magic )
+data class BitcoinConfiguration( magic : Magic )
 
 object BitcoinConfiguration {
   val config = BitcoinConfiguration(Magic.MAIN)
@@ -83,26 +83,26 @@ object BitcoinMessageEnvelope {
 
   val COMMAND_SIZE = 12
 
-  private def decodeCommand(zeroPaddedCommand : Array[java.lang.Byte]): String = {
+  private fun decodeCommand(zeroPaddedCommand : Array<java.lang.Byte>): String {
     assert(zeroPaddedCommand.length == COMMAND_SIZE)
 
     // command is a 0 padded string. Get rid of trailing 0 values.
-    val command: Array[java.lang.Byte] = ArrayUtil.unpad(zeroPaddedCommand, 0)
+    val command: Array<java.lang.Byte> = ArrayUtil.unpad(zeroPaddedCommand, 0)
 
     // BUGBUG : Dirty code. make it clean.
-    new String(command.map(_.asInstanceOf[Byte]), StandardCharsets.US_ASCII)
+    String(command.map(_.asInstanceOf<Byte>), StandardCharsets.US_ASCII)
   }
 
-  private def encodeCommand(command: String) : Array[java.lang.Byte] = {
+  private fun encodeCommand(command: String) : Array<java.lang.Byte> {
     assert(command.length <= COMMAND_SIZE)
 
     // BUGBUG : Dirty code. make it clean.
-    val bytes = command.getBytes(StandardCharsets.US_ASCII).map(_.asInstanceOf[java.lang.Byte])
+    val bytes = command.getBytes(StandardCharsets.US_ASCII).map(_.asInstanceOf<java.lang.Byte>)
     // Pad the array with 0, to make the size to 12 bytes.
     ArrayUtil.pad(bytes, COMMAND_SIZE /* targetLength */ , 0 /* value */)
   }
 
-  def checksum(payload : BitVector) : Checksum = {
+  fun checksum(payload : BitVector) : Checksum {
     // OPTIMIZE : Directly calculate hash from the BitVector
     val hash = HashFunctions.hash256(payload.toByteArray)
     //val hash = HashFunctions.hash256(payload.toByteBuffer.array())
@@ -110,7 +110,7 @@ object BitcoinMessageEnvelope {
     Checksum(hash.value.slice(0,Checksum.VALUE_SIZE))
   }
 
-  def build(protocol:NetworkProtocol, message:ProtocolMessage) : BitcoinMessageEnvelope = {
+  fun build(protocol:NetworkProtocol, message:ProtocolMessage) : BitcoinMessageEnvelope {
     val payload = protocol.encode(message)
 
     assert(payload.length % 8 == 0)
@@ -125,30 +125,30 @@ object BitcoinMessageEnvelope {
     )
   }
 
-  def verify(envelope : BitcoinMessageEnvelope) : Unit = {
+  fun verify(envelope : BitcoinMessageEnvelope) : Unit {
     assert(envelope.payload.length % 8 == 0)
 
     if ( envelope.magic != BitcoinConfiguration.config.magic)
-      throw new ProtocolCodecException( ErrorCode.IncorrectMagicValue )
+      throw ProtocolCodecException( ErrorCode.IncorrectMagicValue )
 
     if ( envelope.length != (envelope.payload.length / 8) )
-      throw new ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
+      throw ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
 
     if ( envelope.checksum != checksum( envelope.payload) )
-      throw new ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
+      throw ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
   }
 
-  def encode(msg: BitcoinMessageEnvelope) : scodec.Attempt[scodec.bits.BitVector]= {
+  fun encode(msg: BitcoinMessageEnvelope) : scodec.Attempt<scodec.bits.BitVector>{
     for {
       magic <- Magic.codec.encode(BitcoinConfiguration.config.magic)
-      // BUBUG : DIRTY_CODE, remove .map(_.asInstanceOf[Byte])
-      command <- bytes(12).encode(ByteVector(encodeCommand(msg.command).map(_.asInstanceOf[Byte])))
+      // BUBUG : DIRTY_CODE, remove .map(_.asInstanceOf<Byte>)
+      command <- bytes(12).encode(ByteVector(encodeCommand(msg.command).map(_.asInstanceOf<Byte>)))
       length <- uint32L.encode(msg.length)
       checksum <- Checksum.codec.encode(msg.checksum)
     } yield magic ++ command ++ length ++ checksum ++ msg.payload
   }
 
-  def decode(bits: BitVector) : scodec.Attempt[scodec.DecodeResult[BitcoinMessageEnvelope]] = {
+  fun decode(bits: BitVector) : scodec.Attempt<scodec.DecodeResult<BitcoinMessageEnvelope>> {
     for {
       magic <- Magic.codec.decode(bits)
       command <- bytes(12).decode(magic.remainder)
@@ -158,14 +158,14 @@ object BitcoinMessageEnvelope {
     } yield scodec.DecodeResult(
               BitcoinMessageEnvelope(
                 magic.value,
-                // BUBUG : DIRTY_CODE, remove : map(_.asInstanceOf[java.lang.Byte])
-                decodeCommand(command.value.toArray.map(_.asInstanceOf[java.lang.Byte])),
+                // BUBUG : DIRTY_CODE, remove : map(_.asInstanceOf<java.lang.Byte>)
+                decodeCommand(command.value.toArray.map(_.asInstanceOf<java.lang.Byte>)),
                 length.value.toInt,
                 checksum.value,
                 payload),
               rest)
   }
 
-  val codec = Codec[BitcoinMessageEnvelope](encode _, decode _)
+  val codec = Codec<BitcoinMessageEnvelope>(encode _, decode _)
 }
 

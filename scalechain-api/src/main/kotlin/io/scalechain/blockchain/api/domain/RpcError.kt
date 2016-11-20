@@ -1,10 +1,10 @@
 package io.scalechain.blockchain.api.domain
 
 // TODO : Make sure the format matches the one used by Bitcoin.
-case class RpcError(code : Int, message : String, data : String)
+data class RpcError(code : Int, message : String, data : String)
 
 object RpcError {
-  case class ErrorDescription( code : Int, messagePrefix : String)
+  data class ErrorDescription( code : Int, messagePrefix : String)
 
   // Standard JSON-RPC 2.0 errors.
   val RPC_INVALID_REQUEST              = ErrorDescription(-32600, "RPC Invalid Request" )

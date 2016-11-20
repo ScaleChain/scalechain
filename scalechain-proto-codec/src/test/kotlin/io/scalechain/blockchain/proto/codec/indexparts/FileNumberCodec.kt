@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.{FileNumber}
 import io.scalechain.blockchain.proto.codec.{FileNumberCodec, PayloadTestSuite}
 import io.scalechain.util.HexUtil._
 
-class FileNumberCodecSpec extends PayloadTestSuite[FileNumber]  {
+class FileNumberCodecSpec : PayloadTestSuite<FileNumber>  {
 
   val codec = FileNumberCodec.codec
 

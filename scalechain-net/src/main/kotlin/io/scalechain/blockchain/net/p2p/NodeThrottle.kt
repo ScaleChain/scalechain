@@ -12,7 +12,7 @@ object NodeThrottle {
     *
     * @param logger The logger of the module that is calling this method.
     */
-  def throttle(logger : Logger): Unit = {
+  fun throttle(logger : Logger): Unit {
     var maxDiectMemory : Long = sun.misc.VM.maxDirectMemory()
     var directMemoryUsed : Long = sun.misc.SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed()
     logger.trace(s"Checking Direct Memory Usage. Max memory : ${maxDiectMemory}, Used memory : ${directMemoryUsed}")

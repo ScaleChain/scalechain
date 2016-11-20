@@ -10,11 +10,11 @@ import spray.json._
 
 
 // BUGBUG : We need to be able to pass Int, scala.math.BigDecimal, a json object to params array.
-case class RpcRequest(jsonrpc:String, id:Int, method:String, params:Array[String])
+data class RpcRequest(jsonrpc:String, id:Int, method:String, params:Array<String>)
 
-object RpcInvoker extends DefaultJsonProtocol {
+object RpcInvoker : DefaultJsonProtocol {
   // BUGBUG : This code is too dirty. Make it cleaner.
-  def invoke(method : String, args : Array[String], host : String, port : Int, user : String, password : String) : String = {
+  fun invoke(method : String, args : Array<String>, host : String, port : Int, user : String, password : String) : String {
 
 
     val rpcRequest = RpcRequest(
@@ -23,13 +23,13 @@ object RpcInvoker extends DefaultJsonProtocol {
 
     // BUGBUG : Find a better way to serialize scala values.
 /*
-    implicit object ScalaValueFormat extends RootJsonFormat[AnyRef] {
-      def write(value : Any) = value match {
+    implicit object ScalaValueFormat : RootJsonFormat<AnyRef> {
+      fun write(value : Any) = value match {
         case v : String => v.toJson
         case v : Int => v.toJson
-        case _ => throw new IllegalArgumentException()
+        case _ => throw IllegalArgumentException()
       }
-      def read(value :JsValue) = ""
+      fun read(value :JsValue) = ""
     }
   */
     implicit val implcitJsonRpcRequest = jsonFormat4(RpcRequest.apply)

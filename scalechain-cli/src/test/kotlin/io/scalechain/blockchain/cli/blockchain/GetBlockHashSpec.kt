@@ -11,17 +11,17 @@ import spray.json.JsNumber
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class GetBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class GetBlockHashSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -31,7 +31,7 @@ class GetBlockHashSpec extends FlatSpec with BeforeAndAfterEach with APITestSuit
   // The test does not pass yet. Will make it pass soon.
   "GetBlockHash" should "return the genesis block hash if the height argument is 0" in {
     val response = invoke(GetBlockHash, List(JsNumber(GENESIS_BLOCK_HEIGHT)))
-    val result = response.right.get.get.asInstanceOf[StringResult].value shouldBe GENESIS_BLOCK_HASH
+    val result = response.right.get.get.asInstanceOf<StringResult>.value shouldBe GENESIS_BLOCK_HASH
   }
 
   "GetBlockHash" should "return an error if the height is a negative value." in {

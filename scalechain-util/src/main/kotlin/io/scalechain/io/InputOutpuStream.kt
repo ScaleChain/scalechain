@@ -8,7 +8,7 @@ package io.scalechain.io
  *
  * @param stream Either an input stream or an output stream.
  */
-// BUGBUG : Changed interface. From Either[BlockDataInputStream, BlockDataOutputStream] to istream, ostream
+// BUGBUG : Changed interface. From Either<BlockDataInputStream, BlockDataOutputStream> to istream, ostream
 class InputOutputStream( val istream : BlockDataInputStream?, val ostream : BlockDataOutputStream? ) {
 
     fun littleEndianInt(value : Int ) : Int {
@@ -48,7 +48,7 @@ class InputOutputStream( val istream : BlockDataInputStream?, val ostream : Bloc
 
     }
 
-    // BUGBUG : Interface change from Array[Byte] to ByteArray
+    // BUGBUG : Interface change from Array<Byte> to ByteArray
     fun bytes(bytes : ByteArray) {
 
         if (istream != null) {

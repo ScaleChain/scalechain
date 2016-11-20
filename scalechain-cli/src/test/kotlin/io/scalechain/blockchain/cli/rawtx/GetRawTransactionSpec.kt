@@ -11,17 +11,17 @@ import spray.json.{JsNumber, JsString}
   */
 // The test does not pass yet. Will make it pass soon.
 @Ignore
-class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITestSuite {
+class GetRawTransactionSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     // tear-down code
@@ -33,12 +33,12 @@ class GetRawTransactionSpec extends FlatSpec with BeforeAndAfterEach with APITes
 
   "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 0" in {
     val response = invoke(GetRawTransaction, List(TRANSACTION_ID, JsNumber(0)))
-    val result = response.right.get.get.asInstanceOf[StringResult]
+    val result = response.right.get.get.asInstanceOf<StringResult>
   }
 
   "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 1" in {
     val response = invoke(GetRawTransaction, List(TRANSACTION_ID, JsNumber(1)))
-    val result = response.right.get.get.asInstanceOf[RawTransaction]
+    val result = response.right.get.get.asInstanceOf<RawTransaction>
     // TODO : Copy-paste the transaction object from unittest output.
     result shouldBe None
   }

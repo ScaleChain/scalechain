@@ -14,17 +14,17 @@ import scodec.codecs._
 /**
   * Created by kangmo on 11/2/15.
   */
-class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class RecordStorageSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   Storage.initialize()
 
   var rs : RecordStorage = null
 
-  val testPath = new File("./target/unittests-RecordStorageSpec")
-  def openRecordStorage() = new RecordStorage(testPath, filePrefix="blk", maxFileSize=12)
+  val testPath = File("./target/unittests-RecordStorageSpec")
+  fun openRecordStorage() = RecordStorage(testPath, filePrefix="blk", maxFileSize=12)
 
-  override def beforeEach() {
+  override fun beforeEach() {
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
@@ -35,7 +35,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     rs.close()
@@ -120,7 +120,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
     rs.readRecord(locator3)(R) shouldBe FileNumber(3)
   }
 
-  def expectFileCount(count : Int) = {
+  fun expectFileCount(count : Int) {
     val fileIndex = count-1
     rs.files.size shouldBe count
     rs.lastFileIndex shouldBe (fileIndex)
@@ -163,7 +163,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
     expectFileCount(1)
 
-    // hit the limit. a new file should have been created.
+    // hit the limit. a file should have been created.
     val locator4 = rs.appendRecord(FileNumber(4))(R)
     locator4.fileIndex shouldBe 1
 
@@ -190,7 +190,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
     val fileName = BlockFileName("abc", 1)
     val filePath = "./target/"+fileName
 
-    val f = new File(filePath)
+    val f = File(filePath)
     f.delete()
 
     val newFile = rs.newFile(f)
@@ -200,7 +200,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   "newFile(blockFile)" should "should throw BlockStorageException if it hits size limit. case 1 : no remaining space for the first file." in {
     val R = FileNumberCodec
 
-    val f = new File("./target/"+BlockFileName("abc", 1))
+    val f = File("./target/"+BlockFileName("abc", 1))
     f.delete()
 
     val newFile = rs.newFile(f)
@@ -212,7 +212,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
     newFile.readRecord(locator2)(R) shouldBe FileNumber(2)
     newFile.readRecord(locator3)(R) shouldBe FileNumber(3)
 
-    val thrown = the [BlockStorageException] thrownBy {
+    val thrown = the <BlockStorageException> thrownBy {
       newFile.appendRecord(FileNumber(4))(R)
     }
     thrown.code shouldBe ErrorCode.OutOfFileSpace
@@ -221,7 +221,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   "newFile(blockFile)" should "should throw BlockStorageException if it hits size limit. case 2 : some remaining space for the first file." in {
     val R = FileNumberCodec
 
-    val f = new File("./target/"+BlockFileName("abc", 1))
+    val f = File("./target/"+BlockFileName("abc", 1))
     f.delete()
 
     val newFile = rs.newFile(f)
@@ -233,7 +233,7 @@ class RecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
     newFile.readRecord(locator2)(R) shouldBe FileNumber(2)
     newFile.readRecord(locator3)(OneByteCodec) shouldBe OneByte('a')
 
-    val thrown = the [BlockStorageException] thrownBy {
+    val thrown = the <BlockStorageException> thrownBy {
       newFile.appendRecord(FileNumber(4))(R)
     }
     thrown.code shouldBe ErrorCode.OutOfFileSpace

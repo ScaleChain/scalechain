@@ -17,7 +17,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 11/2/15.
   */
-class BlockRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+class BlockRecordStorageSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   Storage.initialize()
@@ -26,12 +26,12 @@ class BlockRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Match
   // Use record storage with maxFileSize 1M, instead of using BlockRecordStorage, which uses 100M file size limit.
   var rs : RecordStorage = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
 
-    val testPath = new File("./target/unittests-BlockRecordStorageSpec/")
+    val testPath = File("./target/unittests-BlockRecordStorageSpec/")
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
-    rs = new RecordStorage(
+    rs = RecordStorage(
       testPath,
       BlockRecordStorage.FILE_PREFIX,
       maxFileSize = 1024 * 1024)
@@ -39,7 +39,7 @@ class BlockRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Match
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     rs.close()
@@ -61,12 +61,12 @@ class BlockRecordStorageSpec extends FlatSpec with BeforeAndAfterEach with Match
     rs.readRecord(locator2)(T) shouldBe transaction2
   }
 
-  "appendRecord" should "create a new file if it hits the maximum file size" in {
+  "appendRecord" should "create a file if it hits the maximum file size" in {
     val B = BlockCodec
     val locator1 = rs.appendRecord(block1)(B)
     var locator2 : FileRecordLocator = locator1
 
-    // Loop until a new file is created.
+    // Loop until a file is created.
     while (locator2.fileIndex == locator1.fileIndex)
       locator2 = rs.appendRecord(block2)(B)
 

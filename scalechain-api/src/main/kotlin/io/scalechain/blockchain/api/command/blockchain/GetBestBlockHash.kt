@@ -38,16 +38,16 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getbestblockhash
   */
-object GetBestBlockHash extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetBestBlockHash : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val hashOption : Option[Hash] = RpcSubSystem.get.getBestBlockHash()
+      val hashOption : Option<Hash> = RpcSubSystem.get.getBestBlockHash()
       Right(hashOption.map{ hash =>
         StringResult(ByteArray.byteArrayToString(hash.value))
       })
     }
   }
-  def help() : String =
+  fun help() : String =
     """getbestblockhash
       |
       |Returns the hash of the best (tip) block in the longest block chain.

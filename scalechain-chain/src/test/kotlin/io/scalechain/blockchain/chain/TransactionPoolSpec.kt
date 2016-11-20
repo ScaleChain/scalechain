@@ -14,17 +14,17 @@ import HashSupported._
 /**
   * Created by kangmo on 6/16/16.
   */
-class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
+class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-TransactionPoolSpec/")
+  val testPath = File("./target/unittests-TransactionPoolSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
   var p : TransactionPool = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
@@ -36,7 +36,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p = chain.txPool
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     p = null
     keyValueDB = null
 
@@ -44,7 +44,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "add non-orphan transactions spending UTXOs" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -67,7 +67,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "getOldestTransactions" should "not return removed transactions" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -81,7 +81,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p.addTransactionToPool(TX04a.transaction.hash, TX04a.transaction)
     p.addTransactionToPool(TX05a.transaction.hash, TX05a.transaction)
 
-    val candidateTransactions : List[(Hash, Transaction)] = p.getOldestTransactions(100)
+    val candidateTransactions : List<(Hash, Transaction)> = p.getOldestTransactions(100)
 
     candidateTransactions.filter{
       // Because we are concurrently putting transactions into the pool while putting blocks,
@@ -99,7 +99,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "getOldestTransactions" should "should return the given maximum number of transactions" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -120,7 +120,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "add transactions even though there are some orphans depending on them" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -132,7 +132,7 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     chain.txOrphanage.putOrphan(TX04a.transaction.hash, TX04a.transaction)
     chain.txOrphanage.putOrphan(TX05a.transaction.hash, TX05a.transaction)
 
-    val txProcessor = new TransactionProcessor(chain)
+    val txProcessor = TransactionProcessor(chain)
 
     p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
     txProcessor.acceptChildren(TX03.transaction.hash)
@@ -162,19 +162,19 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
   }
 
   "addTransactionToPool" should "throw an exception for an orphan transaction" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
 
-    val thrown = the [ChainException] thrownBy {
+    val thrown = the <ChainException> thrownBy {
       p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
     }
     thrown.code shouldBe ErrorCode.ParentTransactionNotFound
   }
 
   "addTransactionToPool" should "throw an exception for a double spending non-orphan transaction" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._
@@ -184,14 +184,14 @@ class TransactionPoolSpec extends BlockchainTestTrait with TransactionTestDataTr
     p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
     p.addTransactionToPool(TX03a.transaction.hash, TX03a.transaction)
 
-    val thrown = the [ChainException] thrownBy {
+    val thrown = the <ChainException> thrownBy {
       p.addTransactionToPool(TX03b.transaction.hash, TX03b.transaction)
     }
     thrown.code shouldBe ErrorCode.TransactionOutputAlreadySpent
   }
 
   "removeTransactionFromPool" should "remove transactions from a pool" in {
-    val data = new BlockSampleData()
+    val data = BlockSampleData()
     import data._
     import data.Tx._
     import data.Block._

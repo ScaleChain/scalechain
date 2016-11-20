@@ -13,10 +13,10 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Created by kangmo on 11/10/15.
  */
-class InvalidStackValueException extends Exception
-class InvalidExpectationTypeException extends Exception
+class InvalidStackValueException : Exception
+class InvalidExpectationTypeException : Exception
 
-trait OperationTestTrait extends Matchers {
+trait OperationTestTrait : Matchers {
   this: Suite =>
 
   /** Verify a stack with expected values.
@@ -25,7 +25,7 @@ trait OperationTestTrait extends Matchers {
    * @param actualStack The actual script stack.
    * @param expectedValues A list of expected values.
    */
-  protected def verifyStack(subject : String, actualStack:ScriptStack, expectedValues : Array[ScriptValue]) : Unit = {
+  protected fun verifyStack(subject : String, actualStack:ScriptStack, expectedValues : Array<ScriptValue>) : Unit {
     //println ("We are comparing the stack. subject : " + subject)
     //println ("stack : " + actualStack)
 
@@ -46,11 +46,11 @@ trait OperationTestTrait extends Matchers {
    * @param operations the list of operation to verify
    * @param expectation final values on the main stack or an error code.
    */
-  protected def verifyOperations( inputs : Array[ScriptValue],
-                                 operations : List[ScriptOp],
+  protected fun verifyOperations( inputs : Array<ScriptValue>,
+                                 operations : List<ScriptOp>,
                                  expectation : AnyRef,
                                  serializeAndExecute : Boolean = false
-                                 ) : Unit = {
+                                 ) : Unit {
     verifyOperationsWithAltStack(inputs, null, operations, expectation, null, serializeAndExecute);
   }
 
@@ -59,7 +59,7 @@ trait OperationTestTrait extends Matchers {
    * @param stack The stack where values are pushed.
    * @param values The array of ScriptValues(s) to push.
    */
-  protected def pushValues(stack : ScriptStack, values : Array[ScriptValue]): Unit = {
+  protected fun pushValues(stack : ScriptStack, values : Array<ScriptValue>): Unit {
     for ( value : ScriptValue <-values) {
       stack.push( value )
     }
@@ -73,18 +73,18 @@ trait OperationTestTrait extends Matchers {
    * @param expectation final values on the main stack or an error code.
    * @param altStackOutputs final values on the alt stack.
    */
-  protected def verifyOperationsWithAltStack(
-                  mainStackInputs : Array[ScriptValue],
-                  altStackInputs : Array[ScriptValue],
-                  operations : List[ScriptOp],
+  protected fun verifyOperationsWithAltStack(
+                  mainStackInputs : Array<ScriptValue>,
+                  altStackInputs : Array<ScriptValue>,
+                  operations : List<ScriptOp>,
                   expectation : AnyRef,
-                  altStackOutputs : Array[ScriptValue],
+                  altStackOutputs : Array<ScriptValue>,
                   serializeAndExecute : Boolean = false
-                ) : Unit = {
+                ) : Unit {
     //println (s"Testing with input ${mainStackInputs.mkString(",")}" )
 
     // Arithmetic operations do not use script chunk, so it is ok to pass null for the parsed script.
-    val env = new ScriptEnvironment()
+    val env = ScriptEnvironment()
 
 
     pushValues(env.stack, mainStackInputs)
@@ -92,14 +92,14 @@ trait OperationTestTrait extends Matchers {
     if (altStackInputs != null)
       pushValues(env.altStack, altStackInputs)
 
-    def executeOps() : Unit = {
+    fun executeOps() : Unit {
 
       val operationsToExecute =
         if (serializeAndExecute) {
           // Serialze and parse the serialized byte array to get the pseudo operations such as OpCond,
           // which is generated from OP_IF/OP_NOTIF, OP_ELSE, OP_ENDIF during parsing.
           val serializedOperations = ScriptSerializer.serialize(operations)
-          ScriptParser.parse(new Script(serializedOperations)).operations
+          ScriptParser.parse(Script(serializedOperations)).operations
         } else {
           operations
         }
@@ -112,19 +112,19 @@ trait OperationTestTrait extends Matchers {
 
     expectation match {
       case exception : ScriptParseException => {
-        val thrown = the[ScriptParseException] thrownBy {
+        val thrown = the<ScriptParseException> thrownBy {
           executeOps()
         }
         thrown.code should be (exception.code)
       }
       // BUGBUG :  Get rid of this pattern, change all test case to use the above pattern.
       case errorCode : ErrorCode => {
-        val thrown = the[ScriptEvalException] thrownBy {
+        val thrown = the<ScriptEvalException> thrownBy {
           executeOps()
         }
         thrown.code should be (errorCode)
       }
-      case expectedOutputValues : Array[ScriptValue] => {
+      case expectedOutputValues : Array<ScriptValue> => {
         executeOps()
 
         //println ("expected values (main) :" + expectedOutputValues.mkString(","))
@@ -137,7 +137,7 @@ trait OperationTestTrait extends Matchers {
         if (altStackOutputs != null)
           verifyStack("actual alt stack",  env.altStack, altStackOutputs)
       }
-      case _ => throw new InvalidExpectationTypeException()
+      case _ => throw InvalidExpectationTypeException()
     }
   }
 
@@ -146,15 +146,15 @@ trait OperationTestTrait extends Matchers {
    * @param items The list of arguments which is converted to an array of ScriptValue(s)
    * @return The array of ScriptValues(s)
    */
-  def stack(items : Any* ) : Array[ScriptValue] = {
-  //  val buffer = new ArrayBuffer[ScriptValue]()
+  fun stack(items : Any* ) : Array<ScriptValue> {
+  //  val buffer = ArrayBuffer<ScriptValue>()
     val scriptValues = for (item : Any <- items) yield {
       item match {
-        case value : Array[Byte] => ScriptValue.valueOf(value)
+        case value : Array<Byte> => ScriptValue.valueOf(value)
         case value : Int => ScriptValue.valueOf(value)
         case value : Long => ScriptValue.valueOf(value)
         case value : String => ScriptValue.valueOf(value)
-        case _ => throw new InvalidStackValueException()
+        case _ => throw InvalidStackValueException()
       }
     }
     scriptValues.toArray
@@ -165,7 +165,7 @@ trait OperationTestTrait extends Matchers {
    * @param operations The list of operations
    * @return The ScriptOpList
    */
-  def ops(operations:ScriptOp*) : ScriptOpList = {
+  fun ops(operations:ScriptOp*) : ScriptOpList {
     val ops = for(o : ScriptOp <- operations) yield o
     ScriptOpList( ops.toList )
   }

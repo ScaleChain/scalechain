@@ -7,8 +7,8 @@ import scodec.codecs.ascii
   * Created by kangmo on 5/15/16.
   */
 object BigDecimal {
-  def toBigDecimal(value:String) : scala.math.BigDecimal = scala.math.BigDecimal(value)
-  def toString(value:scala.math.BigDecimal) : String = value.toString
+  fun toBigDecimal(value:String) : scala.math.BigDecimal = scala.math.BigDecimal(value)
+  fun toString(value:scala.math.BigDecimal) : String = value.toString
 
   val codec = variableSizeBytes(int32, ascii).xmap(toBigDecimal, toString)
 }

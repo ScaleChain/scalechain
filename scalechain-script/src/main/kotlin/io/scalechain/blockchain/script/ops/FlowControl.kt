@@ -5,20 +5,20 @@ import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
 import io.scalechain.blockchain.script.{ParseResult, ScriptOpList, ScriptParser, ScriptEnvironment}
 import io.scalechain.util.Utils
 
-trait FlowControl extends ScriptOp
+trait FlowControl : ScriptOp
 
 /** OP_NOP(0x61) : Do nothing. An operation for OP_NOP for a flow control.
   */
-case class OpNop() extends FlowControl {
-  def opCode() = OpCode(0x61)
+data class OpNop() : FlowControl {
+  fun opCode() = OpCode(0x61)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     // Do nothing.
   }
 }
 
-trait IfOrNotIfOp extends FlowControl {
-  def create(script: Script, offset : Int, invert : Boolean): (ScriptOp, Int) = {
+trait IfOrNotIfOp : FlowControl {
+  fun create(script: Script, offset : Int, invert : Boolean): (ScriptOp, Int) {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
 
@@ -44,15 +44,15 @@ trait IfOrNotIfOp extends FlowControl {
 
 /** OP_IF(0x63) : Execute the statements following if top of stack is not 0
   */
-case class OpIf() extends IfOrNotIfOp {
-  def opCode() = OpCode(0x63)
+data class OpIf() : IfOrNotIfOp {
+  fun opCode() = OpCode(0x63)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 
-  override def create(script: Script, offset : Int): (ScriptOp, Int) = {
+  override fun create(script: Script, offset : Int): (ScriptOp, Int) {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
     super.create(script, offset, invert=false)
@@ -62,15 +62,15 @@ case class OpIf() extends IfOrNotIfOp {
 
 /** OP_NOTIF(0x64) : Execute the statements following if top of stack is 0
   */
-case class OpNotIf() extends IfOrNotIfOp {
-  def opCode() = OpCode(0x64)
+data class OpNotIf() : IfOrNotIfOp {
+  fun opCode() = OpCode(0x64)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     // never executed, because OP_NOTIF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
 
-  override def create(script: Script, offset : Int): (ScriptOp, Int) = {
+  override fun create(script: Script, offset : Int): (ScriptOp, Int) {
     // Call parse, check OP_ELSE, OP_ENDIF to produce thenStatementList, elseStatementList
     // Create OpCond with invert = false, thenStatementList, elseStatementList
     super.create(script, offset, invert=true)
@@ -80,10 +80,10 @@ case class OpNotIf() extends IfOrNotIfOp {
 
 /**  OP_ELSE(0x67) : Execute only if the previous statements were not executed
   */
-case class OpElse() extends FlowControl {
-  def opCode() = OpCode(0x67)
+data class OpElse() : FlowControl {
+  fun opCode() = OpCode(0x67)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
@@ -91,10 +91,10 @@ case class OpElse() extends FlowControl {
 
 /** OP_ENDIF(0x68) : End the OP_IF, OP_NOTIF, OP_ELSE block
   */
-case class OpEndIf() extends FlowControl {
-  def opCode() = OpCode(0x68)
+data class OpEndIf() : FlowControl {
+  fun opCode() = OpCode(0x68)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     // never executed, because OP_IF ~ OP_ENDIF is converted to OpCond() during the parsing phase.
     assert(false);
   }
@@ -102,17 +102,17 @@ case class OpEndIf() extends FlowControl {
 
 /** OP_VERIFY(0x69) : Check the top of the stack, halt and invalidate transaction if not TRUE
   */
-case class OpVerify() extends FlowControl {
-  def opCode() = OpCode(0x69)
+data class OpVerify() : FlowControl {
+  fun opCode() = OpCode(0x69)
 
-  def execute(env : ScriptEnvironment): Unit = {
+  fun execute(env : ScriptEnvironment): Unit {
     super.verify(env)
   }
 }
 
 /** OP_RETURN(0x6a) : Halt and invalidate transaction
   */
-case class OpReturn() extends FlowControl with InvalidScriptOpIfExecuted {
-  def opCode() = OpCode(0x6a)
+data class OpReturn() : FlowControl with InvalidScriptOpIfExecuted {
+  fun opCode() = OpCode(0x6a)
 }
 

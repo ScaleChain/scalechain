@@ -12,15 +12,15 @@ import HashSupported._
 
 
 // Remove the ignore annotation after creating the "by block height" index
-class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTrait with Matchers {
+class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait with Matchers {
 
   this: Suite =>
 
-  val testPath = new File("./target/unittests-BlockchainWithTransactionSpec/")
+  val testPath = File("./target/unittests-BlockchainWithTransactionSpec/")
 
   implicit var keyValueDB : KeyValueDatabase = null
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // initialize a test.
 
     super.beforeEach()
@@ -30,7 +30,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
     chain.putBlock( env.GenesisBlockHash, env.GenesisBlock )
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
 
     keyValueDB = null
@@ -38,7 +38,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
   }
 
   "blockchain" should "be able to create an empty block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -54,7 +54,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
   }
 
   "blockchain" should "be able to accept one transaction in a block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -75,7 +75,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
   }
 
   "blockchain" should "be able to accept two transactions in a block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -98,7 +98,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
   }
 
   "blockchain" should "be able to accept three transactions in a block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -123,7 +123,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
   }
 
   "blockchain" should "be able to accept four transactions in a block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -151,7 +151,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
 
 
   "blockchain" should "be able to accept transactions in two blocks" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._
@@ -197,7 +197,7 @@ class BlockchainWithTransactionSpec extends BlockchainTestTrait with ChainTestTr
 
 
   "blockchain" should "be able to accept transactions in one block" in {
-    val data = new TransactionSampleData()
+    val data = TransactionSampleData()
     import data._
     import data.Block._
     import data.Tx._

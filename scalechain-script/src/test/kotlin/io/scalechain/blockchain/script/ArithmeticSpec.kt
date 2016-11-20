@@ -10,18 +10,18 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 /** Test arithmetic operations in Arithmetic.scala
  *
  */
-class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class ArithmeticSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -187,7 +187,7 @@ class ArithmeticSpec extends FlatSpec with BeforeAndAfterEach with OperationTest
     )
 
   "operations" should "run and push expected value on the stack." in {
-    forAll(operations) { ( inputValues : Array[ScriptValue], operation : ScriptOp, expectation : AnyRef )  =>
+    forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
       verifyOperations(inputValues, List(operation), expectation);
     }
   }

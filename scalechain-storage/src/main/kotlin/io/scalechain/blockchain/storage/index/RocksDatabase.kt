@@ -10,13 +10,13 @@ import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 
-class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(Array[Byte],Array[Byte])] {
+class KeyValueIterator(rocksIterator : RocksIterator) : ClosableIterator<(Array<Byte>,Array<Byte>)> {
   var isClosed = false
-  def next : (Array[Byte],Array[Byte]) = {
+  fun next : (Array<Byte>,Array<Byte>) {
     assert( !isClosed )
 
     if (!rocksIterator.isValid) {
-      throw new GeneralException(ErrorCode.NoMoreKeys)
+      throw GeneralException(ErrorCode.NoMoreKeys)
     }
 
     val rawKey = rocksIterator.key
@@ -26,7 +26,7 @@ class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(
 
     (rawKey, rawValue)
   }
-  def hasNext : Boolean = {
+  fun hasNext : Boolean {
     if (isClosed) {
       false
     } else {
@@ -34,7 +34,7 @@ class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(
     }
   }
 
-  def close : Unit = {
+  fun close : Unit {
     rocksIterator.dispose()
     isClosed = true
   }
@@ -43,18 +43,18 @@ class KeyValueIterator(rocksIterator : RocksIterator) extends ClosableIterator[(
 /**
   * A KeyValueDatabase implementation using RocksDB.
   */
-class RocksDatabase(path : File) extends KeyValueDatabase {
-  private val logger = Logger( LoggerFactory.getLogger(classOf[RocksDatabase]) )
+class RocksDatabase(path : File) : KeyValueDatabase {
+  private val logger = Logger( LoggerFactory.getLogger(classOf<RocksDatabase>) )
 
   assert( Storage.initialized )
 
-  def beginTransaction() : Unit = {
+  fun beginTransaction() : Unit {
     // No transaction supported. do nothing.
   }
-  def commitTransaction() : Unit = {
+  fun commitTransaction() : Unit {
     // No transaction supported. do nothing.
   }
-  def abortTransaction() : Unit = {
+  fun abortTransaction() : Unit {
     // No transaction supported. do nothing.
   }
 
@@ -62,8 +62,8 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  protected[storage] var options =
-    new Options()
+  protected<storage> var options =
+    Options()
       .setCreateIfMissing(true)
       .setCreateMissingColumnFamilies(true)
       //.setStatsDumpPeriodSec(3)
@@ -80,9 +80,9 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
 //            .setMaxTotalWalSize(1024 * 1024 * 1024)
 
   /*
-  protected[storage] var bloomFilter = new BloomFilter(10);
+  protected<storage> var bloomFilter = BloomFilter(10);
 
-  var tableOptions : BlockBasedTableConfig = new BlockBasedTableConfig()
+  var tableOptions : BlockBasedTableConfig = BlockBasedTableConfig()
   tableOptions.setBlockCacheSize(64 * SizeUnit.KB)
     .setFilter(bloomFilter)
     .setCacheIndexAndFilterBlocks(true)
@@ -108,7 +108,7 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
   // This is necessary to use the same database for block/transaction storage and wallet storage.
 
 
-  protected[storage] var db : RocksDB = RocksDB.open(options, dbAbsolutePath)
+  protected<storage> var db : RocksDB = RocksDB.open(options, dbAbsolutePath)
 
 
   /** Seek a key greater than or equal to the given key.
@@ -118,14 +118,14 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  protected[storage] def seek(rocksIterator : RocksIterator, keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
+  protected<storage> fun seek(rocksIterator : RocksIterator, keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
     if (keyOption.isDefined) {
       rocksIterator.seek(keyOption.get)
     } else {
       rocksIterator.seekToFirst()
     }
 
-    new KeyValueIterator(rocksIterator)
+    KeyValueIterator(rocksIterator)
   }
 
   /** Seek a key greater than or equal to the given key.
@@ -134,7 +134,7 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  def seek(keyOption : Option[Array[Byte]] ) : ClosableIterator[(Array[Byte], Array[Byte])] = {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
 
     val rocksIterator =  db.newIterator()
 
@@ -142,24 +142,24 @@ class RocksDatabase(path : File) extends KeyValueDatabase {
   }
 
 
-  def get(key : Array[Byte] ) : Option[Array[Byte]] = {
+  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
     val value = db.get(key)
     if ( value != null )
       Some(value)
     else None
   }
 
-  def put(key : Array[Byte], value : Array[Byte] ) : Unit = {
+  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
     db.put(key, value)
   }
 
-  def del(key : Array[Byte]) : Unit = {
+  fun del(key : Array<Byte>) : Unit {
     db.remove(key)
   }
 
-  def close() : Unit = {
+  fun close() : Unit {
 //    logger.info("Closing RocksDB.")
-    def getHistogram(histogramType : HistogramType) = {
+    fun getHistogram(histogramType : HistogramType) {
       val histo = options.statisticsPtr.getHistogramData(histogramType)
       s"Average: ${histo.getAverage}, Median: ${histo.getMedian}, 95%: ${histo.getPercentile95}, 99%: ${histo.getPercentile99}, Standard Deviation: ${histo.getStandardDeviation}"
     }

@@ -27,14 +27,14 @@ class BlockDataInputStream(private val stream : InputStream) : DataInputStream(s
     /*
       Original code from Mike Hearn's BitcoinJ.
       core/src/main/java/org/bitcoinj/core/VarInt.java
-      public VarInt(byte[] buf, int offset) {
+      public VarInt(byte<> buf, int offset) {
 
-        int first = 0xFF & buf[offset];
+        int first = 0xFF & buf<offset>;
         if (first < 253) {
           value = first;
           originallyEncodedSize = 1; // 1 data byte (8 bits)
         } else if (first == 253) {
-          value = (0xFF & buf[offset + 1]) | ((0xFF & buf[offset + 2]) << 8);
+          value = (0xFF & buf<offset + 1>) | ((0xFF & buf<offset + 2>) << 8);
           originallyEncodedSize = 3; // 1 marker + 2 data bytes (16 bits)
         } else if (first == 254) {
           value = Utils.readUint32(buf, offset + 1);
@@ -70,14 +70,14 @@ class BlockDataInputStream(private val stream : InputStream) : DataInputStream(s
      * @param size The number of bytes are going to read.
      * @return The byte array we read.
      */
-    // BUGBUG : Interface Change, Array[Byte] -> ByteArray
+    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
     fun readBytes(size : Int): ByteArray {
         val bytes = ByteArray(size)
         read(bytes)
         return bytes
     }
 
-    // BUGBUG : Interface Change, Array[Byte] -> ByteArray
+    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
     fun readBytes(bytes : ByteArray)  {
         read(bytes)
     }

@@ -35,13 +35,13 @@ import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
   *
   * https://bitcoin.org/en/developer-reference#addmultisigaddress
   */
-object AddMultiSigAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object AddMultiSigAddress : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     // TODO : Implement
     assert(false)
     Right(None)
   }
-  def help() : String =
+  fun help() : String =
     """addmultisigaddress nrequired ["key",...] ( "account" )
       |
       |Add a nrequired-to-sign multisignature address to the wallet.

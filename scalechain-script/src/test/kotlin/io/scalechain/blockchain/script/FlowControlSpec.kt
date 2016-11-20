@@ -10,18 +10,18 @@ import org.scalatest.prop.Tables.Table
 /** Test flow control operations in FlowControl.scala
   *
   */
-class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTestTrait {
+class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -48,7 +48,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
             Op1()
           // OpEndIf() is missing.
         ),
-        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+        ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
       ),
 
       // if false
@@ -62,7 +62,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
             Op1()
           // OpEndIf() is missing.
         ),
-        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+        ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
       ),
 
 
@@ -79,7 +79,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
             OpNum(2)
           // OpEndIf() is missing.
         ),
-        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+        ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
       ),
 
       // if false
@@ -95,12 +95,12 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
             OpNum(2)
           // OpEndIf() is missing.
         ),
-        new ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
+        ScriptParseException(ErrorCode.UnexpectedEndOfScript) // (expected) an exception should be thrown
       )
     )
 
   "invalidIfStatements" should "should throw an exception." in {
-    forAll(invalidIfStatements) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+    forAll(invalidIfStatements) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
   }
@@ -286,7 +286,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
       )
 
   "nestedIfStatements" should "serialize and parse and execute." in {
-    forAll(nestedIfStatements) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+    forAll(nestedIfStatements) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
   }
@@ -369,7 +369,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
     )
 
   "ifOperationsForParser" should "serialize and parse and execute." in {
-    forAll(ifOperationsForParser) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+    forAll(ifOperationsForParser) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
   }
@@ -509,7 +509,7 @@ class FlowControlSpec extends FlatSpec with BeforeAndAfterEach with OperationTes
     )
 
   "ifOperations" should "run and push expected value on the stack." in {
-    forAll(ifOperations) { ( inputValues : Array[ScriptValue], operations : List[ScriptOp], expectation : AnyRef )  =>
+    forAll(ifOperations) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation);
     }
   }

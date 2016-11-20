@@ -43,10 +43,10 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getaccountaddress
   */
-object GetAccountAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetAccountAddress : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val account: String = request.params.get[String]("Account", 0)
+      val account: String = request.params.get<String>("Account", 0)
 
       val receivingCoinAddress : CoinAddress = Wallet.get.getReceivingAddress(account)(Blockchain.get.db)
 
@@ -54,13 +54,13 @@ object GetAccountAddress extends RpcCommand {
       Right(Some(StringResult(address)))
     }
   }
-  def help() : String =
+  fun help() : String =
     """getaccountaddress "account"
       |
       |DEPRECATED. Returns the current Bitcoin address for receiving payments to this account.
       |
       |Arguments:
-      |1. "account"       (string, required) The account name for the address. It can also be set to the empty string "" to represent the default account. The account does not need to exist, it will be created and a new address created  if there is no account by the given name.
+      |1. "account"       (string, required) The account name for the address. It can also be set to the empty string "" to represent the default account. The account does not need to exist, it will be created and a address created  if there is no account by the given name.
       |
       |Result:
       |"bitcoinaddress"   (string) The account bitcoin address

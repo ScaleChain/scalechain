@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.codec.{UnlockingScriptCodec, PayloadTestSu
 import io.scalechain.util.HexUtil._
 
 /**
- *  [Bitcoin Core Packets Not Captured]
+ *  <Bitcoin Core Packets Not Captured>
  *
  *  49 ....................................... Bytes in sig. script: 73
  *  | 48 ..................................... Push 72 bytes as data
@@ -15,7 +15,7 @@ import io.scalechain.util.HexUtil._
  *  | | a94e0aad311a4268e082a725f8aeae05
  *  | | 73fb12ff866a5f01 ..................... Secp256k1 signature
  */
-class UnlockingScriptSpec extends PayloadTestSuite[UnlockingScript]  {
+class UnlockingScriptSpec : PayloadTestSuite<UnlockingScript>  {
 
   val codec = UnlockingScriptCodec.codec
   

@@ -41,19 +41,19 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getaccount
   */
-object GetAccount extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetAccount : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val address: String = request.params.get[String]("Address", 0)
+      val address: String = request.params.get<String>("Address", 0)
 
       val coinAddress = CoinAddress.from(address)
 
 
-      val accountNameOption : Option[String] = Wallet.get.getAccount(coinAddress)(Blockchain.get.db)
+      val accountNameOption : Option<String> = Wallet.get.getAccount(coinAddress)(Blockchain.get.db)
       Right(Some(StringResult(accountNameOption.getOrElse(""))))
     }
   }
-  def help() : String =
+  fun help() : String =
     """getaccount "bitcoinaddress"
       |
       |DEPRECATED. Returns the account associated with the given address.

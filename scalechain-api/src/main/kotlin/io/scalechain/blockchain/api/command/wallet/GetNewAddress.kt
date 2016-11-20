@@ -48,17 +48,17 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getnewaddress
   */
-object GetNewAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
+object GetNewAddress : RpcCommand {
+  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
     handlingException {
-      val account: String = request.params.getOption[String]("Account", 0).getOrElse("")
+      val account: String = request.params.getOption<String>("Account", 0).getOrElse("")
 
       val newCoinAddress : CoinAddress = Wallet.get.newAddress(account)(Blockchain.get.db)
 
       Right(Some(StringResult(newCoinAddress.base58)))
     }
   }
-  def help() : String =
+  fun help() : String =
     """getnewaddress ( "account" )
       |
       |Returns a new Bitcoin address for receiving payments.
@@ -69,7 +69,7 @@ object GetNewAddress extends RpcCommand {
       |1. "account"        (string, optional) DEPRECATED. The account name for the address to be linked to. If not provided, the default account "" is used. It can also be set to the empty string "" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.
       |
       |Result:
-      |"bitcoinaddress"    (string) The new bitcoin address
+      |"bitcoinaddress"    (string) The bitcoin address
       |
       |Examples:
       |> bitcoin-cli getnewaddress

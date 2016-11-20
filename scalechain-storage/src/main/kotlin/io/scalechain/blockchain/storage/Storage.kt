@@ -7,8 +7,8 @@ import org.rocksdb.RocksDB
   */
 object Storage {
   var isInitialized : Boolean = false
-  def initialized() = isInitialized
-  def initialize() : Unit = {
+  fun initialized() = isInitialized
+  fun initialize() : Unit {
     RocksDB.loadLibrary()
     isInitialized = true
   }

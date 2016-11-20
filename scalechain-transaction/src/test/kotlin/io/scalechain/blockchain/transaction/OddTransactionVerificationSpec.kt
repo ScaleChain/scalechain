@@ -18,18 +18,18 @@ import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 /** Test cases that have transactions failed verification after the release of v0.2.
   * We got these cases by running scalechain and logging BlovkVerifier.getFailures for every 1000 blocks.
   */
-class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach with ChainTestTrait with SignatureTestTrait {
+class OddTransactionVerificationSpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with SignatureTestTrait {
 
   this: Suite =>
 
-  override def beforeEach() {
+  override fun beforeEach() {
     // set-up code
     //
 
     super.beforeEach()
   }
 
-  override def afterEach() {
+  override fun afterEach() {
     super.afterEach()
     // tear-down code
     //
@@ -195,11 +195,11 @@ class OddTransactionVerificationSpec extends FlatSpec with BeforeAndAfterEach wi
       )
       ,
       (
-        "[message=Incorrect length for infinity encoding]",
+        "<message=Incorrect length for infinity encoding>",
         MergedScript(transaction=Transaction(version=1, inputs=List(NormalTransactionInput(outputTransactionHash=Hash(bytes("274f8be3b7b9b1a220285f5f71f61e2691dd04df9d69bb02a8b3b85f91fb1857")), outputIndex=0L, unlockingScript=UnlockingScript(bytes("004830450221008c2107ed4e026ab4319a591e8d9ec37719cdea053951c660566e3a3399428af502202ecd823d5f74a77cc2159d8af2d3ea5d36a702fef9a7edaaf562aef22ac35da401")) /* ops:ScriptOpList(operations=Array(Op0(),OpPush(72,ScriptBytes(bytes("30450221008c2107ed4e026ab4319a591e8d9ec37719cdea053951c660566e3a3399428af502202ecd823d5f74a77cc2159d8af2d3ea5d36a702fef9a7edaaf562aef22ac35da401"))))), hashType:None */, sequenceNumber=4294967295L),NormalTransactionInput(outputTransactionHash=Hash(bytes("70c15eb4cc3890960dbe1ae0cf13eedaeaef04d8e4820398fb4e991b23528f03")), outputIndex=0L, unlockingScript=UnlockingScript(bytes("0047304402200487cd787fde9b337ab87f9fe54b9fd46d5d1692aa58e97147a4fe757f6f944202203cbcfb9c0fc4e3c453938bbea9e5ae64030cf7a97fafaf460ea2cb54ed5651b501")) /* ops:ScriptOpList(operations=Array(Op0(),OpPush(71,ScriptBytes(bytes("304402200487cd787fde9b337ab87f9fe54b9fd46d5d1692aa58e97147a4fe757f6f944202203cbcfb9c0fc4e3c453938bbea9e5ae64030cf7a97fafaf460ea2cb54ed5651b501"))))), hashType:None */, sequenceNumber=4294967295L)), outputs=List(TransactionOutput(value=4000000L, lockingScript=LockingScript(bytes("76a9144dc39248253538b93d3a0eb122d16882b998145888ac")) /* ops:ScriptOpList(operations=Array(OpDup(),OpHash160(),OpPush(20,ScriptBytes(bytes("4dc39248253538b93d3a0eb122d16882b9981458"))),OpEqualVerify(),OpCheckSig(Script(bytes("76a9144dc39248253538b93d3a0eb122d16882b998145888ac"))))) */ )), lockTime=0L /* hash:bytes("70c4e749f2b8b907875d1483ae43e8a6790b0c8397bbb33682e3602617f9a77a") */), inputIndex=0, unlockingScript=UnlockingScript(bytes("004830450221008c2107ed4e026ab4319a591e8d9ec37719cdea053951c660566e3a3399428af502202ecd823d5f74a77cc2159d8af2d3ea5d36a702fef9a7edaaf562aef22ac35da401")) /* ops:ScriptOpList(operations=Array(Op0(),OpPush(72,ScriptBytes(bytes("30450221008c2107ed4e026ab4319a591e8d9ec37719cdea053951c660566e3a3399428af502202ecd823d5f74a77cc2159d8af2d3ea5d36a702fef9a7edaaf562aef22ac35da401"))))), hashType:None */, lockingScript=LockingScript(bytes("51210351efb6e91a31221652105d032a2508275f374cea63939ad72f1b1e02f477da782100f2b7816db49d55d24df7bdffdbc1e203b424e8cd39f5651ab938e5e4a193569e52ae")) /* ops:ScriptOpList(operations=Array(Op1(),OpPush(33,ScriptBytes(bytes("0351efb6e91a31221652105d032a2508275f374cea63939ad72f1b1e02f477da78"))),OpPush(33,ScriptBytes(bytes("00f2b7816db49d55d24df7bdffdbc1e203b424e8cd39f5651ab938e5e4a193569e"))),OpNum(2),OpCheckMultiSig(Script(bytes("51210351efb6e91a31221652105d032a2508275f374cea63939ad72f1b1e02f477da782100f2b7816db49d55d24df7bdffdbc1e203b424e8cd39f5651ab938e5e4a193569e52ae"))))) */ )
       ),
       (
-        "[Result of unlocking script execution : [B@14432d16]",
+        "[Result of unlocking script execution : <B@14432d16]",
         MergedScript(transaction=Transaction(version=1, inputs=List(NormalTransactionInput(outputTransactionHash=Hash(bytes("761d8c5210fdfd505f6dff38f740ae3728eb93d7d0971fb433f685d40a4c04f6")), outputIndex=1L, unlockingScript=UnlockingScript(bytes("48304502205853c7f1395785bfabb03c57e962eb076ff24d8e4e573b04db13b45ed3ed6ee20221009dc82ae43be9d4b1fe2847754e1d36dad48ba801817d485dc529afc516c2ddb481210305584980367b321fad7f1c1f4d5d723d0ac80c1d80c8ba12343965b48364537a")) /* ops:ScriptOpList(operations=Array(OpPush(72,ScriptBytes(bytes("304502205853c7f1395785bfabb03c57e962eb076ff24d8e4e573b04db13b45ed3ed6ee20221009dc82ae43be9d4b1fe2847754e1d36dad48ba801817d485dc529afc516c2ddb481"))),OpPush(33,ScriptBytes(bytes("0305584980367b321fad7f1c1f4d5d723d0ac80c1d80c8ba12343965b48364537a"))))), hashType:Some(-127) */, sequenceNumber=4294967295L),NormalTransactionInput(outputTransactionHash=Hash(bytes("40cd1ee71808037f2ae01faef88de4788cbcbe257e319ed1debc6966dff06a9c")), outputIndex=1L, unlockingScript=UnlockingScript(bytes("4930460221008269c9d7ba0a7e730dd16f4082d29e3684fb7463ba064fd093afc170ad6e0388022100bc6d76373916a3ff6ee41b2c752001fda3c9e048bcff0d81d05b39ff0f4217b2812103aae303d825421545c5bc7ccd5ac87dd5add3bcc3a432ba7aa2f2661699f9f659")) /* ops:ScriptOpList(operations=Array(OpPush(73,ScriptBytes(bytes("30460221008269c9d7ba0a7e730dd16f4082d29e3684fb7463ba064fd093afc170ad6e0388022100bc6d76373916a3ff6ee41b2c752001fda3c9e048bcff0d81d05b39ff0f4217b281"))),OpPush(33,ScriptBytes(bytes("03aae303d825421545c5bc7ccd5ac87dd5add3bcc3a432ba7aa2f2661699f9f659"))))), hashType:Some(-127) */, sequenceNumber=4294967295L)), outputs=List(TransactionOutput(value=300000L, lockingScript=LockingScript(bytes("76a9145c11f917883b927eef77dc57707aeb853f6d389488ac")) /* ops:ScriptOpList(operations=Array(OpDup(),OpHash160(),OpPush(20,ScriptBytes(bytes("5c11f917883b927eef77dc57707aeb853f6d3894"))),OpEqualVerify(),OpCheckSig(Script(bytes("76a9145c11f917883b927eef77dc57707aeb853f6d389488ac"))))) */ )), lockTime=0L /* hash:bytes("51bf528ecf3c161e7c021224197dbe84f9a8564212f6207baa014c01a1668e1e") */), inputIndex=0, unlockingScript=UnlockingScript(bytes("48304502205853c7f1395785bfabb03c57e962eb076ff24d8e4e573b04db13b45ed3ed6ee20221009dc82ae43be9d4b1fe2847754e1d36dad48ba801817d485dc529afc516c2ddb481210305584980367b321fad7f1c1f4d5d723d0ac80c1d80c8ba12343965b48364537a")) /* ops:ScriptOpList(operations=Array(OpPush(72,ScriptBytes(bytes("304502205853c7f1395785bfabb03c57e962eb076ff24d8e4e573b04db13b45ed3ed6ee20221009dc82ae43be9d4b1fe2847754e1d36dad48ba801817d485dc529afc516c2ddb481"))),OpPush(33,ScriptBytes(bytes("0305584980367b321fad7f1c1f4d5d723d0ac80c1d80c8ba12343965b48364537a"))))), hashType:Some(-127) */, lockingScript=LockingScript(bytes("76a9148551e48a53decd1cfc63079a4581bcccfad1a93c88ac")) /* ops:ScriptOpList(operations=Array(OpDup(),OpHash160(),OpPush(20,ScriptBytes(bytes("8551e48a53decd1cfc63079a4581bcccfad1a93c"))),OpEqualVerify(),OpCheckSig(Script(bytes("76a9148551e48a53decd1cfc63079a4581bcccfad1a93c88ac"))))) */ )
       )
       */

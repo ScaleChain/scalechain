@@ -24,11 +24,11 @@ object TxMessageHandler {
     * @param transaction The Transaction message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  def handle( context : MessageHandlerContext, transaction : Transaction ) : Unit = {
+  fun handle( context : MessageHandlerContext, transaction : Transaction ) : Unit {
     implicit val db = Blockchain.get.db
 
     val transactionHash = transaction.hash
-    logger.trace(s"[P2P] Received a transaction. Hash : ${transactionHash}")
+    logger.trace(s"<P2P> Received a transaction. Hash : ${transactionHash}")
 
     // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
     try {
@@ -42,7 +42,7 @@ object TxMessageHandler {
         // Yes! the transaction was put into the disk-pool.
         // Step 2 : Recursively check if any orphan transaction depends on this transaction.
         // Also delete the newly accepted transactions from indexes for orphan transactions.
-        val acceptedChildren: List[Hash] = TransactionProcessor.acceptChildren(transactionHash)
+        val acceptedChildren: List<Hash> = TransactionProcessor.acceptChildren(transactionHash)
 /*
         // Step 3 : Relay the transaction as an inventory
         val invMessage = InvFactory.createTransactionInventories(transactionHash :: acceptedChildren)

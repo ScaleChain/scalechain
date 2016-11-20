@@ -15,38 +15,38 @@ import scala.util.Random
   * @param output The transaction output.
   * @param outPoint The transaction out point which is used for pointing the transaction output.
   */
-case class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
+data class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
 
 
-case class TransactionWithName(name:String, transaction:Transaction)
+data class TransactionWithName(name:String, transaction:Transaction)
 
-case class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
+data class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
 
 /**
   * Created by kangmo on 6/14/16.
   */
-trait BlockBuildingTestTrait extends TransactionTestDataTrait {
+trait BlockBuildingTestTrait : TransactionTestDataTrait {
   protected implicit val db : KeyValueDatabase
 
-  def generateAccountAddress(account:String) : AddressData = {
+  fun generateAccountAddress(account:String) : AddressData {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     addressData
   }
 
-  def onAddressGeneration(account:String, address : CoinAddress) : Unit = {
+  fun onAddressGeneration(account:String, address : CoinAddress) : Unit {
     // by default, do nothing.
   }
 
-  def getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
-  def getBlockHash(block : Block) = block.header.hash
+  fun getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
+  fun getBlockHash(block : Block) = block.header.hash
 
   /** Add all outputs in a transaction into an output set.
     *
     * @param outputSet The output set where each output of the given transaction is added.
     * @param transactionWithName The transaction that has outputs to be added to the set.
     */
-  def addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit = {
+  fun addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit {
     val transactionHash = getTxHash(transactionWithName)
     var outputIndex = -1
 
@@ -56,7 +56,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     }
   }
 
-  val availableOutputs = new TransactionOutputSet()
+  val availableOutputs = TransactionOutputSet()
 
   /** Create a generation transaction
     *
@@ -64,10 +64,10 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     * @param generatedBy The OutputOwnership that owns the newly generated coin. Ex> a coin address.
     * @return The newly generated transaction
     */
-  def generationTransaction( name : String,
+  fun generationTransaction( name : String,
                              amount : CoinAmount,
                              generatedBy : OutputOwnership
-                           ) : TransactionWithName = {
+                           ) : TransactionWithName {
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
       .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes))
@@ -84,19 +84,19 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     * @param outputIndex The index of the output. Zero-based index.
     * @return The transaction output with an out point.
     */
-  def getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint = {
+  fun getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint {
     val transactionHash = transactionWithName.transaction.hash
     OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
   }
 
 
-  /** Create a new normal transaction
+  /** Create a normal transaction
     *
     * @param spendingOutputs The list of spending outputs. These are spent by inputs.
     * @param newOutputs The list of newly created outputs.
     * @return
     */
-  def normalTransaction( name : String, spendingOutputs : List[OutputWithOutPoint], newOutputs : List[NewOutput]) : TransactionWithName = {
+  fun normalTransaction( name : String, spendingOutputs : List<OutputWithOutPoint>, newOutputs : List<NewOutput>) : TransactionWithName {
     val builder = TransactionBuilder.newBuilder()
 
     spendingOutputs foreach { output =>
@@ -116,7 +116,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     transactionWithName
   }
 
-  def newBlock(prevBlockHash : Hash, transactionsWithName : List[TransactionWithName]) : Block = {
+  fun newBlock(prevBlockHash : Hash, transactionsWithName : List<TransactionWithName>) : Block {
     val builder = BlockBuilder.newBuilder()
 
     transactionsWithName.map(_.transaction) foreach { transaction =>
@@ -137,7 +137,7 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     * @return The mined block.
     */
   @tailrec
-  final def doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block = {
+  final fun doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block {
     val newBlockHeader = block.header.copy(nonce = nonce)
     val newBlockHash = newBlockHeader.hash
 
@@ -149,15 +149,15 @@ trait BlockBuildingTestTrait extends TransactionTestDataTrait {
     }
   }
 
-  def minerAddress() = {
+  fun minerAddress() {
     CoinAddress.from(PrivateKey.generate)
   }
 
-  def mineBlock(chain : Blockchain)(implicit db : KeyValueDatabase) = {
-    assert(db.isInstanceOf[RocksDatabase])
-    val rocksDB = db.asInstanceOf[RocksDatabase]
+  fun mineBlock(chain : Blockchain)(implicit db : KeyValueDatabase) {
+    assert(db.isInstanceOf<RocksDatabase>)
+    val rocksDB = db.asInstanceOf<RocksDatabase>
 
-    val blockMining = new BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
+    val blockMining = BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
     val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)
