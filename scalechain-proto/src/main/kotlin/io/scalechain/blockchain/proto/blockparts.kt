@@ -7,7 +7,11 @@ import io.scalechain.util.*
   *
   * @param value
   */
-data class Hash(val value : Bytes) : ProtocolMessage {
+data class Hash(val value : Bytes) : ProtocolMessage, Comparable<Hash> {
+    init {
+        assert(value.size > 0)
+    }
+
     fun isAllZero() : Boolean {
 
         var i = 0
@@ -22,16 +26,18 @@ data class Hash(val value : Bytes) : ProtocolMessage {
 
     override fun toString() = "Hash(${value})"
 
+
+    override operator fun compareTo(other : Hash): Int {
+        val value1 = Utils.bytesToBigInteger(this.value.array)
+        val value2 = Utils.bytesToBigInteger(other.value.array)
+
+        return value1.compareTo(value2)
+    }
+
     companion object {
         //                         0123456789012345678901234567890123456789012345678901234567890123
         val ALL_ZERO = Hash(Bytes("0000000000000000000000000000000000000000000000000000000000000000"))
 
-        fun isLessThan(hash1 : Hash, hash2 : Hash): Boolean {
-            val value1 = Utils.bytesToBigInteger(hash1.value.array)
-            val value2 = Utils.bytesToBigInteger(hash2.value.array)
-
-            return value1 < value2
-        }
     }
 }
 
