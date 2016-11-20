@@ -1,4 +1,4 @@
 //include 'scalechain-cli'
-//include 'scalechain-proto-codec'
+include 'scalechain-proto-codec'
 include 'scalechain-proto'
 include 'scalechain-util'

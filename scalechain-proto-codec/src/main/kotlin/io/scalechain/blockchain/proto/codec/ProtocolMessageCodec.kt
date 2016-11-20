@@ -21,6 +21,7 @@ trait ProtocolMessageCodec<T <: ProtocolMessage> : MessagePartCodec<T> {
   val command : String
   val clazz : Class<T>
 
+  // BUGBUG : Simply use T?
   fun encode( message : ProtocolMessage ) {
     val castedMessage = clazz.cast(message)
     codec.encode(castedMessage)
@@ -29,7 +30,9 @@ trait ProtocolMessageCodec<T <: ProtocolMessage> : MessagePartCodec<T> {
 
 trait NetworkProtocol {
   fun getCommand(message : ProtocolMessage) : String
+  // BUGBUG : USe netty's byte array instead of BitVector of scodec.
   fun encode(message : ProtocolMessage) : BitVector
+  // BUGBUG : USe netty's byte array instead of BitVector of scodec.
   fun decode(command:String, bitVector:BitVector) : ProtocolMessage
 }
 
