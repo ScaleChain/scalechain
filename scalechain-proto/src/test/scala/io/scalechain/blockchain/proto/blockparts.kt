@@ -11,20 +11,6 @@ import org.junit.Assert
 
 class HashSpec : FlatSpec(), Matchers {
 
-    override fun beforeEach() {
-        // set-up code
-        //
-
-        super.beforeEach()
-    }
-
-    override fun afterEach() {
-        super.afterEach()
-
-        // tear-down code
-        //
-    }
-
     init {
         "constructor" should "hit an assertion if the input hash array is empty" {
             shouldThrow<AssertionError> {
@@ -87,5 +73,108 @@ class HashSpec : FlatSpec(), Matchers {
             Hash.ALL_ZERO.isAllZero() shouldBe true
         }
 
+    }
+}
+
+
+class TransactionInputSpec : FlatSpec(), Matchers {
+    override fun beforeEach() {
+        // Need to create a subclass of TransactionInput to test this case.
+
+        super.beforeEach()
+    }
+
+    override fun afterEach() {
+        super.afterEach()
+
+    }
+
+    init {
+        "getOutPoint" should "return an OutPoint constructed from outputTransactionHash and outputIndex" {
+
+        }
+
+        "isCoinBaseInput" should "return true if bytes in the outputTransactionHash is all zero" {
+
+        }
+    }
+}
+
+// Test case for interface Script
+class ScriptSpec : FlatSpec(), Matchers {
+    override fun beforeEach() {
+        // Need to create a concrete class that implements Script Interface
+
+        super.beforeEach()
+    }
+
+    override fun afterEach() {
+        super.afterEach()
+
+    }
+
+    init {
+        "size" should "return the size of the array in the script" {
+
+        }
+
+        "get" should "be able to get the first value of the script array" {
+
+        }
+
+        "get" should "be able to get the second value of the script array" {
+
+        }
+    }
+}
+
+// Test case for data class LockingScript
+class LockingScriptSpec : FlatSpec(), Matchers {
+    init {
+        "toString" should "return default string representation if the printer is not set" {
+
+        }
+
+        "toString" should "return the printer's result if the printer is set" {
+
+            // Need to revert the printer to null at the end of this case
+        }
+    }
+}
+
+// Test case for data class UnlockingScript
+class UnlockingScriptSpec : FlatSpec(), Matchers {
+    init {
+        "toString" should "return default string representation if the printer is not set" {
+
+        }
+
+        "toString" should "return the printer's result if the printer is set" {
+
+            // Need to revert the printer to null at the end of this case
+        }
+    }
+}
+
+
+// Test case for data class Transaction
+class TransactionSpec : FlatSpec(), Matchers {
+    init {
+        "toString" should "return default string representation if the printer is not set" {
+
+        }
+
+        "toString" should "return the printer's result if the printer is set" {
+            // Need to revert the printer to null at the end of this case
+        }
+    }
+}
+
+// Test case for data class IPv6Address
+class IPv6AddressSpec : FlatSpec(), Matchers {
+    init {
+        "inetAddress" should "return InetAddress by reading big endian encoding of the adress in the address property." {
+
+        }
     }
 }

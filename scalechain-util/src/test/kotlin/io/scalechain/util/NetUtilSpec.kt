@@ -26,11 +26,6 @@ class NetUtilSpec : FlatSpec(), Matchers {
     init {
         "getLocalAddresses" should "list addresses" {
             NetUtil.getLocalAddresses() should contain("127.0.0.1")
-/*
-            for ( address in NetUtil.getLocalAddresses() ) {
-                println(address)
-            }
-*/
         }
     }
 }

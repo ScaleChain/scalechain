@@ -134,7 +134,7 @@ interface Script : ProtocolMessage
 
     // BUGBUG : Changed Interface, name : from length to size
     fun size() = data.size
-    operator fun get(i:Int) = data[i]
+    operator fun get(i:Int) = data.get(i)
 }
 
 interface LockingScriptPrinter {
