@@ -13,7 +13,7 @@ import org.scalatest._
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-class RocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with ShouldMatchers with BeforeAndAfterEach {
+class RocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

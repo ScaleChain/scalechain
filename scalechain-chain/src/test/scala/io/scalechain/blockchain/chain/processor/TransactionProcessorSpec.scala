@@ -10,7 +10,7 @@ import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import HashSupported._
 import org.scalatest._
 
-class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class TransactionProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 

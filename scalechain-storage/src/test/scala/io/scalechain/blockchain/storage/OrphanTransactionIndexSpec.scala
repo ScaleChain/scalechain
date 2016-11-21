@@ -11,7 +11,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 6/4/16.
   */
-class OrphanTransactionIndexSpec  extends FlatSpec with ShouldMatchers with BeforeAndAfterEach {
+class OrphanTransactionIndexSpec  extends FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

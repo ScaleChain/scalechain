@@ -12,7 +12,7 @@ import HashSupported._
 
 import scala.util.Random
 
-class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with ShouldMatchers {
+class InventoryProcessorSpec extends BlockchainTestTrait with TransactionTestDataTrait with Matchers {
 
   this: Suite =>
 

@@ -3,7 +3,7 @@ import io.scalechain.blockchain.proto._
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil._
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import scodec.Codec
 import scodec.bits.BitVector
 
@@ -11,7 +11,7 @@ import scodec.bits.BitVector
 /**
   * Created by kangmo on 1/29/16.
   */
-trait PayloadTestSuite[T] extends FlatSpec with ShouldMatchers with CodecTestUtil {
+trait PayloadTestSuite[T] extends FlatSpec with Matchers with CodecTestUtil {
   implicit val codec : Codec[T]
 
   val message : T

@@ -12,7 +12,7 @@ import org.scalatest._
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-trait KeyValueDatabasePerformanceTrait extends FlatSpec with PerformanceTestTrait with ShouldMatchers {
+trait KeyValueDatabasePerformanceTrait extends FlatSpec with PerformanceTestTrait with Matchers {
   var db : KeyValueDatabase
 
   implicit val TEST_COUNT : Int = 100000

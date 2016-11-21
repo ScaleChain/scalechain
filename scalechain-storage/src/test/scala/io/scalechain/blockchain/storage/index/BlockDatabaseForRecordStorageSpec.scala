@@ -16,7 +16,7 @@ import scodec.bits.BitVector
 /**
   * Covers all methods in BlockDatabaseForRecordStorage as well as its super class, BlockDatabase
   */
-class BlockDatabaseForRecordStorageSpec extends FlatSpec with ShouldMatchers with CodecTestUtil with BeforeAndAfterEach  {
+class BlockDatabaseForRecordStorageSpec extends FlatSpec with Matchers with CodecTestUtil with BeforeAndAfterEach  {
   this: Suite =>
 
   Storage.initialize()

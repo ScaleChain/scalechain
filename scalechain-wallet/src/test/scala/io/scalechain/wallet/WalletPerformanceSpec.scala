@@ -75,7 +75,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
 
 
 //    val TEST_LOOP_COUNT = 100000
-    implicit val TEST_LOOP_COUNT = 5000
+    implicit val TEST_LOOP_COUNT = 1000
     var testLoop = TEST_LOOP_COUNT
 
     println("Performance test started.")
@@ -266,7 +266,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     chain.putBlock(BLK03a.header.hash, BLK03a)
 
     //    val TEST_LOOP_COUNT = 2
-    implicit val TEST_LOOP_COUNT = 10000
+    implicit val TEST_LOOP_COUNT = 1000
     var testLoop = TEST_LOOP_COUNT
 
     println("Preparing Performance test data.")
@@ -376,7 +376,7 @@ class WalletPerformanceSpec extends FlatSpec with PerformanceTestTrait with Wall
     wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
 
     //    val TEST_LOOP_COUNT = 2
-    implicit val TEST_LOOP_COUNT = 10000
+    implicit val TEST_LOOP_COUNT = 1000
     var testLoop = TEST_LOOP_COUNT
 
     println("Preparing Performance test data.")

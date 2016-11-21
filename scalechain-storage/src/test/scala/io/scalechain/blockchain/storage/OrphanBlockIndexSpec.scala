@@ -12,7 +12,7 @@ import org.scalatest._
 /**
   * Created by kangmo on 6/4/16.
   */
-class OrphanBlockIndexSpec extends FlatSpec with ShouldMatchers with BeforeAndAfterEach {
+class OrphanBlockIndexSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

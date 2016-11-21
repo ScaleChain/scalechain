@@ -13,7 +13,7 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.scalatest._
 import HashSupported._
 
-class TxMessageHandlerSpec extends MessageHandlerTestTrait with ShouldMatchers {
+class TxMessageHandlerSpec extends MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
   val testPath = new File("./target/unittests-TransactionMessageHandlerSpec/")

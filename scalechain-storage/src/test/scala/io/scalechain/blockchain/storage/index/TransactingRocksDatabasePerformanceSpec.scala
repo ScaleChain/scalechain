@@ -6,7 +6,7 @@ import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-class TransactingRocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with ShouldMatchers with BeforeAndAfterEach {
+class TransactingRocksDatabasePerformanceSpec extends FlatSpec with KeyValueDatabasePerformanceTrait with Matchers with BeforeAndAfterEach {
   this: Suite =>
 
   Storage.initialize()

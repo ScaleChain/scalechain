@@ -7,7 +7,7 @@ import spray.json._
 /**
   * Test cases for validating our assumptions on spray.io
   */
-class SprayIoSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class SprayIoSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

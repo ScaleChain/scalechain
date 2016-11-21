@@ -6,7 +6,7 @@ import io.scalechain.util.HexUtil._
 /**
   * Created by kangmo on 5/18/16.
   */
-class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ChainTestTrait with ShouldMatchers {
+class CoinAddressSpec extends FlatSpec with TransactionTestDataTrait with BeforeAndAfterEach with ChainTestTrait with Matchers {
 
   this: Suite =>
 

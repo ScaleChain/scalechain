@@ -10,7 +10,7 @@ import org.scalatest._
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
-class Base58UtilSpec extends FlatSpec with BeforeAndAfterEach with ShouldMatchers {
+class Base58UtilSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
 
   override def beforeEach() {

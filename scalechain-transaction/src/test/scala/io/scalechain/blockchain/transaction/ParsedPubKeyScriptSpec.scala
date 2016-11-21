@@ -10,7 +10,7 @@ import sun.font.Script
 /**
   * Created by kangmo on 5/18/16.
   */
-class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with ShouldMatchers {
+class ParsedPubKeyScriptSpec extends FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with Matchers {
   this: Suite =>
 
   override def beforeEach() {

@@ -162,7 +162,9 @@ object ScaleChainPeer {
 
     val storage: BlockStorage =
       if (params.cassandraAddress.isDefined && params.cassandraPort.isDefined) {
-        CassandraBlockStorage.create(blockStoragePath, params.cassandraAddress.get, params.cassandraPort.get)
+        // Cassandra is not supported.
+        throw new UnsupportedOperationException
+//        CassandraBlockStorage.create(blockStoragePath, params.cassandraAddress.get, params.cassandraPort.get)
       } else {
         // Initialize the block storage.
         // TODO : Investigate when to call storage.close.
