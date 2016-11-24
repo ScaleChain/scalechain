@@ -1,20 +1,15 @@
 package io.scalechain.blockchain.proto.codec
 
-import java.nio.ByteBuffer
-
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive._
+import io.netty.buffer.ByteBuf
+import io.scalechain.blockchain.*
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.io.InputOutputStream
-import io.scalechain.util.{ByteArray, ByteArrayAndVectorConverter}
-import scodec.{DecodeResult, Attempt, Codec}
-import scodec.bits.{BitVector, ByteVector}
-import scodec.codecs._
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
-
+/*
 trait SerializeParseUtil<T> {
   val codec : Codec<T>
 
@@ -92,32 +87,47 @@ trait SerializeParseUtil<T> {
 
 trait MessagePartCodec<T <: ProtocolMessage> : SerializeParseUtil<T> {
 }
-
-object HashCodec : MessagePartCodec<Hash> {
-  val codec : Codec<Hash> {
-    ("value" | FixedByteArray.reverseCodec(32))
-  }.as<Hash>
-}
-
-// No need to create a codec for CoinbaseData, as it is converted from/to UnlockingScript by TransactionInputCodec.
-/*
-object CoinbaseDataCodec : MessagePartCodec<CoinbaseData> {
-  val codec : Codec<CoinbaseData> {
-    ("coinbase_data" | VarByteArray.codec)
-  }.as<CoinbaseData>
-}
 */
 
-object LockingScriptCodec : MessagePartCodec<LockingScript> {
-  val codec : Codec<LockingScript> {
-    ("locking_script" | VarByteArray.codec)
-  }.as<LockingScript>
+object HashCodec : Codec<Hash> {
+  private val HashValueCodec = Codecs.fixedByteBuf(32)
+  override fun transcode( io : CodecInputOutputStream, obj : Hash? ) : Hash? {
+    val value = io.transcode( HashValueCodec, obj?.value )
+
+    if (io.isInput) {
+      return Hash(
+          value!!
+      )
+    } else {
+      return null
+    }
+  }
 }
 
-object UnlockingScriptCodec : MessagePartCodec<UnlockingScript> {
-  val codec : Codec<UnlockingScript> {
-    ("unlocking_script" | VarByteArray.codec)
-  }.as<UnlockingScript>
+object LockingScriptCodec : Codec<LockingScript> {
+  override fun transcode(io : CodecInputOutputStream, obj : LockingScript? ) : LockingScript? {
+    val data = Codecs.VariableByteBuf.transcode(io, obj?.data)
+
+    if (io.isInput) {
+      return LockingScript(
+        data!!
+      )
+    }
+    return null
+  }
+}
+
+object UnlockingScriptCodec : Codec<UnlockingScript> {
+  override fun transcode(io : CodecInputOutputStream, obj : UnlockingScript? ) : UnlockingScript? {
+    val data = Codecs.VariableByteBuf.transcode(io, obj?.data)
+
+    if (io.isInput) {
+      return UnlockingScript(
+        data!!
+      )
+    }
+    return null
+  }
 }
 
 
@@ -144,13 +154,23 @@ object UnlockingScriptCodec : MessagePartCodec<UnlockingScript> {
   *
   *  ffffffff ................................. Sequence number: UINT32_MAX
   */
-object NormalTransactionInputCodec : MessagePartCodec<NormalTransactionInput> {
-  val codec : Codec<NormalTransactionInput> {
-    ( "outpoint_transaction_hash"  | HashCodec.codec            ) ::
-    ( "outpoint_transaction_index" | uint32L                    ) ::
-    ( "unlocking_script"           | UnlockingScriptCodec.codec ) ::
-    ( "sequence_number"            | uint32L                    )
-  }.as<NormalTransactionInput>
+object NormalTransactionInputCodec : Codec<NormalTransactionInput> {
+  override fun transcode(io : CodecInputOutputStream, obj : NormalTransactionInput? ) : NormalTransactionInput? {
+    val outputTransactionHash = HashCodec.transcode(io, obj?.outputTransactionHash)
+    val outputIndex           = Codecs.UInt32L.transcode(io, obj?.outputIndex)
+    val unlockingScript       = UnlockingScriptCodec.transcode(io, obj?.unlockingScript)
+    val sequenceNumber        = Codecs.UInt32L.transcode(io, obj?.sequenceNumber)
+
+    if (io.isInput) {
+      return NormalTransactionInput(
+        outputTransactionHash!!,
+        outputIndex!!,
+        unlockingScript!!,
+        sequenceNumber!!
+      )
+    }
+    return null
+  }
 }
 
 /** Convert the normal transaction input to generation transaction input
@@ -189,57 +209,54 @@ object NormalTransactionInputCodec : MessagePartCodec<NormalTransactionInput> {
   *
   * ff ff ff ff                                      .... Sequence Number ( 4 bytes. Set to 0xFFFFFFFF )
   */
-object TransactionInputCodec : MessagePartCodec<TransactionInput> {
-  /** See if the transaction input data represents the generation transaction input.
-    *
-    * Generation transaction's UTXO hash has all bits set to zero,
-    * and its UTXO index has all bits set to one.
-    *
-    * @param txInput The transaction input to investigate.
-    * @return true if the give transaction input is the generation transaction. false otherwise.
-    */
-  private fun isGenerationTransaction(txInput : TransactionInput) {
-    // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
-    //println(s"${txInput.outputIndex}")
-    txInput.outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
+object TransactionInputCodec : Codec<TransactionInput> {
+  override fun transcode(io : CodecInputOutputStream, obj : TransactionInput? ) : TransactionInput? {
+
+    if (io.isInput) {
+      val readNormalTxInput = NormalTransactionInputCodec.transcode(io, null)
+      return normalTxToGenerationOrNormal(readNormalTxInput!!)
+    } else {
+      val normalTxInput = generationOrNormalToNormalTx(obj!!)
+      return NormalTransactionInputCodec.transcode(io, normalTxInput)
+    }
   }
 
   private fun normalTxToGenerationOrNormal(normalTxInput: NormalTransactionInput) : TransactionInput {
-    if (isGenerationTransaction(normalTxInput)) {
+    if (normalTxInput.isCoinBaseInput()) {
       // Generation Transaction
       // Convert to GenerationTransactionInput
-      GenerationTransactionInput(
+      return GenerationTransactionInput(
         normalTxInput.outputTransactionHash,
         normalTxInput.outputIndex,
         CoinbaseData(normalTxInput.unlockingScript.data),
         normalTxInput.sequenceNumber
       )
     } else {
-      normalTxInput
+      return normalTxInput
     }
   }
 
   private fun generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput {
-    txInput match {
-      case generationTxInput : GenerationTransactionInput => {
+    when {
+      txInput is GenerationTransactionInput -> {
         //assert(isGenerationTransaction(txInput))
         // Covert back to NormalTransactionInput
-        NormalTransactionInput(
-          generationTxInput.outputTransactionHash,
-          generationTxInput.outputIndex,
-          UnlockingScript(generationTxInput.coinbaseData.data),
-          generationTxInput.sequenceNumber)
+        return NormalTransactionInput(
+            txInput.outputTransactionHash,
+            txInput.outputIndex,
+            UnlockingScript(txInput.coinbaseData.data),
+            txInput.sequenceNumber)
       }
-      case normalTxInput : NormalTransactionInput => {
+      txInput is NormalTransactionInput -> {
         //assert(!isGenerationTransaction(txInput))
-        normalTxInput
+        return txInput
+      }
+      else -> {
+        // A transaction input should be either a generation transaction input or a normal transaction input.
+        throw AssertionError()
       }
     }
   }
-
-  val codec : Codec<TransactionInput> = NormalTransactionInputCodec.codec.xmap(
-    normalTxToGenerationOrNormal _, generationOrNormalToNormalTx _
-  );
 }
 
 
@@ -264,44 +281,90 @@ object TransactionInputCodec : MessagePartCodec<TransactionInput> {
   *  | 88 ..................................... OP_EQUALVERIFY
   *  | ac ..................................... OP_CHECKSIG
   */
-object TransactionOutputCodec : MessagePartCodec<TransactionOutput> {
-  val codec : Codec<TransactionOutput> {
-    ("value"          | int64L                   ) ::
-    ("locking_script" | LockingScriptCodec.codec )
-  }.as<TransactionOutput>
+object TransactionOutputCodec : Codec<TransactionOutput> {
+  override fun transcode(io : CodecInputOutputStream, obj : TransactionOutput? ) : TransactionOutput? {
+    val value = Codecs.Int64L.transcode(io, obj?.value)
+    val lockingScript = LockingScriptCodec.transcode(io, obj?.lockingScript)
+
+    if (io.isInput) {
+      return TransactionOutput(
+        value!!,
+        lockingScript!!
+      )
+    }
+    return null
+  }
 }
 
 // TODO : Add a test case
-object BlockHeaderCodec : MessagePartCodec<BlockHeader>{
-  val codec : Codec<BlockHeader> {
-    ("version"               | int32L                                 ) ::
-    ("previous_block_hash"   | HashCodec.codec                        ) ::
-    ("merkle_root_hash"      | HashCodec.codec                        ) ::
-    ("timestamp"             | uint32L                                ) ::
-    ("diffculty_target_bits" | uint32L                                ) ::
-    ("nonce"                 | uint32L                                )
-  }.as<BlockHeader>
+object BlockHeaderCodec : Codec<BlockHeader>{
+  override fun transcode(io : CodecInputOutputStream, obj : BlockHeader? ) : BlockHeader? {
+    val version        = Codecs.Int32L.transcode(io, obj?.version)
+    val hashPrevBlock  = HashCodec.transcode(io, obj?.hashPrevBlock)
+    val hashMerkleRoot = HashCodec.transcode(io, obj?.hashMerkleRoot)
+    val timestamp      = Codecs.UInt32L.transcode(io, obj?.timestamp)
+    val target         = Codecs.UInt32L.transcode(io, obj?.target)
+    val nonce          = Codecs.UInt32L.transcode(io, obj?.nonce)
+
+    if (io.isInput) {
+      return BlockHeader(
+        version!!,
+        hashPrevBlock!!,
+        hashMerkleRoot!!,
+        timestamp!!,
+        target!!,
+        nonce!!
+      )
+    }
+    return null
+  }
 }
 
 // TODO : Add a test case
-object IPv6AddressCodec : MessagePartCodec<IPv6Address>{
-  val codec : Codec<IPv6Address> {
-    ("address" | FixedByteArray.codec(16) )
-  }.as<IPv6Address>
+object IPv6AddressCodec : Codec<IPv6Address>{
+  val byteArrayLength16 = Codecs.fixedByteBuf(16)
+  override fun transcode(io : CodecInputOutputStream, obj : IPv6Address? ) : IPv6Address? {
+    val address = byteArrayLength16.transcode(io, obj?.address)
+
+    if (io.isInput) {
+      return IPv6Address(
+        address!!
+      )
+    }
+    return null
+  }
 }
 
-object NetworkAddressCodec : MessagePartCodec<NetworkAddress>{
-  val codec : Codec<NetworkAddress> {
-    ("services" | BigIntForLongCodec.codec) ::
-    ("ipv6" | IPv6AddressCodec.codec) ::
-    ("port" | uint16) // Note, port is encoded with big endian, not little endian
-  }.as<NetworkAddress>
+object NetworkAddressCodec : Codec<NetworkAddress>{
+  override fun transcode(io : CodecInputOutputStream, obj : NetworkAddress? ) : NetworkAddress? {
+    val services = Codecs.UInt64L.transcode(io, obj?.services)
+    val ipv6     = IPv6AddressCodec.transcode(io, obj?.ipv6)
+    // Note, port is encoded with big endian, not little endian
+    val port     = Codecs.UInt16.transcode(io, obj?.port)
+
+    if (io.isInput) {
+      return NetworkAddress(
+        services!!,
+        ipv6!!,
+        port!!
+      )
+    }
+    return null
+  }
 }
 
 
-object NetworkAddressWithTimestampCodec : MessagePartCodec<NetworkAddressWithTimestamp>{
-  val codec : Codec<NetworkAddressWithTimestamp> {
-    ("timestamp" | uint32L) ::
-    ("network_address" | NetworkAddressCodec.codec)
-  }.as<NetworkAddressWithTimestamp>
+object NetworkAddressWithTimestampCodec : Codec<NetworkAddressWithTimestamp>{
+  override fun transcode(io : CodecInputOutputStream, obj : NetworkAddressWithTimestamp? ) : NetworkAddressWithTimestamp? {
+    val timestamp = Codecs.UInt32L.transcode(io, obj?.timestamp)
+    val address   = NetworkAddressCodec.transcode(io, obj?.address)
+
+    if (io.isInput) {
+      return NetworkAddressWithTimestamp(
+        timestamp!!,
+        address!!
+      )
+    }
+    return null
+  }
 }

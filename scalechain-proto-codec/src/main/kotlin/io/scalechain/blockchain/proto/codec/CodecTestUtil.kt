@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
+/*
 import scodec.Codec
 import scodec.bits.BitVector
 
@@ -12,3 +13,4 @@ trait CodecTestUtil {
     codec.encode(message).require
 }
 
+*/

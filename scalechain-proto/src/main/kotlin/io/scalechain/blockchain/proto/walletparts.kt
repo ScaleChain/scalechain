@@ -12,7 +12,7 @@ import io.scalechain.util.HexUtil
   *
   * @param name The account name.
   */
-data class Account(val name : String) : ProtocolMessage
+data class Account(val name : String) : Transcodable
 
 
 /** An outpoint points to an output in a transaction.
@@ -20,7 +20,7 @@ data class Account(val name : String) : ProtocolMessage
   * @param transactionHash The hash of the transaction that has the output.
   * @param outputIndex The index of the output. The index starts from 0. Ex> The first output of a transaction has index 0.
   */
-data class OutPoint(val transactionHash : Hash, val outputIndex : Int) : ProtocolMessage
+data class OutPoint(val transactionHash : Hash, val outputIndex : Int) : Transcodable
 
 
 /** An in point points to an input in a transaction.
@@ -28,7 +28,7 @@ data class OutPoint(val transactionHash : Hash, val outputIndex : Int) : Protoco
   * @param transactionHash The hash of the transaction that has the output.
   * @param inputIndex The index of the input. The index starts from 0. Ex> The first input of a transaction has index 0.
   */
-data class InPoint(val transactionHash : Hash, val inputIndex : Int) : ProtocolMessage
+data class InPoint(val transactionHash : Hash, val inputIndex : Int) : Transcodable
 
 
 /**
@@ -99,7 +99,7 @@ data class WalletTransaction(
 
                               // The transaction related with this wallet transaction.
                               val transaction : Transaction
-) : ProtocolMessage
+) : Transcodable
 
 /** Ownership is described as multiple private keys.
   *
@@ -107,10 +107,11 @@ data class WalletTransaction(
   *
   * @param privateKeys
   */
-data class OwnershipDescriptor(val account : String, val privateKeys : List<String>) : ProtocolMessage
+data class OwnershipDescriptor(val account : String, val privateKeys : List<String>) : Transcodable
 
 data class WalletOutput(
     // Some(block height) of the block on the local best block chain which includes this transaction. None otherwise.
+    // BUGBUG : Change name to blockIndex
     val blockindex : Long?,          // 11,
     // Whether this output is in the generation transaction.
     val coinbase : Boolean,
@@ -118,4 +119,4 @@ data class WalletOutput(
     val spent : Boolean,
     // The transaction output
     val transactionOutput : TransactionOutput
-) : ProtocolMessage
+) : Transcodable

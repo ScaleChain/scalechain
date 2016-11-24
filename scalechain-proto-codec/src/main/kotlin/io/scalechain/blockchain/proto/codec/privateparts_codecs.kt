@@ -1,13 +1,19 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{FixedByteArray, Bool, VarStr, BigIntForLongCodec}
-import scodec.Codec
-import scodec.codecs._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.*
 
-object BlockConsensusCodec : MessagePartCodec<BlockConsensus> {
-  val codec : Codec<BlockConsensus> {
-    ("header" | BlockHeaderCodec.codec) ::
-    ("height" | int64L )
-  }.as<BlockConsensus>
+object BlockConsensusCodec : Codec<BlockConsensus> {
+  override fun transcode(io : CodecInputOutputStream, obj : BlockConsensus? ) : BlockConsensus? {
+    val header = BlockHeaderCodec.transcode(io, obj?.header)
+    val height = Codecs.Int64L.transcode(io, obj?.height)
+
+    if (io.isInput) {
+      return BlockConsensus(
+        header!!,
+        height!!
+      )
+    }
+    return null
+  }
 }

@@ -3,9 +3,9 @@ package io.scalechain.blockchain.proto
 /** data classes that are used for keys or values of the block storage index.
   */
 
-data class RecordLocator(val offset : Long, val size : Int) : ProtocolMessage
+data class RecordLocator(val offset : Long, val size : Int) : Transcodable
 
-data class FileRecordLocator(val fileIndex : Int, val recordLocator : RecordLocator) : ProtocolMessage
+data class FileRecordLocator(val fileIndex : Int, val recordLocator : RecordLocator) : Transcodable
 
 data class BlockFileInfo(
   val blockCount : Int,
@@ -14,7 +14,7 @@ data class BlockFileInfo(
   val lastBlockHeight : Long,
   val firstBlockTimestamp : Long,
   val lastBlockTimestamp : Long
-) : ProtocolMessage
+) : Transcodable
 
 data class BlockInfo(
   val height : Long,
@@ -25,21 +25,21 @@ data class BlockInfo(
   val status : Int,
   val blockHeader : BlockHeader,
   val blockLocatorOption : FileRecordLocator?
-) : ProtocolMessage
+) : Transcodable
 
 data class FileNumber(
   val fileNumber : Int
-) : ProtocolMessage
+) : Transcodable
 
 /** For testing purpose. For testing record files, we need to create a record file which has remaining space.
   * Ex> The file size limit is 12 bytes, but we need to be able to write only 11 bytes.
   */
-data class OneByte( val value : Byte ) : ProtocolMessage
+data class OneByte( val value : Byte ) : Transcodable
 
 
 /** For converting transation time(long) to a byte array, which is finally converted to a base58 encoded string
   */
-data class LongValue( val value : Long ) : ProtocolMessage
+data class LongValue( val value : Long ) : Transcodable
 
 /** To get a record locator of each transaction we write while we write a block,
   * We need to write (1) block header (2) transaction count (3) each transaction.
@@ -49,13 +49,14 @@ data class LongValue( val value : Long ) : ProtocolMessage
   *
   * @param count The number of transactions.
   */
-data class TransactionCount( val count : Int) : ProtocolMessage
+// BUGBUG : Interface changed, from Int to Long
+data class TransactionCount( val count : Long ) : Transcodable
 
 /** To search a block on the best blockchain by height, we need the BlockHeight data class.
   *
   * @param height The height of a block.
   */
-data class BlockHeight( val height : Long ) : ProtocolMessage
+data class BlockHeight( val height : Long ) : Transcodable
 
 /** The transaction descriptor kept for each transaction stored in a block.
   * Transactions in the transaction pool don't store transaction descriptors, but they are kept in the transaction pool.
@@ -65,14 +66,14 @@ data class BlockHeight( val height : Long ) : ProtocolMessage
   * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
   *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
   */
-data class TransactionDescriptor( val transactionLocator : FileRecordLocator, val blockHeight : Long, val outputsSpentBy : List<InPoint?> ) : ProtocolMessage
+data class TransactionDescriptor( val transactionLocator : FileRecordLocator, val blockHeight : Long, val outputsSpentBy : List<InPoint?> ) : Transcodable
 
 
 /** A descriptor for an orphan block. Used as the value of the (key:block hash, value:orphan block) index.
   *
   * @param block The orphan block.
   */
-data class OrphanBlockDescriptor( val block : Block ) : ProtocolMessage
+data class OrphanBlockDescriptor( val block : Block ) : Transcodable
 
 /** a descriptor for an orphan transaction. Used as the value of the (key:transaction hash, value:orphan transaction) index.
   *
@@ -80,7 +81,7 @@ data class OrphanBlockDescriptor( val block : Block ) : ProtocolMessage
   */
 data class OrphanTransactionDescriptor(
   val transaction : Transaction
-) : ProtocolMessage
+) : Transcodable
 
 
 /**
@@ -94,4 +95,4 @@ data class TransactionPoolEntry(
   val transaction : Transaction,
   val outputsSpentBy : List<InPoint?>,
   val createdAtNanos : Long
-) : ProtocolMessage
+) : Transcodable

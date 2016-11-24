@@ -1,5 +1,5 @@
-package io.scalechain.blockchain.proto.codec.primitive
-
+package io.scalechain.blockchain.proto.codec
+/*
 /** Source code copied from : https://github.com/yzernik/bitcoin-scodec
   * Thanks to : https://github.com/yzernik
   */
@@ -59,3 +59,5 @@ abstract class CodecSuite : WordSpec with Matchers with GeneratorDrivenPropertyC
 
   implicit fun arbBitVector: Arbitrary<BitVector> = Arbitrary(arbitrary<Array<Byte>>.map(BitVector.apply))
 }
+
+*/

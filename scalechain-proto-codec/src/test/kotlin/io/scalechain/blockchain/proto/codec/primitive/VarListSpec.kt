@@ -5,6 +5,7 @@ package io.scalechain.blockchain.proto.codec.primitive
   */
 
 import io.scalechain.blockchain.proto.Ping
+import io.scalechain.blockchain.proto.codec.CodecSuite
 import io.scalechain.blockchain.proto.codec.PingCodec
 import scodec.Codec
 

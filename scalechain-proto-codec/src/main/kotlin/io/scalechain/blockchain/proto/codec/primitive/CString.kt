@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.proto.codec.primitive
 
+/*
+
 import io.scalechain.blockchain.proto.{ProtocolMessage}
 import io.scalechain.blockchain.proto.codec.{SerializeParseUtil, MessagePartCodec}
 import scodec.Attempt.{Successful, Failure}
@@ -16,6 +18,7 @@ data class StringMessage(value:String) : ProtocolMessage
   *
   * Code copied from : https://gitter.im/scodec/scodec/archives/2015/06/17
   */
+
 object CString : SerializeParseUtil<String> {
   val codec :Codec<String> = filtered(ascii, Codec<BitVector> {
 
@@ -54,3 +57,5 @@ class CStringPrefixedCodec<T <: ProtocolMessage>(codecT : MessagePartCodec<T>) :
     ("data"   | codecT.codec )
   }.as<CStringPrefixed<T>>
 }
+
+*/

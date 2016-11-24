@@ -1,106 +1,216 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray, VarInt}
-import scodec.Codec
-import scodec.codecs._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.Codecs
 
-object RecordLocatorCodec : MessagePartCodec<RecordLocator> {
-  val codec : Codec<RecordLocator> {
-    ("offset" | int64L) ::
-    ("size"   | int32L)
-  }.as<RecordLocator>
+object RecordLocatorCodec : Codec<RecordLocator> {
+  override fun transcode(io : CodecInputOutputStream, obj : RecordLocator? ) : RecordLocator? {
+    val offset = Codecs.Int64L.transcode(io, obj?.offset)
+    val size   = Codecs.Int32L.transcode(io, obj?.size)
+
+    if (io.isInput) {
+      return RecordLocator(
+        offset!!,
+        size!!
+      )
+    }
+    return null
+  }
 }
 
-object FileRecordLocatorCodec : MessagePartCodec<FileRecordLocator>{
-  val codec : Codec<FileRecordLocator> {
-    ("fileIndex" | int32L ) ::
-    ("recordLocator" | RecordLocatorCodec.codec)
-  }.as<FileRecordLocator>
+object FileRecordLocatorCodec : Codec<FileRecordLocator>{
+  override fun transcode(io : CodecInputOutputStream, obj : FileRecordLocator? ) : FileRecordLocator? {
+    val fileIndex     = Codecs.Int32L.transcode(io, obj?.fileIndex)
+    val recordLocator = RecordLocatorCodec.transcode(io, obj?.recordLocator)
+
+    if (io.isInput) {
+      return FileRecordLocator(
+        fileIndex!!,
+        recordLocator!!
+      )
+    }
+    return null
+  }
 }
 
-object BlockFileInfoCodec : MessagePartCodec<BlockFileInfo>{
-  val codec : Codec<BlockFileInfo> {
-    ("blockCount" | int32L) ::
-    ("fileSize" | int64L) ::
-    ("fistBlockHeight" | int64L) ::
-    ("lastBlockHeight" | int64L) ::
-    ("firstBlockTimestamp" | int64L) ::
-    ("lastBlockTimestamp" | int64L)
-  }.as<BlockFileInfo>
+object BlockFileInfoCodec : Codec<BlockFileInfo>{
+
+  override fun transcode(io : CodecInputOutputStream, obj : BlockFileInfo? ) : BlockFileInfo? {
+    val blockCount          = Codecs.Int32L.transcode(io, obj?.blockCount)
+    val fileSize            = Codecs.Int64L.transcode(io, obj?.fileSize)
+    val firstBlockHeight    = Codecs.Int64L.transcode(io, obj?.firstBlockHeight)
+    val lastBlockHeight     = Codecs.Int64L.transcode(io, obj?.lastBlockHeight)
+    val firstBlockTimestamp = Codecs.Int64L.transcode(io, obj?.firstBlockTimestamp)
+    val lastBlockTimestamp  = Codecs.Int64L.transcode(io, obj?.lastBlockTimestamp)
+
+    if (io.isInput) {
+      return BlockFileInfo(
+        blockCount!!,
+        fileSize!!,
+        firstBlockHeight!!,
+        lastBlockHeight!!,
+        firstBlockTimestamp!!,
+        lastBlockTimestamp!!
+      )
+    }
+    return null
+  }
 }
 
-object BlockInfoCodec : MessagePartCodec<BlockInfo>{
-  val codec : Codec<BlockInfo> {
-    ("height" | int64L) ::
-    ("chainWork" | int64L) ::
-    ("nextBlockHash" | optional(bool(8), HashCodec.codec)) ::
-    ("transactionCount" | int32L) ::
-    ("status" | int32L) ::
-    ("blockHeader" | BlockHeaderCodec.codec) ::
-    ("blockLocatorOption" | optional(bool(8), FileRecordLocatorCodec.codec) )
-  }.as<BlockInfo>
+object BlockInfoCodec : Codec<BlockInfo>{
+  val optionalHashCodec              = Codecs.optional(valueCodec = HashCodec)
+  val optionalFileRecordLocatorCodec = Codecs.optional(valueCodec = FileRecordLocatorCodec)
+  override fun transcode(io : CodecInputOutputStream, obj : BlockInfo? ) : BlockInfo? {
+    val height             = Codecs.Int64L.transcode(io, obj?.height)
+    val chainWork          = Codecs.Int64L.transcode(io, obj?.chainWork)
+    val nextBlockHash      = optionalHashCodec.transcode(io, obj?.nextBlockHash)
+    val transactionCount   = Codecs.Int32L.transcode(io, obj?.transactionCount)
+    val status             = Codecs.Int32L.transcode(io, obj?.status)
+    val blockHeader        = BlockHeaderCodec.transcode(io, obj?.blockHeader)
+    val blockLocatorOption = optionalFileRecordLocatorCodec.transcode(io, obj?.blockLocatorOption)
+
+    if (io.isInput) {
+      return BlockInfo(
+        height!!,
+        chainWork!!,
+        nextBlockHash!!,
+        transactionCount!!,
+        status!!,
+        blockHeader!!,
+        blockLocatorOption!!
+      )
+    }
+    return null
+  }
 }
 
-object FileNumberCodec : MessagePartCodec<FileNumber> {
-  val codec : Codec<FileNumber> {
-    ("file_number" | int32L)
-  }.as<FileNumber>
+object FileNumberCodec : Codec<FileNumber> {
+  override fun transcode(io : CodecInputOutputStream, obj : FileNumber? ) : FileNumber? {
+    val fileNumber = Codecs.Int32L.transcode(io, obj?.fileNumber)
+
+    if (io.isInput) {
+      return FileNumber(
+        fileNumber!!
+      )
+    }
+    return null
+  }
 }
 
 /** Writes only one byte, to test the case where a record file has a remaining space.
   */
-object OneByteCodec : MessagePartCodec<OneByte>{
-  val codec : Codec<OneByte> {
-    ("value" | byte)
-  }.as<OneByte>
+object OneByteCodec : Codec<OneByte>{
+  override fun transcode(io : CodecInputOutputStream, obj : OneByte? ) : OneByte? {
+    val value = Codecs.Byte.transcode(io, obj?.value)
+    if (io.isInput) {
+      return OneByte(
+        value!!
+      )
+    }
+    return null
+  }
 }
 
-object LongValueCodec : MessagePartCodec<LongValue>{
-  val codec : Codec<LongValue> {
-    ("value" | int64)
-  }.as<LongValue>
+
+object LongValueCodec : Codec<LongValue>{
+  override fun transcode(io : CodecInputOutputStream, obj : LongValue? ) : LongValue? {
+    val value = Codecs.Int64.transcode( io, obj?.value )
+    if (io.isInput) {
+      return LongValue(
+        value!!
+      )
+    }
+    return null
+  }
 }
 
 /** The codec for TransactionCount.
   *
   */
-object TransactionCountCodec : MessagePartCodec<TransactionCount> {
-  val codec : Codec<TransactionCount> {
-    ("transactionCount" | VarInt.countCodec )
-  }.as<TransactionCount>
+object TransactionCountCodec : Codec<TransactionCount> {
+  override fun transcode(io : CodecInputOutputStream, obj : TransactionCount? ) : TransactionCount? {
+    val count = Codecs.VariableInt.transcode( io, obj?.count )
+    if (io.isInput) {
+      return TransactionCount(
+        count!!
+      )
+    }
+    return null
+  }
 }
 
-object BlockHeightCodec : MessagePartCodec<BlockHeight> {
-  val codec : Codec<BlockHeight> {
-    ("blockHeight" | int64)
-  }.as<BlockHeight>
+object BlockHeightCodec : Codec<BlockHeight> {
+  override fun transcode(io : CodecInputOutputStream, obj : BlockHeight? ) : BlockHeight? {
+    val height = Codecs.Int64.transcode(io, obj?.height)
+    if (io.isInput) {
+      return BlockHeight(
+        height!!
+      )
+    }
+    return null
+  }
 }
 
-object TransactionDescriptorCodec : MessagePartCodec<TransactionDescriptor> {
-  val codec : Codec<TransactionDescriptor> {
-    ("transactionLocator" | FileRecordLocatorCodec.codec) ::
-    ("blockHeight"        | int64) ::
-    ("outputsSpentBy"     | VarList.varList( optional(bool(8), InPointCodec.codec) ))
-  }.as<TransactionDescriptor>
+internal val OptionalInPointListCodec =
+  Codecs.variableList(
+    valueCodec = Codecs.optional(valueCodec = InPointCodec)
+  )
+
+object TransactionDescriptorCodec : Codec<TransactionDescriptor> {
+  override fun transcode(io : CodecInputOutputStream, obj : TransactionDescriptor? ) : TransactionDescriptor? {
+    val transactionLocator = FileRecordLocatorCodec.transcode( io, obj?.transactionLocator )
+    val blockHeight        = Codecs.Int64.transcode( io, obj?.blockHeight )
+    val outputsSpentBy     = OptionalInPointListCodec.transcode( io, obj?.outputsSpentBy )
+
+    if (io.isInput) {
+      return TransactionDescriptor(
+        transactionLocator!!,
+        blockHeight!!,
+        outputsSpentBy!!
+      )
+    }
+    return null
+  }
 }
 
-object OrphanBlockDescriptorCodec : MessagePartCodec<OrphanBlockDescriptor> {
-  val codec : Codec<OrphanBlockDescriptor> {
-    ("block" | BlockCodec.codec)
-  }.as<OrphanBlockDescriptor>
+object OrphanBlockDescriptorCodec : Codec<OrphanBlockDescriptor> {
+  override fun transcode(io : CodecInputOutputStream, obj : OrphanBlockDescriptor? ) : OrphanBlockDescriptor? {
+    val block = BlockCodec.transcode(io, obj?.block)
+    if (io.isInput) {
+      return OrphanBlockDescriptor(
+        block!!
+      )
+    }
+    return null
+  }
 }
 
-object OrphanTransactionDescriptorCodec : MessagePartCodec<OrphanTransactionDescriptor> {
-  val codec : Codec<OrphanTransactionDescriptor> {
-    ("transaction" | TransactionCodec.codec )
-  }.as<OrphanTransactionDescriptor>
+object OrphanTransactionDescriptorCodec : Codec<OrphanTransactionDescriptor> {
+  override fun transcode(io : CodecInputOutputStream, obj : OrphanTransactionDescriptor? ) : OrphanTransactionDescriptor? {
+    val transaction = TransactionCodec.transcode(io, obj?.transaction)
+    if (io.isInput) {
+      return OrphanTransactionDescriptor(
+        transaction!!
+      )
+    }
+    return null
+  }
 }
 
-object TransactionPoolEntryCodec : MessagePartCodec<TransactionPoolEntry> {
-  val codec : Codec<TransactionPoolEntry> {
-    ("transaction" | TransactionCodec.codec ) ::
-    ("outputsSpentBy" | VarList.varList( optional(bool(8), InPointCodec.codec) )) ::
-    ("createdAt" | int64)
-  }.as<TransactionPoolEntry>
+object TransactionPoolEntryCodec : Codec<TransactionPoolEntry> {
+
+  override fun transcode(io : CodecInputOutputStream, obj : TransactionPoolEntry? ) : TransactionPoolEntry? {
+    val transaction    = TransactionCodec.transcode(io, obj?.transaction)
+    val outputsSpentBy = OptionalInPointListCodec.transcode(io, obj?.outputsSpentBy)
+    val createdAtNanos = Codecs.Int64.transcode(io, obj?.createdAtNanos)
+
+    if (io.isInput) {
+      return TransactionPoolEntry(
+        transaction!!,
+        outputsSpentBy!!,
+        createdAtNanos!!
+      )
+    }
+    return null
+  }
 }

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
+/*
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage}
 import io.scalechain.util.HexUtil
@@ -98,4 +99,4 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
   }
 }
 
-
+*/

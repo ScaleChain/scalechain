@@ -1,14 +1,10 @@
 package io.scalechain.blockchain.proto.codec
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.*
+import io.scalechain.blockchain.*
 
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive._
-import scodec.bits.{ByteVector, BitVector}
-import scodec.{DecodeResult, Attempt, Codec}
-import scodec.codecs._
-
+internal val HashListCodec = Codecs.variableList( HashCodec )
 
 /**
   * <Description>
@@ -46,21 +42,35 @@ import scodec.codecs._
   *  01 ................................. Relay flag: true
   */
 object VersionCodec : ProtocolMessageCodec<Version> {
-  val command = "version"
-  val clazz = classOf<Version>
+  override val command = "version"
+  override val clazz = Version::class.java
 
-  // TODO : Implement
-  val codec : Codec<Version> {
-    ("version"       | int32L                    ) ::
-    ("services"      | BigIntForLongCodec.codec   ) ::
-    ("timestamp"     | int64L                    ) ::
-    ("destAddress"   | NetworkAddressCodec.codec ) ::
-    ("sourceAddress" | NetworkAddressCodec.codec ) :: // version ≥ 106
-    ("nonce"         | BigIntForLongCodec.codec   ) :: // version ≥ 106
-    ("userAgent"     | VarStr.codec              ) :: // version ≥ 106
-    ("startHeight"   | int32L                    ) :: // version ≥ 106
-    ("relay"         | Bool.codec                )    // version ≥ 70001
-  }.as<Version>
+  override fun transcode(io : CodecInputOutputStream, obj : Version? ) : Version? {
+    val version       = Codecs.Int32L.transcode(io, obj?.version)
+    val services      = Codecs.UInt64L.transcode(io, obj?.services)
+    val timestamp     = Codecs.Int64L.transcode(io, obj?.timestamp)
+    val destAddress   = NetworkAddressCodec.transcode(io, obj?.destAddress)
+    val sourceAddress = NetworkAddressCodec.transcode(io, obj?.sourceAddress)
+    val nonce         = Codecs.UInt64L.transcode(io, obj?.nonce)
+    val userAgent     = Codecs.VariableString.transcode(io, obj?.userAgent)
+    val startHeight   = Codecs.Int32L.transcode(io, obj?.startHeight)
+    val relay         = Codecs.Boolean.transcode(io, obj?.relay)
+
+    if (io.isInput) {
+      return Version(
+          version!!,
+          services!!,
+          timestamp!!,
+          destAddress!!,
+          sourceAddress!!,
+          nonce!!,
+          userAgent!!,
+          startHeight!!,
+          relay!!
+      )
+    }
+    return null
+  }
 }
 
 
@@ -76,10 +86,13 @@ object VersionCodec : ProtocolMessageCodec<Version> {
   *  No payload.
   */
 object VerackCodec : ProtocolMessageCodec<Verack> {
-  val command = "verack"
-  val clazz = classOf<Verack>
+  override val command = "verack"
+  override val clazz = Verack::class.java
 
-  val codec : Codec<Verack> = provide(Verack())
+  private val codec = Codecs.provide(Verack())
+  override fun transcode(io : CodecInputOutputStream, obj : Verack? ) : Verack? {
+    return codec.transcode(io, obj)
+  }
 }
 
 
@@ -107,13 +120,52 @@ object VerackCodec : ProtocolMessageCodec<Verack> {
   *  <...> .............................. (999 more addresses omitted)
   */
 object AddrCodec : ProtocolMessageCodec<Addr> {
-  val command = "addr"
-  val clazz = classOf<Addr>
+  override val command = "addr"
+  override val clazz = Addr::class.java
 
-  val codec : Codec<Addr> {
-    ( "addresses" | VarList.varList(NetworkAddressWithTimestampCodec.codec) )
-  }.as<Addr>
+  private val networkAddressWithTimestampListCodec = Codecs.variableList(
+      NetworkAddressWithTimestampCodec
+  )
+
+  override fun transcode(io : CodecInputOutputStream, obj : Addr? ) : Addr? {
+    val addresses = networkAddressWithTimestampListCodec.transcode(io, obj?.addresses)
+
+    if (io.isInput) {
+      return Addr(
+        addresses!!
+      )
+    }
+    return null
+  }
 }
+
+internal val InvTypeCodec : Codec<InvType> =
+  Codecs.mappedEnum(Codecs.UInt32L,
+    mapOf(
+      InvType.ERROR to 0L,
+      InvType.MSG_TX to 1L,
+      InvType.MSG_BLOCK to 2L,
+      InvType.MSG_FILTERED_BLOCK to 3L
+    )
+  )
+
+internal object InvVectorCodec : Codec<InvVector> {
+  override fun transcode(io : CodecInputOutputStream, obj : InvVector? ) : InvVector? {
+    val invType = InvTypeCodec.transcode(io, obj?.invType)
+    val hash  = HashCodec.transcode(io, obj?.hash)
+
+    if (io.isInput) {
+      return InvVector(
+        invType!!,
+        hash!!
+      )
+    }
+    return null
+  }
+}
+
+internal val InvVectorListCodec : Codec<List<InvVector>> =
+    Codecs.variableList( InvVectorCodec )
 
 /**
   * <Description>
@@ -140,27 +192,19 @@ object AddrCodec : ProtocolMessageCodec<Addr> {
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
 object InvCodec : ProtocolMessageCodec<Inv> {
-  val command = "inv"
-  val clazz = classOf<Inv>
+  override val command = "inv"
+  override val clazz = Inv::class.java
 
-  import io.scalechain.blockchain.proto.InvType.InvType
+  override fun transcode(io : CodecInputOutputStream, obj : Inv? ) : Inv? {
+    val inventories = InvVectorListCodec.transcode(io, obj?.inventories)
 
-  val invTypeCodec : Codec<InvType> {
-    mappedEnum(uint32L,
-        InvType.ERROR -> 0L,
-        InvType.MSG_TX -> 1L,
-        InvType.MSG_BLOCK -> 2L,
-        InvType.MSG_FILTERED_BLOCK -> 3L )
-  }.as<InvType>
-
-  val invVectorCodec : Codec<InvVector> {
-    ("inventory_type" | invTypeCodec) ::
-    ("hash" | HashCodec.codec)
-  }.as<InvVector>
-
-  val codec : Codec<Inv> {
-    ( "inventories" | VarList.varList(invVectorCodec) )
-  }.as<Inv>
+    if (io.isInput) {
+      return Inv(
+        inventories!!
+      )
+    }
+    return null
+  }
 }
 
 /**
@@ -196,12 +240,24 @@ object InvCodec : ProtocolMessageCodec<Inv> {
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
 object GetDataCodec : ProtocolMessageCodec<GetData> {
-  val command = "getdata"
-  val clazz = classOf<GetData>
+  override val command = "getdata"
+  override val clazz = GetData::class.java
 
+  override fun transcode(io : CodecInputOutputStream, obj : GetData? ) : GetData? {
+    val inventories = InvVectorListCodec.transcode(io, obj?.inventories)
+
+    if (io.isInput) {
+      return GetData(
+          inventories!!
+      )
+    }
+    return null
+  }
+/*
   val codec : Codec<GetData> {
     ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
   }.as<GetData>
+*/
 }
 
 /**
@@ -232,13 +288,25 @@ object GetDataCodec : ProtocolMessageCodec<GetData> {
   *  a055aaf1d872e94ae85e9817b2c68dc7 ... Hash (TXID)
   */
 object NotFoundCodec : ProtocolMessageCodec<NotFound> {
-  val command = "notfound"
-  val clazz = classOf<NotFound>
+  override val command = "notfound"
+  override val clazz = NotFound::class.java
 
+  override fun transcode(io : CodecInputOutputStream, obj : NotFound? ) : NotFound? {
+    val inventories = InvVectorListCodec.transcode(io, obj?.inventories)
+
+    if (io.isInput) {
+      return NotFound(
+          inventories!!
+      )
+    }
+    return null
+  }
+
+/*
   val codec : Codec<NotFound> {
     ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
   }.as<NotFound>
-
+*/
 }
 
 
@@ -266,14 +334,23 @@ object NotFoundCodec : ProtocolMessageCodec<NotFound> {
   *  00000000000000000000000000000000 ... Stop hash
   */
 object GetBlocksCodec : ProtocolMessageCodec<GetBlocks> {
-  val command = "getblocks"
-  val clazz = classOf<GetBlocks>
+  override val command = "getblocks"
+  override val clazz = GetBlocks::class.java
 
-  val codec : Codec<GetBlocks> {
-    ("version"              | uint32L                         ) ::
-    ("block_locator_hashes" | VarList.varList(HashCodec.codec)) ::
-    ("hash_stop"            | HashCodec.codec                 )
-  }.as<GetBlocks>
+  override fun transcode(io : CodecInputOutputStream, obj : GetBlocks? ) : GetBlocks? {
+    val version            = Codecs.UInt32L.transcode(io, obj?.version)
+    val blockLocatorHashes = HashListCodec.transcode(io, obj?.blockLocatorHashes)
+    val hashStop           = HashCodec.transcode(io, obj?.hashStop)
+
+    if (io.isInput) {
+      return GetBlocks(
+        version!!,
+        blockLocatorHashes!!,
+        hashStop!!
+      )
+    }
+    return null
+  }
 }
 
 /**
@@ -300,13 +377,22 @@ object GetBlocksCodec : ProtocolMessageCodec<GetBlocks> {
   *  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Raw transactions ( See TransactionCodec )
   */
 object BlockCodec : ProtocolMessageCodec<Block> {
-  val command = "block"
-  val clazz = classOf<Block>
+  override val command = "block"
+  override val clazz = Block::class.java
 
-  val codec : Codec<Block> {
-    ("blockcheader"          | BlockHeaderCodec.codec                 ) ::
-    ("transactions"          | VarList.varList(TransactionCodec.codec))
-  }.as<Block>
+  private val TransactionListCodec = Codecs.variableList( TransactionCodec )
+  override fun transcode(io : CodecInputOutputStream, obj : Block? ) : Block? {
+    val header = BlockHeaderCodec.transcode(io, obj?.header)
+    val transactions = TransactionListCodec.transcode(io, obj?.transactions)
+
+    if (io.isInput) {
+      return Block(
+        header!!,
+        transactions!!
+      )
+    }
+    return null
+  }
 }
 
 /**
@@ -343,14 +429,23 @@ object BlockCodec : ProtocolMessageCodec<Block> {
   *  00000000000000000000000000000000 ... Stop hash
   */
 object GetHeadersCodec : ProtocolMessageCodec<GetHeaders> {
-  val command = "getheaders"
-  val clazz = classOf<GetHeaders>
+  override val command = "getheaders"
+  override val clazz = GetHeaders::class.java
 
-  val codec : Codec<GetHeaders> {
-    ("version"              | uint32L                         ) ::
-    ("block_locator_hashes" | VarList.varList(HashCodec.codec)) ::
-    ("hash_stop"            | HashCodec.codec                 )
-  }.as<GetHeaders>
+  override fun transcode(io : CodecInputOutputStream, obj : GetHeaders? ) : GetHeaders? {
+    val version            = Codecs.UInt32L.transcode(io, obj?.version)
+    val blockLocatorHashes = HashListCodec.transcode(io, obj?.blockLocatorHashes)
+    val hashStop           = HashCodec.transcode(io, obj?.hashStop)
+
+    if (io.isInput) {
+      return GetHeaders(
+        version!!,
+        blockLocatorHashes!!,
+        hashStop!!
+      )
+    }
+    return null
+  }
 }
 
 
@@ -400,17 +495,32 @@ object GetHeadersCodec : ProtocolMessageCodec<GetHeaders> {
   *
   */
 object TransactionCodec : ProtocolMessageCodec<Transaction> {
-  val command = "tx"
-  val clazz = classOf<Transaction>
+  override val command = "tx"
+  override val clazz = Transaction::class.java
 
-  val codec : Codec<Transaction> {
-    ("version"             | int32L                                        ) ::
-    ("inputs"  | VarList.varList(TransactionInputCodec.codec ) ) ::
-    ("outputs" | VarList.varList(TransactionOutputCodec.codec) ) ::
-    ("lock_time"           | uint32L                                       )
-  }.as<Transaction>
+  private val TransactionInputListCodec = Codecs.variableList( TransactionInputCodec )
+  private val TransactionOutputListCodec = Codecs.variableList( TransactionOutputCodec )
+
+  override fun transcode(io : CodecInputOutputStream, obj : Transaction? ) : Transaction? {
+    val version  = Codecs.Int32L.transcode(io, obj?.version)
+    val inputs   = TransactionInputListCodec.transcode(io, obj?.inputs)
+    val outputs  = TransactionOutputListCodec.transcode(io, obj?.outputs)
+    val lockTime = Codecs.UInt32L.transcode(io, obj?.lockTime)
+
+    if (io.isInput) {
+      return Transaction(
+        version!!,
+        inputs!!,
+        outputs!!,
+        lockTime!!
+      )
+    }
+    return null
+  }
 }
 
+internal val BlockHeaderListCodec : Codec<List<BlockHeader>> =
+  Codecs.variableList(BlockHeaderCodec)
 /**
   * <Description>
   * The headers message sends one or more block headers to a node
@@ -438,9 +548,21 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
   *  00 ................................. Transaction count (0x00)
   */
 object HeadersCodec : ProtocolMessageCodec<Headers> {
-  val command = "headers"
-  val clazz = classOf<Headers>
+  override val command = "headers"
+  override val clazz = Headers::class.java
 
+  override fun transcode(io : CodecInputOutputStream, obj : Headers? ) : Headers? {
+    val headers = BlockHeaderListCodec.transcode(io, obj?.headers)
+
+    if (io.isInput) {
+      return Headers(
+          headers!!
+      )
+    }
+    return null
+  }
+
+/*
   val ZERO = Array<Byte>(0)
 
   data class BlockHeaderWithDummy (
@@ -459,6 +581,7 @@ object HeadersCodec : ProtocolMessageCodec<Headers> {
   val codec : Codec<Headers> {
     ("headers" | VarList.varList(blockHeaderCoodec))
   }.as<Headers>
+*/
 }
 
 /**
@@ -477,10 +600,13 @@ object HeadersCodec : ProtocolMessageCodec<Headers> {
   *  No Payload.
   */
 object GetAddrCodec : ProtocolMessageCodec<GetAddr> {
-  val command = "getaddr"
-  val clazz = classOf<GetAddr>
+  override val command = "getaddr"
+  override val clazz = GetAddr::class.java
 
-  val codec : Codec<GetAddr> = provide(GetAddr())
+  private val codec = Codecs.provide(GetAddr())
+  override fun transcode(io : CodecInputOutputStream, obj : GetAddr? ) : GetAddr? {
+    return codec.transcode(io, obj)
+  }
 }
 
 /**
@@ -512,10 +638,13 @@ object GetAddrCodec : ProtocolMessageCodec<GetAddr> {
   * No payload.
   */
 object MempoolCodec : ProtocolMessageCodec<Mempool> {
-  val command = "mempool"
-  val clazz = classOf<Mempool>
+  override val command = "mempool"
+  override val clazz = Mempool::class.java
 
-  val codec : Codec<Mempool> = provide(Mempool())
+  private val codec = Codecs.provide(Mempool())
+  override fun transcode(io : CodecInputOutputStream, obj : Mempool? ) : Mempool? {
+    return codec.transcode(io, obj)
+  }
 }
 
 
@@ -537,12 +666,19 @@ object MempoolCodec : ProtocolMessageCodec<Mempool> {
   *  0094102111e2af4d ... Nonce
   */
 object PingCodec : ProtocolMessageCodec<Ping> {
-  val command = "ping"
-  val clazz = classOf<Ping>
+  override val command = "ping"
+  override val clazz = Ping::class.java
 
-  val codec : Codec<Ping> {
-    ( "nonce" | BigIntForLongCodec.codec )
-  }.as<Ping>
+  override fun transcode(io : CodecInputOutputStream, obj : Ping? ) : Ping? {
+    val nonce = Codecs.UInt64L.transcode(io, obj?.nonce)
+
+    if (io.isInput) {
+      return Ping(
+        nonce!!
+      )
+    }
+    return null
+  }
 }
 
 /**
@@ -565,13 +701,34 @@ object PingCodec : ProtocolMessageCodec<Ping> {
   *  0094102111e2af4d ... Nonce
   */
 object PongCodec : ProtocolMessageCodec<Pong> {
-  val command = "pong"
-  val clazz = classOf<Pong>
+  override val command = "pong"
+  override val clazz = Pong::class.java
 
-  val codec : Codec<Pong> {
-    ( "nonce" | BigIntForLongCodec.codec )
-  }.as<Pong>
+  override fun transcode(io : CodecInputOutputStream, obj : Pong? ) : Pong? {
+    val nonce = Codecs.UInt64L.transcode(io, obj?.nonce)
+
+    if (io.isInput) {
+      return Pong(
+        nonce!!
+      )
+    }
+    return null
+  }
 }
+
+internal val RejectTypeCodec : Codec<RejectType> =
+  Codecs.mappedEnum(Codecs.Byte, // BUGBUG : Codec type changed UInt8 to Byte
+    mapOf(
+      RejectType.REJECT_MALFORMED to 0x01.toByte(),
+      RejectType.REJECT_INVALID to 0x10.toByte(),
+      RejectType.REJECT_OBSOLETE to 0x11.toByte(),
+      RejectType.REJECT_DUPLICATE to 0x12.toByte(),
+      RejectType.REJECT_NONSTANDARD to 0x40.toByte(),
+      RejectType.REJECT_DUST to 0x41.toByte(),
+      RejectType.REJECT_INSUFFICIENTFEE to 0x42.toByte(),
+      RejectType.REJECT_CHECKPOINT to 0x43.toByte()
+    )
+  )
 
 /**
   * <Description>
@@ -594,31 +751,29 @@ object PongCodec : ProtocolMessageCodec<Pong> {
   *  947baf86a31017939575fb2354222821 ... TXID
   */
 object RejectCodec : ProtocolMessageCodec<Reject> {
-  val command = "reject"
-  val clazz = classOf<Reject>
+  override val command = "reject"
+  override val clazz = Reject::class.java
 
-  import io.scalechain.blockchain.proto.RejectType.RejectType
+  private val DataCodec = Codecs.fixedByteBuf(32)
 
-  val rejectTypeCodec : Codec<RejectType> {
-    mappedEnum(uint8,
-      RejectType.REJECT_MALFORMED -> 0x01,
-      RejectType.REJECT_INVALID -> 0x10,
-      RejectType.REJECT_OBSOLETE -> 0x11,
-      RejectType.REJECT_DUPLICATE -> 0x12,
-      RejectType.REJECT_NONSTANDARD -> 0x40,
-      RejectType.REJECT_DUST -> 0x41,
-      RejectType.REJECT_INSUFFICIENTFEE -> 0x42,
-      RejectType.REJECT_CHECKPOINT -> 0x43
-    )
-  }.as<RejectType>
+  override fun transcode(io : CodecInputOutputStream, obj : Reject? ) : Reject? {
+    val message = Codecs.VariableString.transcode(io, obj?.message)
+    val rejectType = RejectTypeCodec.transcode(io, obj?.rejectType)
+    val reason = Codecs.VariableString.transcode(io, obj?.reason)
+    val data = DataCodec.transcode(io, obj?.data)
 
-  val codec : Codec<Reject> {
-    ("message" | VarStr.codec ) ::
-    ("rejectType" | rejectTypeCodec) ::
-    ("reason" | VarStr.codec ) ::
-    ("data" | FixedByteArray.codec())
-  }.as<Reject>
+    if (io.isInput) {
+      return Reject(
+        message!!,
+        rejectType!!,
+        reason!!,
+        data!!
+      )
+    }
+    return null
+  }
 }
+
 
 /**
   * <Description>
@@ -642,12 +797,15 @@ object RejectCodec : ProtocolMessageCodec<Reject> {
   *  00 ......... nFlags: BLOOM_UPDATE_NONE
   */
 object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
-  val command = "filterload"
-  val clazz = classOf<FilterLoad>
+  override val command = "filterload"
+  override val clazz = FilterLoad::class.java
 
   // TODO : Implement
-  val codec : Codec<FilterLoad> = null
+  override fun transcode(io : CodecInputOutputStream, obj : FilterLoad? ) : FilterLoad? {
+    throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
+  }
 }
+
 
 /**
   * <Description>
@@ -670,11 +828,13 @@ object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
   *
   */
 object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
-  val command = "filteradd"
-  val clazz = classOf<FilterAdd>
+  override val command = "filteradd"
+  override val clazz = FilterAdd::class.java
 
   // TODO : Implement
-  val codec : Codec<FilterAdd> = null
+  override fun transcode(io : CodecInputOutputStream, obj : FilterAdd? ) : FilterAdd? {
+    throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
+  }
 }
 
 /**
@@ -692,10 +852,13 @@ object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
   * No Payload.
   */
 object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
-  val command = "filterclear"
-  val clazz = classOf<FilterClear>
+  override val command = "filterclear"
+  override val clazz = FilterClear::class.java
 
-  val codec : Codec<FilterClear> = provide(FilterClear())
+  private val Codec = Codecs.provide(FilterClear())
+  override fun transcode(io : CodecInputOutputStream, obj : FilterClear? ) : FilterClear? {
+    return Codec.transcode(io, obj)
+  }
 }
 
 /**
@@ -748,11 +911,13 @@ object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
   *
   */
 object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
-  val command = "merkleblock"
-  val clazz = classOf<MerkleBlock>
+  override val command = "merkleblock"
+  override val clazz = MerkleBlock::class.java
 
   // TODO : Implement
-  val codec : Codec<MerkleBlock> = null
+  override fun transcode(io : CodecInputOutputStream, obj : MerkleBlock? ) : MerkleBlock? {
+    throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
+  }
 }
 
 /**
@@ -800,11 +965,13 @@ object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
   *
   */
 object AlertCodec : ProtocolMessageCodec<Alert> {
-  val command = "alert"
-  val clazz = classOf<Alert>
+  override val command = "alert"
+  override val clazz = Alert::class.java
 
   // TODO : Implement
-  val codec : Codec<Alert> = null
+  override fun transcode(io : CodecInputOutputStream, obj : Alert? ) : Alert? {
+    throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
+  }
 }
 
 /**
@@ -819,9 +986,12 @@ object AlertCodec : ProtocolMessageCodec<Alert> {
   *  No payload.
   */
 object SendHeadersCodec : ProtocolMessageCodec<SendHeaders> {
-  val command = "sendheaders"
-  val clazz = classOf<SendHeaders>
+  override val command = "sendheaders"
+  override val clazz = SendHeaders::class.java
 
-  val codec : Codec<SendHeaders> = provide(SendHeaders())
+  private val Codec = Codecs.provide(SendHeaders())
+  override fun transcode(io : CodecInputOutputStream, obj : SendHeaders? ) : SendHeaders? {
+    return Codec.transcode(io, obj)
+  }
 }
 

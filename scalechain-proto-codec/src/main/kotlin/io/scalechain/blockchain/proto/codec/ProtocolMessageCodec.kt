@@ -1,21 +1,20 @@
 package io.scalechain.blockchain.proto.codec
 
+import io.netty.buffer.ByteBuf
 import java.nio.charset.StandardCharsets
 
 
 import java.io.EOFException
 
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto._
-import scodec.bits.BitVector
-import scodec.codecs._
-import scodec.{DecodeResult, Attempt, Codec}
-
+import io.scalechain.blockchain.*
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.io.InputOutputStream
 
 /** Write/read a protocol message to/from a byte array stream.
   *
   * Source : https://en.bitcoin.it/wiki/Protocol_documentation
   */
+/*
 trait ProtocolMessageCodec<T <: ProtocolMessage> : MessagePartCodec<T> {
 
   val command : String
@@ -27,13 +26,15 @@ trait ProtocolMessageCodec<T <: ProtocolMessage> : MessagePartCodec<T> {
     codec.encode(castedMessage)
   }
 }
+*/
 
-trait NetworkProtocol {
+
+interface NetworkProtocol {
   fun getCommand(message : ProtocolMessage) : String
-  // BUGBUG : USe netty's byte array instead of BitVector of scodec.
-  fun encode(message : ProtocolMessage) : BitVector
-  // BUGBUG : USe netty's byte array instead of BitVector of scodec.
-  fun decode(command:String, bitVector:BitVector) : ProtocolMessage
+  // BUGBUG : Interface change  encode(message : ProtocolMessage) : ByteBuf -> encode(writeBuf : ByteBuf, message : ProtocolMessage)
+  fun encode(writeBuf : ByteBuf, message : ProtocolMessage)
+  // BUGBUG : Interface change  decode(command:String, byteBuf:ByteBuf) : ProtocolMessage -> decode(readBuf: ByteBuf, command:String) : ProtocolMessage
+  fun decode(readBuf: ByteBuf, command:String) : ProtocolMessage
 }
 
 
@@ -48,7 +49,7 @@ trait NetworkProtocol {
   * Just add a data class for the message and add an entry on codecs array of ProtocolMessageCodecs class.
   */
 class BitcoinProtocol : NetworkProtocol {
-  val codecs = Seq(
+  val codecs = listOf(
     VersionCodec,
     VerackCodec,
     AddrCodec,
@@ -71,41 +72,23 @@ class BitcoinProtocol : NetworkProtocol {
     MerkleBlockCodec,
     AlertCodec )
 
-  val codecMapByCommand = (codecs.map(_.command) zip codecs).toMap
-  val codecMapByClass   = (codecs.map(_.clazz) zip codecs).toMap<Class<_ <:ProtocolMessage>, ProtocolMessageCodec<_ <: ProtocolMessage>>
+  val codecMapByCommand = (codecs.map{it.command} zip codecs).toMap()
+  val codecMapByClass   = (codecs.map{it.clazz} zip codecs).toMap()
 
-  fun getCommand(message : ProtocolMessage) : String {
-    val codec = codecMapByClass(message.getClass)
-    codec.command
+  override fun getCommand(message : ProtocolMessage) : String {
+    val codec = codecMapByClass[message.javaClass]
+    return codec!!.command
   }
 
-  fun encode(message : ProtocolMessage) : BitVector {
-    val codec = codecMapByClass(message.getClass)
+  override fun encode(writeBuf : ByteBuf, message : ProtocolMessage) {
+    val codec = codecMapByClass[message.javaClass]
 
-    codec.encode(message) match {
-      case Attempt.Successful(bitVector) => {
-        bitVector
-      }
-      case Attempt.Failure(err) => {
-        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
-      }
-    }
+    codec!!.transcode(CodecInputOutputStream(writeBuf, isInput = false), message)
   }
 
-  fun decode(command:String, bitVector: BitVector) : ProtocolMessage {
-    val codec = codecMapByCommand(command).codec
-    val message = codec.decode(bitVector) match {
-      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
-        if ( remainder.isEmpty ) {
-          decoded
-        } else {
-          throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
-        }
-      }
-      case Attempt.Failure(err) => {
-        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
-      }
-    }
-    message
+  override fun decode(readBuf: ByteBuf, command:String) : ProtocolMessage {
+    val codec = codecMapByCommand[command]
+    val message = codec!!.transcode(CodecInputOutputStream(readBuf, isInput = true), null)
+    return message!!
   }
 }

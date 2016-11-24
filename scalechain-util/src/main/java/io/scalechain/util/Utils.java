@@ -38,7 +38,7 @@ public class Utils {
         return new BigInteger(1, bytes);
     }
 
-
+/*
     public static long readUint32(InputStream stream) throws IOException {
         return (stream.read() & 0xFFL) |
                 ((stream.read() & 0xFFL) << 8) |
@@ -56,7 +56,6 @@ public class Utils {
                 ((stream.read() & 0xFFL) << 48) |
                 ((stream.read() & 0xFFL) << 56);
     }
-
     public static void uint32ToByteStreamLE(long val, OutputStream stream) throws IOException {
         stream.write((int) (0xFF & val));
         stream.write((int) (0xFF & (val >> 8)));
@@ -74,12 +73,14 @@ public class Utils {
         stream.write((int) (0xFF & (val >> 48)));
         stream.write((int) (0xFF & (val >> 56)));
     }
+*/
 
     /**
      * Returns the minimum encoded size of the given unsigned long value.
      *
      * @param value the unsigned long value (beware widening conversion of negatives!)
      */
+    /*
     public static int sizeOf(long value) {
         // if negative, it's actually a very large unsigned long value
         if (value < 0) return 9; // 1 marker + 8 data bytes
@@ -88,7 +89,7 @@ public class Utils {
         if (value <= 0xFFFFFFFFL) return 5; // 1 marker + 4 data bytes
         return 9; // 1 marker + 8 data bytes
     }
-
+*/
 
     public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)

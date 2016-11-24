@@ -4,6 +4,7 @@ import java.io.*
 
 import io.scalechain.util.Utils
 
+/*
 /**
  * Created by kangmo on 11/15/15.
  */
@@ -49,27 +50,6 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
 
      */
 
-    /** Write a long value as a variable integer format on the stream.
-     * @param value The long value to write.
-     */
-    fun writeVarInt(value : Long) {
-        when (Utils.sizeOf(value)) {
-            1 -> writeByte((value and 0xFF).toByte().toInt())
-            3 -> {
-                writeByte(253)
-                writeByte((value and 0xFF).toByte().toInt())
-                writeByte(((value shr 8) and 0xFF).toByte().toInt())
-            }
-            5 -> {
-                writeByte(254)
-                Utils.uint32ToByteStreamLE(value, this)
-            }
-            else -> {
-                writeByte(255)
-                Utils.int64ToByteStreamLE(value, this)
-            }
-        }
-    }
 
     /** Write a byte array.
      * @param bytes The byte array to write.
@@ -80,3 +60,4 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
     }
 
 }
+*/

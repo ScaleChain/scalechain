@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto
 
+import io.netty.buffer.ByteBuf
 import io.scalechain.util.*
 
 /** A hash data class that can represent transaction hash or block hash.
@@ -7,16 +8,16 @@ import io.scalechain.util.*
   *
   * @param value
   */
-data class Hash(val value : Bytes) : ProtocolMessage, Comparable<Hash> {
+data class Hash(val value : ByteBuf) : Transcodable, Comparable<Hash> {
     init {
-        assert(value.size > 0)
+        assert(value.capacity() > 0)
     }
 
     fun isAllZero() : Boolean {
 
         var i = 0
-        val valueLength = value.size
-        while (i < valueLength && value[i] == 0.toByte()) {
+        val valueLength = value.capacity()
+        while (i < valueLength && value.getByte(i) == 0.toByte()) {
             i += 1
         }
         return i == valueLength
@@ -28,15 +29,16 @@ data class Hash(val value : Bytes) : ProtocolMessage, Comparable<Hash> {
 
 
     override operator fun compareTo(other : Hash): Int {
-        val value1 = Utils.bytesToBigInteger(this.value.array)
-        val value2 = Utils.bytesToBigInteger(other.value.array)
+        val value1 = Utils.bytesToBigInteger(this.value.array())
+        val value2 = Utils.bytesToBigInteger(other.value.array())
 
         return value1.compareTo(value2)
     }
 
     companion object {
-        //                         0123456789012345678901234567890123456789012345678901234567890123
-        val ALL_ZERO = Hash(Bytes("0000000000000000000000000000000000000000000000000000000000000000"))
+
+        //                                   0123456789012345678901234567890123456789012345678901234567890123
+        val ALL_ZERO = Hash(ByteBufExt.from("0000000000000000000000000000000000000000000000000000000000000000"))
 
     }
 }
@@ -57,7 +59,7 @@ object HashFormat {
 }
 */
 
-data class BlockHeader(val version : Int, val hashPrevBlock : Hash, val hashMerkleRoot : Hash, val timestamp : Long, val target : Long, val nonce : Long) : ProtocolMessage {
+data class BlockHeader(val version : Int, val hashPrevBlock : Hash, val hashMerkleRoot : Hash, val timestamp : Long, val target : Long, val nonce : Long) : Transcodable {
     override fun toString() : String =
         "BlockHeader(version=$version, hashPrevBlock=$hashPrevBlock, hashMerkleRoot=$hashMerkleRoot, timestamp=${timestamp}L, target=${target}L, nonce=${nonce}L)"
 
@@ -92,11 +94,11 @@ data class BlockHeader(val version : Int, val hashPrevBlock : Hash, val hashMerk
     }
 }
 
-data class CoinbaseData(val data: Bytes) : ProtocolMessage {
+data class CoinbaseData(val data: ByteBuf) : Transcodable {
     override fun toString() : String = "CoinbaseData($data)"
 }
 
-interface TransactionInput : ProtocolMessage {
+interface TransactionInput : Transcodable {
     val outputTransactionHash : Hash
     val outputIndex : Long
 
@@ -105,8 +107,17 @@ interface TransactionInput : ProtocolMessage {
         outputIndex.toInt()
     )
 
-    fun isCoinBaseInput() {
-        outputTransactionHash.isAllZero()
+    /** See if the transaction input data represents the generation transaction input.
+     *
+     * Generation transaction's UTXO hash has all bits set to zero,
+     * and its UTXO index has all bits set to one.
+     *
+     * @return true if the give transaction input is the generation transaction. false otherwise.
+     */
+    fun isCoinBaseInput() : Boolean {
+        // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
+        //println(s"${txInput.outputIndex}")
+        return outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
     }
 }
 
@@ -128,13 +139,13 @@ data class GenerationTransactionInput(override val outputTransactionHash : Hash,
         "GenerationTransactionInput(outputTransactionHash=$outputTransactionHash, outputIndex=${outputIndex}L, coinbaseData=$coinbaseData, sequenceNumber= ${sequenceNumber}L)"
 }
 
-interface Script : ProtocolMessage
+interface Script : Transcodable
 {
-    val data : Bytes
+    val data : ByteBuf
 
     // BUGBUG : Changed Interface, name : from length to size
-    fun size() = data.size
-    operator fun get(i:Int) = data.get(i)
+    fun size() = data.capacity()
+    operator fun get(i:Int) = data.getByte(i)
 }
 
 interface LockingScriptPrinter {
@@ -145,12 +156,12 @@ interface LockingScriptPrinter {
     }
 }
 
-data class LockingScript(override val data : Bytes) : Script {
+data class LockingScript(override val data : ByteBuf) : Script {
     override fun toString() : String {
         if (LockingScriptPrinter.printer != null)
             return LockingScriptPrinter.printer!!.toString(this)
         else
-            return "LockingScript($data)"
+            return "LockingScript(${data.kotlinHex()})"
     }
 }
 
@@ -162,16 +173,16 @@ interface UnlockingScriptPrinter {
     }
 }
 
-data class UnlockingScript(override val data: Bytes) : Script {
+data class UnlockingScript(override val data: ByteBuf) : Script {
   override fun toString(): String {
     if (UnlockingScriptPrinter.printer != null)
         return UnlockingScriptPrinter.printer!!.toString(this)
     else
-        return "UnlockingScript($data)"
+        return "UnlockingScript(${data.kotlinHex()})"
   }
 }
 
-data class TransactionOutput(val value : Long, val lockingScript : LockingScript) : ProtocolMessage {
+data class TransactionOutput(val value : Long, val lockingScript : LockingScript) : Transcodable {
     override fun toString() : String =
         "TransactionOutput(value=${value}L, lockingScript=$lockingScript)"
 }
@@ -219,19 +230,19 @@ data class Block(val header:BlockHeader,
   * The original client only supported IPv4 and only read the last 4 bytes to get the IPv4 address.
   * However, the IPv4 address is written into the message as a 16 byte IPv4-mapped IPv6 address
   */
-data class IPv6Address(val address : Bytes) : ProtocolMessage {
+data class IPv6Address(val address : ByteBuf) : Transcodable {
   override fun toString() : String = "IPv6Address($address)"
 
-  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reversed().toByteArray())
+  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array().reversed().toByteArray())
 }
 
 // TODO : Add a comment
 // BUGBUG : Changed interface, scala.math.BigInt -> java.math.BigInteger
-data class NetworkAddress(val services:java.math.BigInteger, val ipv6:IPv6Address, val port:Int) : ProtocolMessage {
+data class NetworkAddress(val services:java.math.BigInteger, val ipv6:IPv6Address, val port:Int) : Transcodable {
     override fun toString() : String = "NetworkAddress(${BigIntUtil.bint(services)}, $ipv6, $port)"
 }
 // TODO : Add a comment
-data class NetworkAddressWithTimestamp(val timestamp:Long, val address:NetworkAddress) : ProtocolMessage {
+data class NetworkAddressWithTimestamp(val timestamp:Long, val address:NetworkAddress) : Transcodable {
     override fun toString() : String = "NetworkAddressWithTimestamp(${timestamp}L, $address)"
 }
 

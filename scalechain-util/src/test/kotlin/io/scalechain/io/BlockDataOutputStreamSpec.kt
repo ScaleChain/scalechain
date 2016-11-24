@@ -1,5 +1,5 @@
 package io.scalechain.util
-
+/*
 import java.math.BigInteger
 import java.security.SecureRandom
 
@@ -105,3 +105,4 @@ class BlockDataOutputStreamSpec : FlatSpec(), Matchers {
 
     }
 }
+*/

@@ -4,6 +4,7 @@ import java.io.*
 
 import io.scalechain.util.Utils
 
+/*
 /**
  * Created by kangmo on 11/2/15.
  */
@@ -82,3 +83,4 @@ class BlockDataInputStream(private val stream : InputStream) : DataInputStream(s
         read(bytes)
     }
 }
+*/

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto
 
+import io.netty.buffer.ByteBuf
 import io.scalechain.util.*
 import java.math.BigInteger
 
@@ -175,7 +176,7 @@ enum class RejectType {
 data class Reject(val message:String,
                   val rejectType:RejectType,
                   val reason : String,
-                  val data : ByteArray ) : ProtocolMessage {
+                  val data : ByteBuf) : ProtocolMessage {
   override fun toString() = """Reject(\"${message}\", $rejectType, \"${reason}\", $data)"""
 }
 

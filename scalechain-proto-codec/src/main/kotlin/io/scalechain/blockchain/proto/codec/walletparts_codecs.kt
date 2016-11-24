@@ -2,68 +2,135 @@ package io.scalechain.blockchain.proto.codec
 
 import java.math.BigInteger
 
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive.{VarList, FixedByteArray}
-import scodec.Codec
-import scodec.codecs._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.*
 
 
 
-object AccountCodec : MessagePartCodec<Account> {
-  val codec : Codec<Account> {
+object AccountCodec : Codec<Account> {
+  override fun transcode(io : CodecInputOutputStream, obj : Account? ) : Account? {
     // As the account is used as a key in KeyValueDatabase,
     // we should not use codecs such as utf8_32 which prefixes the encoded data with the length of the data.
     // If any length of data is encoded, we can't compare string values on a KeyValueDatabase.
+
+    val name = .transcode(io, obj.?)
+
+    if (io.isInput) {
+      return Account(
+          name
+      )
+    }
+    return null
+  }
+/*
+  val codec : Codec<Account> {
     ("name" | utf8 )
   }.as<Account>
+*/
 }
 
 
-object OutPointCodec : MessagePartCodec<OutPoint> {
-  val codec : Codec<OutPoint> {
+object OutPointCodec : Codec<OutPoint> {
+  override fun transcode(io : CodecInputOutputStream, obj : OutPoint? ) : OutPoint? {
     // Note that we are not using the reverseCodec here.
     // OutPointCodec is for writing keys and values on the wallet database, not for communicating with peers.
-    ("transactionHash" | HashCodec.codec ) ::
-    ("outputIndex" | int32L)
-  }.as<OutPoint>
+    val transactionHash = HashCodec.transcode(io, obj?.transactionHash)
+    val outputIndex = Codecs.Int32L.transcode(io, obj?.outputIndex)
+
+    if (io.isInput) {
+      return OutPoint(
+        transactionHash!!,
+        outputIndex!!
+      )
+    }
+    return null
+  }
 }
 
-object InPointCodec : MessagePartCodec<InPoint> {
-  val codec : Codec<InPoint> {
+object InPointCodec : Codec<InPoint> {
+  override fun transcode(io : CodecInputOutputStream, obj : InPoint? ) : InPoint? {
     // Note that we are not using the reverseCodec here.
     // InPointCodec is for writing keys and values on the wallet database, not for communicating with peers.
-    ("transactionHash" | HashCodec.codec ) ::
-    ("inputIndex" | int32L)
-  }.as<InPoint>
+    val transactionHash = HashCodec.transcode(io, obj?.transactionHash)
+    val inputIndex      = Codecs.Int32L.transcode(io, obj?.inputIndex)
+
+    if (io.isInput) {
+      return InPoint(
+        transactionHash!!,
+        inputIndex!!
+      )
+    }
+    return null
+  }
 }
 
 
-object WalletTransactionCodec : MessagePartCodec<WalletTransaction> {
-  val codec: Codec<WalletTransaction> {
-    ("blockHash"         | optional(bool(8), HashCodec.codec) ) ::
-    ("blockIndex"        | optional(bool(8), int64) ) ::
-    ("blockTime"         | optional(bool(8), int64) ) ::
-    ("transactionId"     | optional(bool(8), HashCodec.codec) ) ::
-    ("addedTime"         | int64 ) ::
-    ("transactionIndex"  | optional(bool(8), int32) ) ::
-    ("transaction"       | TransactionCodec.codec )
-  }.as<WalletTransaction>
+object WalletTransactionCodec : Codec<WalletTransaction> {
+  private val OptionalHashCodec  = Codecs.optional(HashCodec)
+  private val OptionalInt64Codec = Codecs.optional(Codecs.Int64)
+  private val OptionalInt32Codec = Codecs.optional(Codecs.Int32)
+
+  override fun transcode(io : CodecInputOutputStream, obj : WalletTransaction? ) : WalletTransaction? {
+    val blockHash = OptionalHashCodec.transcode(io, obj?.blockHash)
+    val blockIndex = OptionalInt64Codec.transcode(io, obj?.blockIndex)
+    val blockTime = OptionalInt64Codec.transcode(io, obj?.blockTime)
+    val transactionId = OptionalHashCodec.transcode(io, obj?.transactionId)
+    val addedTime = Codecs.Int64.transcode(io, obj?.addedTime)
+    val transactionIndex = OptionalInt32Codec.transcode(io, obj?.transactionIndex)
+    val transaction = TransactionCodec.transcode(io, obj?.transaction)
+
+    if (io.isInput) {
+      return WalletTransaction(
+        blockHash!!,
+        blockIndex!!,
+        blockTime!!,
+        transactionId!!,
+        addedTime!!,
+        transactionIndex!!,
+        transaction!!
+      )
+    }
+    return null
+  }
+
 }
 
-object OwnershipDescriptorCodec : MessagePartCodec<OwnershipDescriptor> {
-  val codec : Codec<OwnershipDescriptor> {
-    ("account"     | utf8_32) ::
-    ("privateKeys" | VarList.varList(utf8) )
-  }.as<OwnershipDescriptor>
+object OwnershipDescriptorCodec : Codec<OwnershipDescriptor> {
+  private val StringListCodec = Codecs.variableList( Codecs.VariableString )
+  override fun transcode(io : CodecInputOutputStream, obj : OwnershipDescriptor? ) : OwnershipDescriptor? {
+    val account = Codecs.VariableString.transcode(io, obj?.account)
+    val privateKeys = StringListCodec.transcode(io, obj?.privateKeys)
+
+    if (io.isInput) {
+      return OwnershipDescriptor(
+        account!!,
+        privateKeys!!
+      )
+    }
+    return null
+  }
 }
 
 
-object WalletOutputCodec : MessagePartCodec<WalletOutput> {
-  val codec : Codec<WalletOutput> {
-    ("blockindex"        | optional(bool(8), int64)) ::
-    ("coinbase"          | bool(8) ) ::
-    ("spent"             | bool(8) ) ::
-    ("transactionOutput" | TransactionOutputCodec.codec )
-  }.as<WalletOutput>
+object WalletOutputCodec : Codec<WalletOutput> {
+  val OptionalInt64Codec = Codecs.optional( Codecs.Int64 )
+
+  override fun transcode(io : CodecInputOutputStream, obj : WalletOutput? ) : WalletOutput? {
+
+    val blockindex        = OptionalInt64Codec.transcode(io, obj?.blockindex)
+    val coinbase          = Codecs.Boolean.transcode(io, obj?.coinbase)
+    val spent             = Codecs.Boolean.transcode(io, obj?.spent)
+    val transactionOutput = TransactionOutputCodec.transcode(io, obj?.transactionOutput)
+
+    if (io.isInput) {
+      return WalletOutput(
+        blockindex!!,
+        coinbase!!,
+        spent!!,
+        transactionOutput!!
+      )
+    }
+    return null
+  }
 }
 

@@ -1,5 +1,5 @@
 package io.scalechain.blockchain.proto.codec
-
+/*
 import java.nio.charset.StandardCharsets
 
 import io.scalechain.blockchain.proto.codec.primitive.VarInt
@@ -168,4 +168,4 @@ object BitcoinMessageEnvelope {
 
   val codec = Codec<BitcoinMessageEnvelope>(encode _, decode _)
 }
-
+**/
