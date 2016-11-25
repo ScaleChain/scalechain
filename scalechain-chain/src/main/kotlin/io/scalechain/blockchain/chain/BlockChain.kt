@@ -100,7 +100,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : K
   *
   */
 class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainView  {
-  private val logger = LoggerFactory.getLogger(Blockchain.javaClass)
+  private val logger = LoggerFactory.getLogger(Blockchain::class.java)
 
   val txMagnet = TransactionMagnet(storage, txPoolIndex = storage, txTimeIndex = storage)
   val txPool = TransactionPool(storage, txMagnet)

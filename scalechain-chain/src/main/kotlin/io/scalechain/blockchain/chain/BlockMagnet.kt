@@ -17,7 +17,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * Created by kangmo on 6/9/16.
   */
 class BlockMagnet(storage : BlockStorage, txPool : TransactionPool, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(BlockMagnet.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockMagnet::class.java)
 
   /**
     * Detach a block from the best blockchain.

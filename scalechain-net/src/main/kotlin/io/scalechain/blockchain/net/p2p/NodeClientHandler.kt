@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
   * Handles a client-side channel.
   */
 class NodeClientHandler(peerSet : PeerSet) : SimpleChannelInboundHandler<ProtocolMessage> {
-  private val logger = LoggerFactory.getLogger(NodeClientHandler.javaClass)
+  private val logger = LoggerFactory.getLogger(NodeClientHandler::class.java)
 
   var messageHandler : ProtocolMessageHandler = null
 

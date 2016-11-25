@@ -6,8 +6,8 @@ import io.scalechain.blockchain.{RpcException, ErrorCode, ExceptionWithErrorCode
 import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
 import org.slf4j.LoggerFactory
 
-trait RpcCommand {
-  private val logger = LoggerFactory.getLogger(RpcCommand.javaClass)
+abstract class RpcCommand {
+  private val logger = LoggerFactory.getLogger(RpcCommand::class.java)
 
   fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>>
   fun help() : String

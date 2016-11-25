@@ -14,7 +14,7 @@ import HashSupported._
 import collection.JavaConverters._
 
 class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
-  private val logger = LoggerFactory.getLogger(BlockConsensusServer.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockConsensusServer::class.java)
 
   private var replica: ServiceReplica = ServiceReplica(id, this, this)
 

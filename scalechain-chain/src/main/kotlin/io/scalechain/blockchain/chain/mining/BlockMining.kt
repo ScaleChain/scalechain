@@ -53,7 +53,7 @@ class TemporaryCoinsView(coinsView : CoinsView) : CoinsView {
   * Created by kangmo on 6/9/16.
   */
 class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView)(rocksDB : RocksDatabase) {
-  private val logger = LoggerFactory.getLogger(BlockMining.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockMining::class.java)
 
   val watch = StopWatch()
   /*

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 6/9/16.
   */
 class TransactionPool(val storage : BlockStorage, txMagnet : TransactionMagnet) {
-  private val logger = LoggerFactory.getLogger(TransactionPool.javaClass)
+  private val logger = LoggerFactory.getLogger(TransactionPool::class.java)
 
   fun getOldestTransactions(count:Int)(implicit db : KeyValueDatabase) : List<(Hash, Transaction)> {
     storage.getOldestTransactionHashes(count).map{ case key @ CStringPrefixed(createdAtString,txHash) =>

@@ -1,42 +1,42 @@
 package io.scalechain.blockchain.storage.index
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.blockchain.storage.TransactionLocator
 import org.slf4j.LoggerFactory
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.*
 
 object DatabaseTablePrefixes {
-  val BLOCK_INFO : Byte = 'b'
-  val TRANSACTION : Byte = 't'
-  val BLOCK_FILE_INFO : Byte = 'f'
-  val LAST_BLOCK_FILE : Byte = 'l'
-  val BEST_BLOCK_HASH : Byte = 'B'
-  val BLOCK_HEIGHT : Byte = 'h'
+  val BLOCK_INFO = 'b'.toByte()
+  val TRANSACTION = 't'.toByte()
+  val BLOCK_FILE_INFO = 'f'.toByte()
+  val LAST_BLOCK_FILE = 'l'.toByte()
+  val BEST_BLOCK_HASH = 'B'.toByte()
+  val BLOCK_HEIGHT = 'h'.toByte()
 
   // The disk-pool, which keeps transactions on disk instead of mempool.
-  val TRANSACTION_POOL : Byte = 'd'
+  val TRANSACTION_POOL = 'd'.toByte()
   // The index from transaction creation time to the transaction hash.
-  val TRANSACTION_TIME : Byte = 'e'
+  val TRANSACTION_TIME = 'e'.toByte()
 
   // A temporary transaction pool for checking transaction attach-ability while creating blocks.
-  val TEMP_TRANSACTION_POOL : Byte = 'y'
+  val TEMP_TRANSACTION_POOL = 'y'.toByte()
   // A temporary transaction time index for checking transaction attach-ability while creating blocks.
-  val TEMP_TRANSACTION_TIME : Byte = 'z'
+  val TEMP_TRANSACTION_TIME = 'z'.toByte()
 
-  val ORPHAN_BLOCK : Byte = '1'
-  val ORPHAN_TRANSACTION : Byte = '2'
-  val ORPHAN_BLOCKS_BY_PARENT : Byte = '3'
-  val ORPHAN_TRANSACTIONS_BY_DEPENDENCY : Byte = '4'
+  val ORPHAN_BLOCK = '1'.toByte()
+  val ORPHAN_TRANSACTION = '2'.toByte()
+  val ORPHAN_BLOCKS_BY_PARENT = '3'.toByte()
+  val ORPHAN_TRANSACTIONS_BY_DEPENDENCY = '4'.toByte()
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.
   *
   * This class is used by CassandraBlockStorage.
   */
-trait BlockDatabase {
-  private val logger = LoggerFactory.getLogger(BlockDatabase.javaClass)
+abstract class BlockDatabase {
+  private val logger = LoggerFactory.getLogger(BlockDatabase::class.java)
 
   import DatabaseTablePrefixes._
 

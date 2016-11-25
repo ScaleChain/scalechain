@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
   * Simple SSL chat client.
   */
 class NodeClient(peerSet : PeerSet) : AutoCloseable {
-  private val logger = LoggerFactory.getLogger(NodeClient.javaClass)
+  private val logger = LoggerFactory.getLogger(NodeClient::class.java)
 
   protected<net> val group : EventLoopGroup = NioEventLoopGroup()
 

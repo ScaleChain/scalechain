@@ -8,7 +8,7 @@ import org.slf4j.{LoggerFactory, Logger}
 import spray.json._
 
 trait ServiceDispatcher {
-  //private val logger = LoggerFactory.getLogger(classOf<ServiceDispatcher>)
+  private val logger = LoggerFactory.getLogger(ServiceDispatcher::class.java)
 
   // A map from Json-Rpc method to the actual JsonRpcService object that handles it.
   fun dispatch(request : RpcRequest) : RpcResponse {

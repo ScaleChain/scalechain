@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 5/22/16.
   */
 class PeerCommunicator(peerSet : PeerSet) {
-  private val logger = LoggerFactory.getLogger(PeerCommunicator.javaClass)
+  private val logger = LoggerFactory.getLogger(PeerCommunicator::class.java)
 
   /*
     protected<net> fun sendToAny(message : ProtocolMessage): Unit {

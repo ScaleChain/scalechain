@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * @param communicator The peer communicator that can communicate with any of peers connected to this node.
   */
 class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
-  private val logger = LoggerFactory.getLogger(ProtocolMessageHandler.javaClass)
+  private val logger = LoggerFactory.getLogger(ProtocolMessageHandler::class.java)
 
   val context = MessageHandlerContext(peer, communicator)
 

@@ -27,7 +27,7 @@ object TransactionMagnet {
   *                      Otherwise, txPoolStorage is the 'storage' parameter.
   */
 class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: TransactionPoolIndex, txTimeIndex : TransactionTimeIndex) {
-  private val logger = LoggerFactory.getLogger(TransactionMagnet.javaClass)
+  private val logger = LoggerFactory.getLogger(TransactionMagnet::class.java)
 
   protected <chain> var chainEventListener : Option<ChainEventListener> = None
 

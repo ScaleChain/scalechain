@@ -42,7 +42,7 @@ object BlockProcessor {
   *
   */
 class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
-  private val logger = LoggerFactory.getLogger(BlockProcessor.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockProcessor::class.java)
 
   /** Get a block.
     *

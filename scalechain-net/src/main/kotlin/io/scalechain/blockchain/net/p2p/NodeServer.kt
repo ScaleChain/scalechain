@@ -14,7 +14,7 @@ import io.scalechain.util.{ExceptionUtil, StackUtil}
 import org.slf4j.LoggerFactory
 
 class NodeServer(peerSet : PeerSet) {
-  private val logger = LoggerFactory.getLogger(NodeServer.javaClass)
+  private val logger = LoggerFactory.getLogger(NodeServer::class.java)
 
   protected<net> val bossGroup : EventLoopGroup = NioEventLoopGroup(1)
   protected<net> val workerGroup : EventLoopGroup = NioEventLoopGroup()

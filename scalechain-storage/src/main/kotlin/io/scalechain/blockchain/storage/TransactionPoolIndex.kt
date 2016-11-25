@@ -21,7 +21,7 @@ object TransactionPoolIndex {
   * c.f. Orphan transactions are not stored in the disk-pool.
   */
 trait TransactionPoolIndex {
-  private val logger = LoggerFactory.getLogger(TransactionPoolIndex.javaClass)
+  private val logger = LoggerFactory.getLogger(TransactionPoolIndex::class.java)
 
   import TransactionPoolIndex._
   import DatabaseTablePrefixes._

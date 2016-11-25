@@ -95,7 +95,7 @@ object BlockGateway : BlockGateway
   * Created by kangmo on 7/18/16.
   */
 class BlockGateway {
-  private val logger = LoggerFactory.getLogger(BlockGateway.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockGateway::class.java)
 
   val ConsensualBlockHeaderCache = TimeBasedCache<BlockHeader>(5, TimeUnit.MINUTES)
 

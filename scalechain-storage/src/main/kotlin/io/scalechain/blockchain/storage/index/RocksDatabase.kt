@@ -44,7 +44,7 @@ class KeyValueIterator(rocksIterator : RocksIterator) : ClosableIterator<(ByteAr
   * A KeyValueDatabase implementation using RocksDB.
   */
 class RocksDatabase(path : File) : KeyValueDatabase {
-  private val logger = LoggerFactory.getLogger(RocksDatabase.javaClass)
+  private val logger = LoggerFactory.getLogger(RocksDatabase::class.java)
 
   assert( Storage.initialized )
 

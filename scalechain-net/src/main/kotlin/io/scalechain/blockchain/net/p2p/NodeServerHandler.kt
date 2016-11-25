@@ -21,7 +21,7 @@ import java.net.InetAddress
   * Handles a server-side channel.
   */
 class NodeServerHandler(peerSet : PeerSet) : SimpleChannelInboundHandler<ProtocolMessage> {
-  private val logger = LoggerFactory.getLogger(NodeServerHandler.javaClass)
+  private val logger = LoggerFactory.getLogger(NodeServerHandler::class.java)
 
   var messageHandler : ProtocolMessageHandler = null
 
