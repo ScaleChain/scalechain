@@ -38,7 +38,7 @@ object PrivateKey {
     val random = SecureRandom()
     // On Java 8 this hangs. Need more investigation.
 //    random.setSeed( random.generateSeed(32) )
-    val keyValue : Array<Byte> = Array<Byte>(32)
+    val keyValue : ByteArray = ByteArray(32)
     assert(keyValue.length == 32)
     random.nextBytes(keyValue)
 

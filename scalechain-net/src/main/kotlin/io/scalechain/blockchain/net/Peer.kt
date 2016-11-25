@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
   * @param channel The netty channel where we send messages.
   */
 data class Peer(private val channel : Channel) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<Peer>) )
+  private val logger = LoggerFactory.getLogger(Peer.javaClass)
 
   /**
     * The version we got from the peer. This is set to some value only if we received the Version message.

@@ -55,7 +55,7 @@ class TransactionSigner()(implicit db : KeyValueDatabase) {
 
     val keyToUse = privateKeys.head
 
-    val scriptData : Array<Byte> = TransactionSignature.getScriptForCheckSig(
+    val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(
       lockingScript.data,  // The locking script data.
       0, // The data to sign starts from offset 0
       Array() ) // We have no signatures to scrub from the locking script.

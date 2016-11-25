@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory
   * The message handler for GetBlocks message.
   */
 object GetBlocksMessageHandler {
+  private val logger = LoggerFactory.getLogger(GetBlocksMessageHandler.javaClass)
+
   val MAX_HASH_PER_REQUEST = 500
-  private lazy val logger = Logger( LoggerFactory.getLogger(GetBlocksMessageHandler.getClass) )
 
   /** Handle GetBlocks message.
     *

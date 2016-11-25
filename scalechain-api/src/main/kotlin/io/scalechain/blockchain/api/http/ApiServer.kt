@@ -11,7 +11,8 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import org.slf4j.LoggerFactory
 
 class ApiServer {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<ApiServer>) )
+  private val logger = LoggerFactory.getLogger(ApiServer.javaClass)
+
   private val bossGroup: EventLoopGroup = NioEventLoopGroup(1)
   private val workerGroup: EventLoopGroup = NioEventLoopGroup
 

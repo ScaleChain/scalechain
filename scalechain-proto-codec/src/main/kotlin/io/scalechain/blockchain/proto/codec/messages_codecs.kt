@@ -563,7 +563,7 @@ object HeadersCodec : ProtocolMessageCodec<Headers> {
   }
 
 /*
-  val ZERO = Array<Byte>(0)
+  val ZERO = ByteArray(0)
 
   data class BlockHeaderWithDummy (
      header : BlockHeader,

@@ -19,7 +19,7 @@ data class BlockLocatorHashes(hashes : List<Hash>)
   * The receiver node finds out the common hash and produces a list of hashes sender needs.
   */
 class BlockLocator(chain : Blockchain) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockLocator>) )
+  private val logger = LoggerFactory.getLogger(BlockLocator.javaClass)
 
   /** Get the summary of block hashes that this node has.
     * We will use these hashes to create the GetBlocks request.

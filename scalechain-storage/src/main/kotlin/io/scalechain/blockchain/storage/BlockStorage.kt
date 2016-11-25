@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 3/23/16.
   */
 trait BlockStorage : BlockDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with TransactionTimeIndex with OrphanBlockIndex with OrphanTransactionIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockStorage>) )
+  private val logger = LoggerFactory.getLogger(BlockStorage.javaClass)
 
   fun putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : Unit
   fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction>

@@ -43,12 +43,12 @@ class ScriptSerializerSpec : FlatSpec with BeforeAndAfterEach with OperationTest
               OpNum(8),
             OpEndIf(),
           OpEndIf()),
-        Array<Byte>(0x63, 0x54, 0x63, 0x58, 0x68, 0x68) // (expected) serialized bytes.
+        ByteArray(0x63, 0x54, 0x63, 0x58, 0x68, 0x68) // (expected) serialized bytes.
       )
     )
 
   "serializedOperations" should "be serialized to a correct byte array." in {
-    forAll(serializedOperations) { (operations: List<ScriptOp>, expectedSerializedBytes: Array<Byte>) =>
+    forAll(serializedOperations) { (operations: List<ScriptOp>, expectedSerializedBytes: ByteArray) =>
       val serializedBytes = ScriptSerializer.serialize(operations)
       // TODO : how to write this in "should .. " form?
       assert( serializedBytes.sameElements(expectedSerializedBytes) )

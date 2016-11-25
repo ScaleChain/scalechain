@@ -73,7 +73,7 @@ object BlockVerifier {
   * Created by kangmo on 3/15/16.
   */
 class BlockVerifier(block : Block)(implicit db : KeyValueDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockVerifier>) )
+  private val logger = LoggerFactory.getLogger(BlockVerifier.javaClass)
 
   fun verify(chainView : BlockchainView) : Unit {
     // (1) verify the hash of the block is within the difficulty level

@@ -14,7 +14,7 @@ import HashSupported._
   * The message handler for Headers message.
   */
 object HeadersMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(HeadersMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(HeadersMessageHandler.javaClass)
 
   /** Handle Headers message.
     *

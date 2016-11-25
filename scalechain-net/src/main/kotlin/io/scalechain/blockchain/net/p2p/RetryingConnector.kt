@@ -16,7 +16,7 @@ import scala.annotation.tailrec
   * Created by kangmo on 5/26/16.
   */
 class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<RetryingConnector>) )
+  private val logger = LoggerFactory.getLogger(RetryingConnector.javaClass)
 
   fun connect(address : String, port : Int) : Unit {
     // TODO : BUGBUG : Need to call nodeClient.close when the connection closes?

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Version message.
   */
 object VersionMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(VersionMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(VersionMessageHandler.javaClass)
 
   /** Handle Version message.
     *

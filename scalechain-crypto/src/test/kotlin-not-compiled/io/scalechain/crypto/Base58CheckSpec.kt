@@ -35,7 +35,7 @@ class Base58CheckSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     val random = SecureRandom()
       random.setSeed( random.generateSeed(32) )
 
-      val originalValue : Array<Byte> = Array<Byte>(32)
+      val originalValue : ByteArray = ByteArray(32)
       assert(originalValue.length == 32)
       random.nextBytes(originalValue)
 

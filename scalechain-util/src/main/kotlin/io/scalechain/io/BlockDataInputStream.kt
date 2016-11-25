@@ -71,14 +71,14 @@ class BlockDataInputStream(private val stream : InputStream) : DataInputStream(s
      * @param size The number of bytes are going to read.
      * @return The byte array we read.
      */
-    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
+    // BUGBUG : Interface Change, ByteArray -> ByteArray
     fun readBytes(size : Int): ByteArray {
         val bytes = ByteArray(size)
         read(bytes)
         return bytes
     }
 
-    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
+    // BUGBUG : Interface Change, ByteArray -> ByteArray
     fun readBytes(bytes : ByteArray)  {
         read(bytes)
     }

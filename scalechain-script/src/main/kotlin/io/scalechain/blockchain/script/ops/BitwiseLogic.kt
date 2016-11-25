@@ -2,49 +2,52 @@ package io.scalechain.blockchain.script.ops
 
 import java.math.BigInteger
 
-import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ScriptEvalException
+import io.scalechain.blockchain.script.ScriptValue
+import io.scalechain.blockchain.script.ScriptEnvironment
 import io.scalechain.util.Utils
+import java.util.*
 
-trait BitwiseLogic : ScriptOp
+interface BitwiseLogic : ScriptOp
 
 /** OP_INVERT(0x83) : Disabled (Flip the bits of the top item)
   */
-data class OpInvert() : BitwiseLogic with DisabledScriptOp
+class OpInvert() : DisabledScriptOp
 {
-  fun opCode() = OpCode(0x83)
+  override fun opCode() = OpCode(0x83)
 }
 
 
 /** OP_AND(0x84) : Disabled (Boolean AND of two top items)
   */
-data class OpAnd() : BitwiseLogic with DisabledScriptOp
+class OpAnd() : DisabledScriptOp
 {
-  fun opCode() = OpCode(0x84)
+  override fun opCode() = OpCode(0x84)
 }
 
 /** OP_OR(0x85) : Disabled (Boolean OR of two top items)
   */
-data class OpOr() : BitwiseLogic with DisabledScriptOp
+class OpOr() : DisabledScriptOp
 {
-  fun opCode() = OpCode(0x85)
+  override fun opCode() = OpCode(0x85)
 }
 
 /** OP_XOR(0x86) : Disabled (Boolean XOR of two top items)
   */
-data class OpXor() : BitwiseLogic with DisabledScriptOp
+class OpXor() : DisabledScriptOp
 {
-  fun opCode() = OpCode(0x86)
+  override fun opCode() = OpCode(0x86)
 }
 
 /** OP_EQUAL(0x87) : Push TRUE (1) if top two items are exactly equal, push FALSE (0) otherwise
   */
-data class OpEqual() : BitwiseLogic {
-  fun opCode() = OpCode(0x87)
+class OpEqual() : BitwiseLogic {
+  override fun opCode() = OpCode(0x87)
 
-  fun execute(env : ScriptEnvironment): Unit {
-    binaryOperation(env, (value1, value2) => {
-      if ( value1.value sameElements( value2.value)) {
+  override fun execute(env : ScriptEnvironment): Unit {
+    binaryOperation(env, { l, r ->
+      if ( Arrays.equals( l.value, r.value)) {
         ScriptValue.valueOf(1L)
       } else {
         ScriptValue.valueOf(0L)
@@ -57,12 +60,12 @@ data class OpEqual() : BitwiseLogic {
   * Before : x1 x2
   * After :
   */
-data class OpEqualVerify() : BitwiseLogic {
-  fun opCode() = OpCode(0x88)
+class OpEqualVerify() : BitwiseLogic {
+  override fun opCode() = OpCode(0x88)
 
-  fun execute(env : ScriptEnvironment): Unit {
-    binaryOperation(env, (value1, value2) => {
-      if ( value1.value sameElements( value2.value)) {
+  override fun execute(env : ScriptEnvironment): Unit {
+    binaryOperation(env, { l, r ->
+      if ( Arrays.equals( l.value, r.value)) {
         ScriptValue.valueOf(1L)
       } else {
         ScriptValue.valueOf("")

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Verack message.
   */
 object VerackMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(VerackMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(VerackMessageHandler.javaClass)
 
   /** Handle Verack message.
     *

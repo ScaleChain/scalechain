@@ -35,7 +35,7 @@ object CoinAddress {
     * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
     * @return The created CoinAddress.
     */
-  fun from(publicKeyHash : Array<Byte>) : CoinAddress {
+  fun from(publicKeyHash : ByteArray) : CoinAddress {
     // Step 1 : Get the chain environment to get the address version.
     val chainEnv = ChainEnvironment.get
 
@@ -80,7 +80,7 @@ object ParsedPubKeyScript {
     */
   fun from(privateKey : PrivateKey) : ParsedPubKeyScript {
     // Step 1 : Create a public key.
-    val publicKey : Array<Byte> = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
+    val publicKey : ByteArray = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
 
     // Step 2 : Hash the public key.
     val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
@@ -93,7 +93,7 @@ object ParsedPubKeyScript {
     * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
     * @return The created ParsedPubKeyScript.
     */
-  fun from(publicKeyHash : Array<Byte>) : ParsedPubKeyScript {
+  fun from(publicKeyHash : ByteArray) : ParsedPubKeyScript {
     assert(publicKeyHash.length == 20)
     val scriptOps = List( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash)), OpEqualVerify(), OpCheckSig() )
 

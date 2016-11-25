@@ -13,7 +13,7 @@ object PublicKey {
     * @param encoded The encoded public key. Can be either a compressed one or uncompressed one.
     * @return The public key.
     */
-  fun from(encoded : Array<Byte>) : PublicKey {
+  fun from(encoded : ByteArray) : PublicKey {
     val point : ECPoint = ECKey.decodePublicKey(encoded)
     PublicKey(point)
   }
@@ -25,7 +25,7 @@ object PublicKey {
     * @return The derived public key.
     */
   fun from(privateKey : PrivateKey) : PublicKey {
-    val encodedPublicKey : Array<Byte> = ECKey.publicKeyFromPrivate(privateKey.value, false)
+    val encodedPublicKey : ByteArray = ECKey.publicKeyFromPrivate(privateKey.value, false)
     val point : ECPoint = ECKey.decodePublicKey(encodedPublicKey)
     PublicKey(point, privateKey.isForCompressedPublicKey)
   }
@@ -44,7 +44,7 @@ data class PublicKey(point : ECPoint, shouldUseCompressedFormat : Boolean = fals
     *
     * @return The encoded public key.
     */
-  fun encode() : Array<Byte> {
+  fun encode() : ByteArray {
     point.getEncoded(shouldUseCompressedFormat)
   }
 

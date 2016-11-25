@@ -28,7 +28,7 @@ class BlockDataInputStreamSpec : FlatSpec(), Matchers {
         //
     }
 
-    fun istream( encoded : Array<Byte> ) = BlockDataInputStream(ByteArrayInputStream(encoded.toByteArray()))
+    fun istream( encoded : ByteArray ) = BlockDataInputStream(ByteArrayInputStream(encoded.toByteArray()))
 
     init {
         "readLittleEndianInt" should "read 0" {

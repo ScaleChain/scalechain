@@ -15,7 +15,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * The message handler for Block message.
   */
 object BlockMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(BlockMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(BlockMessageHandler.javaClass)
 
   // More than half of the peers should sign the block.
   val RequiredSigningTransactions = Config.peerAddresses().length / 2 + 1

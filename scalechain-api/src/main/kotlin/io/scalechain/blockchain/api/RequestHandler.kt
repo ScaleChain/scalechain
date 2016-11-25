@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory
 import scala.util.Random
 
 object RequestHandler : ServiceDispatcher {
-  private lazy val logger = Logger(LoggerFactory.getLogger(RequestHandler.getClass))
+  private val logger = LoggerFactory.getLogger(RequestHandler.javaClass)
+
   import RpcParamsJsonFormat._
 
   //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)

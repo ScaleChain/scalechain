@@ -52,7 +52,7 @@ object CoinMiner {
 
 
 class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<CoinMiner>) )
+  private val logger = LoggerFactory.getLogger(CoinMiner.javaClass)
 
   import CoinMiner._
   implicit val db : KeyValueDatabase = rocksDB

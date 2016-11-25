@@ -43,9 +43,9 @@ class LevelDatabase(path : File) : KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
-    class KeyValueIterator(iterator : DBIterator) : ClosableIterator<(Array<Byte>,Array<Byte>)> {
-      fun next : (Array<Byte>,Array<Byte>) {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
+    class KeyValueIterator(iterator : DBIterator) : ClosableIterator<(ByteArray,ByteArray)> {
+      fun next : (ByteArray,ByteArray) {
         if (!iterator.hasNext) {
           throw GeneralException(ErrorCode.NoMoreKeys)
         }
@@ -73,18 +73,18 @@ class LevelDatabase(path : File) : KeyValueDatabase {
   }
 
 
-  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
+  fun get(key : ByteArray ) : Option<Array<Byte>> {
     val value = db.get(key)
     if ( value != null )
       Some(value)
     else None
   }
 
-  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
+  fun put(key : ByteArray, value : ByteArray ) : Unit {
     db.put(key, value)
   }
 
-  fun del(key : Array<Byte>) : Unit {
+  fun del(key : ByteArray) : Unit {
     db.delete(key)
   }
 

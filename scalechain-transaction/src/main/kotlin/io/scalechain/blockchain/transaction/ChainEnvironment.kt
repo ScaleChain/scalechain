@@ -38,7 +38,7 @@ trait ChainEnvironment {
 
   /** The magic value used by messages for the peer to peer communication and the block data file.
     */
-  val MagicValue : Array<Byte>
+  val MagicValue : ByteArray
 
   /** The default transaction version
     */

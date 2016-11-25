@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Pong message.
   */
 object PongMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(PongMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(PongMessageHandler.javaClass)
 
   /** Handle Pong message.
     *

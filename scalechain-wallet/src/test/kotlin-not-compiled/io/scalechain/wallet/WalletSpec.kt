@@ -317,7 +317,7 @@ String Response : {
       Left(NormalTransactionInput(
         S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
-        UnlockingScript(Array<Byte>()),
+        UnlockingScript(ByteArray()),
         0L
       )),
       0,
@@ -352,7 +352,7 @@ String Response : {
       Left(NormalTransactionInput(
         S.S1_AliceGenCoin_A50.outPoint.transactionHash,
         S.S1_AliceGenCoin_A50.outPoint.outputIndex,
-        UnlockingScript(Array<Byte>()),
+        UnlockingScript(ByteArray()),
         0L
       )),
       0,

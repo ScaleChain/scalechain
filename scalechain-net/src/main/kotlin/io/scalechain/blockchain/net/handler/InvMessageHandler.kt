@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Inv message.
   */
 object InvMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(InvMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(InvMessageHandler.javaClass)
 
   /** Handle Inv message.
     *

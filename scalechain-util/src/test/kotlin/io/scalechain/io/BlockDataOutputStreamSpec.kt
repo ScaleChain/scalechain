@@ -36,14 +36,14 @@ class BlockDataOutputStreamSpec : FlatSpec(), Matchers {
         bout = null
     }
 
-    fun testWriteLittleEndianInt(value : Int, encoded : Array<Byte>) : Boolean {
+    fun testWriteLittleEndianInt(value : Int, encoded : ByteArray) : Boolean {
         ostream?.writeLittleEndianInt(value)
         ostream?.flush()
 
         return Arrays.equals(encoded.toByteArray(), bout?.toByteArray())
     }
 
-    fun testWriteLittleEndianLong(value : Long, encoded : Array<Byte>) : Boolean {
+    fun testWriteLittleEndianLong(value : Long, encoded : ByteArray) : Boolean {
         ostream?.writeLittleEndianLong(value)
         ostream?.flush()
 

@@ -74,7 +74,7 @@ object DiskBlockStorage {
   */
 
 class DiskBlockStorage(directoryPath : File, maxFileSize : Int)(implicit db : KeyValueDatabase) : BlockStorage with BlockDatabaseForRecordStorage {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<DiskBlockStorage>) )
+  private val logger = LoggerFactory.getLogger(DiskBlockStorage.javaClass)
 
   directoryPath.mkdir()
 

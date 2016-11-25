@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.script
 
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.util.HexUtil._
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.util.HexUtil
+import io.scalechain.blockchain.script.HashSupported
 
 /** Sets printer objects for case classes that require access to script layer.
   * BUGBUG : Need to call a method in this object to activate the printing methods.
@@ -15,7 +15,7 @@ object BlockPrinterSetter {
         fun toString(lockingScript:LockingScript): String {
           val scriptOps = ScriptParser.parse(lockingScript)
 
-          s"LockingScript(${lockingScript.data}) /* ops:$scriptOps */ "
+          "LockingScript(HexUtil.bytes(${HexUtil.kotlinHex(lockingScript.data)})) /* ops:$scriptOps */ "
         }
       }
 
@@ -40,14 +40,14 @@ object BlockPrinterSetter {
             None
           }
 
-          s"UnlockingScript(${unlockingScript.data}) /* ops:$scriptOps, hashType:$hashType */"
+          return "UnlockingScript(HexUtil.bytes(${HexUtil.kotlinHex(unlockingScript.data)})) /* ops:$scriptOps, hashType:$hashType */ "
         }
       }
 
     Transaction.printer =
       TransactionPrinter {
         override fun toString(transaction : Transaction) : String {
-          s"Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.mkString(",")}), outputs=List(${transaction.outputs.mkString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash} */)"
+          "Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.joinToString(",")}), outputs=List(${transaction.outputs.joinToString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash()} */)"
         }
       }
   }

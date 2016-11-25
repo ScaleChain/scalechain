@@ -18,7 +18,7 @@ import scala.collection.mutable
   *   which hash the file index of the multiple record files.
   */
 class RecordStorage(directoryPath : File, filePrefix : String, maxFileSize : Long) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<RecordStorage>) )
+  private val logger = LoggerFactory.getLogger(RecordStorage.javaClass)
 
   val files = mutable.ArrayBuffer.empty<RecordFile>
 

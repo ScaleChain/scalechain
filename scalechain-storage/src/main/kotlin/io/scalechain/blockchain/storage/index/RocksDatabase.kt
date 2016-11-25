@@ -10,9 +10,9 @@ import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 
-class KeyValueIterator(rocksIterator : RocksIterator) : ClosableIterator<(Array<Byte>,Array<Byte>)> {
+class KeyValueIterator(rocksIterator : RocksIterator) : ClosableIterator<(ByteArray,ByteArray)> {
   var isClosed = false
-  fun next : (Array<Byte>,Array<Byte>) {
+  fun next : (ByteArray,ByteArray) {
     assert( !isClosed )
 
     if (!rocksIterator.isValid) {
@@ -44,7 +44,7 @@ class KeyValueIterator(rocksIterator : RocksIterator) : ClosableIterator<(Array<
   * A KeyValueDatabase implementation using RocksDB.
   */
 class RocksDatabase(path : File) : KeyValueDatabase {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<RocksDatabase>) )
+  private val logger = LoggerFactory.getLogger(RocksDatabase.javaClass)
 
   assert( Storage.initialized )
 
@@ -118,7 +118,7 @@ class RocksDatabase(path : File) : KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  protected<storage> fun seek(rocksIterator : RocksIterator, keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
+  protected<storage> fun seek(rocksIterator : RocksIterator, keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
     if (keyOption.isDefined) {
       rocksIterator.seek(keyOption.get)
     } else {
@@ -134,7 +134,7 @@ class RocksDatabase(path : File) : KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
 
     val rocksIterator =  db.newIterator()
 
@@ -142,18 +142,18 @@ class RocksDatabase(path : File) : KeyValueDatabase {
   }
 
 
-  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
+  fun get(key : ByteArray ) : Option<Array<Byte>> {
     val value = db.get(key)
     if ( value != null )
       Some(value)
     else None
   }
 
-  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
+  fun put(key : ByteArray, value : ByteArray ) : Unit {
     db.put(key, value)
   }
 
-  fun del(key : Array<Byte>) : Unit {
+  fun del(key : ByteArray) : Unit {
     db.remove(key)
   }
 

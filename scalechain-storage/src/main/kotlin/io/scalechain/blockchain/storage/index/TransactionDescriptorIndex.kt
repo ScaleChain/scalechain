@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, Transac
 import org.slf4j.LoggerFactory
 
 trait TransactionDescriptorIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionDescriptorIndex>) )
+  private val logger = LoggerFactory.getLogger(TransactionDescriptorIndex.javaClass)
 
   import DatabaseTablePrefixes._
   private implicit val hashCodec = HashCodec

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Addr message.
   */
 object AddrMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(AddrMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(AddrMessageHandler.javaClass)
 
   /** Handle Addr message.
     *

@@ -24,8 +24,7 @@ object ApiServerHandler {
 }
 
 class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<ApiServerHandler>) )
-
+  private val logger = LoggerFactory.getLogger(ApiServerHandler.javaClass)
 
   private var request: HttpRequest = null
   /** Buffer that stores the response content */

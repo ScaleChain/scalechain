@@ -38,7 +38,7 @@ object PeerSet {
   * As a stream is materialized using Akka actors, multiple threads can run at the same time trying to access the peer set.
   */
 class PeerSet {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<PeerSet>) )
+  private val logger = LoggerFactory.getLogger(PeerSet.javaClass)
 
   /**
     * A channel group that has all connected channels.

@@ -64,7 +64,7 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
     delCache = null
   }
 
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)> {
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
     val rocksIterator =
       if (writeBatch!= null)
         writeBatch.newIteratorWithBase( db.db.newIterator() )
@@ -74,7 +74,7 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
     db.seek(rocksIterator, keyOption)
   }
 
-  fun get(key : Array<Byte> ) : Option<Array<Byte>> {
+  fun get(key : ByteArray ) : Option<Array<Byte>> {
     val wrappedKey = ByteBuffer.wrap(key)
     if (delCache == null || putCache == null) {
       db.get(key)
@@ -119,7 +119,7 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
 */
   }
 
-  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit {
+  fun put(key : ByteArray, value : ByteArray ) : Unit {
 //    println(s"put ${HexUtil.hex(key)}, ${HexUtil.hex(value)}")
     assert(writeBatch != null)
     writeBatch.put(key, value)
@@ -129,7 +129,7 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
     delCache.remove(wrappedKey)
   }
 
-  fun del(key : Array<Byte>) : Unit {
+  fun del(key : ByteArray) : Unit {
 //    println(s"del ${HexUtil.hex(key)}")
     assert(writeBatch != null)
     writeBatch.remove(key)

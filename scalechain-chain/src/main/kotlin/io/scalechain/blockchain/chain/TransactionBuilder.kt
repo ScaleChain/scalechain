@@ -78,7 +78,7 @@ class TransactionBuilder() {
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),
       outPoint.outputIndex,
-      unlockingScriptOption.getOrElse(UnlockingScript(Array<Byte>())),
+      unlockingScriptOption.getOrElse(UnlockingScript(ByteArray())),
       sequenceNumberOption.getOrElse(0L) )
 
     inputs.append( input )
@@ -120,7 +120,7 @@ class TransactionBuilder() {
     * @param data
     * @return
     */
-  fun addOutput(data : Array<Byte>) : TransactionBuilder {
+  fun addOutput(data : ByteArray) : TransactionBuilder {
     val lockingScriptOps = List( OpReturn(), OpPush.from(data) )
     val lockingScriptData = ScriptSerializer.serialize(lockingScriptOps)
     val output = TransactionOutput( 0L, LockingScript(lockingScriptData))

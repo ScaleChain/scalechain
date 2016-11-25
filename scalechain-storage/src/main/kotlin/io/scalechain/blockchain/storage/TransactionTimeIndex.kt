@@ -33,7 +33,7 @@ object TransactionTimeIndex {
   * Maintains an index from the creation time of a transaction to the transaction hash.
   */
 trait TransactionTimeIndex {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionTimeIndex>) )
+  private val logger = LoggerFactory.getLogger(TransactionTimeIndex.javaClass)
 
   import TransactionTimeIndex._
   import DatabaseTablePrefixes._

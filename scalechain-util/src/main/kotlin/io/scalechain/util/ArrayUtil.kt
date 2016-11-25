@@ -14,9 +14,9 @@ object ArrayUtil {
      * @return The newly padded array whose length is targetLength.
      */
     @JvmStatic
-    fun pad (array : Array<Byte>, targetLength : Int, value : Byte) : Array<Byte> {
+    fun pad (array : ByteArray, targetLength : Int, value : Byte) : ByteArray {
         if ( targetLength > array.size ) {
-            val padArray = Array<Byte>(targetLength - array.size, { value } )
+            val padArray = ByteArray(targetLength - array.size, { value } )
             return array + padArray
         } else {
             return array
@@ -30,13 +30,13 @@ object ArrayUtil {
      * @return The shortened array which does not have any padded values at the end of it.
      */
     @JvmStatic
-    fun unpad(array : Array<Byte>, value : Byte) : Array<Byte> {
+    fun unpad(array : ByteArray, value : Byte) : ByteArray {
 
         return array.dropLastWhile { it == value }.toTypedArray()
     }
 
     @JvmStatic
-    fun isEqual(left : Array<Byte>, right : Array<Byte>) : Boolean {
+    fun isEqual(left : ByteArray, right : ByteArray) : Boolean {
         return Arrays.equals(left, right)
     }
 }

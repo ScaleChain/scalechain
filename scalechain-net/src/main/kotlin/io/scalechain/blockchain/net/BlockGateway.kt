@@ -43,7 +43,7 @@ class BlockBroadcaster( nodeIndex : Int) {
     * @param header
     */
   fun broadcastHeader(header : BlockHeader) {
-    val rawBlockHeader : Array<Byte> = BlockHeaderCodec.serialize( header )
+    val rawBlockHeader : ByteArray = BlockHeaderCodec.serialize( header )
     bftProxy.invokeOrdered(rawBlockHeader)
   }
 }
@@ -95,7 +95,7 @@ object BlockGateway : BlockGateway
   * Created by kangmo on 7/18/16.
   */
 class BlockGateway {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockGateway>) )
+  private val logger = LoggerFactory.getLogger(BlockGateway.javaClass)
 
   val ConsensualBlockHeaderCache = TimeBasedCache<BlockHeader>(5, TimeUnit.MINUTES)
 

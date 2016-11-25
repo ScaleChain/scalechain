@@ -2,21 +2,24 @@ package io.scalechain.blockchain.script.ops
 
 import java.math.BigInteger
 import io.scalechain.blockchain.proto.Script
-import io.scalechain.blockchain.script.{ScriptValue, ScriptEnvironment}
-import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.util.Utils
+import io.scalechain.blockchain.script.ScriptValue
+import io.scalechain.blockchain.script.ScriptEnvironment
 
-import scala.collection.mutable.ArrayBuffer
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ScriptEvalException
+import io.scalechain.util.Utils
 
 /** The OP code of an operation.
  *
  * @param code The OP code.
  */
-data class OpCode(code : Short) {
-  assert(code < 255)
+data class OpCode(val code : Short) {
+    init {
+        assert(code < 255)
+    }
 }
 
-trait ScriptOp {
+interface ScriptOp {
   fun opCode() : OpCode
 
  /** Execute the script operation using the given script execution environment.
@@ -48,8 +51,8 @@ trait ScriptOp {
    * @param offset The offset where the input is read.
    * @return The number of bytes consumed to copy the input value.
    */
-  fun create(script : Script, offset : Int) : (ScriptOp, Int) {
-    (this, 0)
+  fun create(script : Script, offset : Int) : Pair<ScriptOp, Int> {
+    return Pair(this, 0)
   }
 
   /**
@@ -59,10 +62,10 @@ trait ScriptOp {
    * @param index The index from the base OP code.
    * @return The calculated OP code.
    */
-  protected fun opCodeFromBase(baseOpCode: Int, index : Int) : OpCode {
+  fun opCodeFromBase(baseOpCode: Int, index : Int) : OpCode {
     val result = baseOpCode + index
 
-    OpCode(result.toShort)
+    return OpCode(result.toShort())
   }
 
   /** Verify if the top value of the stack is true. Halt script execution if false.
@@ -74,7 +77,7 @@ trait ScriptOp {
     val top = env.stack.pop()
 
     if (!Utils.castToBool(top.value)) {
-      throw ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
+      throw ScriptEvalException(ErrorCode.InvalidTransaction, "ScriptOp:${this.javaClass.getName()}")
     }
   }
 
@@ -83,7 +86,7 @@ trait ScriptOp {
    * @param env The script execution environment.
    */
   fun pushFalse(env:ScriptEnvironment) : Unit {
-    env.stack.push(ScriptValue.valueOf(Array<Byte>()))
+    env.stack.push(ScriptValue.valueOf(ByteArray(0)))
   }
 
 
@@ -99,11 +102,11 @@ trait ScriptOp {
    *
    * @param buffer The array buffer where the script is serialized.
    */
-  fun serialize(buffer: ArrayBuffer<Byte>): Unit {
-    buffer.append(opCode().code.toByte)
+  fun serialize(buffer: MutableList<Byte>): Unit {
+    buffer.add(opCode().code.toByte())
   }
 
-  fun unaryOperation(env : ScriptEnvironment, mutate : (ScriptValue) => (ScriptValue) ): Unit {
+  fun unaryOperation(env : ScriptEnvironment, mutate : (ScriptValue) -> (ScriptValue) ): Unit {
     val value1 =  env.stack.pop()
 
     val result = mutate( value1 )
@@ -111,7 +114,7 @@ trait ScriptOp {
     env.stack.push( result )
   }
 
-  fun binaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue) => (ScriptValue) ): Unit {
+  fun binaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue) -> (ScriptValue) ): Unit {
     val value2 = env.stack.pop()
     val value1 =  env.stack.pop()
 
@@ -120,7 +123,7 @@ trait ScriptOp {
     env.stack.push( result )
   }
 
-  fun ternaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue, ScriptValue) => (ScriptValue) ): Unit {
+  fun ternaryOperation(env : ScriptEnvironment, mutate : (ScriptValue, ScriptValue, ScriptValue) -> (ScriptValue) ): Unit {
     val value3 = env.stack.pop()
     val value2 = env.stack.pop()
     val value1 =  env.stack.pop()
@@ -132,42 +135,41 @@ trait ScriptOp {
 
 }
 
-trait DisabledScriptOp {
-  fun execute(env : ScriptEnvironment) : Unit {
-    throw ScriptEvalException(ErrorCode.DisabledScriptOperation, s"ScriptOp:${this.getClass.getName}")
+interface DisabledScriptOp : ScriptOp {
+  override fun execute(env : ScriptEnvironment) : Unit {
+    throw ScriptEvalException(ErrorCode.DisabledScriptOperation, "ScriptOp:${this.javaClass.getName()}")
   }
 }
+
 
 /**
  * Just for checking if an operation does not support opCode() method.
  */
-trait ScriptOpWithoutCode : ScriptOp {
-
-}
+interface ScriptOpWithoutCode : ScriptOp
 
 /** The script operations are only for internal script execution engine.
  *
  */
-trait InternalScriptOp {
-  fun execute(env : ScriptEnvironment) : Unit {
+interface InternalScriptOp : ScriptOp {
+  override fun execute(env : ScriptEnvironment) : Unit {
     // do nothing.
   }
 }
 
-trait AlwaysInvalidScriptOp {
+interface AlwaysInvalidScriptOp : ScriptOp {
   /** Because we check if there is any *always* invalid script operation before executing the script,
    * the execute method should never run. So we implement this method to hit an assertion.
    *
    * @param env
    */
-  fun execute(env : ScriptEnvironment) : Unit {
+  override fun execute(env : ScriptEnvironment) : Unit {
     assert(false)
   }
 }
 
-trait InvalidScriptOpIfExecuted {
-  fun execute(env : ScriptEnvironment) : Unit {
-    throw ScriptEvalException(ErrorCode.InvalidTransaction, s"ScriptOp:${this.getClass.getName}")
+interface InvalidScriptOpIfExecuted : ScriptOp {
+  override fun execute(env : ScriptEnvironment) : Unit {
+    throw ScriptEvalException(ErrorCode.InvalidTransaction, "ScriptOp:${this.javaClass.getName()}")
   }
 }
 

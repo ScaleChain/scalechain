@@ -1,114 +1,120 @@
 package io.scalechain.blockchain.script
 
+import io.netty.buffer.ByteBuf
 import java.math.BigInteger
 
-import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.util.{ByteArray, HexUtil, Utils}
-import HexUtil._
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ScriptEvalException
+import io.scalechain.util.Utils
 
 
-object ScriptValue {
-  /**
-   * Get a ScriptValue which has a byte array of a given string.
- *
-   * @param value The string which will be converted to a byte array.
-   * @return The ScriptValue we created.
-   */
-  fun valueOf(value : String) : ScriptValue {
-    ScriptBytes( value.getBytes() )
-  }
+import io.scalechain.util.HexUtil
+import java.util.*
 
-  /** Get a ScriptValue which has the given byte array.
-   *
-   * @param value The byte array.
-    * @return The ScriptValue we created.
-   */
-  fun valueOf(value : Array<Byte>) : ScriptValue {
-    ScriptBytes( value )
-  }
 
-  /** Get a ScriptValue by copying a specific area of a given byte array.
-   *
-   * @param source The source byte array
-   * @param offset The offset to the source byte array.
-   * @param length The number of bytes to copy.
-   * @return The ScriptValue that has the given area of the byte array.
-   */
-  fun valueOf(source : Array<Byte>, offset : Int, length : Int ) : ScriptValue {
-    val bytes = Array<Byte>(length)
-    Array.copy(source, offset, bytes, 0, length)
-    ScriptBytes(bytes)
-  }
-
-  /** Get a ScriptValue which has the given long value.
-   *
-   * @param value The long value.
-   * @return The ScriptValue we created.
-   */
-  fun valueOf(value : Long) : ScriptValue {
-    ScriptInteger( BigInteger.valueOf( value ) )
-  }
-
-  /**
-   *
-   * @param value
-   * @return
-   */
-  fun valueOf(value:BigInteger) : ScriptValue {
-    ScriptInteger( value )
-  }
-
-  fun encodeStackInt(value: BigInteger): Array<Byte> {
-    return Utils.reverseBytes(Utils.encodeMPI(value, false))
-  }
-
-  fun decodeStackInt(encoded: Array<Byte>): BigInteger {
-    if (encoded.length > 4) throw ScriptEvalException(ErrorCode.TooBigScriptInteger, "The integer stack value to decode has more than 4 bytes.")
-    return Utils.castToBigInteger(encoded)
-  }
-}
-
-trait ScriptValue {
-  val value : Array<Byte>
+interface ScriptValue {
+  val value : ByteArray
   fun copy() : ScriptValue
 
-  fun canEqual(a: Any) = a.isInstanceOf<ScriptValue>
-
-  override fun equals(that: Any): Boolean =
-    that match {
-      case that: ScriptValue => that.canEqual(this) && that.value.sameElements(this.value)
-      case _ => false
+  companion object {
+    /**
+     * Get a ScriptValue which has a byte array of a given string.
+     *
+     * @param value The string which will be converted to a byte array.
+     * @return The ScriptValue we created.
+     */
+    fun valueOf(value : String) : ScriptValue {
+      return ScriptBytes( value.toByteArray() )
     }
 
-  override fun hashCode:Int {
-    val prime = 31
-    var result = 1
-    for (b : Byte <- value ) {
-      result = prime * result + b;
+    /** Get a ScriptValue which has the given byte array.
+     *
+     * @param value The byte array.
+     * @return The ScriptValue we created.
+     */
+    fun valueOf(value : ByteArray) : ScriptValue {
+      return ScriptBytes( value )
     }
-    return result
+
+    /** Get a ScriptValue by copying a specific area of a given byte array.
+     *
+     * @param source The source byte array
+     * @param offset The offset to the source byte array.
+     * @param length The number of bytes to copy.
+     * @return The ScriptValue that has the given area of the byte array.
+     */
+    fun valueOf(source : ByteArray, offset : Int, length : Int ) : ScriptValue {
+      val bytes = Arrays.copyOfRange(source, offset, offset + length)
+      return ScriptBytes(bytes)
+    }
+
+    /** Get a ScriptValue which has the given long value.
+     *
+     * @param value The long value.
+     * @return The ScriptValue we created.
+     */
+    fun valueOf(value : Long) : ScriptValue {
+      return ScriptInteger( BigInteger.valueOf( value ) )
+    }
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    fun valueOf(value:BigInteger) : ScriptValue {
+      return ScriptInteger( value )
+    }
+
+    fun encodeStackInt(value: BigInteger): ByteArray {
+      return Utils.reverseBytes(Utils.encodeMPI(value, false))
+    }
+
+    fun decodeStackInt(encoded: ByteArray): BigInteger {
+      if (encoded.size > 4) throw ScriptEvalException(ErrorCode.TooBigScriptInteger, "The integer stack value to decode has more than 4 bytes.")
+      return Utils.castToBigInteger(encoded)
+    }
   }
 }
 
 data class ScriptInteger(val bigIntValue:BigInteger) : ScriptValue {
   override val value = ScriptValue.encodeStackInt( bigIntValue )
-  fun copy() : ScriptValue = ScriptInteger(bigIntValue)
-  override fun toString() = s"ScriptIntger($bigIntValue)"
-  /*
-  override fun canEqual(that:Any) = super.canEqual(that)
-  override fun equals(that:Any) : Boolean = super.equals(that)
-  override fun hashCode:Int = super.hashCode
-  */
+  override fun copy() : ScriptValue = ScriptInteger(bigIntValue)
+  override fun toString() = "ScriptIntger($bigIntValue)"
+
+  fun canEqual(a: Any) = a is ScriptInteger
+
+  override fun equals(that: Any?): Boolean {
+    return when {
+      that == null -> return false
+      that is ScriptInteger -> that.canEqual(this) && Arrays.equals(that.value, this.value)
+      else -> false
+    }
+  }
+
+  override fun hashCode():Int {
+    return Arrays.hashCode(value)
+  }
 }
 
-data class ScriptBytes(bytesValue:ByteArray) : ScriptValue {
-  override val value = bytesValue.array
-  fun copy() : ScriptValue = ScriptBytes(bytesValue)
-  override fun toString() = s"ScriptBytes(${scalaHex(bytesValue.array)})"
-  /*
-  override fun canEqual(that:Any) = super.canEqual(that)
-  override fun equals(that:Any) : Boolean = super.equals(that)
-  override fun hashCode:Int = super.hashCode
-  */
+data class ScriptBytes(val bytesValue:ByteArray) : ScriptValue {
+  override val value = bytesValue
+  override fun copy() : ScriptValue = ScriptBytes(bytesValue)
+  override fun toString() = "ScriptBytes(${HexUtil.kotlinHex(bytesValue)})"
+
+  fun canEqual(a: Any) = a is ScriptBytes
+
+  override fun equals(that: Any?): Boolean {
+    return when {
+      that == null -> return false
+      that is ScriptBytes -> that.canEqual(this) && Arrays.equals(that.value, this.value)
+      else -> false
+    }
+  }
+
+  override fun hashCode():Int {
+    return Arrays.hashCode(value)
+  }
+
 }
 

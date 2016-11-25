@@ -141,11 +141,11 @@ data class GenerationTransactionInput(override val outputTransactionHash : Hash,
 
 interface Script : Transcodable
 {
-    val data : ByteBuf
+    val data : ByteArray
 
     // BUGBUG : Changed Interface, name : from length to size
-    fun size() = data.capacity()
-    operator fun get(i:Int) = data.getByte(i)
+    fun size() = data.size
+    operator fun get(i:Int) = data.get(i)
 }
 
 interface LockingScriptPrinter {
@@ -156,12 +156,14 @@ interface LockingScriptPrinter {
     }
 }
 
-data class LockingScript(override val data : ByteBuf) : Script {
+data class LockingScript(override val data : ByteArray) : Script {
+    constructor(byteBuf : ByteBuf) : this(byteBuf.array())
+
     override fun toString() : String {
         if (LockingScriptPrinter.printer != null)
             return LockingScriptPrinter.printer!!.toString(this)
         else
-            return "LockingScript(${data.kotlinHex()})"
+            return "LockingScript(${HexUtil.kotlinHex(data)})"
     }
 }
 
@@ -173,12 +175,14 @@ interface UnlockingScriptPrinter {
     }
 }
 
-data class UnlockingScript(override val data: ByteBuf) : Script {
+data class UnlockingScript(override val data : ByteArray) : Script {
+  constructor(byteBuf : ByteBuf) : this(byteBuf.array())
+
   override fun toString(): String {
     if (UnlockingScriptPrinter.printer != null)
         return UnlockingScriptPrinter.printer!!.toString(this)
     else
-        return "UnlockingScript(${data.kotlinHex()})"
+        return "UnlockingScript(${HexUtil.kotlinHex(data)})"
   }
 }
 

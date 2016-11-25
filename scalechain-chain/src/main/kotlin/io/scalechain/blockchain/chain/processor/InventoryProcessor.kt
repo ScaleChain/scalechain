@@ -12,7 +12,7 @@ object InventoryProcessor : InventoryProcessor(Blockchain.get)(Blockchain.get.db
   * Process a received Inv message.
   */
 class InventoryProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
-  private lazy val logger = Logger( LoggerFactory.getLogger(classOf<InventoryProcessor>) )
+  private val logger = LoggerFactory.getLogger(InventoryProcessor.javaClass)
 
   fun alreadyHas(inventory : InvVector) : Boolean {
     inventory.invType match {

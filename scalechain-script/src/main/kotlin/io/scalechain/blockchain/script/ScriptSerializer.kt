@@ -12,16 +12,16 @@ import scala.collection.mutable.ArrayBuffer
 object ScriptSerializer {
   /** Serialize the script operations into a Byte array.
    * This is also necessary in order to pass them to script parser and executor while we write test cases.
-   * The input of the script parser is a byte array. So the serializer will write a list of ScriptOp(s) into Array<Byte>.
+   * The input of the script parser is a byte array. So the serializer will write a list of ScriptOp(s) into ByteArray.
    * @param operations
    */
-  fun serialize(operations:List<ScriptOp>) : Array<Byte> {
-    val buffer = ArrayBuffer<Byte>()
+  fun serialize(operations:List<ScriptOp>) : ByteArray {
+    val buffer = mutableListOf<Byte>()
 
-    for (op : ScriptOp <- operations ) {
+    for (op : ScriptOp in operations ) {
       op.serialize(buffer)
     }
 
-    buffer.toArray
+    return buffer.toByteArray()
   }
 }

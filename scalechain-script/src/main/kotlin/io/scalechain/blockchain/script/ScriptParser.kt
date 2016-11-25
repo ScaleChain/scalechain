@@ -2,8 +2,12 @@ package io.scalechain.blockchain.script
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Script
-import io.scalechain.blockchain.script.ops.{ScriptOpWithoutCode, OpCond, ScriptOp}
-import io.scalechain.blockchain.{ErrorCode, ScriptEvalException, ScriptParseException}
+import io.scalechain.blockchain.script.ops.ScriptOpWithoutCode
+import io.scalechain.blockchain.script.ops.OpCond
+import io.scalechain.blockchain.script.ops.ScriptOp
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ScriptEvalException
+import io.scalechain.blockchain.ScriptParseException
 import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
 
@@ -12,7 +16,7 @@ import scala.collection.mutable.ListBuffer
 
 data class ScriptOpList(val operations : List<ScriptOp>) {
   override fun toString(): String {
-    s"ScriptOpList(operations=Array(${operations.mkString(",")}))"
+    return "ScriptOpList(operations=Array(${operations.joinToString(",")}))"
   }
 }
 
@@ -23,7 +27,7 @@ data class ScriptOpList(val operations : List<ScriptOp>) {
  * @param foundFenceOp The script operation found as a fence operation while parsing the script. null if no fence operation was found.
  * @param bytesConsumed The number of bytes consumed during parsing the script.
  */
-data class ParseResult(scriptOpList : ScriptOpList, foundFenceOp : ScriptOp, bytesConsumed : Int)
+data class ParseResult(val scriptOpList : ScriptOpList, val foundFenceOp : ScriptOp, val bytesConsumed : Int)
 
 /**
  * Parse byte array and produce list of script operations.
@@ -31,7 +35,7 @@ data class ParseResult(scriptOpList : ScriptOpList, foundFenceOp : ScriptOp, byt
  * @param rawScript The raw bytes of script that we did not parse yet.
  */
 object ScriptParser {
-  val logger = Logger( LoggerFactory.getLogger(ScriptParser.getClass) )
+  private val logger = LoggerFactory.getLogger(ScriptParser.javaClass)
 
   /** Parse a given raw script in a byte array to get the list of ScriptOp(s)
    *
@@ -40,7 +44,7 @@ object ScriptParser {
    */
   fun parse(script : Script): ScriptOpList  {
     val parseResult = parseUntil(script, 0)
-    parseResult.scriptOpList
+    return parseResult.scriptOpList
   }
 
   /** An internal version of parse method. ScriptOp.create can call this function.
@@ -63,7 +67,7 @@ object ScriptParser {
     * and we reached at the end of the script.
     * @return The list of ScriptOp(s).
     */
-  fun parseUntil(script : Script, offset : Int, fenceScriptOps : ScriptOp*): ParseResult  {
+  fun parseUntil(script : Script, offset : Int, vararg fenceScriptOps : ScriptOp) : ParseResult  {
     val operations = ListBuffer<ScriptOp>()
 
     var programCounter = offset
@@ -101,9 +105,9 @@ object ScriptParser {
         programCounter += bytesConsumed
       } else {
         // Encountered an invalid OP code. This could be an attack, so dump the raw script onto log.
-        logger.warn(s"InvalidScriptOperation. " +
-                    s"code : ${HexUtil.prettyHex(Array(opCode.toByte))}" +
-                    s"programCounter : $programCounter" )
+        logger.warn("InvalidScriptOperation. " +
+                    "code : ${HexUtil.prettyHex(arrayOf(opCode.toByte()))}" +
+                    "programCounter : $programCounter" )
 
         throw ScriptParseException(ErrorCode.InvalidScriptOperation)
       }
@@ -111,7 +115,7 @@ object ScriptParser {
 
     // Throw an exception if we did not meet any fence operation
     // even though the caller of this method passed list of fence operations.
-    if (fenceScriptOps.length > 0) {
+    if (fenceScriptOps.size > 0) {
       if (fenceOpOption.isEmpty) {
         throw ScriptParseException(ErrorCode.UnexpectedEndOfScript)
       }

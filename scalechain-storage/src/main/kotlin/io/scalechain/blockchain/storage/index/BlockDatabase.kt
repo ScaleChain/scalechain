@@ -36,7 +36,7 @@ object DatabaseTablePrefixes {
   * This class is used by CassandraBlockStorage.
   */
 trait BlockDatabase {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockDatabase>) )
+  private val logger = LoggerFactory.getLogger(BlockDatabase.javaClass)
 
   import DatabaseTablePrefixes._
 

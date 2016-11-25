@@ -53,7 +53,8 @@ class TemporaryCoinsView(coinsView : CoinsView) : CoinsView {
   * Created by kangmo on 6/9/16.
   */
 class BlockMining(txDescIndex : TransactionDescriptorIndex, transactionPool : TransactionPool, coinsView : CoinsView)(rocksDB : RocksDatabase) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<BlockMining>) )
+  private val logger = LoggerFactory.getLogger(BlockMining.javaClass)
+
   val watch = StopWatch()
   /*
     /** Calculate the (encoded) difficulty bits that should be in the block header.

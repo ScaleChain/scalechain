@@ -15,7 +15,7 @@ trait PayloadTestSuite<T> : FlatSpec with Matchers with CodecTestUtil {
   implicit val codec : Codec<T>
 
   val message : T
-  val payload : Array<Byte>
+  val payload : ByteArray
 
   fun payloadBits() = BitVector.view(payload)
 
@@ -50,7 +50,7 @@ trait EnvelopeTestSuite<T> : PayloadTestSuite<T> {
   val envelopeCodec = BitcoinMessageEnvelope.codec
 
   val envelope : BitcoinMessageEnvelope
-  val envelopeHeader : Array<Byte>
+  val envelopeHeader : ByteArray
 
   fun envelopeBits() = BitVector.view(envelopeHeader) ++ payloadBits
 

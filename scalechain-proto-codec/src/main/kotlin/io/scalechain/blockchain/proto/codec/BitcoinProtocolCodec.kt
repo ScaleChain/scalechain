@@ -8,7 +8,7 @@ import scodec.{DecodeResult, Attempt}
 import scodec.bits.{BitVector}
 
 class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
-  fun encode(message : ProtocolMessage): Array<Byte> {
+  fun encode(message : ProtocolMessage): ByteArray {
     val envelope = BitcoinMessageEnvelope.build(protocol, message)
     BitcoinMessageEnvelope.codec.encode(envelope) match {
       case Attempt.Successful(bitVector) => {

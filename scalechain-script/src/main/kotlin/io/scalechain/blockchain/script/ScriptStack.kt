@@ -2,11 +2,7 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
-import io.scalechain.blockchain.{ErrorCode, ErrorCode$, ScriptEvalException}
 import io.scalechain.util.Utils
-
-
-import scala.collection.mutable
 
 /** Script Execution Stack. It holds data that Bitcoin Scripts push and pop.
  * Ex> OP_ADD pops two integer values from the stack, and pushes the result, which is an integer value that adds the two integers on to the stack.
@@ -19,7 +15,7 @@ class ScriptStack {
    * The bottom of the stack is the first element in this array.
    * The top of the stack is the last element of this array.
    */
-  val array = mutable.ArrayBuffer<ScriptValue>
+  val array = mutableListOf<ScriptValue>()
 
   /**
    * Convert the stack index to the array index on the array field.
@@ -29,7 +25,7 @@ class ScriptStack {
    * @return
    */
   fun toArrayIndex(stackIndex:Int) : Int {
-    array.length -1 -stackIndex
+    return array.size -1 -stackIndex
   }
 
   /** Push a ScriptValue on to the top of the stack.
@@ -39,7 +35,7 @@ class ScriptStack {
   fun push(value : ScriptValue ): Unit {
     // The top of the stack is the end of the array.
     // Just append the element to the end of the array.
-    array.append(value)
+    array.add(value)
   }
 
   /** Pop a ScriptValue from the top of the stack.
@@ -49,8 +45,8 @@ class ScriptStack {
   fun pop() : ScriptValue {
     // The top of the stack is the end of the array.
     // Get rid of the last element of the array.
-    val popped = array.remove( toArrayIndex(0) )
-    popped
+    val popped = array.removeAt( toArrayIndex(0) )
+    return popped
   }
 
   /** Get the top element without popping it.
@@ -58,7 +54,7 @@ class ScriptStack {
     * @return The top element.
     */
   fun top() : ScriptValue {
-    this.apply(0)
+    return this.get(0)
   }
 
   /** Retrieve n-th element from stack, where top of stack has index 0.
@@ -66,8 +62,8 @@ class ScriptStack {
    * @param index The index from the top of the stack.
    * @return The n-th element.
    */
-  fun apply(index : Int) : ScriptValue {
-    array.apply( toArrayIndex(index) )
+  fun get(index : Int) : ScriptValue {
+    return array.elementAt( toArrayIndex(index) )
   }
 
   /** Remove the N-th element on the stack.
@@ -75,8 +71,8 @@ class ScriptStack {
    * - The element right below the top element : N = 1
    */
   fun remove(index : Int) : ScriptValue {
-    val removedValue = array.remove( toArrayIndex(index) )
-    removedValue
+    val removedValue = array.removeAt( toArrayIndex(index) )
+    return removedValue
   }
 
   /** Inserts elements at a given index into this stack.
@@ -86,7 +82,7 @@ class ScriptStack {
    */
   // TODO : Write a unit test for every edge cases for this method.
   fun insert(index :Int, value : ScriptValue) : Unit {
-    array.insert( toArrayIndex(index), value)
+    array.add( toArrayIndex(index), value)
   }
 
   /** Get the number of elements in the stack.
@@ -94,14 +90,14 @@ class ScriptStack {
    * @return The number of elements.
    */
   fun size() : Int {
-    array.size
+    return array.size
   }
 
   /** Push a big integer value on the top of the stack.
    *
    * @param value The value to push
    */
-  fun pushInt(value : BigInteger): Unit {
+  fun pushInt(value : BigInteger) {
     val scriptValue = ScriptValue.valueOf( value )
     push(scriptValue)
   }
@@ -113,7 +109,7 @@ class ScriptStack {
   fun popInt() : BigInteger  {
     val scriptValue = pop()
     val value : BigInteger  = ScriptValue.decodeStackInt(scriptValue.value)
-    value
+    return value
   }
 
 /*

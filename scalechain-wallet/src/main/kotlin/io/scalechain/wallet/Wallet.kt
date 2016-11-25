@@ -42,7 +42,7 @@ data class WalletOutputWithInfo(
 
 // <Wallet layer> A wallet keeps a list of private keys, and signs transactions using a private key, etc.
 class Wallet() : ChainEventListener {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<Wallet>) )
+  private val logger = LoggerFactory.getLogger(Wallet.javaClass)
 
   val store = WalletStore()
 

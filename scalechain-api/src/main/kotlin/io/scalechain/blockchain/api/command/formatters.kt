@@ -47,7 +47,7 @@ object BlockFormatter {
     * @return The serialized string value.
     */
   fun getSerializedBlock(block : Block) : String {
-    val rawBlockData : Array<Byte> = BlockCodec.serialize(block)
+    val rawBlockData : ByteArray = BlockCodec.serialize(block)
     HexUtil.hex(rawBlockData)
   }
 }
@@ -90,7 +90,7 @@ object TransactionEncoder {
     * @param transaction The transaction to encode.
     * @return The serialized transaction.
     */
-  fun encodeTransaction(transaction : Transaction) : Array<Byte> {
+  fun encodeTransaction(transaction : Transaction) : ByteArray {
     TransactionCodec.serialize(transaction)
   }
 }
@@ -114,13 +114,14 @@ object BlockDecoder {
 
 // <API layer> Convert a transaction into a specific transaction format.
 object TransactionFormatter {
-  private lazy val logger = Logger( LoggerFactory.getLogger(TransactionFormatter.getClass) )
+  private val logger = LoggerFactory.getLogger(TransactionFormatter.javaClass)
+
   /** Get a serialized version of a transaction.
     *
     * Used by : sign raw transaction
     */
   fun getSerializedTranasction(transaction : Transaction) : String {
-    val rawTransactionData : Array<Byte> = TransactionCodec.serialize(transaction)
+    val rawTransactionData : ByteArray = TransactionCodec.serialize(transaction)
     HexUtil.hex(rawTransactionData)
   }
 

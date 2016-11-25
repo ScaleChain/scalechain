@@ -15,7 +15,7 @@ object TransactionProcessor : TransactionProcessor(Blockchain.get)
   *
   */
 class TransactionProcessor(val chain : Blockchain) {
-  private val logger = Logger( LoggerFactory.getLogger(classOf<TransactionProcessor>) )
+  private val logger = LoggerFactory.getLogger(TransactionProcessor.javaClass)
 
   /** See if a transaction exists. Checks orphan transactions as well.
     * naming rule : 'exists' checks orphan transactions as well, whereas hasNonOrphan does not.

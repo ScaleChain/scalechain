@@ -12,7 +12,7 @@ import scala.util.Random
 /*
 trait PerformanceTestTrait : FlatSpec with Matchers {
 
-  fun sha256(value : Array<Byte>) : Array<Byte> {
+  fun sha256(value : ByteArray) : ByteArray {
     MessageDigest.getInstance("SHA-1").digest(value).array
   }
 
@@ -45,8 +45,8 @@ trait PerformanceTestTrait : FlatSpec with Matchers {
     println(s"Size per second : ${totalSizeProcessed / elapsedSecond} /s ")
   }
 
-  fun prepareKeyValue(count: Long): List<(Array<Byte>, Array<Byte>)> {
-    val buffer = ListBuffer<(Array<Byte>, Array<Byte>)>()
+  fun prepareKeyValue(count: Long): List<(ByteArray, ByteArray)> {
+    val buffer = ListBuffer<(ByteArray, ByteArray)>()
     for (i <- 0L to count) {
       // 32 byte key
       val key = rand32bytes

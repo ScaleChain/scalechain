@@ -1,6 +1,6 @@
 //include 'scalechain-cli'
 //include 'scalechain-storage'
-//include 'scalechain-script'
+include 'scalechain-script'
 include 'scalechain-crypto'
 include 'scalechain-proto-codec'
 include 'scalechain-proto'

@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 trait SerializeParseUtil<T> {
   val codec : Codec<T>
 
-  fun serialize(obj : T) : Array<Byte> {
+  fun serialize(obj : T) : ByteArray {
 
     val bitVector = codec.encode(obj).require
 
@@ -22,7 +22,7 @@ trait SerializeParseUtil<T> {
     assert((len & 0x00000007) == 0)
     val byteLen = len >> 3
     //
-    val serializedBytes = Array<Byte>(byteLen)
+    val serializedBytes = ByteArray(byteLen)
 
     var i = 0
     while (i < byteLen) {
@@ -44,7 +44,7 @@ trait SerializeParseUtil<T> {
     }*/
   }
 
-  fun parse(data: Array<Byte>) : T {
+  fun parse(data: ByteArray) : T {
     val bitVector: BitVector = BitVector.view(data)
 
     codec.decode(bitVector) match {
@@ -77,7 +77,7 @@ trait SerializeParseUtil<T> {
     }
   }
 
-  fun parseMany(data: Array<Byte>) : List<T> {
+  fun parseMany(data: ByteArray) : List<T> {
     val decodedItems = ListBuffer<T>()
     val bitVector: BitVector = BitVector.view(data)
     parseManyInternal(bitVector, decodedItems)

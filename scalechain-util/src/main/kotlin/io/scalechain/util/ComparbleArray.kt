@@ -31,14 +31,14 @@ object ComparableArray {
 }
 
 
-data class ByteArray(override val array : Array<Byte>) : ComparableArray<Byte>(array) {
+data class ByteArray(override val array : ByteArray) : ComparableArray<Byte>(array) {
   // BUGBUG : Dirty, .map(_.asInstanceOf<java.lang.Byte>)
   override fun toString = s"${HexUtil.scalaHex(array.map(_.asInstanceOf<java.lang.Byte>))}"
 }
 
 object ByteArray {
   implicit fun byteArrayToArray (barray : ByteArray   ) = barray.array
-  implicit fun arrayToByteArray (array  : Array<Byte> ) = ByteArray(array)
+  implicit fun arrayToByteArray (array  : ByteArray ) = ByteArray(array)
 
   // BUGBUG : Dirty, .map(_.asInstanceOf<scala.Byte>)
   implicit fun stringToByteArray(value : String)

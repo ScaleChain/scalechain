@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * The message handler for GetData message.
   */
 object GetDataMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(GetDataMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(GetDataMessageHandler.javaClass)
 
   /** Handle GetData message.
     *

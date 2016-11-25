@@ -52,7 +52,7 @@ class BlockAccessFileSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     * @param buffer The byte buffer to convert.
     * @return The converted array of byte.
     */
-  fun L(buffer : ByteBuffer) : Array<Byte> {
+  fun L(buffer : ByteBuffer) : ByteArray {
     buffer.array
   }
 

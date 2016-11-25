@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   * The message handler for Ping message.
   */
 object PingMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(PingMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(PingMessageHandler.javaClass)
 
   /** Handle Ping message.
     *

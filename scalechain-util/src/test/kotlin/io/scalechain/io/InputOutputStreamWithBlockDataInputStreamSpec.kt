@@ -32,7 +32,7 @@ class InputOutputStreamWithBlockDataInputStreamSpec : FlatSpec(), Matchers {
         //
     }
 
-    fun stream( encoded : Array<Byte> ) = InputOutputStream( BlockDataInputStream(ByteArrayInputStream(encoded.toByteArray())) , null )
+    fun stream( encoded : ByteArray ) = InputOutputStream( BlockDataInputStream(ByteArrayInputStream(encoded.toByteArray())) , null )
 
 
     init {

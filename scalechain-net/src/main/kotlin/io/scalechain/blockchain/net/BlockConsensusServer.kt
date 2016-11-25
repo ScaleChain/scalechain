@@ -14,17 +14,17 @@ import HashSupported._
 import collection.JavaConverters._
 
 class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
-  private lazy val logger = Logger( LoggerFactory.getLogger(classOf<BlockConsensusServer>) )
+  private val logger = LoggerFactory.getLogger(BlockConsensusServer.javaClass)
 
   private var replica: ServiceReplica = ServiceReplica(id, this, this)
 
-  override fun appExecuteUnordered(command: Array<Byte>, msgCtx: MessageContext): Array<Byte> {
+  override fun appExecuteUnordered(command: ByteArray, msgCtx: MessageContext): ByteArray {
     // No support for the unordered command.
     assert(false)
     null
   }
 
-  override fun appExecuteOrdered(command: Array<Byte>, msgCtx: MessageContext): Array<Byte> {
+  override fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray {
     try {
       logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
 
@@ -52,18 +52,18 @@ class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
         logger.trace(s"New consensual header : ${blockHeader.hash}, ${blockHeader}")
       }
       // Nothing to reply.
-      Array<Byte>()
+      ByteArray()
     }
     catch {
       case ex: IOException => {
         logger.error("Invalid request received!")
-        Array<Byte>()
+        ByteArray()
       }
     }
   }
 
   @SuppressWarnings(Array("unchecked"))
-  override fun installSnapshot(state: Array<Byte>) {
+  override fun installSnapshot(state: ByteArray) {
     try {
       logger.trace("setState called")
       val bestBlockHash = HashCodec.parse(state)
@@ -84,7 +84,7 @@ class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
     }
   }
 
-  override fun getSnapshot: Array<Byte> {
+  override fun getSnapshot: ByteArray {
     try {
       System.out.println("getState called")
       // TODO : Rethink syncrhonization.

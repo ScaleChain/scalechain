@@ -14,9 +14,7 @@ import io.scalechain.blockchain.script.HashSupported._
   * The message handler for Tx message.
   */
 object TxMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(TxMessageHandler.getClass) )
-
-
+  private val logger = LoggerFactory.getLogger(TxMessageHandler.javaClass)
 
   /** Handle Transaction message.
     *

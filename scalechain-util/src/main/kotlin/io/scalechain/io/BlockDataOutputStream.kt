@@ -54,7 +54,7 @@ class BlockDataOutputStream(private val stream: OutputStream) : DataOutputStream
     /** Write a byte array.
      * @param bytes The byte array to write.
      */
-    // BUGBUG : Interface Change, Array<Byte> -> ByteArray
+    // BUGBUG : Interface Change, ByteArray -> ByteArray
     fun writeBytes(bytes : ByteArray)  {
         write(bytes)
     }

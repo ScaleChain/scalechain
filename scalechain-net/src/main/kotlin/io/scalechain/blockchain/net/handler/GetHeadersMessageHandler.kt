@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory
   *
   */
 object GetHeadersMessageHandler {
-  private lazy val logger = Logger( LoggerFactory.getLogger(GetHeadersMessageHandler.getClass) )
+  private val logger = LoggerFactory.getLogger(GetHeadersMessageHandler.javaClass)
 
   /** Handle GetHeaders message.
     *

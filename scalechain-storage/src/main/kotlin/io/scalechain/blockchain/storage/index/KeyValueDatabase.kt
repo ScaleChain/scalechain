@@ -22,18 +22,18 @@ trait KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(Array<Byte>, Array<Byte>)>
-  fun get(key : Array<Byte> ) : Option<Array<Byte>>
-  fun put(key : Array<Byte>, value : Array<Byte> ) : Unit
-  fun del(key : Array<Byte>) : Unit
+  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)>
+  fun get(key : ByteArray ) : Option<Array<Byte>>
+  fun put(key : ByteArray, value : ByteArray ) : Unit
+  fun del(key : ByteArray) : Unit
   fun close() : Unit
 
-  private fun prefixedKey(prefix: Byte, key:Array<Byte>) = Array(prefix) ++ key
-  private fun prefixedKey(prefix: Array<Byte>, key:Array<Byte>) = prefix ++ key
+  private fun prefixedKey(prefix: Byte, key:ByteArray) = Array(prefix) ++ key
+  private fun prefixedKey(prefix: ByteArray, key:ByteArray) = prefix ++ key
 
-  fun seekObject<V <: ProtocolMessage>(rawKeyOption : Option<Array<Byte>> = None)(implicit valueCodec : MessagePartCodec<V>) : ClosableIterator<(Array<Byte>, V)> {
-    class ValueMappedIterator(iterator:ClosableIterator<(Array<Byte>,Array<Byte>)>) : ClosableIterator<(Array<Byte>, V)> {
-      fun next : (Array<Byte>, V) {
+  fun seekObject<V <: ProtocolMessage>(rawKeyOption : Option<Array<Byte>> = None)(implicit valueCodec : MessagePartCodec<V>) : ClosableIterator<(ByteArray, V)> {
+    class ValueMappedIterator(iterator:ClosableIterator<(ByteArray,ByteArray)>) : ClosableIterator<(ByteArray, V)> {
+      fun next : (ByteArray, V) {
         val (rawKey, rawValue) = iterator.next
         (rawKey, valueCodec.parse(rawValue))
       }
@@ -57,7 +57,7 @@ trait KeyValueDatabase {
   }
 
 
-  protected fun seekObjectInternal<K <: ProtocolMessage,V <: ProtocolMessage>(prefix: Array<Byte>, keyOption : Option<K>)(keyCodec : MessagePartCodec<K>, valueCodec : MessagePartCodec<V>) : ClosableIterator<(K,V)> {
+  protected fun seekObjectInternal<K <: ProtocolMessage,V <: ProtocolMessage>(prefix: ByteArray, keyOption : Option<K>)(keyCodec : MessagePartCodec<K>, valueCodec : MessagePartCodec<V>) : ClosableIterator<(K,V)> {
     /** We should stop the iteration if the prefix of the key changes.
       * So, hasNext first gets the next key and checks if the prefix remains unchanged.
       * next will return the element we got from hasNext.
@@ -66,8 +66,8 @@ trait KeyValueDatabase {
       *
       * @param iterator
       */
-    class PrefetchingIterator(iterator:ClosableIterator<(Array<Byte>,Array<Byte>)>) : ClosableIterator<(K, V)> {
-      var elementToReturn : Option<(Array<Byte>,Array<Byte>)> = None
+    class PrefetchingIterator(iterator:ClosableIterator<(ByteArray,ByteArray)>) : ClosableIterator<(K, V)> {
+      var elementToReturn : Option<(ByteArray,ByteArray)> = None
 
       fun next : (K, V) {
         assert(elementToReturn.isDefined)
@@ -129,7 +129,7 @@ trait KeyValueDatabase {
 
 
 
-  fun getObject<V <: ProtocolMessage>(rawKey : Array<Byte>)(implicit valueCodec : MessagePartCodec<V>) : Option<V> {
+  fun getObject<V <: ProtocolMessage>(rawKey : ByteArray)(implicit valueCodec : MessagePartCodec<V>) : Option<V> {
     get(rawKey).map( valueCodec.parse(_) )
   }
 
@@ -145,7 +145,7 @@ trait KeyValueDatabase {
 
 
 
-  fun putObject<V <: ProtocolMessage>(rawKey : Array<Byte>, value : V)(implicit valueCodec : MessagePartCodec<V>) : Unit {
+  fun putObject<V <: ProtocolMessage>(rawKey : ByteArray, value : V)(implicit valueCodec : MessagePartCodec<V>) : Unit {
     val rawValue = valueCodec.serialize(value)
 
     put(rawKey, rawValue)

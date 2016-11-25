@@ -194,7 +194,7 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
       var totalSize = 0
 
       transactions foreach { case (txHash, tx) =>
-        val rawHash : Array<Byte> = HashCodec.serialize(txHash)
+        val rawHash : ByteArray = HashCodec.serialize(txHash)
         val prefixedRawHash = Array('A'.toByte) ++ rawHash
         hashes.append(prefixedRawHash)
         totalSize += rawHash.length
@@ -224,7 +224,7 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
       var totalSize = 0
 
       transactions foreach { case (txHash, tx) =>
-        //val rawTx: Array<Byte> = TransactionCodec.serialize(tx)
+        //val rawTx: ByteArray = TransactionCodec.serialize(tx)
         val rawTx = TransactionCodec.serialize(tx)
         rawTransactions.append(rawTx)
         totalSize += rawTx.length
