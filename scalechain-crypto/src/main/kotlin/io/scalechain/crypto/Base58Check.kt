@@ -1,9 +1,10 @@
 package io.scalechain.crypto
 
-import java.util
+import io.netty.buffer.ByteBuf
 
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
+import io.scalechain.blockchain.*
 import io.scalechain.util.Base58Util
+import java.util.*
 
 /**
   * https://en.bitcoin.it/wiki/Base58Check_encoding
@@ -23,7 +24,7 @@ import io.scalechain.util.Base58Util
   *
   */
 object Base58Check {
-  fun checksum(data: Array<Byte>) = HashFunctions.hash256(data).value.take(4)
+  fun checksum(data: ByteArray) : ByteArray = HashFunctions.hash256(data).value.take(4).toByteArray()
 
   /**
     * Encode data in Base58Check format.
@@ -33,9 +34,8 @@ object Base58Check {
     * @param data date to be encoded
     * @return a Base58 string
     */
-  fun encode(prefix: Byte, data: Array<Byte>) : String {
-    val prefixAndData = prefix +: data
-    Base58Util.encode(prefixAndData ++ checksum(prefixAndData))
+  fun encode(prefix: Byte, data: ByteArray) : String {
+    return encode(ByteArray(1, {prefix}), data)
   }
 
   /**
@@ -44,9 +44,9 @@ object Base58Check {
     * @param data data to be encoded
     * @return a Base58 String
     */
-  fun encode(prefix: Array<Byte>, data: Array<Byte>) : String {
-    val prefixAndData = prefix ++ data
-    Base58Util.encode(prefixAndData ++ checksum(prefixAndData))
+  fun encode(prefix: ByteArray, data: ByteArray) : String {
+    val prefixAndData = prefix + data
+    return Base58Util.encode(prefixAndData + checksum(prefixAndData))
   }
 
   /**
@@ -56,13 +56,13 @@ object Base58Check {
     * @return a (prefix, data) tuple
     * @throws RuntimeException if the checksum that is part of the encoded data cannot be verified
     */
-  fun decode(encoded: String) : (Byte, Array<Byte>) {
+  fun decode(encoded: String) : Pair<Byte, ByteArray> {
     val raw = Base58Util.decode(encoded)
-    val versionAndHash = raw.dropRight(4)
-    val checksum = raw.takeRight(4)
-    if (!util.Arrays.equals(checksum, Base58Check.checksum(versionAndHash))) {
+    val versionAndHash : ByteArray = raw.dropLast(4).toByteArray()
+    val checksum : ByteArray = raw.takeLast(4).toByteArray()
+    if (!Arrays.equals(checksum, Base58Check.checksum(versionAndHash))) {
       throw GeneralException(ErrorCode.InvalidChecksum)
     }
-    (versionAndHash(0), versionAndHash.tail)
+    return Pair(versionAndHash.get(0), versionAndHash.drop(1).toByteArray())
   }
 }

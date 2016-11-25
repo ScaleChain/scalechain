@@ -39,7 +39,7 @@ object Base58Util {
      */
     // BUGBUG : Interface Change, Seq<Byte> => ByteArray
     @JvmStatic
-    fun encode(input: kotlin.ByteArray): String {
+    fun encode(input: ByteArray): String {
         if (input.isEmpty()) return ""
         else {
             val big = BigInteger(1, input)
@@ -70,7 +70,7 @@ object Base58Util {
      * @return the decoded data
      */
     @JvmStatic
-    fun decode(input: String) : kotlin.ByteArray {
+    fun decode(input: String) : ByteArray {
         val zeroes = input.takeWhile{it == '1'}.map{0.toByte()}.toByteArray()
         val trim  = input.dropWhile{it== '1'}.toList()
         val decoded = trim.fold(BigInteger.ZERO, {a, b -> a.multiply(BigInteger.valueOf(58L)).add(BigInteger.valueOf(alphabetValue[b] ?: throw NoSuchElementException()))})

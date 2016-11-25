@@ -11,11 +11,14 @@ object HashEstimation {
     *                      The returned value is used to get the estimated chain-work.
     * @return The estimated number of hash calculations for the given block.
     */
-  fun getHashCalculations(hashValue: Array<Byte>): Long {
+  fun getHashCalculations(hashValue: ByteArray): Long {
     // Step 2 : Calculate the (estimated) number of hash calculations based on the hash value.
     val hashValueBigInt = Utils.bytesToBigInteger(hashValue)
     val totalBits = 8 * 32
 
-    scala.math.pow(2, totalBits - hashValueBigInt.bitLength()).toLong
+    return Math.pow(
+      2.toDouble(),
+      (totalBits - hashValueBigInt.bitLength()).toDouble()
+    ).toLong()
   }
 }

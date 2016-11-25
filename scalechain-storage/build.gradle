@@ -1,0 +1,9 @@
+dependencies {
+//    compile project(':scalechain-proto')
+
+    compile "org.rocksdb:rocksdbjni:4.11.2"
+    compile "org.fusesource.leveldbjni:leveldbjni-osx:1.8"
+    compile "org.fusesource:sigar:1.6.4"
+
+    compile project(':scalechain-util')
+}
