@@ -3,8 +3,6 @@ package io.scalechain.test
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import org.scalatest.*
-
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 

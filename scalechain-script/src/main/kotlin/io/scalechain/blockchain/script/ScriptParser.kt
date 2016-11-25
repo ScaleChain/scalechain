@@ -27,7 +27,7 @@ data class ScriptOpList(val operations : List<ScriptOp>) {
  * @param foundFenceOp The script operation found as a fence operation while parsing the script. null if no fence operation was found.
  * @param bytesConsumed The number of bytes consumed during parsing the script.
  */
-data class ParseResult(val scriptOpList : ScriptOpList, val foundFenceOp : ScriptOp, val bytesConsumed : Int)
+data class ParseResult(val scriptOpList : ScriptOpList, val foundFenceOp : ScriptOp?, val bytesConsumed : Int)
 
 /**
  * Parse byte array and produce list of script operations.
@@ -68,23 +68,23 @@ object ScriptParser {
     * @return The list of ScriptOp(s).
     */
   fun parseUntil(script : Script, offset : Int, vararg fenceScriptOps : ScriptOp) : ParseResult  {
-    val operations = ListBuffer<ScriptOp>()
+    val operations = mutableListOf<ScriptOp>()
 
     var programCounter = offset
-    var fenceOpOption : Option<ScriptOp> = None
+    var fenceOp : ScriptOp? = null
     // BUGBUG : Improve readability of this code.
 
-    while ( (programCounter < script.length) && // Loop until we meet the end of script and
-            fenceOpOption.isEmpty) {               // we did not meet any fence operation.
+    while ( (programCounter < script.size()) && // Loop until we meet the end of script and
+            fenceOp == null) {               // we did not meet any fence operation.
       // Read the script op code
-      val opCode = (script(programCounter) & 0xFF).toShort
+      val opCode = (script.get(programCounter).toInt() and 0xFF).toShort()
       // Move the cursor forward
       programCounter += 1
 
       // Get the script operation that matches the op code.
-      val scriptOpOption = ScriptOperations.get(opCode)
-      if (scriptOpOption.isDefined) {
-        val scriptOpTemplate = scriptOpOption.get
+      val scriptOp = ScriptOperations.get(opCode)
+      if (scriptOp != null) {
+        val scriptOpTemplate = scriptOp
 
         // A script operation can consume bytes in the script chunk.
         // Copy a chunk of bytes of
@@ -93,20 +93,20 @@ object ScriptParser {
 
         // See if the scriptOp exists in the fenceScriptOps list.
         // For example, while parsing OP_IF/OP_NOTIF, we need to parse until we meet either OP_ELSE or OP_ENDIF.
-        if (!scriptOp.isInstanceOf<ScriptOpWithoutCode>) { // BUGBUG : Improve this code without using runtime type checking.
-          fenceOpOption = fenceScriptOps.find( scriptOp.opCode() == _.opCode() )
+        if (scriptOp !is ScriptOpWithoutCode) { // BUGBUG : Improve this code without using runtime type checking.
+          fenceOp = fenceScriptOps.find{ scriptOp.opCode() == it.opCode() }
         }
 
         // Append to the list of operations only if it is not a fence operation.
-        if (fenceOpOption.isEmpty) {
-          operations.append(scriptOp)
+        if (fenceOp == null) {
+          operations.add(scriptOp)
         }
 
         programCounter += bytesConsumed
       } else {
         // Encountered an invalid OP code. This could be an attack, so dump the raw script onto log.
         logger.warn("InvalidScriptOperation. " +
-                    "code : ${HexUtil.prettyHex(arrayOf(opCode.toByte()))}" +
+                    "code : ${HexUtil.prettyHex(ByteArray(1, {opCode.toByte()}))}" +
                     "programCounter : $programCounter" )
 
         throw ScriptParseException(ErrorCode.InvalidScriptOperation)
@@ -116,12 +116,12 @@ object ScriptParser {
     // Throw an exception if we did not meet any fence operation
     // even though the caller of this method passed list of fence operations.
     if (fenceScriptOps.size > 0) {
-      if (fenceOpOption.isEmpty) {
+      if (fenceOp == null) {
         throw ScriptParseException(ErrorCode.UnexpectedEndOfScript)
       }
     }
 
-    ParseResult( ScriptOpList(operations.toList), fenceOpOption.getOrElse(null), bytesConsumed = programCounter - offset )
+    return ParseResult( ScriptOpList(operations.toList()), fenceOp, bytesConsumed = programCounter - offset )
   }
 
 

@@ -106,11 +106,11 @@ object HashCodec : Codec<Hash> {
 
 object LockingScriptCodec : Codec<LockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : LockingScript? ) : LockingScript? {
-    val data = Codecs.VariableByteBuf.transcode(io, obj?.data)
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, obj?.byteBuf)
 
     if (io.isInput) {
       return LockingScript(
-        data!!
+          byteBuf!!
       )
     }
     return null
@@ -119,11 +119,11 @@ object LockingScriptCodec : Codec<LockingScript> {
 
 object UnlockingScriptCodec : Codec<UnlockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : UnlockingScript? ) : UnlockingScript? {
-    val data = Codecs.VariableByteBuf.transcode(io, obj?.data)
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, obj?.byteBuf)
 
     if (io.isInput) {
       return UnlockingScript(
-        data!!
+          byteBuf!!
       )
     }
     return null
@@ -228,7 +228,7 @@ object TransactionInputCodec : Codec<TransactionInput> {
       return GenerationTransactionInput(
         normalTxInput.outputTransactionHash,
         normalTxInput.outputIndex,
-        CoinbaseData(normalTxInput.unlockingScript.data),
+        CoinbaseData(normalTxInput.unlockingScript.byteBuf),
         normalTxInput.sequenceNumber
       )
     } else {

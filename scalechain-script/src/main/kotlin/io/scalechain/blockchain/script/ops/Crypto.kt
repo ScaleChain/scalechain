@@ -131,7 +131,7 @@ abstract class CheckSig() : Crypto {
   fun checkSig(script : Script, env : ScriptEnvironment): Unit {
     assert(script != null)
     assert(env.transaction != null)
-    assert(env.transactionInputIndex.isDefined)
+    assert(env.transactionInputIndex != null)
 
     // At least we need to have two items on the stack.
     //   1. a public key.
@@ -159,7 +159,7 @@ abstract class CheckSig() : Crypto {
     //val howToHash : Int = rawSigature.value.last & 0x1f
     val howToHash : Int = rawSignature.value.last().toInt()
 
-    val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction, env.transactionInputIndex.get, scriptData, howToHash)
+    val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction!!, env.transactionInputIndex!!, scriptData, howToHash)
 
     if (ECKey.verify(hashOfInput.value, signature, publicKey.value)) {
       super.pushTrue(env)
@@ -171,7 +171,7 @@ abstract class CheckSig() : Crypto {
   fun checkMultiSig(script : Script, env : ScriptEnvironment): Unit {
     assert(script != null)
     assert(env.transaction != null)
-    assert(env.transactionInputIndex.isDefined)
+    assert(env.transactionInputIndex != null)
 
     // At least we need to have 5 items on the stack.
     //   1. the number of public keys
@@ -253,7 +253,7 @@ abstract class CheckSig() : Crypto {
       //val howToHash : Int = rawSigature.value.last & 0x1f
       val howToHash : Int = rawSignature.value.last().toInt()
 
-      val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction, env.transactionInputIndex.get, scriptData, howToHash)
+      val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction!!, env.transactionInputIndex!!, scriptData, howToHash)
 
       // Step 6.3 : Try to match the signature with a public key
       val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)

@@ -157,7 +157,10 @@ interface LockingScriptPrinter {
 }
 
 data class LockingScript(override val data : ByteArray) : Script {
-    constructor(byteBuf : ByteBuf) : this(byteBuf.array())
+    lateinit var byteBuf : ByteBuf
+    constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
+        this.byteBuf = byteBuf
+    }
 
     override fun toString() : String {
         if (LockingScriptPrinter.printer != null)
@@ -176,9 +179,12 @@ interface UnlockingScriptPrinter {
 }
 
 data class UnlockingScript(override val data : ByteArray) : Script {
-  constructor(byteBuf : ByteBuf) : this(byteBuf.array())
+    lateinit var byteBuf : ByteBuf
+    constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
+        this.byteBuf = byteBuf
+    }
 
-  override fun toString(): String {
+    override fun toString(): String {
     if (UnlockingScriptPrinter.printer != null)
         return UnlockingScriptPrinter.printer!!.toString(this)
     else

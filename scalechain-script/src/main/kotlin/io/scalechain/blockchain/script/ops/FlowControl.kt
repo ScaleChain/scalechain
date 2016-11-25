@@ -31,13 +31,13 @@ abstract class IfOrNotIfOp : FlowControl {
 
     // TODO : Implement equals method for ScriptOp.
     val (elseScriptOpList, elsePartBytesConsumed) =
-      if ( thenPart.foundFenceOp.opCode() == OpElse().opCode()) {
+      if ( thenPart.foundFenceOp!!.opCode() == OpElse().opCode()) {
         val elsePart : ParseResult =
           ScriptParser.parseUntil(script, offset + thenPart.bytesConsumed, OpEndIf())
-        assert(elsePart.foundFenceOp.opCode() == OpEndIf().opCode())
+        assert(elsePart.foundFenceOp!!.opCode() == OpEndIf().opCode())
         Pair(elsePart.scriptOpList, elsePart.bytesConsumed)
       } else {
-        assert( thenPart.foundFenceOp.opCode() == OpEndIf().opCode() )
+        assert( thenPart.foundFenceOp!!.opCode() == OpEndIf().opCode() )
         Pair(null, 0)
       }
 

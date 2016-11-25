@@ -19,87 +19,89 @@ class ArrayUtilSpec {
         // tear down the test case
     }
 
+    fun byteArrayOf(vararg args : Int) : ByteArray = args.map { it.toByte() }.toByteArray()
+
     @Test fun testPad() {
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.pad(arrayOf(), 0, 0 ),
-                arrayOf()))
+                ArrayUtil.pad(byteArrayOf(), 0, 0 ),
+                byteArrayOf()))
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.pad(arrayOf(), 1, 0 ),
-                arrayOf(0)))
+                ArrayUtil.pad(byteArrayOf(), 1, 0 ),
+                byteArrayOf(0)))
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.pad(arrayOf(1), 1, 0 ),
-                arrayOf(1)))
+                ArrayUtil.pad(byteArrayOf(1), 1, 0 ),
+                byteArrayOf(1)))
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.pad(arrayOf(1), 2, 0 ),
-                arrayOf(1,0)))
+                ArrayUtil.pad(byteArrayOf(1), 2, 0 ),
+                byteArrayOf(1,0)))
     }
 
     @Test fun testUnPad() {
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(), 0),
-                arrayOf()
+                ArrayUtil.unpad(byteArrayOf(), 0),
+                byteArrayOf()
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(), 1),
-                arrayOf()
+                ArrayUtil.unpad(byteArrayOf(), 1),
+                byteArrayOf()
             )
         )
 
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(0), 0),
-                arrayOf()
+                ArrayUtil.unpad(byteArrayOf(0), 0),
+                byteArrayOf()
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(1), 0),
-                arrayOf(1)
+                ArrayUtil.unpad(byteArrayOf(1), 0),
+                byteArrayOf(1)
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(0, 0), 0),
-                arrayOf()
+                ArrayUtil.unpad(byteArrayOf(0, 0), 0),
+                byteArrayOf()
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                ArrayUtil.unpad(arrayOf(1, 0), 0),
-                arrayOf(1)
+                ArrayUtil.unpad(byteArrayOf(1, 0), 0),
+                byteArrayOf(1)
             )
         )
     }
 
 
     @Test fun testIsEqual() {
-        assertTrue(ArrayUtil.isEqual(arrayOf(), arrayOf()))
+        assertTrue(ArrayUtil.isEqual(byteArrayOf(), byteArrayOf()))
 
-        assertTrue(ArrayUtil.isEqual(arrayOf(1), arrayOf(1)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1), arrayOf(2)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1), arrayOf(1,2)))
+        assertTrue(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(2)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1,2)))
 
-        assertTrue(ArrayUtil.isEqual(arrayOf(1,2), arrayOf(1,2)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1,2), arrayOf(1,3)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1,2), arrayOf(1,2,3)))
+        assertTrue(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,2)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,3)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,2,3)))
 
-        assertTrue(ArrayUtil.isEqual(arrayOf(1,2,3), arrayOf(1,2,3)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1,2,3), arrayOf(1,2,4)))
-        assertFalse(ArrayUtil.isEqual(arrayOf(1,2,3), arrayOf(1,2,3,4)))
+        assertTrue(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,3)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,4)))
+        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,3,4)))
     }
 }

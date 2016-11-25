@@ -22,25 +22,27 @@ class HexUtilSpec {
         // tear down the test case
     }
 
+    fun byteArrayOf(vararg args : Int) : ByteArray = args.map { it.toByte() }.toByteArray()
+
     @Test fun testBytes() {
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("") ).toTypedArray(),
-                arrayOf()
+                HexUtil.bytes( S("") ),
+                byteArrayOf()
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01") ).toTypedArray(),
-                arrayOf(1)
+                HexUtil.bytes( S("01") ),
+                byteArrayOf(1)
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("0a") ).toTypedArray(),
-                arrayOf(10)
+                HexUtil.bytes( S("0a") ),
+                byteArrayOf(10)
             )
         )
 
@@ -50,15 +52,15 @@ class HexUtilSpec {
         }
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01 02") ).toTypedArray(),
-                arrayOf(1,2)
+                HexUtil.bytes( S("01 02") ),
+                byteArrayOf(1,2)
             )
         )
 
         assertTrue(
             ArrayUtil.isEqual(
-                HexUtil.bytes( S("01 02 03") ).toTypedArray(),
-                arrayOf(1,2,3)
+                HexUtil.bytes( S("01 02 03") ),
+                byteArrayOf(1,2,3)
             )
         )
 

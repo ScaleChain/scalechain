@@ -32,7 +32,7 @@ object ArrayUtil {
     @JvmStatic
     fun unpad(array : ByteArray, value : Byte) : ByteArray {
 
-        return array.dropLastWhile { it == value }.toTypedArray()
+        return array.dropLastWhile { it == value }.toByteArray()
     }
 
     @JvmStatic
