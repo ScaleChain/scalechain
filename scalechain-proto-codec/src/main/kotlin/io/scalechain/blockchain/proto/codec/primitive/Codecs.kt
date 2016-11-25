@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.proto.codec.primitive
 
 import io.scalechain.blockchain.proto.codec.Codec
+import java.nio.charset.Charset
 
 /**
  * Codec factory for creating different kinds of codec.
@@ -25,6 +26,8 @@ object Codecs {
     val UInt64L = UInt64LCodec()
 
     val VariableInt = VariableIntCodec()
+
+    val NullTerminatedUTF8String = NullTerminatedStringCodec(Charset.forName("UTF-8"))
 
     fun fixedByteBuf(length : Int )
         = FixedByteBufCodec(length)

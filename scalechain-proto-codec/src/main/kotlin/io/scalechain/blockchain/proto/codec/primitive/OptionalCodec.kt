@@ -2,26 +2,27 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 import io.scalechain.blockchain.proto.codec.Codec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
+import io.scalechain.util.Option
+import io.scalechain.util.Option.Some
+import io.scalechain.util.Option.None
 
-class OptionalCodec<T>(val flagCodec : Codec<Boolean> = Codecs.Boolean, val valueCodec : Codec<T> ) : Codec<T?> {
-    override fun transcode(io : CodecInputOutputStream, obj : (T?)? ) : (T?)? {
+class OptionalCodec<T>(val flagCodec : Codec<Boolean> = Codecs.Boolean, val valueCodec : Codec<T> ) : Codec<Option<T>> {
+    override fun transcode(io : CodecInputOutputStream, obj : Option<T>? ) : Option<T>? {
         if (io.isInput) {
             val hasValue = flagCodec.transcode(io, null)!!
-            val objectOption : T? =
-                if (hasValue) {
-                    valueCodec.transcode(io, null)
-                } else {
-                    null
-                }
-            val objectOptionOption : (T?)? = objectOption
-            return objectOptionOption
-        } else {
-            val objectOption : T? = obj!!
-            if ( objectOption == null) {
-                flagCodec.transcode(io, false)
+            if (hasValue) {
+                return Some(valueCodec.transcode(io, null)!!)
             } else {
-                flagCodec.transcode(io, true)
-                valueCodec.transcode(io, objectOption!!)
+                return None()
+            }
+        } else {
+            val optionObject = obj!!
+            when(optionObject) {
+                is None -> flagCodec.transcode(io, false)
+                is Some -> {
+                    flagCodec.transcode(io, true)
+                    valueCodec.transcode(io, optionObject.value)
+                }
             }
             return null
         }

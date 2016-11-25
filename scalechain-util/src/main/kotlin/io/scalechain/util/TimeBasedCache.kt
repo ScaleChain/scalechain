@@ -13,7 +13,7 @@ class TimeBasedCache<K, V>(duration: Long, unit: TimeUnit) {
 
     fun put(hashKey : K, block : V) {
         // Assumption : Cache is thread-safe
-        val incompleteBlock = cache.getIfPresent(hashKey)
+        //val incompleteBlock = cache.getIfPresent(hashKey)
 
         cache.put(hashKey, block)
     }

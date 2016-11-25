@@ -61,11 +61,11 @@ object VariableInt {
 }
 
 class VariableIntCodec : Codec<Long> {
-    override fun transcode(io : CodecInputOutputStream, value : Long? ) : Long? {
+    override fun transcode(io : CodecInputOutputStream, obj : Long? ) : Long? {
         if (io.isInput) {
             return VariableInt.decode(io.byteBuf)
         } else {
-            VariableInt.encode(io.byteBuf, value!!)
+            VariableInt.encode(io.byteBuf, obj!!)
             return null
         }
     }

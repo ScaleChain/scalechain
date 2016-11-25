@@ -12,8 +12,8 @@ import io.scalechain.io.InputOutputStream
  * @param valueCodec The codec for the actual object.
  */
 class VariableListCodec<T>(val lengthCodec : Codec<Long>, val valueCodec : Codec<T> ) : Codec<List<T>>{
-    override fun transcode(io : CodecInputOutputStream, value : List<T>? ) : List<T>? {
-        val valueLength : Long? = value?.size?.toLong()
+    override fun transcode(io : CodecInputOutputStream, obj : List<T>? ) : List<T>? {
+        val valueLength : Long? = obj?.size?.toLong()
         val length : Long? = io.transcode(lengthCodec, valueLength)
         if (io.isInput) {
             val mutableList = mutableListOf<T>()
@@ -23,10 +23,10 @@ class VariableListCodec<T>(val lengthCodec : Codec<Long>, val valueCodec : Codec
             }
             return mutableList
         } else {
-            assert(value != null)
+            assert(obj != null)
             assert(valueLength!! <= Int.MAX_VALUE)
             for (i in 0 until valueLength!!.toInt()) {
-                io.transcode(valueCodec, value?.get(i))
+                io.transcode(valueCodec, obj?.get(i))
             }
             return null
         }

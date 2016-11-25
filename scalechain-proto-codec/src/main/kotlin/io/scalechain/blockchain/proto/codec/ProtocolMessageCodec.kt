@@ -8,6 +8,7 @@ import java.io.EOFException
 
 import io.scalechain.blockchain.*
 import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.*
 import io.scalechain.io.InputOutputStream
 
 /** Write/read a protocol message to/from a byte array stream.
@@ -75,15 +76,46 @@ class BitcoinProtocol : NetworkProtocol {
   val codecMapByCommand = (codecs.map{it.command} zip codecs).toMap()
   val codecMapByClass   = (codecs.map{it.clazz} zip codecs).toMap()
 
+
   override fun getCommand(message : ProtocolMessage) : String {
     val codec = codecMapByClass[message.javaClass]
     return codec!!.command
   }
 
   override fun encode(writeBuf : ByteBuf, message : ProtocolMessage) {
-    val codec = codecMapByClass[message.javaClass]
 
-    codec!!.transcode(CodecInputOutputStream(writeBuf, isInput = false), message)
+    // Force to type case the codec to transcode ProtocolMessage.
+    // **b0c1** provided this code.
+    val codec = codecMapByClass[message.javaClass]!! as ProtocolMessageCodec<ProtocolMessage>
+    codec.transcode(CodecInputOutputStream(writeBuf, isInput = false), message)
+
+    /*
+    val io = CodecInputOutputStream(writeBuf, isInput = false)
+    when(message) {
+      is Version      -> VersionCodec.transcode(io, message)
+      is Verack       -> VerackCodec.transcode(io, message)
+      is Addr         -> AddrCodec.transcode(io, message)
+      is Inv          -> InvCodec.transcode(io, message)
+      is GetData      -> GetDataCodec.transcode(io, message)
+      is NotFound     -> NotFoundCodec.transcode(io, message)
+      is GetBlocks    -> GetBlocksCodec.transcode(io, message)
+      is GetHeaders   -> GetHeadersCodec.transcode(io, message)
+      is Transaction  -> TransactionCodec.transcode(io, message)
+      is Block        -> BlockCodec.transcode(io, message)
+      is Headers      -> HeadersCodec.transcode(io, message)
+      is GetAddr      -> GetAddrCodec.transcode(io, message)
+      is Mempool      -> MempoolCodec.transcode(io, message)
+      is Ping         -> PingCodec.transcode(io, message)
+      is Pong         -> PongCodec.transcode(io, message)
+      is Reject       -> RejectCodec.transcode(io, message)
+      is FilterLoad   -> FilterLoadCodec.transcode(io, message)
+      is FilterAdd    -> FilterAddCodec.transcode(io, message)
+      is FilterClear  -> FilterClearCodec.transcode(io, message)
+      is MerkleBlock  -> MerkleBlockCodec.transcode(io, message)
+      is Alert        -> AlertCodec.transcode(io, message)
+      else            -> throw AssertionError()
+    }
+*/
   }
 
   override fun decode(readBuf: ByteBuf, command:String) : ProtocolMessage {

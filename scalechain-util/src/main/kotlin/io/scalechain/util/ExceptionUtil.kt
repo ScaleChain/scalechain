@@ -5,7 +5,7 @@ package io.scalechain.util
  */
 object ExceptionUtil {
     @JvmStatic
-    fun describe(throwable : Throwable) : Unit {
+    fun describe(throwable : Throwable?) : Unit {
         if (throwable == null)
             ""
         else
