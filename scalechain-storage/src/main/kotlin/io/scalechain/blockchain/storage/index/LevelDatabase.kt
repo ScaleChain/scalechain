@@ -1,15 +1,12 @@
 package io.scalechain.blockchain.storage.index
 
 
-import java.io.File
-import org.iq80.leveldb._
-import org.fusesource.leveldbjni.JniDBFactory._
-import java.io._
+import org.iq80.leveldb.*
+import org.fusesource.leveldbjni.JniDBFactory.*
+import java.io.*
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
-import io.scalechain.blockchain.storage.Storage
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
 import io.scalechain.blockchain.storage.Storage
 
 
@@ -17,7 +14,6 @@ import io.scalechain.blockchain.storage.Storage
   * A KeyValueDatabase implementation using LevelDB.
   */
 class LevelDatabase(path : File) : KeyValueDatabase {
-  assert( Storage.initialized )
 
   fun beginTransaction() : Unit {
     // No transaction supported. do nothing.
@@ -32,10 +28,13 @@ class LevelDatabase(path : File) : KeyValueDatabase {
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
   private val options = Options()
-  options.createIfMissing(true)
 
   private val db = factory.open(path, options )
 
+  init {
+    assert( Storage.initialized() )
+    options.createIfMissing(true)
+  }
 
   /** Seek a key greater than or equal to the given key.
     * Return an iterator which iterates each (key, value) pair from the seek position.
@@ -43,52 +42,47 @@ class LevelDatabase(path : File) : KeyValueDatabase {
     * @param keyOption if Some(key) seek a key greater than or equal to the key; Seek all keys and values otherwise.
     * @return An Iterator to iterate (key, value) pairs.
     */
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
-    class KeyValueIterator(iterator : DBIterator) : ClosableIterator<(ByteArray,ByteArray)> {
-      fun next : (ByteArray,ByteArray) {
-        if (!iterator.hasNext) {
+  override fun seek(keyOption : ByteArray? ) : ClosableIterator<Pair<ByteArray, ByteArray>> {
+    class KeyValueIterator(private val iterator : DBIterator) : ClosableIterator<Pair<ByteArray,ByteArray>> {
+      override fun next() : Pair<ByteArray,ByteArray> {
+        if (!iterator.hasNext()) {
           throw GeneralException(ErrorCode.NoMoreKeys)
         }
 
-        val nextKeyValue = iterator.peekNext()
-        iterator.next
-        (nextKeyValue.getKey, nextKeyValue.getValue)
+        val nextKeyValue : Map.Entry<ByteArray, ByteArray> = iterator.peekNext()
+        iterator.next()
+        return Pair(nextKeyValue.key, nextKeyValue.value)
       }
-      fun hasNext : Boolean = iterator.hasNext
+      override fun hasNext() : Boolean = iterator.hasNext()
 
-      fun close : Unit {
-        iterator.close()
-      }
+      override fun close() = iterator.close()
     }
 
-    val rocksIterator =  db.iterator()
+    val levelDBIterator =  db.iterator()
 
-    if (keyOption.isDefined) {
-      rocksIterator.seek(keyOption.get)
+    if (keyOption != null) {
+      levelDBIterator.seek(keyOption)
     } else {
-      rocksIterator.seekToFirst()
+      levelDBIterator.seekToFirst()
     }
 
-    KeyValueIterator(rocksIterator)
+    return KeyValueIterator(levelDBIterator)
   }
 
 
-  fun get(key : ByteArray ) : Option<Array<Byte>> {
-    val value = db.get(key)
-    if ( value != null )
-      Some(value)
-    else None
+  override fun get(key : ByteArray ) : ByteArray? {
+    return db.get(key)
   }
 
-  fun put(key : ByteArray, value : ByteArray ) : Unit {
+  override fun put(key : ByteArray, value : ByteArray ) : Unit {
     db.put(key, value)
   }
 
-  fun del(key : ByteArray) : Unit {
+  override fun del(key : ByteArray) : Unit {
     db.delete(key)
   }
 
-  fun close() : Unit {
-    db.close
+  override fun close() : Unit {
+    db.close()
   }
 }

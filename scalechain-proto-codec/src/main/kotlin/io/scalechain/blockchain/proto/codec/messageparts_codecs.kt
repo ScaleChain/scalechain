@@ -90,7 +90,7 @@ trait MessagePartCodec<T <: ProtocolMessage> : SerializeParseUtil<T> {
 */
 
 object HashCodec : Codec<Hash> {
-  private val HashValueCodec = Codecs.fixedByteBuf(32)
+  private val HashValueCodec = Codecs.fixedByteArray(32)
   override fun transcode( io : CodecInputOutputStream, obj : Hash? ) : Hash? {
     val value = io.transcode( HashValueCodec, obj?.value )
 

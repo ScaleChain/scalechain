@@ -3,12 +3,11 @@ package io.scalechain.blockchain.storage.record
 import java.io.File
 import java.nio.ByteBuffer
 
-import io.scalechain.blockchain.proto.codec.MessagePartCodec
-import io.scalechain.blockchain.proto.{ProtocolMessage, RecordLocator}
-import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
-
-
-
+import io.scalechain.blockchain.proto.codec.Codec
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.RecordLocator
+import io.scalechain.blockchain.BlockStorageException
+import io.scalechain.blockchain.ErrorCode
 
 
 /** A record file that contains set of records.
@@ -18,30 +17,31 @@ import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
   * Details :
   * http://tutorials.jenkov.com/java-nio/file-channel.html
   */
-class RecordFile(val path : File, maxFileSize : Long) : BlockAccessFile(path, maxFileSize){
-  // Move to the end of file so that we can append records at the end of the file.
-  moveTo( size() )
-
-  fun readRecord<T <: ProtocolMessage>(locator : RecordLocator)(implicit codec : MessagePartCodec<T>) : T {
-
-    val buffer = read(locator.offset, locator.size)
-    codec.parse(buffer.array())
+class RecordFile(private val path : File, private val maxFileSize : Long) : BlockAccessFile(path, maxFileSize){
+  init {
+    // Move to the end of file so that we can append records at the end of the file.
+    moveTo( size() )
   }
 
-  fun appendRecord<T <: ProtocolMessage>(record : T)(implicit codec : MessagePartCodec<T>) : RecordLocator {
+  fun<T> readRecord(codec : Codec<T>, locator : RecordLocator) : T {
+    val rawRecord = read(locator.offset, locator.size)
+    return codec.decode(rawRecord)!!
+  }
+
+  fun<T> appendRecord(codec : Codec<T>, record : T) : RecordLocator {
     // Move to the end of the file if we are not.
     if ( offset() <= size() ) {
       moveTo(size())
     }
 
-    val serializedBytes = codec.serialize(record)
+    val serializedBytes = codec.encode(record)
     val initialOffset = offset()
     val buffer = ByteBuffer.wrap(serializedBytes)
     if (initialOffset + buffer.capacity() > maxFileSize) {
       throw BlockStorageException(ErrorCode.OutOfFileSpace)
     }
     append(buffer)
-    RecordLocator(initialOffset, buffer.capacity())
+    return RecordLocator(initialOffset, buffer.capacity())
   }
 }
 

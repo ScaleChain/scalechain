@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.storage
 
+import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
+import io.scalechain.util.HexUtil
 
 
 /**
@@ -10,7 +12,7 @@ import io.scalechain.util.HexUtil._
   */
 object GenesisBlock {
   val SERIALIZED_GENESIS_BLOCK =
-    bytes(
+    HexUtil.bytes(
       """
         |01 00 00 00 00 00 00 00
         |00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
@@ -31,10 +33,10 @@ object GenesisBlock {
         |49 f6 bc 3f 4c ef 38 c4 f3 55 04 e5 1e c1 12 de
         |5c 38 4d f7 ba 0b 8d 57 8a 4c 70 2b 6b f1 1d 5f
         |ac 00 00 00 00
-      """.stripMargin)
+      """.trimMargin())
 
-  val BLOCK = BlockCodec.parse(SERIALIZED_GENESIS_BLOCK)
-  val HASH = Hash( bytes("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f") )
+  val BLOCK = BlockCodec.decode( SERIALIZED_GENESIS_BLOCK )
+  val HASH = Hash.from( "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")
 }
 
 

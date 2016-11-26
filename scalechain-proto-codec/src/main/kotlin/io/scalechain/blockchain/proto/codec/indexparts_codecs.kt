@@ -2,6 +2,7 @@ package io.scalechain.blockchain.proto.codec
 
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import io.scalechain.util.Option
 
 object RecordLocatorCodec : Codec<RecordLocator> {
   override fun transcode(io : CodecInputOutputStream, obj : RecordLocator? ) : RecordLocator? {
@@ -63,21 +64,21 @@ object BlockInfoCodec : Codec<BlockInfo>{
   override fun transcode(io : CodecInputOutputStream, obj : BlockInfo? ) : BlockInfo? {
     val height             = Codecs.Int64L.transcode(io, obj?.height)
     val chainWork          = Codecs.Int64L.transcode(io, obj?.chainWork)
-    val nextBlockHash      = optionalHashCodec.transcode(io, obj?.nextBlockHash)
+    val nextBlockHash      = optionalHashCodec.transcode(io, Option.from(obj?.nextBlockHash))
     val transactionCount   = Codecs.Int32L.transcode(io, obj?.transactionCount)
     val status             = Codecs.Int32L.transcode(io, obj?.status)
     val blockHeader        = BlockHeaderCodec.transcode(io, obj?.blockHeader)
-    val blockLocatorOption = optionalFileRecordLocatorCodec.transcode(io, obj?.blockLocatorOption)
+    val blockLocatorOption = optionalFileRecordLocatorCodec.transcode(io, Option.from(obj?.blockLocatorOption))
 
     if (io.isInput) {
       return BlockInfo(
         height!!,
         chainWork!!,
-        nextBlockHash!!,
+        nextBlockHash!!.toNullable(),
         transactionCount!!,
         status!!,
         blockHeader!!,
-        blockLocatorOption!!
+        blockLocatorOption!!.toNullable()
       )
     }
     return null
@@ -160,13 +161,13 @@ object TransactionDescriptorCodec : Codec<TransactionDescriptor> {
   override fun transcode(io : CodecInputOutputStream, obj : TransactionDescriptor? ) : TransactionDescriptor? {
     val transactionLocator = FileRecordLocatorCodec.transcode( io, obj?.transactionLocator )
     val blockHeight        = Codecs.Int64.transcode( io, obj?.blockHeight )
-    val outputsSpentBy     = OptionalInPointListCodec.transcode( io, obj?.outputsSpentBy )
+    val outputsSpentBy     = OptionalInPointListCodec.transcode( io, obj?.outputsSpentBy?.map{ Option.from(it) } )
 
     if (io.isInput) {
       return TransactionDescriptor(
         transactionLocator!!,
         blockHeight!!,
-        outputsSpentBy!!
+        outputsSpentBy!!.map{ it.toNullable() }
       )
     }
     return null
@@ -201,13 +202,13 @@ object TransactionPoolEntryCodec : Codec<TransactionPoolEntry> {
 
   override fun transcode(io : CodecInputOutputStream, obj : TransactionPoolEntry? ) : TransactionPoolEntry? {
     val transaction    = TransactionCodec.transcode(io, obj?.transaction)
-    val outputsSpentBy = OptionalInPointListCodec.transcode(io, obj?.outputsSpentBy)
+    val outputsSpentBy = OptionalInPointListCodec.transcode(io, obj?.outputsSpentBy?.map{ Option.from(it) })
     val createdAtNanos = Codecs.Int64.transcode(io, obj?.createdAtNanos)
 
     if (io.isInput) {
       return TransactionPoolEntry(
         transaction!!,
-        outputsSpentBy!!,
+        outputsSpentBy!!.map{ it.toNullable() },
         createdAtNanos!!
       )
     }

@@ -15,7 +15,7 @@ class ScriptStack {
    * The bottom of the stack is the first element in this array.
    * The top of the stack is the last element of this array.
    */
-  val array = mutableListOf<ScriptValue>()
+  val array = arrayListOf<ScriptValue>()
 
   /**
    * Convert the stack index to the array index on the array field.

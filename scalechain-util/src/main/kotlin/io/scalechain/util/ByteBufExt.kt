@@ -12,7 +12,9 @@ object ByteBufExt {
         val bytes = HexUtil.bytes(hexString)
         return Unpooled.wrappedBuffer(bytes)
     }
-
+    fun from( bytes : ByteArray ) : ByteBuf {
+        return Unpooled.wrappedBuffer(bytes)
+    }
 }
 
 internal object Limits {
@@ -55,8 +57,6 @@ fun ByteBuf.writeUnsignedShort(value : Int) {
     this.writeByte((0xFF and (value shr 8)))
     this.writeByte((0xFF and value))
 }
-
-
 
 fun ByteBuf.kotlinHex() : String {
     // BUGBUG : Optimize by passing ByteBuf to HexUtil not to copy the byte array

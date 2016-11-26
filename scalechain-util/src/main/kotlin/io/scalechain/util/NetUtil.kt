@@ -8,7 +8,7 @@ import java.net.*
 object NetUtil {
     @JvmStatic
     fun getLocalAddresses() : List<String> {
-        val addresses = mutableListOf<String>()
+        val addresses = arrayListOf<String>()
 
         // better code suggetion by **b0c1** and **Janos Haber**
         for (iface in NetworkInterface.getNetworkInterfaces()) {

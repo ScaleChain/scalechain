@@ -1,22 +1,20 @@
 package io.scalechain.blockchain.storage
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{BlockCodec, TransactionCodec}
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.BlockCodec
+import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.blockchain.script.*
+import io.scalechain.blockchain.storage.index.*
 import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 /**
   * Created by kangmo on 3/23/16.
   */
-trait BlockStorage : BlockDatabase with BlockIndex with TransactionDescriptorIndex with TransactionPoolIndex with TransactionTimeIndex with OrphanBlockIndex with OrphanTransactionIndex {
-  private val logger = LoggerFactory.getLogger(BlockStorage::class.java)
+interface BlockStorage : BlockDatabase, BlockIndex, TransactionDescriptorIndex, TransactionPoolIndex, TransactionTimeIndex, OrphanBlockIndex, OrphanTransactionIndex {
 
-  fun putBlock(blockHash : Hash, block : Block)(implicit db : KeyValueDatabase) : Unit
-  fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction>
-  fun getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<(BlockInfo, Block)>
+  fun putBlock(db : KeyValueDatabase, blockHash : Hash, block : Block) : Unit
 
   fun close() : Unit
 
@@ -25,57 +23,57 @@ trait BlockStorage : BlockDatabase with BlockIndex with TransactionDescriptorInd
     * @param hash The hash of the block to get the next block of it. The block should exist on the block database.
     * @return Some(hash) if the given block hash is for a block on the best blockchain and not the best block. None otherwise.
     */
-  fun getNextBlockHash(hash : Hash)(implicit db : KeyValueDatabase) : Option<Hash> {
+  fun getNextBlockHash(db : KeyValueDatabase, hash : Hash) : Hash? {
     // TODO : BUGBUG : Need to add synchronization?
-    getBlockInfo(hash).get.nextBlockHash
+    return getBlockInfo(db, hash)?.nextBlockHash
   }
 
-  fun putBlock(block : Block)(implicit db : KeyValueDatabase) : Unit {
-    putBlock(block.header.hash, block)
+  fun putBlock(db : KeyValueDatabase, block : Block) : Unit {
+    putBlock(db, block.header.hash(), block)
   }
 
-  fun putBlockHeader(blockHeader : BlockHeader)(implicit db : KeyValueDatabase) : Unit {
-    putBlockHeader(blockHeader.hash, blockHeader)
+  fun putBlockHeader(db : KeyValueDatabase, blockHeader : BlockHeader) : Unit {
+    putBlockHeader(db, blockHeader.hash(), blockHeader)
   }
 
-  fun hasBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean {
-    val blockInfo = getBlockInfo(blockHash)
-    blockInfo.isDefined && blockInfo.get.blockLocatorOption.isDefined
+  fun hasBlock(db : KeyValueDatabase, blockHash : Hash) : Boolean {
+    val blockInfo = getBlockInfo(db, blockHash)
+    return blockInfo?.blockLocatorOption != null
   }
 
-  fun hasTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Boolean {
+  fun hasTransaction(db : KeyValueDatabase, transactionHash : Hash) : Boolean {
     // TODO : Optimize : We don't need to deserialize a transaction to see if it exists on our database.
-    getTransaction(transactionHash).isDefined
+    return getTransaction(db, transactionHash) != null
   }
 
-  fun hasBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean {
-    getBlockHeader(blockHash).isDefined
+  fun hasBlockHeader(db : KeyValueDatabase, blockHash : Hash) : Boolean {
+    return getBlockHeader(db, blockHash) != null
   }
 
-  fun getBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<BlockHeader> {
+  fun getBlockHeader(db : KeyValueDatabase, blockHash : Hash) : BlockHeader? {
     // TODO : Check if we need synchronization
 
-    val blockInfoOption = getBlockInfo(blockHash)
-    if (blockInfoOption.isDefined) {
+    val blockInfoOption = getBlockInfo(db, blockHash)
+    if (blockInfoOption != null) {
       // case 1 : the block info was found.
-      Some(blockInfoOption.get.blockHeader)
+      return blockInfoOption.blockHeader
     } else {
       // case 2 : the block info was not found.
-      None
+      return null
     }
   }
 
-  fun putBlockHeader(blockHash : Hash, blockHeader : BlockHeader)(implicit db : KeyValueDatabase) : Unit {
+  fun putBlockHeader(db : KeyValueDatabase, blockHash : Hash, blockHeader : BlockHeader) : Unit {
     // TODO : Check if we need synchronization
 
     // get the info of the previous block, to calculate the height of the given block and chain-work.
-    val prevBlockInfoOption: Option<BlockInfo> = getBlockInfo(Hash(blockHeader.hashPrevBlock.value))
+    val prevBlockInfoOption: BlockInfo? = getBlockInfo(db, Hash(blockHeader.hashPrevBlock.value))
 
     // Either the previous block should exist or the block should be the genesis block.
-    if (prevBlockInfoOption.isDefined || blockHeader.hashPrevBlock.isAllZero()) {
+    if (prevBlockInfoOption != null || blockHeader.hashPrevBlock.isAllZero()) {
 
-      val blockInfo: Option<BlockInfo> = getBlockInfo(blockHash)
-      if (blockInfo.isEmpty) {
+      val blockInfo: BlockInfo? = getBlockInfo(db, blockHash)
+      if (blockInfo == null) {
 
         // case 1.1 : the header does not exist yet.
         val blockInfo = BlockInfoFactory.create(
@@ -84,10 +82,10 @@ trait BlockStorage : BlockDatabase with BlockIndex with TransactionDescriptorInd
           blockHeader,
           blockHash,
           0, // transaction count
-          None // block locator
+          null // block locator
         )
 
-        putBlockInfo(blockHash, blockInfo)
+        putBlockInfo(db, blockHash, blockInfo)
         // We are not checking if the block is the best block, because we received a header only.
         // We put a block as a best block only if we have the block data as long as the header.
       } else {
@@ -105,5 +103,9 @@ trait BlockStorage : BlockDatabase with BlockIndex with TransactionDescriptorInd
       // case 2 : the previous block header was not found.
       logger.trace("An orphan block was discarded while saving a block header. block header : {}", blockHeader)
     }
+  }
+
+  companion object {
+    private val logger = LoggerFactory.getLogger(BlockStorage::class.java)
   }
 }

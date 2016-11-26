@@ -16,7 +16,7 @@ object ScriptSerializer {
    * @param operations
    */
   fun serialize(operations:List<ScriptOp>) : ByteArray {
-    val buffer = mutableListOf<Byte>()
+    val buffer = arrayListOf<Byte>()
 
     for (op : ScriptOp in operations ) {
       op.serialize(buffer)

@@ -6,8 +6,9 @@ import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.blockchain.storage.TransactionLocator
 import org.slf4j.LoggerFactory
 import io.scalechain.blockchain.script.*
+import io.scalechain.util.ByteArrayExt
 
-object DatabaseTablePrefixes {
+object DB {
   val BLOCK_INFO = 'b'.toByte()
   val TRANSACTION = 't'.toByte()
   val BLOCK_FILE_INFO = 'f'.toByte()
@@ -35,13 +36,12 @@ object DatabaseTablePrefixes {
   *
   * This class is used by CassandraBlockStorage.
   */
-abstract class BlockDatabase {
+interface BlockDatabase {
+/*
   private val logger = LoggerFactory.getLogger(BlockDatabase::class.java)
-
-  import DatabaseTablePrefixes._
-
-  fun getBlockInfo(hash : Hash)(implicit db : KeyValueDatabase) : Option<BlockInfo> {
-    db.getObject(BLOCK_INFO, hash)(HashCodec, BlockInfoCodec)
+*/
+  fun getBlockInfo(db : KeyValueDatabase, hash : Hash) : BlockInfo? {
+    return db.getObject(HashCodec, BlockInfoCodec, DB.BLOCK_INFO, hash)
   }
 
   /** Get the block hash at the given height on the best blockchain.
@@ -49,8 +49,8 @@ abstract class BlockDatabase {
     * @param height The height of the block.
     * @return The hash of the block at the height on the best blockchain.
     */
-  fun getBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Option<Hash> {
-    db.getObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec, HashCodec)
+  fun getBlockHashByHeight(db : KeyValueDatabase, height : Long) : Hash? {
+    return db.getObject(BlockHeightCodec, HashCodec, DB.BLOCK_HEIGHT, BlockHeight(height))
   }
 
   /** Put the block hash searchable by height.
@@ -58,8 +58,8 @@ abstract class BlockDatabase {
     * @param height The height of the block hash. The block should be on the best blockchain.
     * @param hash The hash of the block.
     */
-  fun putBlockHashByHeight(height : Long, hash : Hash)(implicit db : KeyValueDatabase) : Unit {
-    db.putObject(BLOCK_HEIGHT, BlockHeight(height), hash)(BlockHeightCodec, HashCodec)
+  fun putBlockHashByHeight(db : KeyValueDatabase, height : Long, hash : Hash) : Unit {
+    db.putObject(BlockHeightCodec, HashCodec, DB.BLOCK_HEIGHT, BlockHeight(height), hash)
   }
 
   /**
@@ -67,8 +67,8 @@ abstract class BlockDatabase {
     *
     * @param height the height of the block to delete.
     */
-  fun delBlockHashByHeight(height : Long)(implicit db : KeyValueDatabase) : Unit {
-    db.delObject(BLOCK_HEIGHT, BlockHeight(height))(BlockHeightCodec)
+  fun delBlockHashByHeight(db : KeyValueDatabase, height : Long) : Unit {
+    db.delObject(BlockHeightCodec, DB.BLOCK_HEIGHT, BlockHeight(height))
   }
 
   /** Update the hash of the next block.
@@ -76,31 +76,29 @@ abstract class BlockDatabase {
     * @param hash The block to update the next block hash.
     * @param nextBlockHash Some(nextBlockHash) if the block is on the best blockchain, None otherwise.
     */
-  fun updateNextBlockHash(hash : Hash, nextBlockHash : Option<Hash>)(implicit db : KeyValueDatabase) {
-    val blockInfoOption : Option<BlockInfo> = getBlockInfo(hash)
+  fun updateNextBlockHash(db : KeyValueDatabase, hash : Hash, nextBlockHash : Hash?) {
+    val blockInfoOption : BlockInfo? = getBlockInfo(db, hash)
 
-    assert(blockInfoOption.isDefined)
-
-    putBlockInfo(hash, blockInfoOption.get.copy(
+    putBlockInfo(db, hash, blockInfoOption!!.copy(
       nextBlockHash = nextBlockHash
     ))
   }
 
-  fun getBlockHeight(hash : Hash)(implicit db : KeyValueDatabase) : Option<Long> {
-    getBlockInfo(hash).map(_.height)
+  fun getBlockHeight(db : KeyValueDatabase, hash : Hash) : Long? {
+    return getBlockInfo(db, hash)?.height
   }
 
-  fun putBlockInfo(hash : Hash, info : BlockInfo)(implicit db : KeyValueDatabase) : Unit {
-    val blockInfoOption = getBlockInfo(hash)
-    if (blockInfoOption.isDefined) {
-      val currentBlockInfo = blockInfoOption.get
+  fun putBlockInfo(db : KeyValueDatabase, hash : Hash, info : BlockInfo) : Unit {
+    val blockInfoOption = getBlockInfo(db, hash)
+    if (blockInfoOption != null) {
+      val currentBlockInfo = blockInfoOption
       // hit an assertion : put a block info with different height
       assert(currentBlockInfo.height == info.height)
 
       // hit an assertion : put a block info with a different block locator.
-      if (info.blockLocatorOption.isDefined) {
-        if ( currentBlockInfo.blockLocatorOption.isDefined ) {
-          assert( currentBlockInfo.blockLocatorOption.get == info.blockLocatorOption.get )
+      if (info.blockLocatorOption != null) {
+        if ( currentBlockInfo.blockLocatorOption != null ) {
+          assert( currentBlockInfo.blockLocatorOption == info.blockLocatorOption )
         }
       }
 
@@ -108,15 +106,15 @@ abstract class BlockDatabase {
       assert(currentBlockInfo.blockHeader == info.blockHeader)
     }
 
-    db.putObject(BLOCK_INFO, hash, info)(HashCodec, BlockInfoCodec)
+    db.putObject(HashCodec, BlockInfoCodec, DB.BLOCK_INFO, hash, info)
   }
 
-  fun putBestBlockHash(hash : Hash)(implicit db : KeyValueDatabase) : Unit {
-    db.putObject(Array(BEST_BLOCK_HASH), hash)(HashCodec)
+  fun putBestBlockHash(db : KeyValueDatabase, hash : Hash) : Unit {
+    db.putObject(HashCodec, ByteArrayExt.from(DB.BEST_BLOCK_HASH), hash)
   }
 
-  fun getBestBlockHash()(implicit db : KeyValueDatabase) : Option<Hash> {
-    db.getObject(Array(BEST_BLOCK_HASH))(HashCodec)
+  fun getBestBlockHash(db : KeyValueDatabase) : Hash? {
+    return db.getObject(HashCodec, ByteArrayExt.from(DB.BEST_BLOCK_HASH))
   }
 }
 
@@ -126,14 +124,12 @@ abstract class BlockDatabase {
   *
   * When storing blocks with RecordStorage, we need to keep track of block file information.
   */
-trait BlockDatabaseForRecordStorage : BlockDatabase {
-  import DatabaseTablePrefixes._
-
-  fun putBlockFileInfo(fileNumber : FileNumber, blockFileInfo : BlockFileInfo)(implicit db : KeyValueDatabase) : Unit {
+interface BlockDatabaseForRecordStorage : BlockDatabase {
+  fun putBlockFileInfo(db : KeyValueDatabase, fileNumber : FileNumber, blockFileInfo : BlockFileInfo) : Unit {
     // Input validation for the block file info.
-    val currentInfoOption = getBlockFileInfo(fileNumber)
-    if (currentInfoOption.isDefined) {
-      val currentInfo = currentInfoOption.get
+    val currentInfoOption = getBlockFileInfo(db, fileNumber)
+    if (currentInfoOption != null) {
+      val currentInfo = currentInfoOption
       // Can't put the same block info twice.
       assert( currentInfo != blockFileInfo )
 
@@ -161,26 +157,26 @@ trait BlockDatabaseForRecordStorage : BlockDatabase {
       // Caution : The last block timestamp can decrease.
     }
 
-    db.putObject(BLOCK_FILE_INFO, fileNumber, blockFileInfo)(FileNumberCodec, BlockFileInfoCodec)
+    db.putObject(FileNumberCodec, BlockFileInfoCodec, DB.BLOCK_FILE_INFO, fileNumber, blockFileInfo)
   }
 
-  fun getBlockFileInfo(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Option<BlockFileInfo> {
-    db.getObject(BLOCK_FILE_INFO, fileNumber)(FileNumberCodec, BlockFileInfoCodec)
+  fun getBlockFileInfo(db : KeyValueDatabase, fileNumber : FileNumber) : BlockFileInfo? {
+    return db.getObject(FileNumberCodec, BlockFileInfoCodec, DB.BLOCK_FILE_INFO, fileNumber)
   }
 
-  fun putLastBlockFile(fileNumber : FileNumber)(implicit db : KeyValueDatabase) : Unit {
+  fun putLastBlockFile(db : KeyValueDatabase, fileNumber : FileNumber) : Unit {
     // Input validation check for the fileNumber.
-    val fileNumberOption = getLastBlockFile()
-    if (fileNumberOption.isDefined) {
+    val fileNumberOption = getLastBlockFile(db)
+    if (fileNumberOption != null) {
       // The file number should increase.
-      assert( fileNumberOption.get.fileNumber < fileNumber.fileNumber )
+      assert( fileNumberOption.fileNumber < fileNumber.fileNumber )
     }
 
-    db.putObject(Array(LAST_BLOCK_FILE), fileNumber)(FileNumberCodec)
+    db.putObject(FileNumberCodec, ByteArrayExt.from(DB.LAST_BLOCK_FILE), fileNumber)
   }
 
-  fun getLastBlockFile()(implicit db : KeyValueDatabase) : Option<FileNumber> {
-    db.getObject(Array(LAST_BLOCK_FILE))(FileNumberCodec)
+  fun getLastBlockFile(db : KeyValueDatabase) : FileNumber? {
+    return db.getObject(FileNumberCodec, ByteArrayExt.from(DB.LAST_BLOCK_FILE))
   }
 
 }

@@ -57,7 +57,7 @@ abstract class CodecSuite : WordSpec with Matchers with GeneratorDrivenPropertyC
   protected fun definedSamples<A>(gen: Gen<A>): Stream<A> =
     samples(gen).flatMap { x => x }
 
-  implicit fun arbBitVector: Arbitrary<BitVector> = Arbitrary(arbitrary<Array<Byte>>.map(BitVector.apply))
+  implicit fun arbBitVector: Arbitrary<BitVector> = Arbitrary(arbitrary<ByteArray>.map(BitVector.apply))
 }
 
 */

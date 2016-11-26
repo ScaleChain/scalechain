@@ -27,10 +27,15 @@ object Codecs {
 
     val VariableInt = VariableIntCodec()
 
-    val NullTerminatedUTF8String = NullTerminatedStringCodec(Charset.forName("UTF-8"))
+    val CString = CStringCodec(Charset.forName("UTF-8"))
+    val CByteArray = CByteArrayCodec()
+    fun<T> cstringPrefixed(valueCodec : Codec<T>) = CStringPrefixedCodec<T>(valueCodec)
 
     fun fixedByteBuf(length : Int )
         = FixedByteBufCodec(length)
+
+    fun fixedByteArray(length : Int )
+        = FixedByteArrayCodec(length)
 
     fun variableByteBuf( lengthCodec : Codec<Long> )
         = VariableByteBufCodec(lengthCodec)
@@ -60,6 +65,4 @@ object Codecs {
 
     fun<T> provide( objectSample : T)
         = ProvideCodec<T>(objectSample)
-
-
 }

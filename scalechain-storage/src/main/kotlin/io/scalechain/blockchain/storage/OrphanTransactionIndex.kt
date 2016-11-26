@@ -1,28 +1,34 @@
 package io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
-import io.scalechain.blockchain.proto.codec.{HashCodec, OneByteCodec, OrphanTransactionDescriptorCodec}
-import io.scalechain.blockchain.proto.{Hash, OneByte, OrphanTransactionDescriptor}
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, DatabaseTablePrefixes}
-import io.scalechain.util.HexUtil._
-import io.scalechain.util.Using._
+import io.scalechain.blockchain.proto.CStringPrefixed
+import io.scalechain.blockchain.proto.codec.HashCodec
+import io.scalechain.blockchain.proto.codec.OneByteCodec
+import io.scalechain.blockchain.proto.codec.OrphanTransactionDescriptorCodec
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.OneByte
+import io.scalechain.blockchain.proto.OrphanTransactionDescriptor
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.DB
+import io.scalechain.util.HexUtil
+
+//import io.scalechain.util.Using._
 
 /**
   * Provides index operations for orphan transactions.
   */
-trait OrphanTransactionIndex {
-  import DatabaseTablePrefixes._
+interface OrphanTransactionIndex {
+/*
   private implicit val hashCodec = HashCodec
   private implicit val orphanTransactionDescriptorCodec = OrphanTransactionDescriptorCodec
   private implicit val oneByteCodec = OneByteCodec
-
+*/
   /** Put an orphan transaction
     *
     * @param hash The hash of the transaction header.
     * @param orphanTransactionDescriptor The descriptor of the orphan transaction.
     */
-  fun putOrphanTransaction(hash : Hash, orphanTransactionDescriptor : OrphanTransactionDescriptor)(implicit db : KeyValueDatabase) : Unit {
-    db.putObject(ORPHAN_TRANSACTION, hash, orphanTransactionDescriptor)
+  fun putOrphanTransaction(db : KeyValueDatabase, hash : Hash, orphanTransactionDescriptor : OrphanTransactionDescriptor) : Unit {
+    db.putObject(HashCodec, OrphanTransactionDescriptorCodec, DB.ORPHAN_TRANSACTION, hash, orphanTransactionDescriptor)
   }
 
   /** Get an orphan transaction by the hash of it.
@@ -30,16 +36,16 @@ trait OrphanTransactionIndex {
     * @param hash The orphan transaction header.
     * @return Some(transaction) if an orphan transaction was found by the hash. None otherwise.
     */
-  fun getOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Option<OrphanTransactionDescriptor> {
-    db.getObject(ORPHAN_TRANSACTION, hash)(HashCodec, OrphanTransactionDescriptorCodec)
+  fun getOrphanTransaction(db : KeyValueDatabase, hash : Hash) : OrphanTransactionDescriptor? {
+    return db.getObject(HashCodec, OrphanTransactionDescriptorCodec, DB.ORPHAN_TRANSACTION, hash)
   }
 
   /** Delete a specific orphan transaction.
     *
     * @param hash The hash of the orphan transaction.
     */
-  fun delOrphanTransaction(hash : Hash)(implicit db : KeyValueDatabase) : Unit {
-    db.delObject(ORPHAN_TRANSACTION, hash)
+  fun delOrphanTransaction(db : KeyValueDatabase, hash : Hash) : Unit {
+    db.delObject(HashCodec, DB.ORPHAN_TRANSACTION, hash)
   }
 
   /** Add an orphan transaction than depends on a transaction denoted by the hash.
@@ -47,9 +53,9 @@ trait OrphanTransactionIndex {
     * @param missingTransactionHash The hash of the missing transaction that the orphan transaction depends on.
     * @param orphanTransactionHash The hash of the orphan transaction.
     */
-  fun addOrphanTransactionByParent(missingTransactionHash : Hash, orphanTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit {
+  fun addOrphanTransactionByParent(db : KeyValueDatabase, missingTransactionHash : Hash, orphanTransactionHash : Hash) : Unit {
     // TODO : Optimize : Reduce the length of the prefix string by using base64 encoding?
-    db.putPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value), orphanTransactionHash, OneByte(1) )
+    db.putPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value), orphanTransactionHash, OneByte(1) )
   }
 
   /** Get all orphan transactions that depend on the given transaction.
@@ -57,21 +63,28 @@ trait OrphanTransactionIndex {
     * @param missingTransactionHash The hash of the missing transaction that the orphan transaction depends on.
     * @return Hash of all orphan transactions that depend on the given missing transaction.
     */
-  fun getOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : List<Hash> {
-    (
-      using(db.seekPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value))(HashCodec, OneByteCodec)) in {
-        _.toList
+  fun getOrphanTransactionsByParent(db : KeyValueDatabase, missingTransactionHash : Hash) : List<Hash> {
+    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value))
+    try {
+
+      // BUGBUG : Change the code not to use Pair, but a data class. This is code so hard to read.
+      return iterator.asSequence().toList().map { prefixedObject ->
+        val cstringPrefixed = prefixedObject.first
+        val hash = cstringPrefixed.data
+        hash
       }
-    ).map{ case (CStringPrefixed(_, hash : Hash), _) => hash }
+    } finally {
+      iterator.close()
+    }
   }
 
   /** Del all orphan transactions that depend on the given missing transaction.
     *
     * @param missingTransactionHash The hash of the missing transaction that the orphan transactions depend on.
     */
-  fun delOrphanTransactionsByParent(missingTransactionHash : Hash)(implicit db : KeyValueDatabase) : Unit {
-    getOrphanTransactionsByParent(missingTransactionHash) foreach { transactionHash : Hash =>
-      db.delPrefixedObject(ORPHAN_TRANSACTIONS_BY_DEPENDENCY, hex(missingTransactionHash.value), transactionHash)
+  fun delOrphanTransactionsByParent(db : KeyValueDatabase, missingTransactionHash : Hash) : Unit {
+    for (transactionHash : Hash in getOrphanTransactionsByParent(db, missingTransactionHash)) {
+      db.delPrefixedObject(HashCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value), transactionHash)
     }
   }
 }

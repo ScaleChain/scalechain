@@ -69,7 +69,7 @@ class HashSpec : FlatSpec(), Matchers {
         }
 
         "Hash.ALL_ZERO.size" should "be 32" {
-            Hash.ALL_ZERO.value.capacity() shouldBe 32
+            Hash.ALL_ZERO.value.size shouldBe 32
         }
 
         "Hash.ALL_ZERO.size" should "have only zeros" {

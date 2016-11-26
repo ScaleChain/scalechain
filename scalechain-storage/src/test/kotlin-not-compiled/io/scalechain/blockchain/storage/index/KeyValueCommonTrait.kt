@@ -22,7 +22,7 @@ trait KeyValueCommonTrait : Matchers{
     *
     * @param arrayOption The option of an array to convert.
     */
-  fun L(arrayOption : Option<Array<Byte>>) =
+  fun L(arrayOption : ByteArray?) =
     arrayOption.map(_.toList)
 
   val PREFIX1 : Byte = '1'

@@ -189,7 +189,7 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
     implicit val TEST_LOOP_COUNT = 1000
     val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
-    val hashes = ListBuffer<Array<Byte>>()
+    val hashes = ListBuffer<ByteArray>()
     measureWithSize("encode hash") {
       var totalSize = 0
 
@@ -219,7 +219,7 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
     }
 
 
-    val rawTransactions = ListBuffer<Array<Byte>>()
+    val rawTransactions = ListBuffer<ByteArray>()
     measureWithSize("encode transaction") {
       var totalSize = 0
 

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.proto
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.scalechain.util.*
 
 /** A hash data class that can represent transaction hash or block hash.
@@ -8,16 +9,17 @@ import io.scalechain.util.*
   *
   * @param value
   */
-data class Hash(val value : ByteBuf) : Transcodable, Comparable<Hash> {
+data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
+    constructor(value : ByteBuf) : this(value.array())
     init {
-        assert(value.capacity() > 0)
+        assert(value.size > 0)
     }
 
     fun isAllZero() : Boolean {
 
         var i = 0
-        val valueLength = value.capacity()
-        while (i < valueLength && value.getByte(i) == 0.toByte()) {
+        val valueLength = value.size
+        while (i < valueLength && value.get(i) == 0.toByte()) {
             i += 1
         }
         return i == valueLength
@@ -27,10 +29,21 @@ data class Hash(val value : ByteBuf) : Transcodable, Comparable<Hash> {
 
     override fun toString() = "Hash(${value})"
 
+    override fun equals(other : Any?) : Boolean {
+        when {
+            other == null -> return false
+            other is Hash -> return this.compareTo(other) == 0
+            else -> return false
+        }
+    }
+
+    override fun hashCode() : Int {
+        return Unpooled.wrappedBuffer(value).hashCode()
+    }
 
     override operator fun compareTo(other : Hash): Int {
-        val value1 = Utils.bytesToBigInteger(this.value.array())
-        val value2 = Utils.bytesToBigInteger(other.value.array())
+        val value1 = Utils.bytesToBigInteger(this.value)
+        val value2 = Utils.bytesToBigInteger(other.value)
 
         return value1.compareTo(value2)
     }
@@ -40,6 +53,8 @@ data class Hash(val value : ByteBuf) : Transcodable, Comparable<Hash> {
         //                                   0123456789012345678901234567890123456789012345678901234567890123
         val ALL_ZERO = Hash(ByteBufExt.from("0000000000000000000000000000000000000000000000000000000000000000"))
 
+        // BUGBUG : Add test case.
+        fun from(hexString : String ) : Hash = Hash( ByteBufExt.from(hexString) )
     }
 }
 

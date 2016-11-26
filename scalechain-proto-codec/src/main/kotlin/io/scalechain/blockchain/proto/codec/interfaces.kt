@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.proto.codec
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.primitive.ProvideCodec
 import io.scalechain.io.InputOutputStream
@@ -34,11 +35,23 @@ interface Codec<T> {
      * we will have redundant code for each field we encode and decode in the two functions.
      */
     fun transcode(io : CodecInputOutputStream, obj : T? ) : T?
+
+    fun decode(data : ByteArray) : T? = decode(Unpooled.wrappedBuffer(data))
+
+    fun decode(byteBuf : ByteBuf) : T? = transcode(CodecInputOutputStream(byteBuf, isInput = true), null)
+
+    fun encode(value: T) : ByteArray = encodeAsByteBuf(value).array()
+
+    fun encodeAsByteBuf(value:T) : ByteBuf {
+        val byteBuf = Unpooled.buffer()
+        transcode( CodecInputOutputStream(byteBuf, isInput = false), value)
+        return byteBuf
+    }
 }
 
 
 interface ProtocolMessageCodec<T> : Codec<T> {
-    val command : String
-    val clazz : Class<T>
+    abstract val command : String
+    abstract val clazz : Class<T>
 }
 

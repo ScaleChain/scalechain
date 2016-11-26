@@ -2,27 +2,22 @@ package io.scalechain.blockchain.proto.codec.primitive
 
 import io.scalechain.blockchain.proto.codec.Codec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
-import java.nio.charset.Charset
 
-
-class NullTerminatedStringCodec(val charset : Charset) : Codec<String> {
-    override fun transcode(io : CodecInputOutputStream, obj : String? ) : String? {
+class CByteArrayCodec() : Codec<ByteArray> {
+    override fun transcode(io : CodecInputOutputStream, obj : ByteArray? ) : ByteArray? {
         if (io.isInput) {
-            val bytes = mutableListOf<Byte>()
+            val bytes = arrayListOf<Byte>()
             var b : Byte
             do {
                 b = io.byteBuf.readByte()
             } while( b != 0.toByte() )
 
-            return kotlin.text.String(bytes.toByteArray(), charset)
+            return bytes.toByteArray()
         } else {
-            val byteArray = obj!!.toByteArray(charset)
-
-            io.byteBuf.writeBytes(byteArray)
+            io.byteBuf.writeBytes(obj!!)
             io.byteBuf.writeByte(0)
 
             return null
         }
     }
 }
-

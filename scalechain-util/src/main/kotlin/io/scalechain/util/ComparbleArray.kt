@@ -31,7 +31,7 @@ object ComparableArray {
 }
 
 
-data class ByteArray(override val array : ByteArray) : ComparableArray<Byte>(array) {
+data class ByteArray(override val array : ByteArray) : ComparableByteArray(array) {
   // BUGBUG : Dirty, .map(_.asInstanceOf<java.lang.Byte>)
   override fun toString = s"${HexUtil.scalaHex(array.map(_.asInstanceOf<java.lang.Byte>))}"
 }
@@ -51,6 +51,6 @@ object ByteArray {
 
 object ByteArrayAndVectorConverter {
   implicit fun byteArrayToVector(barray : ByteArray   ) = barray.array.toVector
-  implicit fun vectorToByteArray(vector : Vector<Byte>) = ByteArray(vector.toArray<Byte>)
+  implicit fun vectorToByteArray(vector : Vector<Byte>) = ByteArray(vector.toByteArray)
 }
 */

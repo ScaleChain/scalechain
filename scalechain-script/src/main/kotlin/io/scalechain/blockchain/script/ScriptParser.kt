@@ -68,7 +68,7 @@ object ScriptParser {
     * @return The list of ScriptOp(s).
     */
   fun parseUntil(script : Script, offset : Int, vararg fenceScriptOps : ScriptOp) : ParseResult  {
-    val operations = mutableListOf<ScriptOp>()
+    val operations = arrayListOf<ScriptOp>()
 
     var programCounter = offset
     var fenceOp : ScriptOp? = null

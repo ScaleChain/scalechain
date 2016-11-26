@@ -4,6 +4,7 @@ import java.math.BigInteger
 
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
+import io.scalechain.util.Option
 
 object AccountCodec : Codec<Account> {
   override fun transcode(io : CodecInputOutputStream, obj : Account? ) : Account? {
@@ -13,7 +14,7 @@ object AccountCodec : Codec<Account> {
 
     // BUGBUG : Make sure it is ok to have utf8 for multi-byte languages such as Chinese or Korean.
     // If we are not doing any range search over the account name, it should be fine.
-    val name = Codecs.NullTerminatedUTF8String.transcode(io, obj?.name)
+    val name = Codecs.CString.transcode(io, obj?.name)
 
     if (io.isInput) {
       return Account(
@@ -66,22 +67,22 @@ object WalletTransactionCodec : Codec<WalletTransaction> {
   private val OptionalInt32Codec = Codecs.optional(Codecs.Int32)
 
   override fun transcode(io : CodecInputOutputStream, obj : WalletTransaction? ) : WalletTransaction? {
-    val blockHash = OptionalHashCodec.transcode(io, obj?.blockHash)
-    val blockIndex = OptionalInt64Codec.transcode(io, obj?.blockIndex)
-    val blockTime = OptionalInt64Codec.transcode(io, obj?.blockTime)
-    val transactionId = OptionalHashCodec.transcode(io, obj?.transactionId)
+    val blockHash = OptionalHashCodec.transcode(io, Option.from(obj?.blockHash))
+    val blockIndex = OptionalInt64Codec.transcode(io, Option.from(obj?.blockIndex))
+    val blockTime = OptionalInt64Codec.transcode(io, Option.from(obj?.blockTime))
+    val transactionId = OptionalHashCodec.transcode(io, Option.from(obj?.transactionId))
     val addedTime = Codecs.Int64.transcode(io, obj?.addedTime)
-    val transactionIndex = OptionalInt32Codec.transcode(io, obj?.transactionIndex)
+    val transactionIndex = OptionalInt32Codec.transcode(io, Option.from(obj?.transactionIndex))
     val transaction = TransactionCodec.transcode(io, obj?.transaction)
 
     if (io.isInput) {
       return WalletTransaction(
-        blockHash!!,
-        blockIndex!!,
-        blockTime!!,
-        transactionId!!,
+        blockHash!!.toNullable(),
+        blockIndex!!.toNullable(),
+        blockTime!!.toNullable(),
+        transactionId!!.toNullable(),
         addedTime!!,
-        transactionIndex!!,
+        transactionIndex!!.toNullable(),
         transaction!!
       )
     }
@@ -112,14 +113,14 @@ object WalletOutputCodec : Codec<WalletOutput> {
 
   override fun transcode(io : CodecInputOutputStream, obj : WalletOutput? ) : WalletOutput? {
 
-    val blockindex        = OptionalInt64Codec.transcode(io, obj?.blockindex)
+    val blockindex        = OptionalInt64Codec.transcode(io, Option.from(obj?.blockindex))
     val coinbase          = Codecs.Boolean.transcode(io, obj?.coinbase)
     val spent             = Codecs.Boolean.transcode(io, obj?.spent)
     val transactionOutput = TransactionOutputCodec.transcode(io, obj?.transactionOutput)
 
     if (io.isInput) {
       return WalletOutput(
-        blockindex!!,
+        blockindex!!.toNullable(),
         coinbase!!,
         spent!!,
         transactionOutput!!

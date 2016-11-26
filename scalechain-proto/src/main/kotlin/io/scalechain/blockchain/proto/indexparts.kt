@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.proto
-import io.scalechain.util.Option
+
 /** data classes that are used for keys or values of the block storage index.
   */
+data class CStringPrefixed<T>(val prefix : String, val data : T) : Transcodable
 
 data class RecordLocator(val offset : Long, val size : Int) : Transcodable
 
@@ -20,11 +21,11 @@ data class BlockInfo(
   val height : Long,
   // The total (estimated) number of hash calculations from the genesis block.
   val chainWork : Long, // TODO : BUGBUG : Make sure that the 64 bit integer value is enough for the chainwork.
-  val nextBlockHash : Option<Hash>,
+  val nextBlockHash : Hash?,
   val transactionCount : Int,
   val status : Int,
   val blockHeader : BlockHeader,
-  val blockLocatorOption : Option<FileRecordLocator>
+  val blockLocatorOption : FileRecordLocator?
 ) : Transcodable
 
 data class FileNumber(
@@ -66,7 +67,7 @@ data class BlockHeight( val height : Long ) : Transcodable
   * @param outputsSpentBy List of transaction inputs that spends outputs of the transaction.
   *                       For each element of the list, it is Some(inPoint) if an output was spent, None otherwise.
   */
-data class TransactionDescriptor( val transactionLocator : FileRecordLocator, val blockHeight : Long, val outputsSpentBy : List<Option<InPoint>> ) : Transcodable
+data class TransactionDescriptor( val transactionLocator : FileRecordLocator, val blockHeight : Long, val outputsSpentBy : List<InPoint?> ) : Transcodable
 
 
 /** A descriptor for an orphan block. Used as the value of the (key:block hash, value:orphan block) index.
@@ -93,6 +94,6 @@ data class OrphanTransactionDescriptor(
   */
 data class TransactionPoolEntry(
   val transaction : Transaction,
-  val outputsSpentBy : List<Option<InPoint>>,
+  val outputsSpentBy : List<InPoint?>,
   val createdAtNanos : Long
 ) : Transcodable

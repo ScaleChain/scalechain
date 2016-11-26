@@ -1,14 +1,14 @@
 package io.scalechain.blockchain.storage.test
 
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{BlockCodec, CodecTestUtil}
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.BlockCodec
+//import io.scalechain.blockchain.proto.codec.CodecTestUtil
 import io.scalechain.blockchain.proto.test.ProtoTestData
-import io.scalechain.blockchain.script.HashSupported._
+//import io.scalechain.blockchain.script.HashSupported._
 import io.scalechain.io.HexFileLoader
-import io.scalechain.util.HexUtil._
-import scodec.bits.BitVector
+import io.scalechain.util.HexUtil
 
-
+/*
 /**
   * Created by kangmo on 3/13/16.
   */
@@ -41,3 +41,4 @@ object TestData : ProtoTestData with CodecTestUtil {
   )
   val blockHash2 = block2.header.hash
 }
+*/

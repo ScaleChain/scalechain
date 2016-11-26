@@ -1,16 +1,15 @@
 package io.scalechain.blockchain.storage.index
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto.{TransactionDescriptor, Hash}
-import io.scalechain.blockchain.proto.codec.{TransactionDescriptorCodec, TransactionPoolEntryCodec, HashCodec}
+import io.scalechain.blockchain.proto.TransactionDescriptor
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.codec.TransactionDescriptorCodec
+import io.scalechain.blockchain.proto.codec.TransactionPoolEntryCodec
+import io.scalechain.blockchain.proto.codec.HashCodec
 import org.slf4j.LoggerFactory
 
-trait TransactionDescriptorIndex {
-  private val logger = LoggerFactory.getLogger(TransactionDescriptorIndex::class.java)
-
-  import DatabaseTablePrefixes._
-  private implicit val hashCodec = HashCodec
-  private implicit val transactionCodec = TransactionPoolEntryCodec
+interface TransactionDescriptorIndex {
+//  private val logger = LoggerFactory.getLogger(TransactionDescriptorIndex::class.java)
 
   /**
     * Get the descriptor of a transaction by hash
@@ -20,9 +19,9 @@ trait TransactionDescriptorIndex {
     * @param txHash The transaction hash.
     * @return Some(descriptor) if the transaction exists; None otherwise.
     */
-  fun getTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Option<TransactionDescriptor> {
+  fun getTransactionDescriptor(db : KeyValueDatabase, txHash : Hash) : TransactionDescriptor? {
     //logger.trace(s"getTransactionDescriptor : ${txHash}")
-    db.getObject(TRANSACTION, txHash)(HashCodec, TransactionDescriptorCodec)
+    return db.getObject(HashCodec, TransactionDescriptorCodec, DB.TRANSACTION, txHash)
   }
 
   /**
@@ -33,9 +32,9 @@ trait TransactionDescriptorIndex {
     * @param txHash The transaction hash.
     * @param transactionDescriptor The descriptor of the transaction.
     */
-  fun putTransactionDescriptor(txHash : Hash, transactionDescriptor : TransactionDescriptor)(implicit db : KeyValueDatabase) {
+  fun putTransactionDescriptor(db : KeyValueDatabase, txHash : Hash, transactionDescriptor : TransactionDescriptor) : Unit {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
-    db.putObject(TRANSACTION, txHash, transactionDescriptor)(HashCodec, TransactionDescriptorCodec)
+    db.putObject(HashCodec, TransactionDescriptorCodec, DB.TRANSACTION, txHash, transactionDescriptor)
   }
 
   /**
@@ -45,8 +44,8 @@ trait TransactionDescriptorIndex {
     *
     * @param txHash The transaction hash
     */
-  fun delTransactionDescriptor(txHash : Hash)(implicit db : KeyValueDatabase) : Unit {
+  fun delTransactionDescriptor(db : KeyValueDatabase, txHash : Hash) : Unit {
     //logger.trace(s"delTransactionDescriptor : ${txHash}")
-    db.delObject(TRANSACTION, txHash)(HashCodec)
+    db.delObject(HashCodec, DB.TRANSACTION, txHash)
   }
 }

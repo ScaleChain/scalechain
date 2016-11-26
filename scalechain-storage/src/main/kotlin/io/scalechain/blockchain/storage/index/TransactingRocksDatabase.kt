@@ -3,21 +3,24 @@ package io.scalechain.blockchain.storage.index
 import java.io.File
 import java.nio.ByteBuffer
 
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.util.{HexUtil, ArrayUtil}
-import io.scalechain.util.Using._
-import org.rocksdb.{RocksDB, WriteOptions, WriteBatchWithIndex}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
+import io.scalechain.util.HexUtil
+import io.scalechain.util.ArrayUtil
+//import io.scalechain.util.Using.
+import org.rocksdb.RocksDB
+import org.rocksdb.WriteOptions
+import org.rocksdb.WriteBatchWithIndex
 
 /**
-  * Created by kangmo on 7/9/16.
+  * RocksDB with transaction support. This class is not thread-safe.
   */
-class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
-  assert(db != null)
+class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabase {
 
-  var writeBatch : WriteBatchWithIndex = null
+  var writeBatch : WriteBatchWithIndex? = null
 
-  var putCache : scala.collection.mutable.Map<ByteBuffer, Array<Byte>> = null // key, value
-  var delCache : scala.collection.mutable.Map<ByteBuffer, Unit> = null // key, dummy
+  var putCache : MutableMap<ByteArray, ByteArray>? = null // key, value
+  var delCache : MutableMap<ByteArray, Unit>? = null // key, dummy
 
   /**
     * Begin a database transaction.
@@ -25,8 +28,8 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
   fun beginTransaction() : Unit {
     assert(writeBatch == null)
     writeBatch = WriteBatchWithIndex(true)
-    putCache = scala.collection.mutable.Map<ByteBuffer, Array<Byte>>()
-    delCache = scala.collection.mutable.Map<ByteBuffer, Unit>()
+    putCache = mutableMapOf<ByteArray, ByteArray>()
+    delCache = mutableMapOf<ByteArray, Unit>()
   }
 
   /**
@@ -47,7 +50,9 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
     // BUGBUG : Need to set to true?
     writeOptions.setSync(false)
     //writeOptions.setDisableWAL(true)
-    db.db.write(writeOptions, writeBatch)
+
+    db.db!!.write(writeOptions, writeBatch)
+
     writeBatch = null
     putCache = null
     delCache = null
@@ -64,29 +69,29 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
     delCache = null
   }
 
-  fun seek(keyOption : Option<Array<Byte>> ) : ClosableIterator<(ByteArray, ByteArray)> {
+
+  override fun seek(keyOption : ByteArray? ) : ClosableIterator<Pair<ByteArray, ByteArray>> {
     val rocksIterator =
       if (writeBatch!= null)
-        writeBatch.newIteratorWithBase( db.db.newIterator() )
+        writeBatch!!.newIteratorWithBase( db.db!!.newIterator() )
       else
-        db.db.newIterator()
+        db.db!!.newIterator()
 
-    db.seek(rocksIterator, keyOption)
+    return db.seek(rocksIterator, keyOption)
   }
 
-  fun get(key : ByteArray ) : Option<Array<Byte>> {
-    val wrappedKey = ByteBuffer.wrap(key)
+  override fun get(key : ByteArray ) : ByteArray? {
     if (delCache == null || putCache == null) {
-      db.get(key)
+      return db.get(key)
     } else {
-      if (delCache.contains(wrappedKey)) {
-        None
+      if (delCache!!.contains(key)) {
+        return null
       } else {
-        val wrappedValue = putCache.get(wrappedKey)
-        if (wrappedValue.isDefined) {
-          wrappedValue
+        val value = putCache!!.get(key)
+        if (value != null) {
+          return value
         } else {
-          db.get(key)
+          return db.get(key)
         }
       }
     }
@@ -119,27 +124,25 @@ class TransactingRocksDatabase(db : RocksDatabase) : KeyValueDatabase {
 */
   }
 
-  fun put(key : ByteArray, value : ByteArray ) : Unit {
+  override fun put(key : ByteArray, value : ByteArray ) : Unit {
 //    println(s"put ${HexUtil.hex(key)}, ${HexUtil.hex(value)}")
     assert(writeBatch != null)
-    writeBatch.put(key, value)
+    writeBatch!!.put(key, value)
 
-    val wrappedKey = ByteBuffer.wrap(key)
-    putCache.put(wrappedKey, value)
-    delCache.remove(wrappedKey)
+    putCache!!.put(key, value)
+    delCache!!.remove(key)
   }
 
-  fun del(key : ByteArray) : Unit {
+  override fun del(key : ByteArray) : Unit {
 //    println(s"del ${HexUtil.hex(key)}")
     assert(writeBatch != null)
-    writeBatch.remove(key)
+    writeBatch!!.remove(key)
 
-    val wrappedKey = ByteBuffer.wrap(key)
-    delCache.put(wrappedKey, ())
-    putCache.remove(wrappedKey)
+    delCache!!.put(key, Unit)
+    putCache!!.remove(key)
   }
 
-  fun close() : Unit {
+  override fun close() : Unit {
     db.close()
   }
 }

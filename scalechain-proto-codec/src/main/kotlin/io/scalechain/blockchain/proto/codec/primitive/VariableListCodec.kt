@@ -16,7 +16,7 @@ class VariableListCodec<T>(val lengthCodec : Codec<Long>, val valueCodec : Codec
         val valueLength : Long? = obj?.size?.toLong()
         val length : Long? = io.transcode(lengthCodec, valueLength)
         if (io.isInput) {
-            val mutableList = mutableListOf<T>()
+            val mutableList = arrayListOf<T>()
             for (i in 1..length!!) {
                 val v = io.transcode(valueCodec, null)
                 mutableList.add(v!!)
