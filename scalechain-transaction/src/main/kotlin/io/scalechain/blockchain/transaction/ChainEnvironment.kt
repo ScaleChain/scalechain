@@ -1,13 +1,14 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.proto.{Block, Hash}
-import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.HexUtil
 
 /**
   * ChainEnvironment, which hash a list of configuration values for an environment.
   */
-trait ChainEnvironment {
+interface ChainEnvironment {
 
   /** The genesis block.
     *
@@ -52,6 +53,40 @@ trait ChainEnvironment {
     *
     */
   val CoinbaseMaturity : Int
+
+
+  companion object {
+    /** The map from an environment name to an environment object.
+     *
+     */
+    val EnvironmentByName = mapOf(
+        "mainnet" to MainNetEnvironment,
+        "testnet" to TestNetEnvironment,
+        "regtest" to RegTestEnvironment
+    )
+
+    /** The current environment.
+     */
+    lateinit var activeEnvironmentOption : ChainEnvironment
+
+    /** Create an environment object based on the given environment name.
+     *
+     * @param environmentName The name of the environment.
+     * @return The environment object.
+     */
+    fun create(environmentName : String) : ChainEnvironment {
+      activeEnvironmentOption = EnvironmentByName.get(environmentName)!!
+      return activeEnvironmentOption
+    }
+
+    /** Get the active chain environment.
+     *
+     * @return Some(env) if any chain environment is active. None otherwise.
+     */
+    fun get() : ChainEnvironment {
+      return activeEnvironmentOption
+    }
+  }
 }
 
 
@@ -60,7 +95,7 @@ trait ChainEnvironment {
   */
 object MainNetEnvironment : ChainEnvironment {
   private val SERIALIZED_GENESIS_BLOCK =
-    bytes(
+    HexUtil.bytes(
       """
         |01 00 00 00 00 00 00 00
         |00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
@@ -81,39 +116,39 @@ object MainNetEnvironment : ChainEnvironment {
         |49 f6 bc 3f 4c ef 38 c4 f3 55 04 e5 1e c1 12 de
         |5c 38 4d f7 ba 0b 8d 57 8a 4c 70 2b 6b f1 1d 5f
         |ac 00 00 00 00
-      """.stripMargin)
-  val GenesisBlock = BlockCodec.parse(SERIALIZED_GENESIS_BLOCK)
-  val GenesisBlockHash = Hash( bytes("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f") )
+      """.trimMargin())
+  override val GenesisBlock = BlockCodec.decode(SERIALIZED_GENESIS_BLOCK)!!
+  override val GenesisBlockHash = Hash.from("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f")
 
 
-  val DefaultPort = 8333
+  override val DefaultPort = 8333
 
-  val PubkeyAddressVersion = 0.toByte
-  val ScriptAddressVersion = 5.toByte
-  val SecretKeyVersion = 128.toByte
+  override val PubkeyAddressVersion = 0.toByte()
+  override val ScriptAddressVersion = 5.toByte()
+  override val SecretKeyVersion = 128.toByte()
 
-  val MagicValue = bytes("D9B4BEF9")
+  override val MagicValue = HexUtil.bytes("D9B4BEF9")
 
   /** The default transaction version
     */
-  val DefaultTransactionVersion : Int = 4
+  override val DefaultTransactionVersion : Int = 4
 
   /** The default block version
     */
-  val DefaultBlockVersion : Int = 1
+  override val DefaultBlockVersion : Int = 1
 
   /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
     *
     */
-  val CoinbaseMaturity : Int = 100
+  override val CoinbaseMaturity : Int = 100
 }
 
 /** The class that has environment values for the testnet and regtest.
   *
   */
-class TestEnvironment : ChainEnvironment {
+open class TestEnvironment : ChainEnvironment {
   private val SERIALIZED_GENESIS_BLOCK =
-    bytes(
+    HexUtil.bytes(
       """
         |01 00 00 00 00 00 00 00
         |00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
@@ -134,82 +169,45 @@ class TestEnvironment : ChainEnvironment {
         |49 f6 bc 3f 4c ef 38 c4 f3 55 04 e5 1e c1 12 de
         |5c 38 4d f7 ba 0b 8d 57 8a 4c 70 2b 6b f1 1d 5f
         |ac 00 00 00 00
-      """.stripMargin)
+      """.trimMargin())
 
-  val GenesisBlock = BlockCodec.parse(SERIALIZED_GENESIS_BLOCK)
-  val GenesisBlockHash = Hash( bytes("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943") )
+  override val GenesisBlock = BlockCodec.decode(SERIALIZED_GENESIS_BLOCK)!!
+  override val GenesisBlockHash = Hash.from("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943")
 
-  val DefaultPort = 18333
+  override val DefaultPort = 18333
 
-  val PubkeyAddressVersion = 111.toByte
-  val ScriptAddressVersion = 196.toByte
-  val SecretKeyVersion = 239.toByte
+  override val PubkeyAddressVersion = 111.toByte()
+  override val ScriptAddressVersion = 196.toByte()
+  override val SecretKeyVersion = 239.toByte()
 
-  val MagicValue = bytes("0709110B")
+  override val MagicValue = HexUtil.bytes("0709110B")
 
   /** The default transaction version
     */
-  val DefaultTransactionVersion : Int = 4
+  override val DefaultTransactionVersion : Int = 4
 
   /** The default block version
     */
-  val DefaultBlockVersion : Int = 1
+  override val DefaultBlockVersion : Int = 1
 
   /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
     *
     */
-  val CoinbaseMaturity : Int = 2
+  override val CoinbaseMaturity : Int = 2
 }
 
 /** The singleton for the testnet environment.
   */
-object TestNetEnvironment : TestEnvironment {
-}
+object TestNetEnvironment : TestEnvironment()
 
 /** The singleton for the regtest environment.
   */
-object RegTestEnvironment : TestEnvironment {
-}
-
-/** The chain environment factory which returns an environment based on an environment name.
-  *
-  */
-object ChainEnvironment {
-  /** The map from an environment name to an environment object.
-    *
-    */
-  val EnvironmentByName = Map(
-    "mainnet" -> MainNetEnvironment,
-    "testnet" -> TestNetEnvironment,
-    "regtest" -> RegTestEnvironment
-  )
-
-  /** The current environment.
-    */
-  protected<transaction> var activeEnvironmentOption : Option<ChainEnvironment> = None
-
-  /** Create an environment object based on the given environment name.
-    *
-    * @param environmentName The name of the environment.
-    * @return The environment object.
-    */
-  fun create(environmentName : String) : Option<ChainEnvironment> {
-    activeEnvironmentOption = EnvironmentByName.get(environmentName)
-    activeEnvironmentOption
-  }
-
-  /** Get the active chain environment.
-    *
-    * @return Some(env) if any chain environment is active. None otherwise.
-    */
-  fun get() : ChainEnvironment {
-    activeEnvironmentOption.get
-  }
-}
+object RegTestEnvironment : TestEnvironment()
 
 
 /** The chain test trait to be mixed into test cases that needs to use the chain environment.
   */
-trait ChainTestTrait {
-  val env = ChainEnvironment.create("testnet").get
+// BUGBUG : Interface changed. from interface ChainTestTrait to object ChainTest
+interface ChainTest {
+  fun env() = ChainEnvironment.create("testnet")
 }

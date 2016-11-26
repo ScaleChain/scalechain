@@ -1,5 +1,5 @@
 package io.scalechain.blockchain.transaction
-
+/*
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Hash}
 import io.scalechain.blockchain.script.ops._
@@ -103,4 +103,4 @@ trait TransactionTestDataTrait : ProtoTestData with ChainTestTrait {
   val SIMPLE_SCRIPT_OPS_B = ScriptOpList(List(OpNum(3), OpEqual()))
 
 }
-
+*/

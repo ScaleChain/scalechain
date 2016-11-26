@@ -1,31 +1,37 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.WalletOutput
-import io.scalechain.blockchain.proto.codec.primitive.{UInt64, VarByteArray}
-import io.scalechain.blockchain.proto.codec.{LockingScriptCodec, TransactionOutputCodec, MessagePartCodec}
-import io.scalechain.util.ByteArray
-import scodec.Codec
-import scodec.codecs._
+import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import io.scalechain.blockchain.proto.codec.LockingScriptCodec
+import io.scalechain.blockchain.proto.codec.TransactionOutputCodec
+import io.scalechain.blockchain.proto.codec.Codec
+import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 
-/*
-object ByteArrayCodec {
-  val codec : Codec<ByteArray> {
-    ("array" | VarByteArray.codec)
-  }.as<ByteArray>
+object CoinAddressCodec : Codec<CoinAddress> {
+  override fun transcode(io: CodecInputOutputStream, obj: CoinAddress?): CoinAddress? {
+    if (io.isInput) {
+      val address = Codecs.CString.transcode(io, null)
+      return CoinAddress.from(address!!)
+    } else {
+      val base58Address = obj!!.base58()
+      Codecs.CString.transcode(io, base58Address)
+      return null
+    }
+  }
 }
-*/
-
-object CoinAddressCodec : MessagePartCodec<CoinAddress> {
-  val codec: Codec<CoinAddress> = utf8_32.xmap(
-    addressString => CoinAddress.from(addressString),
-    coinAddress => coinAddress.base58)
-}
 
 
-object ParsedPubKeyScriptCodec : MessagePartCodec<ParsedPubKeyScript> {
-  val codec: Codec<ParsedPubKeyScript> = LockingScriptCodec.codec.xmap(
-    lockingScript => ParsedPubKeyScript.from(lockingScript),
-    parsedPubKeyScript => parsedPubKeyScript.lockingScript)
+object ParsedPubKeyScriptCodec : Codec<ParsedPubKeyScript> {
+  override fun transcode(io: CodecInputOutputStream, obj: ParsedPubKeyScript?): ParsedPubKeyScript? {
+    if (io.isInput) {
+      val lockingScript = LockingScriptCodec.transcode(io, null)
+      return ParsedPubKeyScript.from(lockingScript!!)
+    } else {
+      val lockingScript = obj!!.lockingScript()
+      LockingScriptCodec.transcode(io, lockingScript)
+      return null
+    }
+  }
 }
 
 // From sample code of scodec.
@@ -48,11 +54,19 @@ object ParsedPubKeyScriptCodec : MessagePartCodec<ParsedPubKeyScript> {
     }
 */
 
-object OutputOwnershipCodec : MessagePartCodec<OutputOwnership> {
-  val codec : Codec<OutputOwnership> =
-    discriminated<OutputOwnership>.by(uint8).
-      typecase(1, CoinAddressCodec.codec).
-      typecase(2, ParsedPubKeyScriptCodec.codec)
+object OutputOwnershipCodec : Codec<OutputOwnership> {
+  val Codec = Codecs.polymorphicCodec<Byte, OutputOwnership>(
+    typeIndicatorCodec = Codecs.Byte,
+    typeClassNameToTypeIndicatorMap = mapOf<String, Byte>(
+      "CoinAddress" to 1.toByte(),
+      "ParsedPubKeyScript" to 2.toByte()
+    ),
+    typeIndicatorToCodecMap = mapOf<Byte, Codec<OutputOwnership>> (
+      1.toByte() to CoinAddressCodec as Codec<OutputOwnership> ,
+      2.toByte() to ParsedPubKeyScriptCodec as Codec<OutputOwnership>
+    )
+  )
+  override fun transcode(io: CodecInputOutputStream, obj: OutputOwnership?): OutputOwnership? = Codec.transcode(io, obj)
 }
 
 

@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.LockingScript
-import io.scalechain.blockchain.script.ops._
-import io.scalechain.blockchain.script.{ScriptValue, ScriptParser, ScriptOpList}
+import io.scalechain.blockchain.script.ops.*
+import io.scalechain.blockchain.script.ScriptValue
+import io.scalechain.blockchain.script.ScriptParser
+import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.crypto.HashFunctions
 
 /**
@@ -17,23 +19,41 @@ object LockingScriptAnalyzer {
     * @param scriptOps The parsed script operations.
     * @return The list of extracted addresses.
     */
-  protected<transaction> fun extractAddresses(scriptOps: ScriptOpList ) : List<CoinAddress> {
-    scriptOps.operations match {
-      // TODO : Extract multisig addresses
-      // Pay to public key
-      case List( OpPush(_, encodedPublicKey : ScriptValue), OpCheckSig(_) ) => {
+  fun extractAddresses(scriptOps: ScriptOpList ) : List<CoinAddress> {
+    val opCount = scriptOps.operations.size
+
+    if (opCount == 2) {
+      val opPush = scriptOps.operations[0]
+      val opCheckSig = scriptOps.operations[1]
+      if (opPush is OpPush &&
+          opCheckSig is OpCheckSig ) {
+        val encodedPublicKey = opPush.inputValue!!
         val publicKey : PublicKey = PublicKey.from(encodedPublicKey.value)
         val uncompressedPublicKey = publicKey.encode()
         val publicKeyHash = HashFunctions.hash160(uncompressedPublicKey)
-        List( CoinAddress.from(publicKeyHash.value) )
+        return listOf( CoinAddress.from(publicKeyHash.value) )
+      } else {
+        return listOf()
       }
-      // Pay to public key hash
-      case List( OpDup(), OpHash160(), OpPush(20, publicKeyHash), OpEqualVerify(), OpCheckSig(_) ) => {
-        List( CoinAddress.from(publicKeyHash.value) )
+    } else if (opCount == 5) {
+      val opDup = scriptOps.operations[0]
+      val opHash160 = scriptOps.operations[1]
+      val opPush = scriptOps.operations[2]
+      val opEqualVerify = scriptOps.operations[3]
+      val opCheckSig = scriptOps.operations[4]
+
+      if (opDup is OpDup &&
+          opHash160 is OpHash160 &&
+          opPush is OpPush && opPush.byteCount == 20 &&
+          opEqualVerify is OpEqualVerify &&
+          opCheckSig is OpCheckSig) {
+        val publicKeyHash = opPush.inputValue!!
+        return listOf( CoinAddress.from(publicKeyHash.value) )
+      } else {
+        return listOf()
       }
-      case _ => {
-        List()
-      }
+    } else {
+      return listOf()
     }
   }
 
@@ -43,7 +63,7 @@ object LockingScriptAnalyzer {
     */
   fun extractAddresses(lockingScript: LockingScript) : List<CoinAddress> {
     val scriptOperations: ScriptOpList = ScriptParser.parse(lockingScript)
-    extractAddresses(scriptOperations)
+    return extractAddresses(scriptOperations)
   }
 
   /** Extract output ownership from a locking script.
@@ -58,13 +78,13 @@ object LockingScriptAnalyzer {
     // Step 2 : try to extract coin addresses from it.
     val addresses = extractAddresses(scriptOperations)
 
-    if (addresses.isEmpty) {
+    if (addresses.isEmpty()) {
       // Step 2 : construct a pared public key script as an output ownership.
       //
-      ParsedPubKeyScript(scriptOperations)
+      return ParsedPubKeyScript(scriptOperations)
     } else {
       // TODO : BUGBUG : We are using the first coin address only. is this ok?
-      addresses(0)
+      return addresses[0]
     }
   }
 
@@ -83,6 +103,6 @@ object LockingScriptAnalyzer {
 
     // TODO : Need to return ParsedPubKeyScript.
     // ParsedPubKeyScript is not supported for an output ownership. Check Wallet.importOutputOwnership
-    addresses //::: List(ParsedPubKeyScript(scriptOperations))
+    return addresses //::: List(ParsedPubKeyScript(scriptOperations))
   }
 }

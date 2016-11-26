@@ -63,6 +63,10 @@ object Codecs {
     fun <valueT, enumT> mappedEnum(valueCodec: Codec<valueT>, enumMap: Map<enumT, valueT>)
         = MappedEnumCodec(valueCodec, enumMap)
 
+
+    fun <typeT, valueT> polymorphicCodec(typeIndicatorCodec : Codec<typeT>, typeClassNameToTypeIndicatorMap: Map<String, typeT>, typeIndicatorToCodecMap: Map<typeT, Codec<valueT>>) : Codec<valueT>
+        = PolymorphicCodec(typeIndicatorCodec, typeClassNameToTypeIndicatorMap, typeIndicatorToCodecMap)
+
     fun<T> provide( objectSample : T)
         = ProvideCodec<T>(objectSample)
 }

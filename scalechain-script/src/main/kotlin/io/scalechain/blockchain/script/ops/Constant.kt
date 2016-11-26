@@ -61,9 +61,9 @@ class OpPush(val byteCount : Int, val inputValue : ScriptValue? = null) : Consta
 
   companion object {
     val MAX_SIZE = 75
-    fun from(value : ByteArray) {
+    fun from(value : ByteArray) : OpPush {
       assert(value.size <= MAX_SIZE)
-      OpPush(value.size, ScriptValue.valueOf(value))
+      return OpPush(value.size, ScriptValue.valueOf(value))
     }
   }
 }
