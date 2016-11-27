@@ -15,15 +15,16 @@ import io.scalechain.blockchain.storage.*
 
 import io.scalechain.blockchain.transaction.*
 import org.slf4j.LoggerFactory
+import java.util.*
 
 
-class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : KeyValueDatabase) {
+class BlockchainLoader(private val db : KeyValueDatabase, private val chain:Blockchain, private val storage : BlockStorage) {
 
   fun load() : Unit {
-    val bestBlockHashOption = storage.getBestBlockHash()
-    if (bestBlockHashOption.isDefined) {
+    val bestBlockHashOption = storage.getBestBlockHash(db)
+    if (bestBlockHashOption != null) {
       // Set the best block descriptor.
-      chain.theBestBlock  = storage.getBlockInfo(bestBlockHashOption.get).get
+      chain.theBestBlock  = storage.getBlockInfo(db, bestBlockHashOption)!!
     } else {
       // We don't have the best block hash yet.
       // This means that we did not put the genesis block yet.
@@ -82,7 +83,7 @@ class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : K
   * the block chain later when a block is created.
   *
   */
-class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainView  {
+class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : BlockchainView {
   private val logger = LoggerFactory.getLogger(Blockchain::class.java)
 
   val txMagnet = TransactionMagnet(storage, txPoolIndex = storage, txTimeIndex = storage)
@@ -92,9 +93,9 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
   val blockOrphanage = BlockOrphanage(storage)
   val txOrphanage = TransactionOrphanage(storage)
 
-  fun txDescIndex : TransactionDescriptorIndex = storage
+  fun txDescIndex() : TransactionDescriptorIndex = storage
 
-  fun withTransaction<T>( block : KeyValueDatabase => T) : T {
+  fun<T> withTransaction( block : (KeyValueDatabase) -> T ) : T {
     val transactingRocksDB = TransactingRocksDatabase(db)
 
     transactingRocksDB.beginTransaction()
@@ -102,15 +103,13 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     val returnValue =
       try {
         block(transactingRocksDB)
-      } catch {
-        case t : Throwable => {
-          transactingRocksDB.abortTransaction()
-          throw t
-        }
+      } catch ( t : Throwable ) {
+        transactingRocksDB.abortTransaction()
+        throw t
       }
 
     transactingRocksDB.commitTransaction()
-    returnValue
+    return returnValue
   }
 
 
@@ -126,7 +125,7 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * This value is updated whenever a new best block is found.
     * We also have to check if we need to do block reorganization whenever this field is updated.
     */
-  var theBestBlock : BlockInfo = null
+  var theBestBlock : BlockInfo? = null
 
   /**
     * Put the best block hash into on-disk storage, as well as the in-memory best block info.
@@ -134,9 +133,9 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHash
     * @param blockInfo
     */
-  protected<chain> fun setBestBlock(blockHash : Hash, blockInfo : BlockInfo)(implicit db : KeyValueDatabase) : Unit {
+  protected fun setBestBlock(db : KeyValueDatabase, blockHash : Hash, blockInfo : BlockInfo) : Unit {
     theBestBlock = blockInfo
-    storage.putBestBlockHash(blockHash)
+    storage.putBestBlockHash(db, blockHash)
   }
 
   /** Put a block onto the blockchain.
@@ -154,74 +153,73 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @return true if the newly accepted block became the new best block.
     *
     */
-  fun putBlock(blockHash : Hash, block:Block)(implicit db : KeyValueDatabase) : Boolean {
+  fun putBlock(db : KeyValueDatabase, blockHash : Hash, block:Block) : Boolean {
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
-    synchronized {
-      if (storage.hasBlock(blockHash)) {
-        logger.trace(s"Duplicate block was ignored. Block hash : ${blockHash}")
-        false
+    synchronized(this) {
+      if (storage.hasBlock(db, blockHash)) {
+        logger.trace("Duplicate block was ignored. Block hash : ${blockHash}")
+        return false
       } else {
 
         // Case 1. If it is the genesis block, set the genesis block as the current best block.
         if (block.header.hashPrevBlock.isAllZero()) {
           assert(theBestBlock == null)
 
-          storage.putBlock(block)
+          storage.putBlock(db, block)
 
-          val blockInfo = storage.getBlockInfo(blockHash).get
+          val blockInfo = storage.getBlockInfo(db, blockHash)!!
 
           // Attach the block. ChainEventListener is invoked in this method.
           // TODO : BUGBUG : Before attaching a block, we need to test if all transactions in the block can be attached.
           // - If any of them are not attachable, the blockchain remains in an inconsistent state because only part of transactions are attached.
-          blockMagnet.attachBlock(blockInfo, block)
+          blockMagnet.attachBlock(db, blockInfo, block)
 
-          setBestBlock(blockHash, blockInfo )
+          setBestBlock(db, blockHash, blockInfo )
 
-          true
+          return true
         } else { // Case 2. Not a genesis block.
           assert(theBestBlock != null)
 
           // Step 2.1 : Get the block descriptor of the previous block.
-          val prevBlockDesc: Option<BlockInfo> = storage.getBlockInfo(block.header.hashPrevBlock)
-          // We already checked if the parent block exists.
-          assert(prevBlockDesc.isDefined)
+          // We already checked if the parent block exists so it is safe to call with '!!'
+          val prevBlockDesc: BlockInfo = storage.getBlockInfo(db, block.header.hashPrevBlock)!!
 
-          val prevBlockHash = prevBlockDesc.get.blockHeader.hash
+          val prevBlockHash = prevBlockDesc.blockHeader.hash()
 
-          storage.putBlock(block)
-          val blockInfo = storage.getBlockInfo(blockHash).get
+          storage.putBlock(db, block)
+          val blockInfo = storage.getBlockInfo(db, blockHash)!!
 
           // Case 2.A : The previous block of the block is the current best block.
-          if (prevBlockHash.value == theBestBlock.blockHeader.hash.value) {
+          if (Arrays.equals( prevBlockHash.value, theBestBlock!!.blockHeader.hash().value) ) {
             // Step 2.A.1 : Attach the block. ChainEventListener is invoked in this method.
-            blockMagnet.attachBlock(blockInfo, block)
+            blockMagnet.attachBlock(db, blockInfo, block)
 
             // Step 2.A.2 : Update the best block
-            setBestBlock( blockHash, blockInfo )
+            setBestBlock(db, blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
-            logger.info(s"Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
-            true
+            logger.info("Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
+            return true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
             // Step 3.B.1 : See if the chain work of the new block is greater than the best one.
-            if (blockInfo.chainWork > theBestBlock.chainWork) {
-              logger.info(s"Block reorganization started. Original Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The Best (${blockInfo.blockHeader.hash},${blockInfo})")
+            if (blockInfo.chainWork > theBestBlock!!.chainWork) {
+              logger.info("Block reorganization started. Original Best : (${theBestBlock!!.blockHeader.hash()},${theBestBlock}), The Best (${blockInfo.blockHeader.hash()},${blockInfo})")
 
               // Step 3.B.2 : Reorganize the blocks.
               // transaction handling, orphan block handling is done in this method.
-              blockMagnet.reorganize(originalBestBlock = theBestBlock, newBestBlock = blockInfo)
+              blockMagnet.reorganize(db, originalBestBlock = theBestBlock!!, newBestBlock = blockInfo)
 
 
               // Step 3.B.3 : Update the best block
-              setBestBlock(blockHash, blockInfo)
+              setBestBlock(db, blockHash, blockInfo)
 
               // TODO : Update best block in wallet (so we can detect restored wallets)
-              true
+              return true
             } else {
-              logger.info(s"A block was added to a fork. The current Best : (${theBestBlock.blockHeader.hash},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash},${blockInfo})")
-              false
+              logger.info("A block was added to a fork. The current Best : (${theBestBlock!!.blockHeader.hash()},${theBestBlock}), The best on the fork : (${blockInfo.blockHeader.hash()},${blockInfo})")
+              return false
             }
           }
         }
@@ -275,11 +273,11 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     *
     * @param transaction The transaction to put into the disk-pool.
     */
-  fun putTransaction(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit {
+  fun putTransaction(db : KeyValueDatabase, txHash : Hash, transaction : Transaction) : Unit {
     // TODO : BUGBUG : Need to start a RocksDB transaction.
     try {
       // Step 1 : Add transaction to the transaction pool.
-      txPool.addTransactionToPool(txHash, transaction)
+      txPool.addTransactionToPool(db, txHash, transaction)
 
       // TODO : BUGBUG : Need to commit the RocksDB transaction.
 
@@ -296,27 +294,26 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  fun getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator<ChainBlock> {
+  override fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock> {
     // TODO : Implement
-    assert(false)
-    null
+    throw UnsupportedOperationException()
   }
 
   /** Return the block height of the best block.
     *
     * @return The best block height.
     */
-  fun getBestBlockHeight() : Long {
+  override fun getBestBlockHeight() : Long {
     assert(theBestBlock != null)
-    theBestBlock.height
+    return theBestBlock!!.height
   }
 
   /** Return the hash of block on the tip of the best blockchain.
     *
     * @return The best block hash.
     */
-  fun getBestBlockHash()(implicit db : KeyValueDatabase) : Option<Hash> {
-    storage.getBestBlockHash()
+  fun getBestBlockHash(db : KeyValueDatabase) : Hash? {
+    return storage.getBestBlockHash(db)
   }
 
   /** Get the hash of a block specified by the block height on the best blockchain.
@@ -326,13 +323,13 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHeight The height of the block.
     * @return The hash of the block header.
     */
-  fun getBlockHash(blockHeight : Long)(implicit db : KeyValueDatabase) : Hash {
-    val blockHashOption = storage.getBlockHashByHeight(blockHeight)
+  fun getBlockHash(db : KeyValueDatabase, blockHeight : Long) : Hash {
+    val blockHashOption = storage.getBlockHashByHeight(db, blockHeight)
     // TODO : Bitcoin Compatiblity : Make the error code compatible when the block height was a wrong value.
-    if (blockHashOption.isEmpty) {
+    if (blockHashOption == null) {
       throw ChainException(ErrorCode.InvalidBlockHeight)
     }
-    blockHashOption.get
+    return blockHashOption
   }
 
   /**
@@ -343,8 +340,8 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHash The hash of the block to get the info of it.
     * @return Some(blockInfo) if the block exists; None otherwise.
     */
-  fun getBlockInfo(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<BlockInfo> {
-    storage.getBlockInfo(blockHash)
+  fun getBlockInfo(db : KeyValueDatabase, blockHash : Hash) : BlockInfo? {
+    return storage.getBlockInfo(db, blockHash)
   }
 
 
@@ -356,8 +353,8 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHash The hash of the block header to check.
     * @return true if the block exists; false otherwise.
     */
-  fun hasBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Boolean {
-    storage.hasBlock(blockHash)
+  fun hasBlock(db : KeyValueDatabase, blockHash : Hash) : Boolean {
+    return storage.hasBlock(db, blockHash)
   }
 
   /** Get a block searching by the header hash.
@@ -367,8 +364,8 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  fun getBlock(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<(BlockInfo, Block)> {
-    storage.getBlock(blockHash)
+  fun getBlock(db : KeyValueDatabase, blockHash : Hash) : Pair<BlockInfo, Block>? {
+    return storage.getBlock(db, blockHash)
   }
 
 
@@ -377,8 +374,8 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param blockHash The hash of the block header.
     * @return The block header.
     */
-  fun getBlockHeader(blockHash : Hash)(implicit db : KeyValueDatabase) : Option<BlockHeader> {
-    storage.getBlockHeader(blockHash)
+  fun getBlockHeader(db : KeyValueDatabase, blockHash : Hash) : BlockHeader? {
+    return storage.getBlockHeader(db, blockHash)
   }
 
   /** Return a transaction that matches the given transaction hash.
@@ -388,11 +385,11 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param txHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  fun getTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction> {
+  override fun getTransaction(db : KeyValueDatabase, txHash : Hash) : Transaction? {
     // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
     // Step 1 : Search block database.
-    val dbTransactionOption = storage.getTransaction(txHash)
+    val dbTransactionOption = storage.getTransaction(db, txHash)
 
     // Step 3 : TODO : Run validation.
 
@@ -400,7 +397,7 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     //poolTransactionOption.foreach( TransactionVerifier(_).verify(DiskBlockStorage.get) )
     //dbTransactionOption.foreach( TransactionVerifier(_).verify(DiskBlockStorage.get) )
 
-    dbTransactionOption
+    return dbTransactionOption
   }
 
   /**
@@ -409,10 +406,13 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
     * @return Some(block info) if the transaction is included in a block; None otherwise.
     */
-  fun getTransactionBlockInfo(txHash : Hash )(implicit db : KeyValueDatabase) : Option<BlockInfo> {
-    storage.getTransactionDescriptor(txHash).map{ txDesc : TransactionDescriptor =>
-      val blockHash = getBlockHash(txDesc.blockHeight)
-      getBlockInfo(blockHash).get
+  fun getTransactionBlockInfo(db : KeyValueDatabase, txHash : Hash ) : BlockInfo? {
+    val txDescOption = storage.getTransactionDescriptor(db, txHash)
+    if (txDescOption != null) {
+      val blockHash = getBlockHash(db, txDescOption.blockHeight)
+      return getBlockInfo(db, blockHash)!!
+    } else {
+      return null
     }
   }
 
@@ -421,8 +421,8 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param txHash The hash of the transaction to check the existence.
     * @return true if we have the transaction; false otherwise.
     */
-  fun hasTransaction(txHash : Hash)(implicit db : KeyValueDatabase) : Boolean {
-    storage.getTransactionDescriptor(txHash).isDefined || storage.getTransactionFromPool(txHash).isDefined
+  fun hasTransaction(db : KeyValueDatabase, txHash : Hash) : Boolean {
+    return storage.getTransactionDescriptor(db, txHash) != null || storage.getTransactionFromPool(db, txHash) != null
   }
 
   /** Return a transaction output specified by a give out point.
@@ -430,40 +430,39 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
+  override fun getTransactionOutput(db : KeyValueDatabase, outPoint : OutPoint) : TransactionOutput {
     // Coinbase outpoints should never come here
     assert(!outPoint.transactionHash.isAllZero())
 
-    val transaction = getTransaction(outPoint.transactionHash)
-    if (transaction.isEmpty) {
+    val transaction = getTransaction(db, outPoint.transactionHash)
+    if (transaction == null) {
       val message = "The transaction pointed by an outpoint was not found : " + outPoint.transactionHash
       logger.error(message)
       throw ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    val outputs = transaction.get.outputs
+    val outputs = transaction.outputs
 
-    if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.length) {
-      val message = s"Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.length}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
+    if (outPoint.outputIndex < 0 || outPoint.outputIndex >= outputs.size) {
+      val message = "Invalid output index. Transaction hash : ${outPoint.transactionHash}, Output count : ${outputs.size}, Output index : ${outPoint.outputIndex}, transaction : ${transaction}"
       logger.error(message)
       throw ChainException(ErrorCode.InvalidTransactionOutPoint, message)
     }
 
-    outputs(outPoint.outputIndex)
+    return outputs[outPoint.outputIndex]
   }
 
   companion object {
-    private var theBlockchain : Blockchain = null
-    fun create(db : RocksDatabase, storage : BlockStorage) {
-      theBlockchain = Blockchain(storage)(db)
+    private var theBlockchain : Blockchain? = null
+    fun create(db : RocksDatabase, storage : BlockStorage) : Blockchain {
+      theBlockchain = Blockchain(db, storage)
 
       // Load any in memory structur required by the Blockchain class from the on-disk storage.
-      BlockchainLoader(theBlockchain, storage)(db).load()
-      theBlockchain
+      BlockchainLoader(db, theBlockchain!!, storage).load()
+      return theBlockchain!!
     }
-    fun get() {
-      assert( theBlockchain != null)
-      theBlockchain
+    fun get() : Blockchain {
+      return theBlockchain!!
     }
   }
 }

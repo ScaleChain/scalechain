@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-class StopWatchSubject {
+public class StopWatchSubject {
     long startNanoSec;
     String subject;
 

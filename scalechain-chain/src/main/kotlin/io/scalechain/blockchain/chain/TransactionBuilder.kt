@@ -11,6 +11,7 @@ import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
+import java.math.BigInteger
 
 
 /**
@@ -22,15 +23,15 @@ import scala.collection.mutable.ListBuffer
 class TransactionBuilder() {
   /** The outputs spent by inputs. The order of spendingOutputs matches inputs.
     */
-  val spendingOutputs = ListBuffer<TransactionOutput>
+  val spendingOutputs = arrayListOf<TransactionOutput>()
 
   /** The inputs of the transaction
     */
-  val inputs = ListBuffer<TransactionInput>
+  val inputs = arrayListOf<TransactionInput>()
 
   /** The outputs of the transaction
     */
-  val newOutputs = ListBuffer<TransactionOutput>
+  val newOutputs = arrayListOf<TransactionOutput>()
 
   /** Add a generation transaction input.
     *
@@ -39,12 +40,12 @@ class TransactionBuilder() {
     */
   fun addGenerationInput(coinbaseData : CoinbaseData, sequenceNumber : Long = 0) : TransactionBuilder {
     // TODO : Need to move to a singleton to avoid writing the same code over and over.
-    val allZeroHash = Hash( HexUtil.bytes("0"*64) )
+    val allZeroHash = Hash.ALL_ZERO
     // TODO : Need to make sure that the output index is serialized correctly for the generation transaction
     val outputIndex : Long = 0xFFFFFF
 
-    inputs.append( GenerationTransactionInput(allZeroHash, outputIndex, coinbaseData, sequenceNumber) )
-    this
+    inputs.add( GenerationTransactionInput(allZeroHash, outputIndex, coinbaseData, sequenceNumber) )
+    return this
   }
 
   /** Add a normal transaction input.
@@ -60,20 +61,20 @@ class TransactionBuilder() {
     *                             If Some(sequence) is passed, we will use the given value.
     *
     */
-  fun addInput(coinsView : CoinsView, outPoint : OutPoint, unlockingScriptOption : Option<UnlockingScript> = None, sequenceNumberOption : Option<Long> = None)(implicit db : KeyValueDatabase) : TransactionBuilder {
+  fun addInput(db : KeyValueDatabase, coinsView : CoinsView, outPoint : OutPoint, unlockingScriptOption : UnlockingScript? = null, sequenceNumberOption : Long? = null) : TransactionBuilder {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),
-      outPoint.outputIndex,
-      unlockingScriptOption.getOrElse(UnlockingScript(ByteArray())),
-      sequenceNumberOption.getOrElse(0L) )
+      outPoint.outputIndex.toLong(),
+      unlockingScriptOption ?: UnlockingScript(byteArrayOf()),
+      sequenceNumberOption ?: 0L )
 
-    inputs.append( input )
+    inputs.add( input )
 
-    spendingOutputs.append(
-      coinsView.getTransactionOutput(input.getOutPoint())
+    spendingOutputs.add(
+      coinsView.getTransactionOutput(db, input.getOutPoint())
     )
-    this
+    return this
   }
 
   /** Add a transaction output with a public key hash.
@@ -82,10 +83,10 @@ class TransactionBuilder() {
     * @param publicKeyHash The public key hash to put into the locking script.
     */
   fun addOutput(amount : CoinAmount, publicKeyHash : Hash) : TransactionBuilder {
-    val pubKeyScript = ParsedPubKeyScript.from(publicKeyHash.value.array)
-    val output = TransactionOutput( amount.coinUnits, pubKeyScript.lockingScript() )
-    newOutputs.append( output )
-    this
+    val pubKeyScript = ParsedPubKeyScript.from(publicKeyHash.value)
+    val output = TransactionOutput( amount.coinUnits(), pubKeyScript.lockingScript() )
+    newOutputs.add( output )
+    return this
   }
 
   /** Add a transaction output with an output ownership.
@@ -94,9 +95,9 @@ class TransactionBuilder() {
     * @param outputOwnership The output ownership that owns the output.
     */
   fun addOutput(amount : CoinAmount, outputOwnership : OutputOwnership) : TransactionBuilder {
-    val output = TransactionOutput( amount.coinUnits, outputOwnership.lockingScript() )
-    newOutputs.append( output )
-    this
+    val output = TransactionOutput( amount.coinUnits(), outputOwnership.lockingScript() )
+    newOutputs.add( output )
+    return this
   }
 
   /**
@@ -108,43 +109,43 @@ class TransactionBuilder() {
     * @return
     */
   fun addOutput(data : ByteArray) : TransactionBuilder {
-    val lockingScriptOps = List( OpReturn(), OpPush.from(data) )
+    val lockingScriptOps = listOf( OpReturn(), OpPush.from(data) )
     val lockingScriptData = ScriptSerializer.serialize(lockingScriptOps)
     val output = TransactionOutput( 0L, LockingScript(lockingScriptData))
-    newOutputs.append(output)
-    this
+    newOutputs.add(output)
+    return this
   }
 
-  protected<chain> fun calculateFee(spendingOutputs : Seq<TransactionOutput>, newOutputs : Seq<TransactionOutput>) : CoinAmount {
-    val fee = spendingOutputs.foldLeft(0L)(_ + _.value) - newOutputs.foldLeft(0L)(_ + _.value)
-    CoinAmount.from(fee)
+  protected fun calculateFee(spendingOutputs : List<TransactionOutput>, newOutputs : List<TransactionOutput>) : CoinAmount {
+    val fee = spendingOutputs.fold(0L, { sum, item -> sum + item.value}) - newOutputs.fold(0L, { sum, item -> sum + item.value} )
+    return CoinAmount.from(fee)
   }
 
   /** Check if the current status of the builder is valid.
     */
-  protected<chain> fun checkValidity(): Unit {
+  protected fun checkValidity(): Unit {
     // Step 1 : Check if we have at least one input.
-    if ( inputs.length == 0 )
+    if ( inputs.size == 0 )
       throw GeneralException(ErrorCode.NotEnoughTransactionInput)
 
     // Step 2 : Check if we have at least one output.
-    if (newOutputs.length == 0)
+    if (newOutputs.size == 0)
     throw GeneralException(ErrorCode.NotEnoughTransactionOutput)
 
     // Step 3 : Check if we have other inputs when we have a generation input.
-    if (inputs(0).isCoinBaseInput()) {
-      if (inputs.length != 1)
+    if (inputs[0].isCoinBaseInput()) {
+      if (inputs.size != 1)
         throw GeneralException(ErrorCode.GenerationInputWithOtherInputs)
     }
 
-    for ( i <- 1 until inputs.length) {
-      if (inputs(i).isCoinBaseInput())
+    for ( i in 1 until inputs.size) {
+      if (inputs[i].isCoinBaseInput())
         throw GeneralException(ErrorCode.GenerationInputWithOtherInputs)
     }
 
     // Step 4 : Check if sum of input values is greater than or equal to the sum of output values.
-    if (!inputs(0).isCoinBaseInput()) {
-      if (calculateFee(spendingOutputs, newOutputs).value < 0) {
+    if (!inputs[0].isCoinBaseInput()) {
+      if (calculateFee(spendingOutputs, newOutputs).value < BigInteger.valueOf(0)) {
         throw GeneralException(ErrorCode.NotEnoughInputAmounts)
       }
     }
@@ -156,14 +157,14 @@ class TransactionBuilder() {
     * @param version The version of the transaction.
     * @return The built transaction.
     */
-  fun build(lockTime : Long = 0, version : Int = ChainEnvironment.get.DefaultTransactionVersion) : Transaction {
+  fun build(lockTime : Long = 0, version : Int = ChainEnvironment.get().DefaultTransactionVersion) : Transaction {
     checkValidity()
 
-    Transaction(
-      version = version,
-      inputs.toList,
-      newOutputs.toList,
-      lockTime = lockTime
+    return Transaction(
+      version,
+      inputs,
+      newOutputs,
+      lockTime
     )
   }
 
@@ -175,7 +176,7 @@ class TransactionBuilder() {
     fun newBuilder() = TransactionBuilder()
 
     fun newGenerationTransaction(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : Transaction {
-      TransactionBuilder.newBuilder()
+      return TransactionBuilder.newBuilder()
           .addGenerationInput(coinbaseData)
           .addOutput(CoinAmount(50), minerAddress)
           .build()

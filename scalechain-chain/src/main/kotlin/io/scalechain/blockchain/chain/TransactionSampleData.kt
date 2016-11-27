@@ -8,7 +8,7 @@ import io.scalechain.blockchain.transaction.CoinAmount
 /**
   * Created by kangmo on 6/30/16.
   */
-class TransactionSampleData()(protected implicit val db : KeyValueDatabase) : BlockBuildingTestTrait {
+class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingTestTrait() {
   val Addr1 = generateAccountAddress("Address1")
   // address 1
   val Addr2 = generateAccountAddress("Address2")

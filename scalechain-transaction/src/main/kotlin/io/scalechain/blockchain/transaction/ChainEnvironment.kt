@@ -208,6 +208,6 @@ object RegTestEnvironment : TestEnvironment()
 /** The chain test trait to be mixed into test cases that needs to use the chain environment.
   */
 // BUGBUG : Interface changed. from interface ChainTestTrait to object ChainTest
-interface ChainTest {
+interface ChainTestTrait {
   fun env() = ChainEnvironment.create("testnet")
 }

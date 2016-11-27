@@ -29,7 +29,7 @@ import scala.collection.mutable.ArrayBuffer
   *    - If the parent of the block is the current best block(=the tip of the best blockchain), put the block on top of the current best block.
   *
   */
-class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
+class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) {
   private val logger = LoggerFactory.getLogger(BlockProcessor::class.java)
 
   /** Get a block.
@@ -37,8 +37,8 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param blockHash The hash of the block to get.
     * @return Some(block) if the block exists; None otherwise.
     */
-  fun getBlock(blockHash : Hash) : Option<Block> {
-    chain.getBlock(blockHash).map(_._2)
+  fun getBlock(blockHash : Hash) : Block? {
+    return chain.getBlock(db, blockHash)?.second
   }
 
   /** Check if a block exists either as an orphan or non-orphan.
@@ -57,7 +57,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @return true if the block exists as an orphan; false otherwise.
     */
   fun hasOrphan(blockHash : Hash) : Boolean {
-    chain.blockOrphanage.hasOrphan(blockHash)
+    return chain.blockOrphanage.hasOrphan(db, blockHash)
   }
 
   /** Check if the block exists as a non-orphan block.
@@ -66,7 +66,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @return true if the block exists as a non-orphan; false otherwise.
     */
   fun hasNonOrphan(blockHash : Hash) : Boolean {
-    chain.hasBlock(blockHash)
+    return chain.hasBlock(db, blockHash)
   }
 
   /** Put the block as an orphan block.
@@ -74,7 +74,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @param block the block to put as an orphan block.
     */
   fun putOrphan(block : Block) : Unit {
-    chain.blockOrphanage.putOrphan(block)
+    return chain.blockOrphanage.putOrphan(db, block)
   }
 
   /**
@@ -85,7 +85,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @return The hash of the orphan block whose parent is missing even in the orphan blocks list.
     */
   fun getOrphanRoot(blockHash : Hash) : Hash {
-    chain.blockOrphanage.getOrphanRoot(blockHash)
+    return chain.blockOrphanage.getOrphanRoot(db, blockHash)
   }
 
   /**
@@ -132,7 +132,7 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     //}
 
     // TODO : BUGBUG : Change to record level locking with atomic update.
-    chain.putBlock(blockHash, block)(db)
+    return chain.putBlock(db, blockHash, block)
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.
@@ -141,35 +141,35 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
     * @return A list of block hashes which were newly accepted.
     */
   fun acceptChildren(initialParentBlockHash : Hash) : List<Hash> {
-    val acceptedChildren = ArrayBuffer<Hash>
+    val acceptedChildren = arrayListOf<Hash>()
 
     var i = -1;
     do {
-      val parentTxHash = if (acceptedChildren.length == 0) initialParentBlockHash else acceptedChildren(i)
+      val parentTxHash = if (acceptedChildren.size == 0) initialParentBlockHash else acceptedChildren[i]
 
-      val dependentChildren : List<Hash> = chain.blockOrphanage.getOrphansDependingOn(parentTxHash)
-      dependentChildren foreach { dependentChildHash : Hash =>
-        val dependentChild = chain.blockOrphanage.getOrphan(dependentChildHash)
+      val dependentChildren : List<Hash> = chain.blockOrphanage.getOrphansDependingOn(db, parentTxHash)
+      dependentChildren.forEach { dependentChildHash : Hash ->
+        val dependentChild = chain.blockOrphanage.getOrphan(db, dependentChildHash)
 
-        if (dependentChild.isDefined) {
+        if (dependentChild != null) {
           // add to the transaction pool.
-          acceptBlock(dependentChildHash, dependentChild.get)
+          acceptBlock(dependentChildHash, dependentChild)
           // add the hash to the acceptedChildren so that we can process children of the acceptedChildren as well.
-          acceptedChildren.append(dependentChildHash)
+          acceptedChildren.add(dependentChildHash)
           // delete the orphan
-          chain.blockOrphanage.delOrphan(dependentChild.get)
+          chain.blockOrphanage.delOrphan(db, dependentChild)
         } else {
           // When two threads invoke acceptchildren at the same time, an orphan block might not exist because it was deleted by another thread.
           // Ex> When two peers send the same block to this node at the same time, this method can be called at the same time by two different threads
         }
       }
-      chain.blockOrphanage.removeDependenciesOn(parentTxHash)
+      chain.blockOrphanage.removeDependenciesOn(db, parentTxHash)
 
       i += 1
-    } while( i < acceptedChildren.length)
+    } while( i < acceptedChildren.size)
 
     // Remove duplicate by converting to a set, and return as a list.
-    acceptedChildren.toSet.toList
+    return acceptedChildren.toSet().toList()
 /*
     newly_added_blocks = List(block hash)
     LOOP newBlock := For each newly_added_blocks
@@ -212,17 +212,16 @@ class BlockProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
   }
 */
   companion object {
-    private var theBlockProcessor : BlockProcessor = null
+    private var theBlockProcessor : BlockProcessor? = null
     fun create(chain : Blockchain) {
       if (theBlockProcessor == null) {
-        theBlockProcessor = BlockProcessor(chain)(chain.db)
+        theBlockProcessor = BlockProcessor(chain.db, chain)
       }
       theBlockProcessor
     }
 
-    fun get {
-      assert( theBlockProcessor != null)
-      theBlockProcessor
+    fun get() : BlockProcessor {
+      return theBlockProcessor!!
     }
   }
 }

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
   */
 interface TransactionPoolIndex {
   //private val logger = LoggerFactory.getLogger(TransactionPoolIndex::class.java)
+  fun getDbPrefix() : Byte = DB.TRANSACTION_POOL
 
   /** Put a transaction into the transaction pool.
     *
@@ -31,7 +32,7 @@ interface TransactionPoolIndex {
   fun putTransactionToPool(db : KeyValueDatabase, txHash : Hash, transactionPoolEntry : TransactionPoolEntry) : Unit {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
 
-    db.putPrefixedObject(HashCodec, TransactionPoolEntryCodec, DB.TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
+    db.putPrefixedObject(HashCodec, TransactionPoolEntryCodec, getDbPrefix(), DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
   }
 
   /** Get a transaction from the transaction pool.
@@ -42,7 +43,7 @@ interface TransactionPoolIndex {
   fun getTransactionFromPool(db : KeyValueDatabase, txHash : Hash) : TransactionPoolEntry? {
     //logger.trace(s"getTransactionFromPool : ${txHash}")
 
-    return db.getPrefixedObject(HashCodec, TransactionPoolEntryCodec, DB.TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash)
+    return db.getPrefixedObject(HashCodec, TransactionPoolEntryCodec, getDbPrefix(), DUMMY_PREFIX_KEY, txHash)
   }
 
 
@@ -51,7 +52,7 @@ interface TransactionPoolIndex {
     * @return List of transactions in the pool. List of (transaction hash, transaction) pair.
     */
   fun getTransactionsFromPool(db : KeyValueDatabase) : List<Pair<Hash, TransactionPoolEntry>> {
-    val iterator = db.seekPrefixedObject(HashCodec, TransactionPoolEntryCodec, DB.TRANSACTION_POOL, DUMMY_PREFIX_KEY)
+    val iterator = db.seekPrefixedObject(HashCodec, TransactionPoolEntryCodec, getDbPrefix(), DUMMY_PREFIX_KEY)
     try {
       return iterator.asSequence().toList().map { prefixedObject ->
         val cstringPrefixed = prefixedObject.first
@@ -71,7 +72,7 @@ interface TransactionPoolIndex {
   fun delTransactionFromPool(db : KeyValueDatabase, txHash : Hash) : Unit {
     //logger.trace(s"delTransactionFromPool : ${txHash}")
 
-    db.delPrefixedObject(HashCodec, DB.TRANSACTION_POOL, DUMMY_PREFIX_KEY, txHash )
+    db.delPrefixedObject(HashCodec, getDbPrefix(), DUMMY_PREFIX_KEY, txHash )
   }
 
   companion object {

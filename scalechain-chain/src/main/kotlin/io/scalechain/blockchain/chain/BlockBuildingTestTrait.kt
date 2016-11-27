@@ -1,45 +1,45 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.chain.mining.BlockMining
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
-import io.scalechain.blockchain.transaction._
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.transaction.*
+import io.scalechain.blockchain.script.hash
 import io.scalechain.crypto.HashEstimation
-
-import scala.annotation.tailrec
-import scala.util.Random
+import io.scalechain.util.ByteBufExt
+import java.util.*
 
 /** A transaction output with an outpoint of it.
   *
   * @param output The transaction output.
   * @param outPoint The transaction out point which is used for pointing the transaction output.
   */
-data class OutputWithOutPoint(output : TransactionOutput, outPoint : OutPoint)
+data class OutputWithOutPoint(val output : TransactionOutput, val outPoint : OutPoint)
 
 
-data class TransactionWithName(name:String, transaction:Transaction)
+data class TransactionWithName(val name:String, val transaction:Transaction)
 
-data class NewOutput(amount : CoinAmount, outputOwnership : OutputOwnership)
+data class NewOutput(val amount : CoinAmount, val outputOwnership : OutputOwnership)
 
 /**
   * Created by kangmo on 6/14/16.
   */
-trait BlockBuildingTestTrait : TransactionTestDataTrait {
-  protected implicit val db : KeyValueDatabase
+abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
+  abstract val db : KeyValueDatabase
 
-  fun generateAccountAddress(account:String) : AddressData {
+  fun generateAccountAddress(account:String) : TransactionTestDataTrait.AddressData {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
-    addressData
+    return addressData
   }
 
   fun onAddressGeneration(account:String, address : CoinAddress) : Unit {
     // by default, do nothing.
   }
 
-  fun getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
-  fun getBlockHash(block : Block) = block.header.hash
+  fun getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash()
+  fun getBlockHash(block : Block) = block.header.hash()
 
   /** Add all outputs in a transaction into an output set.
     *
@@ -50,7 +50,7 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
     val transactionHash = getTxHash(transactionWithName)
     var outputIndex = -1
 
-    transactionWithName.transaction.outputs foreach { output =>
+    transactionWithName.transaction.outputs.forEach { output ->
       outputIndex += 1
       outputSet.addTransactionOutput( OutPoint(transactionHash, outputIndex), output )
     }
@@ -70,12 +70,12 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
                            ) : TransactionWithName {
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
-      .addGenerationInput(CoinbaseData(s"Random:${Random.nextLong}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes))
-      .addOutput(CoinAmount(50), generatedBy)
+      .addGenerationInput(CoinbaseData(ByteBufExt.from("Random:${Random().nextLong()}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())))
+      .addOutput(CoinAmount(50L), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
     addTransaction( availableOutputs, transactionWithName)
-    transactionWithName
+    return transactionWithName
   }
 
   /** Get an output of a given transaction.
@@ -85,8 +85,8 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
     * @return The transaction output with an out point.
     */
   fun getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint {
-    val transactionHash = transactionWithName.transaction.hash
-    OutputWithOutPoint( transactionWithName.transaction.outputs(outputIndex), OutPoint(transactionHash, outputIndex))
+    val transactionHash = transactionWithName.transaction.hash()
+    return OutputWithOutPoint( transactionWithName.transaction.outputs[outputIndex], OutPoint(transactionHash, outputIndex))
   }
 
 
@@ -99,11 +99,11 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
   fun normalTransaction( name : String, spendingOutputs : List<OutputWithOutPoint>, newOutputs : List<NewOutput>) : TransactionWithName {
     val builder = TransactionBuilder.newBuilder()
 
-    spendingOutputs foreach { output =>
-      builder.addInput(availableOutputs, output.outPoint)
+    spendingOutputs.forEach { output ->
+      builder.addInput(db, availableOutputs, output.outPoint)
     }
 
-    newOutputs foreach { output =>
+    newOutputs.forEach { output ->
       builder.addOutput(output.amount, output.outputOwnership)
     }
 
@@ -113,19 +113,19 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
 
     addTransaction( availableOutputs, transactionWithName)
 
-    transactionWithName
+    return transactionWithName
   }
 
   fun newBlock(prevBlockHash : Hash, transactionsWithName : List<TransactionWithName>) : Block {
     val builder = BlockBuilder.newBuilder()
 
-    transactionsWithName.map(_.transaction) foreach { transaction =>
+    transactionsWithName.map{ it.transaction }.forEach { transaction ->
       builder.addTransaction(transaction)
     }
 
     val block = builder.build(prevBlockHash, System.currentTimeMillis() / 1000)
 
-    block
+    return block
   }
 
   /**
@@ -136,32 +136,32 @@ trait BlockBuildingTestTrait : TransactionTestDataTrait {
     * @param nonce The nonce value.
     * @return The mined block.
     */
-  @tailrec
-  final fun doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block {
-    val newBlockHeader = block.header.copy(nonce = nonce)
-    val newBlockHash = newBlockHeader.hash
 
-    if (HashEstimation.getHashCalculations(newBlockHash.value) == requiredHashCalulcations) {
+  tailrec fun doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block {
+    val newBlockHeader = block.header.copy(nonce = nonce.toLong())
+    val newBlockHash = newBlockHeader.hash()
+
+    if (HashEstimation.getHashCalculations(newBlockHash.value) == requiredHashCalulcations.toLong()) {
       val newBlock = block.copy( header = newBlockHeader )
-      newBlock
+      return newBlock
     } else {
-      doMining(block, requiredHashCalulcations, nonce + 1)
+      return doMining(block, requiredHashCalulcations, nonce + 1)
     }
   }
 
-  fun minerAddress() {
-    CoinAddress.from(PrivateKey.generate)
+  fun minerAddress() : CoinAddress {
+    return CoinAddress.from(PrivateKey.generate())
   }
 
-  fun mineBlock(chain : Blockchain)(implicit db : KeyValueDatabase) {
-    assert(db.isInstanceOf<RocksDatabase>)
-    val rocksDB = db.asInstanceOf<RocksDatabase>
+  fun mineBlock(db : KeyValueDatabase, chain : Blockchain) {
+    assert(db is RocksDatabase)
+    val rocksDB = db as RocksDatabase
 
-    val blockMining = BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
-    val COINBASE_MESSAGE = CoinbaseData(s"height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
+    val blockMining = BlockMining(rocksDB, chain.txDescIndex(), chain.txPool, chain)
+    val COINBASE_MESSAGE = CoinbaseData(ByteBufExt.from("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
     // Step 2 : Create the block template
-    val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, 1024*1024)
-    val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash().get ), nonce = 0 )
+    val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)
+    val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash(db)!! ), nonce = 0 )
     doMining( block, requiredHashCalulcations = 4)
   }
 

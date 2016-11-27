@@ -8,8 +8,6 @@ import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.proto.OutPoint
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
-import scala.collection.mutable
-
 /** Keeps a set of transaction outputs.
   *
   * TODO : Add test cases.
@@ -39,9 +37,8 @@ class TransactionOutputSet : CoinsView {
     * @param transactionOutput The transaction output to search.
     * @return The found output.
     */
-  fun getOutPoint(transactionOutput : TransactionOutput) : Option<OutPoint> {
-    val output = outPointsByOutput.get(transactionOutput)
-    if (output == null) None else Some(output)
+  fun getOutPoint(transactionOutput : TransactionOutput) : OutPoint? {
+    return outPointsByOutput.get(transactionOutput)
   }
 
 
@@ -50,12 +47,9 @@ class TransactionOutputSet : CoinsView {
     * @param outPoint The outpoint that points to the transaction output.
     * @return The transaction output we found.
     */
-  fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
-    val output = outputsByOutPoint.get(outPoint)
-    if (output == null) {
-      throw ChainException( ErrorCode.InvalidTransactionOutPoint )
-    }
-    output
+  override fun getTransactionOutput(db : KeyValueDatabase, outPoint : OutPoint) : TransactionOutput {
+    val output = outputsByOutPoint.get(outPoint) ?: throw ChainException( ErrorCode.InvalidTransactionOutPoint )
+    return output
   }
 }
 

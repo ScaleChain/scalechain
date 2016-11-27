@@ -15,32 +15,32 @@ object MerkleRootCalculator {
     * @param hash2 The second hash value
     * @return The hash value calcuated from the concatenated hash values.
     */
-  protected<chain> fun mergeHash(hash1 : Hash, hash2 : Hash) : Hash {
-    val concatenated = hash1.value.array ++ hash2.value.array
+  private fun mergeHash(hash1 : Hash, hash2 : Hash) : Hash {
+    val concatenated = hash1.value + hash2.value
 
-    Hash( HashFunctions.hash256(concatenated).value )
+    return Hash( HashFunctions.hash256(concatenated).value )
   }
   /** Calculate the merkle root hash. The number of input hash values are always even.
     *
     * @param hashes The list of hashes for calculating the merkle root hash.
     * @return
     */
-  protected<chain> fun mergeHashes(hashes : ArrayBuffer<Hash>) : ArrayBuffer<Hash> {
+  private fun mergeHashes(hashes : List<Hash>) : List<Hash> {
     // The number of hashes should be even.
     // TODO : Optimize, i%2==0 could be expensive.
-    assert( hashes.length % 2 == 0)
+    assert( hashes.size % 2 == 0)
 
     // Note : We may duplicate the last element, so prepare space for one more element in the array buffer.
-    val mergedHashes = ArrayBuffer<Hash>(hashes.length/2 + 1)
+    val mergedHashes = arrayListOf<Hash>() //(hashes.length/2 + 1)
 
-    for (i <- 0 until hashes.length) {
+    for (i in 0 until hashes.size) {
       // TODO : Optimize, i%2==0 could be expensive.
       if (i % 2 == 0) {
-        mergedHashes += mergeHash( hashes(i), hashes(i+1) )
+        mergedHashes += mergeHash( hashes[i], hashes[i+1] )
       }
     }
 
-    calculateMerkleRoot(mergedHashes)
+    return calculateMerkleRoot(mergedHashes)
   }
 
 
@@ -49,16 +49,16 @@ object MerkleRootCalculator {
     * @param hashes The list of hashes for calculating the merkle root hash.
     * @return
     */
-  protected<chain> fun calculateMerkleRoot(hashes : ArrayBuffer<Hash>) : ArrayBuffer<Hash> {
-    assert (hashes.length > 0)
-    if (hashes.length == 1) { // The base condition. If the number of hashes is one, we are done.
-      hashes
+  private fun calculateMerkleRoot(hashes : MutableList<Hash>) : List<Hash> {
+    assert (hashes.size > 0)
+    if (hashes.size == 1) { // The base condition. If the number of hashes is one, we are done.
+      return hashes
     } else {
       // TODO : Optimize, i%2==0 could be expensive.
-      if (hashes.length % 2 == 1) { // If the number of hashes is odd, duplicate the last one to make it even.
-        hashes += hashes.last
+      if (hashes.size % 2 == 1) { // If the number of hashes is odd, duplicate the last one to make it even.
+        hashes += hashes.last()
       }
-      mergeHashes(hashes)
+      return mergeHashes(hashes)
     }
   }
 
@@ -78,13 +78,13 @@ object MerkleRootCalculator {
   fun calculate(transactions : List<Transaction>) : Hash {
     // Step 1 : Calculate transaction hashes for each transaction.
     // Note : We may duplicate the last element, so prepare space for one more element in the array buffer.
-    val transactionHashes = ArrayBuffer<Hash>(transactions.length + 1)
-    transactionHashes ++= transactions.map { transaction => transaction.hash }
+    val transactionHashes = arrayListOf<Hash>()//(transactions.length + 1)
+    transactions.forEach { transaction -> transactionHashes.add( transaction.hash() ) }
 
     // Step 2 : Duplicate the last hash item if the number of hashes is odd, and calculate the merkle root hash.
-    val merkleRootHashes : ArrayBuffer<Hash> = calculateMerkleRoot( transactionHashes )
+    val merkleRootHashes : List<Hash> = calculateMerkleRoot( transactionHashes )
 
-    assert( merkleRootHashes.length == 1 )
-    merkleRootHashes(0)
+    assert( merkleRootHashes.size == 1 )
+    return merkleRootHashes[0]
   }
 }

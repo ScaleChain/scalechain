@@ -5,6 +5,7 @@ package io.scalechain.blockchain.transaction
   * @param value The amount of coin value.
   */
 data class CoinAmount(val value : java.math.BigInteger) {
+  constructor( value : Long) : this(java.math.BigInteger.valueOf(value))
   /** Return the coin amount in coin units.
     *
     * @return The coin units calculated from the CoinAmount. In Bitcoin, the units of coin is satoshi.
@@ -24,8 +25,8 @@ data class CoinAmount(val value : java.math.BigInteger) {
      * @param coinUnits
      * @return
      */
-    fun from(coinUnits : Long) {
-      CoinAmount( java.math.BigInteger.valueOf(coinUnits) / ONE_COIN_IN_UNITS )
+    fun from(coinUnits : Long) : CoinAmount {
+      return CoinAmount( java.math.BigInteger.valueOf(coinUnits) / ONE_COIN_IN_UNITS )
     }
   }
 }

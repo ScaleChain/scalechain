@@ -8,12 +8,12 @@ import io.scalechain.blockchain.transaction.ChainBlock
 /**
   * A listener that subscribes chain events such as transactions or removed transactions.
   */
-trait ChainEventListener {
+interface ChainEventListener {
   /** Called whenever a transaction comes into a block or the disk-pool.
     *
     * @param transaction The newly found transaction.
     */
-  fun onNewTransaction(transactionHash : Hash, transaction : Transaction, chainBlock : Option<ChainBlock>, transactionIndex : Option<Int>)(implicit db : KeyValueDatabase)
+  fun onNewTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction, chainBlock : ChainBlock?, transactionIndex : Int?)
 
   /** Called whenever a transaction is removed from the disk-pool without being added to a block.
     * This also means the transaction does not exist in any block, as the disk-pool has transactions
@@ -21,5 +21,5 @@ trait ChainEventListener {
     *
     * @param transaction The transaction removed from the disk-pool.
     */
-  fun onRemoveTransaction(transactionHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase)
+  fun onRemoveTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction)
 }

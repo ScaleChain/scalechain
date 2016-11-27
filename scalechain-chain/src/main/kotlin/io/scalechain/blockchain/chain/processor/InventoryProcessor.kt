@@ -10,26 +10,26 @@ import org.slf4j.LoggerFactory
 /**
   * Process a received Inv message.
   */
-class InventoryProcessor(val chain : Blockchain)(implicit db : KeyValueDatabase) {
+open class InventoryProcessor(private val db : KeyValueDatabase, val chain : Blockchain) {
   private val logger = LoggerFactory.getLogger(InventoryProcessor::class.java)
 
   fun alreadyHas(inventory : InvVector) : Boolean {
-    inventory.invType match {
-      case InvType.MSG_TX => {
+    return when(inventory.invType) {
+      InvType.MSG_TX -> {
         // Transaction : Check the transaction database, transaction pool, and orphan transactions
-        TransactionProcessor(chain).exists(inventory.hash)
+        TransactionProcessor(chain).exists(db, inventory.hash)
       }
-      case InvType.MSG_BLOCK => {
+      InvType.MSG_BLOCK -> {
         // Block : Check the block database, orphan blocks
-        BlockProcessor(chain).exists(inventory.hash)
+        BlockProcessor(db, chain).exists(inventory.hash)
       }
-      case _ => {
-        logger.warn(s"Unknown inventory type : ${inventory}")
+      else -> {
+        logger.warn("Unknown inventory type : ${inventory}")
         false
       }
     }
   }
 
-  companion object : InventoryProcessor(Blockchain.get)(Blockchain.get.db) {
+  companion object : InventoryProcessor(Blockchain.get().db, Blockchain.get()) {
   }
 }
