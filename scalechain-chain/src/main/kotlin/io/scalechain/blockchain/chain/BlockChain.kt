@@ -385,11 +385,11 @@ class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : B
     * @param txHash The transaction hash to search.
     * @return Some(transaction) if the transaction that matches the hash was found. None otherwise.
     */
-  override fun getTransaction(db : KeyValueDatabase, txHash : Hash) : Transaction? {
+  override fun getTransaction(db : KeyValueDatabase, transactionHash : Hash) : Transaction? {
     // Note : No need to search transaction pool, as storage.getTransaction searches the transaction pool as well.
 
     // Step 1 : Search block database.
-    val dbTransactionOption = storage.getTransaction(db, txHash)
+    val dbTransactionOption = storage.getTransaction(db, transactionHash)
 
     // Step 3 : TODO : Run validation.
 

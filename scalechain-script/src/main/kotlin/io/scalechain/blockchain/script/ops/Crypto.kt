@@ -169,7 +169,6 @@ abstract class CheckSig() : Crypto {
   }
 
   fun checkMultiSig(script : Script, env : ScriptEnvironment): Unit {
-    assert(script != null)
     assert(env.transaction != null)
     assert(env.transactionInputIndex != null)
 

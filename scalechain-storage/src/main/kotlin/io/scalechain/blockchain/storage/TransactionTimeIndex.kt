@@ -23,7 +23,7 @@ import scala.collection.mutable.ListBuffer
   */
 interface TransactionTimeIndex {
   //private val logger = LoggerFactory.getLogger(TransactionTimeIndex::class.java)
-  fun getDbPrefix() : Byte = DB.TRANSACTION_TIME
+  fun getTxTimePrefix() : Byte = DB.TRANSACTION_TIME
 
   /** Put a transaction into the transaction time index.
     *
@@ -35,7 +35,7 @@ interface TransactionTimeIndex {
 
     val keyPrefix = timeToString(creationTime)
 
-    db.putPrefixedObject(HashCodec, OneByteCodec, getDbPrefix(), keyPrefix, txHash, OneByte(0.toByte()) )
+    db.putPrefixedObject(HashCodec, OneByteCodec, getTxTimePrefix(), keyPrefix, txHash, OneByte(0.toByte()) )
   }
 
   /** Get a transaction from the transaction pool.
@@ -46,7 +46,7 @@ interface TransactionTimeIndex {
   fun getOldestTransactionHashes(db : KeyValueDatabase, count : Int) : List<CStringPrefixed<Hash>> {
     assert(count > 0)
     //logger.trace(s"getTransactionFromPool : ${txHash}")
-    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, getDbPrefix())
+    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, getTxTimePrefix())
     try {
       val buffer = arrayListOf<CStringPrefixed<Hash>>()
       var copied = 0
@@ -70,11 +70,11 @@ interface TransactionTimeIndex {
 
     val keyPrefix = timeToString(creationTime)
 
-    db.delPrefixedObject(HashCodec, getDbPrefix(), keyPrefix, txHash )
+    db.delPrefixedObject(HashCodec, getTxTimePrefix(), keyPrefix, txHash )
   }
 
   fun delTransactionTime(db : KeyValueDatabase, key : CStringPrefixed<Hash>) : Unit {
-    db.delPrefixedObject(HashCodec, getDbPrefix(), key )
+    db.delPrefixedObject(HashCodec, getTxTimePrefix(), key )
   }
 
   companion object {

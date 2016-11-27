@@ -12,7 +12,7 @@ import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 
-
+/*
 trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 
   this: Suite =>
@@ -109,3 +109,4 @@ trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
   }
   */
 }
+*/

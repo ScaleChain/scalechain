@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
   * Created by kangmo on 3/15/16.
   */
 class BlockVerifier(private val db : KeyValueDatabase, private val block : Block) {
-  private val logger = LoggerFactory.getLogger(BlockVerifier.javaClass)
+  private val logger = LoggerFactory.getLogger(BlockVerifier::class.java)
 
   fun verify(chainView : BlockchainView) : Unit {
     // (1) verify the hash of the block is within the difficulty level

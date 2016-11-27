@@ -20,11 +20,11 @@ import io.scalechain.util.StopWatch
 import org.slf4j.LoggerFactory
 
 interface TemporaryTransactionPoolIndex : TransactionPoolIndex {
-  override fun getDbPrefix() : Byte = DB.TEMP_TRANSACTION_POOL
+  override fun getTxPoolPrefix() : Byte = DB.TEMP_TRANSACTION_POOL
 }
 
 interface TemporaryTransactionTimeIndex : TransactionTimeIndex {
-  override fun getDbPrefix() : Byte = DB.TEMP_TRANSACTION_TIME
+  override fun getTxTimePrefix() : Byte = DB.TEMP_TRANSACTION_TIME
 }
 
 class TemporaryCoinsView(private val coinsView : CoinsView) : CoinsView {

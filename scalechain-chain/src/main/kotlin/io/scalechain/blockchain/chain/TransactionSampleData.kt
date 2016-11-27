@@ -17,7 +17,7 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
   // address 3
 
-  object Tx {
+  inner class TxClass {
     val GEN01 = generationTransaction("GenTx.BLK01", CoinAmount(50), Addr1.address)
     val GEN02 = generationTransaction("GenTx.BLK02", CoinAmount(50), Addr1.address)
     val GEN03 = generationTransaction("GenTx.BLK03", CoinAmount(50), Addr1.address)
@@ -26,8 +26,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX03 = normalTransaction(
       "TX03",
-      spendingOutputs = List( getOutput(GEN01,0) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(GEN01,0) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(49), Addr2.address)
         // We have very expensive fee, 1 SC
       )
@@ -39,8 +39,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_01 = normalTransaction(
       "TX04_01",
-      spendingOutputs = List( getOutput(GEN02,0) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(GEN02,0) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(49), Addr2.address)
         // We have very expensive fee, 1 SC
       )
@@ -53,8 +53,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_02 = normalTransaction(
       "TX04_02",
-      spendingOutputs = List( getOutput(TX04_01,0) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_01,0) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(20), Addr1.address),
         NewOutput(CoinAmount(27), Addr3.address)
         // We have very expensive fee, 2 SC
@@ -68,8 +68,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_03 = normalTransaction(
       "TX04_03",
-      spendingOutputs = List( getOutput(TX04_02,1) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_02,1) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(10), Addr2.address),
         NewOutput(CoinAmount(13), Addr3.address)
         // We have very expensive fee, 4 SC
@@ -83,8 +83,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_04 = normalTransaction(
       "TX04_04",
-      spendingOutputs = List( getOutput(TX03,0), getOutput(TX04_03, 1)),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX03,0), getOutput(TX04_03, 1)),
+      newOutputs = listOf(
         NewOutput(CoinAmount(10), Addr1.address),
         NewOutput(CoinAmount(10), Addr2.address),
         NewOutput(CoinAmount(10), Addr3.address),
@@ -102,8 +102,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_05_01 = normalTransaction(
       "TX04_05_01",
-      spendingOutputs = List( getOutput(TX04_04,0) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_04,0) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(2), Addr1.address)
         // We have very expensive fee, 8 SC
       )
@@ -115,8 +115,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_05_02 = normalTransaction(
       "TX04_05_02",
-      spendingOutputs = List( getOutput(TX04_04,1) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_04,1) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(4), Addr1.address)
         // We have very expensive fee, 6 SC
       )
@@ -128,8 +128,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_05_03 = normalTransaction(
       "TX04_05_03",
-      spendingOutputs = List( getOutput(TX04_04,4) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_04,4) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(6), Addr1.address)
         // We have very expensive fee, 4 SC
       )
@@ -141,8 +141,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_05_04 = normalTransaction(
       "TX04_05_04",
-      spendingOutputs = List( getOutput(TX04_04,3) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_04,3) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(8), Addr1.address)
         // We have very expensive fee, 2 SC
       )
@@ -154,8 +154,8 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
 
     val TX04_05_05 = normalTransaction(
       "TX04_05_05",
-      spendingOutputs = List( getOutput(TX04_04,2) ),
-      newOutputs = List(
+      spendingOutputs = listOf( getOutput(TX04_04,2) ),
+      newOutputs = listOf(
         NewOutput(CoinAmount(10), Addr1.address)
         // We have very expensive fee, 0 SC
       )
@@ -165,12 +165,13 @@ class TransactionSampleData(override val db : KeyValueDatabase) : BlockBuildingT
     // UTXO : TX04_02 : 0
 
   }
+  val Tx = TxClass()
 
-  object Block {
-    val BLK01 = doMining(newBlock(env.GenesisBlockHash, List(Tx.GEN01)), 4)
-    val BLK02 = doMining(newBlock(BLK01.header.hash, List(Tx.GEN02)), 4)
-    val BLK03 = doMining(newBlock(BLK02.header.hash, List(Tx.GEN03, Tx.TX03)), 4)
+  inner class BlockClass {
+    val BLK01 = doMining(newBlock(env().GenesisBlockHash, listOf(Tx.GEN01)), 4)
+    val BLK02 = doMining(newBlock(BLK01.header.hash(), listOf(Tx.GEN02)), 4)
+    val BLK03 = doMining(newBlock(BLK02.header.hash(), listOf(Tx.GEN03, Tx.TX03)), 4)
   }
-
+  val Block = BlockClass()
 
 }

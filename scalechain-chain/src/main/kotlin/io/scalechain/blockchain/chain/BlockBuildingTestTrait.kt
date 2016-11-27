@@ -46,7 +46,7 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
     * @param outputSet The output set where each output of the given transaction is added.
     * @param transactionWithName The transaction that has outputs to be added to the set.
     */
-  fun addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit {
+  open fun addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit {
     val transactionHash = getTxHash(transactionWithName)
     var outputIndex = -1
 
