@@ -1,10 +1,14 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.{BlockLocatorHashes, Blockchain, BlockLocator}
+import io.scalechain.blockchain.chain.BlockLocatorHashes
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.BlockLocator
 import io.scalechain.blockchain.net.MessageSummarizer
 import io.scalechain.blockchain.net.message.InvFactory
-import io.scalechain.blockchain.proto.{GetBlocks, ProtocolMessage, GetData}
+import io.scalechain.blockchain.proto.GetBlocks
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.GetData
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 

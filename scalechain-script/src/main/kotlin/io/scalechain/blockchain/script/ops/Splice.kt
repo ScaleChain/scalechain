@@ -46,7 +46,7 @@ class OpSize() : Splice {
   override fun opCode() = OpCode(0x82)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSize")
     }
 

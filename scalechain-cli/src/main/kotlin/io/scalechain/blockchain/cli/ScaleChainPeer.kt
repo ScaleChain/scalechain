@@ -1,26 +1,35 @@
 package io.scalechain.blockchain.cli
 
 import java.io.File
-import java.net.{InetAddress, NetworkInterface, InetSocketAddress}
-import java.util
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.net.InetSocketAddress
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.cli.command.{RpcInvoker, Parameters}
-import io.scalechain.blockchain.net._
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.cli.command.RpcInvoker
+import io.scalechain.blockchain.cli.command.Parameters
+import io.scalechain.blockchain.net.*
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.script.{BlockPrinterSetter}
-import io.scalechain.blockchain.storage._
-import io.scalechain.blockchain.storage.index.{CachedRocksDatabase, RocksDatabase, KeyValueDatabase}
-import io.scalechain.blockchain.transaction.{CoinAddress, SigHash, PrivateKey, ChainEnvironment}
-import io.scalechain.util.{PeerAddress, NetUtil, HexUtil, Config}
-import io.scalechain.util.HexUtil._
+import io.scalechain.blockchain.script.BlockPrinterSetter
+import io.scalechain.blockchain.storage.*
+import io.scalechain.blockchain.storage.index.CachedRocksDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.transaction.CoinAddress
+import io.scalechain.blockchain.transaction.SigHash
+import io.scalechain.blockchain.transaction.PrivateKey
+import io.scalechain.blockchain.transaction.ChainEnvironment
+import io.scalechain.util.PeerAddress
+import io.scalechain.util.NetUtil
+import io.scalechain.util.HexUtil
+import io.scalechain.util.Config
+import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
-import io.scalechain.blockchain.api.{RpcSubSystem, JsonRpcMicroservice}
-
-import scala.collection.mutable.ArrayBuffer
+import io.scalechain.blockchain.api.RpcSubSystem
+import io.scalechain.blockchain.api.JsonRpcMicroservice
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */

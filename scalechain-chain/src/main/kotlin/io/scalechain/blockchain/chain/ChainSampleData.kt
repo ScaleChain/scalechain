@@ -1,14 +1,11 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.HexUtil
-
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 class TestBlockIndex : BlockIndex {
   var bestBlockHash : Hash = null

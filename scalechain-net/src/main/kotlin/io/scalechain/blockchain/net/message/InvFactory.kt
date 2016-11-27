@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.net.message
 
-import io.scalechain.blockchain.proto.{InvType, InvVector, Inv, Hash}
+import io.scalechain.blockchain.proto.InvType
+import io.scalechain.blockchain.proto.InvVector
+import io.scalechain.blockchain.proto.Inv
+import io.scalechain.blockchain.proto.Hash
 
 /**
   * The factory that creates Inv messages.

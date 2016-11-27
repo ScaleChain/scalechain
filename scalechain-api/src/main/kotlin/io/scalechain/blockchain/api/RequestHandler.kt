@@ -1,11 +1,12 @@
 package io.scalechain.blockchain.api
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.api.domain.{RpcResponse, RpcParams, RpcRequest, RpcParamsJsonFormat}
+import io.scalechain.blockchain.api.domain.RpcResponse
+import io.scalechain.blockchain.api.domain.RpcParams
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcParamsJsonFormat
 import io.scalechain.util.StringUtil
 
-import spray.json.DefaultJsonProtocol._
-import spray.json._
 import org.slf4j.LoggerFactory
 import scala.util.Random
 

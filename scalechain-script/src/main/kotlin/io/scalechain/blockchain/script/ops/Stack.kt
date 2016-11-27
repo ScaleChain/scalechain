@@ -17,7 +17,7 @@ class OpToAltStack() : StackOperation {
   override fun opCode() = OpCode(0x6b)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1 ) {
+    if (env.stack.isEmpty() ) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpToAltStack")
     }
 
@@ -54,7 +54,7 @@ class OpIfDup() : StackOperation {
   override fun opCode() = OpCode(0x73)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpIfDup")
     }
     val top = env.stack.top()
@@ -85,7 +85,7 @@ class OpDrop() : StackOperation {
   override fun opCode() = OpCode(0x75)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpDrop")
     }
 
@@ -101,7 +101,7 @@ class OpDup() : StackOperation {
   override fun opCode() = OpCode(0x76)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpDup")
     }
 

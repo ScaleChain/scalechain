@@ -2,8 +2,10 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinsView
-import io.scalechain.blockchain.{ChainException, ErrorCode}
-import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint}
+import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.proto.TransactionOutput
+import io.scalechain.blockchain.proto.OutPoint
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import scala.collection.mutable

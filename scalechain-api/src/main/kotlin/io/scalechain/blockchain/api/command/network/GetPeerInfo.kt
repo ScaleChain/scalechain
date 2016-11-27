@@ -3,8 +3,10 @@ package io.scalechain.blockchain.api.command.network
 
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.mining.SubmitBlock._
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.command.mining.SubmitBlock
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.net.PeerInfo
 
 

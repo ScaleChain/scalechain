@@ -9,9 +9,6 @@ import io.scalechain.util.HexUtil
 
 import scala.io.Source
 
-object TransactionReader {
-  type RawTransactionListener = String => Unit
-}
 
 /**
   * Read a transaction file, which has a raw transaction in the hex format. The file has a transaction per line.
@@ -27,5 +24,9 @@ class TransactionReader(transactionFile : File) {
     for( rawTransactionString <- Source.fromFile(transactionFile).getLines()) {
       listener(rawTransactionString)
     }
+  }
+
+  companion object {
+    type RawTransactionListener = String => Unit
   }
 }

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{Hash, Transaction}
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainBlock
 

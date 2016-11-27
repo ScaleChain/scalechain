@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.chain
 
-import java.util.{PriorityQueue, Comparator}
+import java.util.PriorityQueue
+import java.util.Comparator
 
 import io.scalechain.blockchain.proto.OutPoint
 import io.scalechain.blockchain.proto.Transaction

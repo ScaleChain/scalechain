@@ -2,41 +2,23 @@ package io.scalechain.blockchain.cli.command.stresstests
 
 import java.io.File
 
-import io.scalechain.blockchain.chain.{TransactionBuilder, TransactionOutputSet}
+import io.scalechain.blockchain.chain.TransactionBuilder
+import io.scalechain.blockchain.chain.TransactionOutputSet
 import io.scalechain.blockchain.cli.CoinMiner
-import io.scalechain.blockchain.proto.{TransactionOutput, OutPoint, Transaction, Hash}
-import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.proto.TransactionOutput
+import io.scalechain.blockchain.proto.OutPoint
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.transaction.*
 import io.scalechain.wallet.Wallet
 import org.apache.commons.io.FileUtils
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
-import HashSupported._
 
 import scala.util.Random
-
-object TransactionGenerator {
-  Storage.initialize()
-  val walletDbPath = File(s"./target/transaction-generator-${Random.nextLong}")
-  FileUtils.deleteDirectory(walletDbPath)
-  walletDbPath.mkdir()
-
-  val db : KeyValueDatabase = RocksDatabase(walletDbPath)
-  val wallet = Wallet.create
-
-  fun create : TransactionGenerator {
-    TransactionGenerator(wallet)(db)
-  }
-
-  fun generationTransaction( height : Long, privateKey: PrivateKey) {
-    val minerAddress = CoinAddress.from(privateKey)
-    val coinbaseData = CoinMiner.coinbaseData(1)
-    TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
-  }
-}
-
-
 
 class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) : AutoCloseable {
 
@@ -125,5 +107,25 @@ class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) : Au
 
     assert(signedTransaction.complete)
     signedTransaction.transaction
+  }
+
+  companion object {
+    Storage.initialize()
+    val walletDbPath = File(s"./target/transaction-generator-${Random.nextLong}")
+    FileUtils.deleteDirectory(walletDbPath)
+    walletDbPath.mkdir()
+
+    val db : KeyValueDatabase = RocksDatabase(walletDbPath)
+    val wallet = Wallet.create
+
+    fun create : TransactionGenerator {
+      TransactionGenerator(wallet)(db)
+    }
+
+    fun generationTransaction( height : Long, privateKey: PrivateKey) {
+      val minerAddress = CoinAddress.from(privateKey)
+      val coinbaseData = CoinMiner.coinbaseData(1)
+      TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
+    }
   }
 }

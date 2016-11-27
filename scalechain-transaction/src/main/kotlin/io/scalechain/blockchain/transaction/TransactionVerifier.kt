@@ -226,7 +226,7 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase, private val t
       ScriptInterpreter.eval_internal(env, lockingScriptOps)
 
       // Step 5 : Check the top value of the stack
-      if (env.stack.size() > 0) {
+      if (env.stack.isNotEmpty()) {
         val top = env.stack.pop()
         if ( !Utils.castToBool(top.value) ) {
           throw TransactionVerificationException(ErrorCode.TopValueFalse, message = "Result of unlocking script execution : ${top.value}")
@@ -241,7 +241,7 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase, private val t
         ScriptInterpreter.eval_internal(env, redeemScriptOps)
 
         // Step 6.1 : See if the result of the redeem script execution is true.
-        if (env.stack.size() > 0) {
+        if (env.stack.isNotEmpty()) {
           val top = env.stack.pop()
           if (!Utils.castToBool(top.value)) {
             throw TransactionVerificationException(ErrorCode.TopValueFalse, message = "Result of redeem script execution : ${top.value}")

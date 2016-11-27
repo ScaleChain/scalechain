@@ -1,10 +1,12 @@
 package io.scalechain.blockchain.api.command.mining
 
-import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, RpcException}
-import io.scalechain.blockchain.api.command.{RpcCommand}
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import spray.json._
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.UnsupportedFeature
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.RpcException
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 
 /*
   CLI command :

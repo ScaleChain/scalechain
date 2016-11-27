@@ -1,14 +1,14 @@
 package io.scalechain.blockchain.api
 
-import io.scalechain.blockchain.api.command.blockchain._
-import io.scalechain.blockchain.api.command.wallet._
-import io.scalechain.blockchain.api.command.control._
-import io.scalechain.blockchain.api.command.generating._
-import io.scalechain.blockchain.api.command.help._
-import io.scalechain.blockchain.api.command.mining._
-import io.scalechain.blockchain.api.command.network._
-import io.scalechain.blockchain.api.command.rawtx._
-import io.scalechain.blockchain.api.command.utility._
+import io.scalechain.blockchain.api.command.blockchain.*
+import io.scalechain.blockchain.api.command.wallet.*
+import io.scalechain.blockchain.api.command.control.*
+import io.scalechain.blockchain.api.command.generating.*
+import io.scalechain.blockchain.api.command.help.*
+import io.scalechain.blockchain.api.command.mining.*
+import io.scalechain.blockchain.api.command.network.*
+import io.scalechain.blockchain.api.command.rawtx.*
+import io.scalechain.blockchain.api.command.utility.*
 import io.scalechain.blockchain.api.command.wallet.p3.GetTransaction
 
 /** Services has a list of all services currently supported.

@@ -2,8 +2,12 @@ package io.scalechain.blockchain.api.command
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.util.StackUtil
-import io.scalechain.blockchain.{RpcException, ErrorCode, ExceptionWithErrorCode}
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.RpcException
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ExceptionWithErrorCode
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 import org.slf4j.LoggerFactory
 
 abstract class RpcCommand {

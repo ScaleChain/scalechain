@@ -4,20 +4,22 @@ import java.util.concurrent.locks.Lock
 
 import com.google.common.util.concurrent.Striped
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, TransactionDescriptorIndex}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.transaction.ChainBlock
-import io.scalechain.blockchain.{ErrorCode, ChainException}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{TransactionTimeIndex, TransactionPoolIndex, TransactionLocator, BlockStorage}
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.{HexUtil, StackUtil}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.storage.TransactionTimeIndex
+import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.TransactionLocator
+import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.script.hash
+import io.scalechain.util.HexUtil
+import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 
-object TransactionMagnet {
-  val TxLockCount = 1024
-  val txLock : Striped<Lock> = Striped.lock(TxLockCount);
-}
 /**
   * The transaction maganet which is able to attach or detach transactions.
   *
@@ -344,5 +346,10 @@ class TransactionMagnet(txDescIndex : TransactionDescriptorIndex, txPoolIndex: T
     // TODO : Step 2 : check if the sum of input values is greater than or equal to the sum of outputs.
     // TODO : Step 3 : make sure if the fee is not negative.
     // TODO : Step 4 : check the minimum transaction fee for each transaction.
+  }
+
+  companion object {
+    val TxLockCount = 1024
+    val txLock : Striped<Lock> = Striped.lock(TxLockCount);
   }
 }

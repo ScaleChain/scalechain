@@ -2,7 +2,10 @@ package io.scalechain.wallet
 
 import io.scalechain.blockchain.chain.BlockSampleData
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction.{CoinAddress, ParsedPubKeyScript, PublicKey, PrivateKey}
+import io.scalechain.blockchain.transaction.CoinAddress
+import io.scalechain.blockchain.transaction.ParsedPubKeyScript
+import io.scalechain.blockchain.transaction.PublicKey
+import io.scalechain.blockchain.transaction.PrivateKey
 
 class WalletBasedBlockSampleData(wallet : Wallet)(implicit override val db : KeyValueDatabase) : BlockSampleData()(db) {
 

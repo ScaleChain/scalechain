@@ -1,11 +1,13 @@
 package io.scalechain.blockchain.net
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetAddress
+import java.net.InetSocketAddress
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.{HexUtil, StringUtil}
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
+import io.scalechain.util.HexUtil
+import io.scalechain.util.StringUtil
 import org.slf4j.LoggerFactory
 
 /**

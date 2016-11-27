@@ -2,16 +2,16 @@ package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.storage.{TransactionLocator, BlockWriter, BlockStorage}
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.storage.TransactionLocator
+import io.scalechain.blockchain.storage.BlockWriter
+import io.scalechain.blockchain.storage.BlockStorage
 import io.scalechain.blockchain.transaction.ChainBlock
 import org.slf4j.LoggerFactory
-
-import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.hash
 
 /**
   * Created by kangmo on 6/9/16.

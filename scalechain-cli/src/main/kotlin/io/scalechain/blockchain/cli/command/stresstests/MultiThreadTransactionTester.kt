@@ -9,16 +9,6 @@ import io.scalechain.blockchain.cli.command.stresstests.TransactionReader.RawTra
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.util.HexUtil
 
-object MultiThreadTransactionTester {
-  // (Thread group index, transaction) => Unit
-  type TransactionWithGroupListener = (Int, Transaction) => Unit
-  // (Thread group index, raw transaction string) => Unit
-  type RawTransactionWithGroupListener = (Int, String) => Unit
-
-  // Thread group index => Whether to run the thread group
-  type ThreadGroupIndexFilter = Int => Boolean
-}
-
 /**
   * Run tests in parallel for each transaction group, written by generaterawtransaction RPC.
   */
@@ -101,5 +91,15 @@ class MultiThreadTransactionTester(threadGroupIndexFilter : Option<ThreadGroupIn
 
   fun testRawTransaction(txGroupCount : Int, transactionTest : RawTransactionWithGroupListener) : Unit {
     testRawTransaction(transactionTest, IndexedSeq.fill(txGroupCount)(transactionTest))
+  }
+
+  companion object {
+    // (Thread group index, transaction) => Unit
+    type TransactionWithGroupListener = (Int, Transaction) => Unit
+    // (Thread group index, raw transaction string) => Unit
+    type RawTransactionWithGroupListener = (Int, String) => Unit
+
+    // Thread group index => Whether to run the thread group
+    type ThreadGroupIndexFilter = Int => Boolean
   }
 }

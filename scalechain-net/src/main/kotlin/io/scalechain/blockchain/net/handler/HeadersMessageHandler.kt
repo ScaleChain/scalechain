@@ -1,14 +1,20 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.{Blockchain, BlockLocator}
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.BlockLocator
 import io.scalechain.blockchain.net.message.GetHeadersFactory
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.{ErrorCode, NetException, GeneralException}
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.NetException
+import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto.{Hash, BlockHeader, ProtocolMessage, Headers}
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.BlockHeader
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.Headers
 import org.slf4j.LoggerFactory
-import HashSupported._
+
 
 /**
   * The message handler for Headers message.

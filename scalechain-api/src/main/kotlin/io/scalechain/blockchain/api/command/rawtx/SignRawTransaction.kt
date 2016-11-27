@@ -2,16 +2,23 @@ package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.storage.DiskBlockStorage
-import io.scalechain.blockchain.transaction.{UnspentTransactionOutput, PrivateKey, SigHash}
+import io.scalechain.blockchain.transaction.UnspentTransactionOutput
+import io.scalechain.blockchain.transaction.PrivateKey
+import io.scalechain.blockchain.transaction.SigHash
 import io.scalechain.blockchain.transaction.SignedTransaction
-import io.scalechain.blockchain.{UnsupportedFeature, ErrorCode, ExceptionWithErrorCode}
-import io.scalechain.blockchain.api.command.{TransactionEncoder, TransactionDecoder, RpcCommand}
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.UnsupportedFeature
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ExceptionWithErrorCode
+import io.scalechain.blockchain.api.command.TransactionEncoder
+import io.scalechain.blockchain.api.command.TransactionDecoder
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.proto.*
 import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
-import spray.json._
-import spray.json.DefaultJsonProtocol._
+
 /*
   CLI command :
     bitcoin-cli -testnet signrawtransaction 01000000011da9283b4ddf8d\

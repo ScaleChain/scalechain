@@ -2,7 +2,7 @@ package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.hash
 
 /**
   * Create following blocks for testing block reorganization.

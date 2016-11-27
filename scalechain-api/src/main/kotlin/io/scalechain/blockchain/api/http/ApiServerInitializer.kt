@@ -1,8 +1,11 @@
 package io.scalechain.blockchain.api.http
 
-import io.netty.channel.{ChannelInitializer, ChannelPipeline}
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelPipeline
 import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder, HttpServerCodec}
+import io.netty.handler.codec.http.HttpResponseEncoder
+import io.netty.handler.codec.http.HttpRequestDecoder
+import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.ssl.SslContext
 
 class ApiServerInitializer(sslCtx: SslContext)  : ChannelInitializer<SocketChannel> {

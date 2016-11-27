@@ -1,9 +1,8 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
-import HashSupported._
 
 
 /**

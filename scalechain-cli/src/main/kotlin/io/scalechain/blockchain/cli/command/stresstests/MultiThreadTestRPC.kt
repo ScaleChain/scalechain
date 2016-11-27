@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.cli.command.stresstests
 
 import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTransactionTester.RawTransactionWithGroupListener
-import io.scalechain.blockchain.cli.command.{RpcInvoker, RpcParameters, Command}
+import io.scalechain.blockchain.cli.command.RpcInvoker
+import io.scalechain.blockchain.cli.command.RpcParameters
+import io.scalechain.blockchain.cli.command.Command
 
 object MultiThreadTestRPC : Command {
 

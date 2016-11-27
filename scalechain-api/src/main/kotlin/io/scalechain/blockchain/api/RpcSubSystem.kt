@@ -11,22 +11,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionVerifier
 import spray.json.JsObject
 import HashSupported._
-/**
-  * Created by kangmo on 3/15/16.
-  */
-object RpcSubSystem {
-  var theRpcSubSystem : RpcSubSystem = null
-
-  fun create(chain : Blockchain, peerCommunicator: PeerCommunicator) {
-    theRpcSubSystem = RpcSubSystem(chain, peerCommunicator)(chain.db)
-    theRpcSubSystem
-  }
-
-  fun get {
-    assert(theRpcSubSystem != null)
-    theRpcSubSystem
-  }
-}
 
 class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(implicit db : KeyValueDatabase) {
 
@@ -155,6 +139,20 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     implicit val db : KeyValueDatabase = Blockchain.get.db
 
     TransactionVerifier(transaction).verify(Blockchain.get)
+  }
+
+  companion object {
+    private var theRpcSubSystem : RpcSubSystem = null
+
+    fun create(chain : Blockchain, peerCommunicator: PeerCommunicator) {
+      theRpcSubSystem = RpcSubSystem(chain, peerCommunicator)(chain.db)
+      theRpcSubSystem
+    }
+
+    fun get {
+      assert(theRpcSubSystem != null)
+      theRpcSubSystem
+    }
   }
 }
 

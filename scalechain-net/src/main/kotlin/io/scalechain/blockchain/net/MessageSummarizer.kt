@@ -1,8 +1,10 @@
 package io.scalechain.blockchain.net
 
-import io.scalechain.blockchain.proto.{Transaction, Block, ProtocolMessage}
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.StringUtil
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.hash
 
 /**
   * Created by kangmo on 6/20/16.

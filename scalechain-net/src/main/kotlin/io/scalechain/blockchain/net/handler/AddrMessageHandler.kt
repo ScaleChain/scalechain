@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto.{Addr, ProtocolMessage}
+import io.scalechain.blockchain.proto.Addr
+import io.scalechain.blockchain.proto.ProtocolMessage
 import org.slf4j.LoggerFactory
 
 /**

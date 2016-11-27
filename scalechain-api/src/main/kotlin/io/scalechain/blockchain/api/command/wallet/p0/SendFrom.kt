@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.api.command.wallet.p0
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.UnsupportedFeature
 
 /*
   CLI command :

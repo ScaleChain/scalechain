@@ -5,11 +5,12 @@ import java.lang.ref.WeakReference
 
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
-import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.DiskBlockStorage
+import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
-import org.scalatest._
 
 trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 

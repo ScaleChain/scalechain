@@ -1,15 +1,17 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.net.{BlockGateway, TimeBasedCache}
+import io.scalechain.blockchain.net.BlockGateway
+io.scalechain.blockchain.net.TimeBasedCache
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.net.BlockGateway
-import io.scalechain.blockchain.net.message.{InvFactory, GetBlocksFactory}
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.net.message.InvFactory
+import io.scalechain.blockchain.net.message.GetBlocksFactory
+import io.scalechain.blockchain.proto.*
 import io.scalechain.util.Config
 import org.slf4j.LoggerFactory
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.hash
 
 /**
   * The message handler for Block message.

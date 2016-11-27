@@ -1,31 +1,31 @@
 package io.scalechain.blockchain.net
 
-import java.net.{SocketAddress, InetAddress, InetSocketAddress}
+import java.net.SocketAddress
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
 import com.typesafe.scalalogging.Logger
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelFutureListener
+import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.channel.group.{ChannelGroupFuture, ChannelGroupFutureListener, ChannelGroup, DefaultChannelGroup}
-import io.netty.util.concurrent.{ImmediateEventExecutor, DefaultEventExecutorGroup, EventExecutor, GlobalEventExecutor}
-import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.netty.channel.group.ChannelGroupFuture
+import io.netty.channel.group.ChannelGroupFutureListener
+import io.netty.channel.group.ChannelGroup
+import io.netty.channel.group.DefaultChannelGroup
+import io.netty.util.concurrent.ImmediateEventExecutor
+import io.netty.util.concurrent.DefaultEventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.GlobalEventExecutor
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.util.{StackUtil, CollectionUtil}
+import io.scalechain.util.StackUtil
+import io.scalechain.util.CollectionUtil
 import org.slf4j.LoggerFactory
-import scala.collection.JavaConverters._
 
-import scala.collection.mutable
-
-object PeerSet {
-  var thePeerSet : PeerSet = null
-  fun create : PeerSet {
-    if (thePeerSet == null)
-      thePeerSet = PeerSet()
-    thePeerSet
-  }
-  fun get : PeerSet = thePeerSet
-}
 
 
 
@@ -223,6 +223,16 @@ class PeerSet {
     ! peers.filter { case (inetSocketAddress, peer) =>
       inetSocketAddress.getAddress == address && peer.isLive
     }.isEmpty
+  }
+
+  companion object {
+    var thePeerSet : PeerSet = null
+    fun create : PeerSet {
+      if (thePeerSet == null)
+        thePeerSet = PeerSet()
+      thePeerSet
+    }
+    fun get : PeerSet = thePeerSet
   }
 }
 

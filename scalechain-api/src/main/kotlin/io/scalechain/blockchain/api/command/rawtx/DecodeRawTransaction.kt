@@ -1,11 +1,15 @@
 package io.scalechain.blockchain.api.command.rawtx
 
-import io.scalechain.blockchain.api.command.{TransactionFormatter, TransactionDecoder, RpcCommand}
-import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{Transaction, HashFormat, Hash}
-import spray.json._
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.api.command.TransactionFormatter
+import io.scalechain.blockchain.api.command.TransactionDecoder
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash.
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.proto.Hash
 
 /*
   CLI command :

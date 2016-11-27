@@ -3,13 +3,16 @@ package io.scalechain.wallet
 import java.io.File
 
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.codec._
+import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
-import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, RocksDatabase, KeyValueDatabase}
-import io.scalechain.blockchain.{WalletException, ErrorCode}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction._
-import io.scalechain.util.Using._
+import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.WalletException
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.transaction.*
+import io.scalechain.util.Using.*
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Account -> Output Ownerships
@@ -86,69 +89,6 @@ import io.scalechain.util.Using._
 // Searches :
 // 1. Search a transaction by the hash.
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// OutPoint -> WalletOutput
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Keys and Values (K, V) :
-// A. (OutPoint, WalletOutput)
-//
-// Modifications :
-// 1. Add a transaction output.
-// 2. Remove a transaction output.
-//
-// Searches :
-// 1. Search a transaction output by the outpoint.
-
-object WalletStore {
-  object PREFIXES {
-    // Naming convention rules
-    // 1. Name the prefix with the name of data we store.
-    //    Ex> OWNERSHIPS stores onerships for an account.
-    // 2. Use plural if we keep multiple entities under an entity.
-    //    Ex> OWNERSHIPS, TXHASHES, OUTPOINTS
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // Account -> Output Ownerships
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // A. (Account + '\0' + OutputOwnership, Dummy)
-    val OWNERSHIPS : Byte = 'O'
-
-    // B. (OutputOwnership, OwnershipDescriptor)
-    val OWNERSHIP_DESC : Byte = 'D'
-
-    // C. (Account, OutputOwnership)
-    val RECEIVING : Byte = 'R'
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // Output Ownership -> Transactions
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // A. ( OutputOwnership + '\0' + (transaction)Hash )
-    val TXHASHES : Byte = 'H'
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // Output Ownership -> UTXOs
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // A. ( OutputOwnership + '\0' + OutPoint, None )
-    val OUTPOINTS : Byte = 'P'
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // (transaction)Hash -> Transaction
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // Keys and Values (K, V) :
-    // A. ((transaction)Hash, WalletTransaction)
-    val WALLETTX : Byte = 'T'
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // OutPoint -> WalletOutput
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-    // Keys and Values (K, V) :
-    // A. (OutPoint, WalletOutput)
-    val WALLETOUTPUT : Byte = 'U'
-  }
-}
 
 /** A storage for the wallet.
   *
@@ -496,4 +436,67 @@ class WalletStore {
       true
     }
   }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // OutPoint -> WalletOutput
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // Keys and Values (K, V) :
+  // A. (OutPoint, WalletOutput)
+  //
+  // Modifications :
+  // 1. Add a transaction output.
+  // 2. Remove a transaction output.
+  //
+  // Searches :
+  // 1. Search a transaction output by the outpoint.
+  companion object {
+    object PREFIXES {
+      // Naming convention rules
+      // 1. Name the prefix with the name of data we store.
+      //    Ex> OWNERSHIPS stores onerships for an account.
+      // 2. Use plural if we keep multiple entities under an entity.
+      //    Ex> OWNERSHIPS, TXHASHES, OUTPOINTS
+
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // Account -> Output Ownerships
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+
+      // A. (Account + '\0' + OutputOwnership, Dummy)
+      val OWNERSHIPS : Byte = 'O'
+
+      // B. (OutputOwnership, OwnershipDescriptor)
+      val OWNERSHIP_DESC : Byte = 'D'
+
+      // C. (Account, OutputOwnership)
+      val RECEIVING : Byte = 'R'
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // Output Ownership -> Transactions
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // A. ( OutputOwnership + '\0' + (transaction)Hash )
+      val TXHASHES : Byte = 'H'
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // Output Ownership -> UTXOs
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // A. ( OutputOwnership + '\0' + OutPoint, None )
+      val OUTPOINTS : Byte = 'P'
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // (transaction)Hash -> Transaction
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // Keys and Values (K, V) :
+      // A. ((transaction)Hash, WalletTransaction)
+      val WALLETTX : Byte = 'T'
+
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // OutPoint -> WalletOutput
+      /////////////////////////////////////////////////////////////////////////////////////////////////
+      // Keys and Values (K, V) :
+      // A. (OutPoint, WalletOutput)
+      val WALLETOUTPUT : Byte = 'U'
+    }
+  }
+
 }

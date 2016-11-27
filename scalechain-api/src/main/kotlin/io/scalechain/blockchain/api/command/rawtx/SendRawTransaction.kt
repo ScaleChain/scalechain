@@ -1,14 +1,15 @@
 package io.scalechain.blockchain.api.command.rawtx
 
 import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.api.command.{TransactionDecoder, RpcCommand}
-import io.scalechain.blockchain.api.domain._
+import io.scalechain.blockchain.api.command.TransactionDecoder
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.*
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.{Transaction, Hash, HashFormat}
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.util.{ByteArray}
-import spray.json.DefaultJsonProtocol._
 import io.scalechain.blockchain.transaction.TransactionVerifier
 
 /*

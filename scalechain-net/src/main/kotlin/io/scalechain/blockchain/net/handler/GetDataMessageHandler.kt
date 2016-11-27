@@ -2,10 +2,11 @@ package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.chain.processor.{BlockProcessor, TransactionProcessor}
+import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.net.MessageSummarizer
-import io.scalechain.blockchain.proto.InvType.InvType
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.InvType
+import io.scalechain.blockchain.proto.*
 import org.slf4j.LoggerFactory
 
 /**

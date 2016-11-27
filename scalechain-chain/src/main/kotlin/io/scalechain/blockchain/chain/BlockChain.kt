@@ -3,35 +3,18 @@ package io.scalechain.blockchain.chain
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, RocksDatabase, KeyValueDatabase, TransactionDescriptorIndex}
-import io.scalechain.blockchain.{ChainException, ErrorCode}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage._
+import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.storage.*
 
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.transaction.*
 import org.slf4j.LoggerFactory
-
-import scala.annotation.tailrec
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.util.control.TailCalls.TailRec
-
-
-object Blockchain {
-  var theBlockchain : Blockchain = null
-  fun create(db : RocksDatabase, storage : BlockStorage) {
-    theBlockchain = Blockchain(storage)(db)
-
-    // Load any in memory structur required by the Blockchain class from the on-disk storage.
-    BlockchainLoader(theBlockchain, storage)(db).load()
-    theBlockchain
-  }
-  fun get() {
-    assert( theBlockchain != null)
-    theBlockchain
-  }
-}
 
 
 class BlockchainLoader(chain:Blockchain, storage : BlockStorage)(implicit db : KeyValueDatabase) {
@@ -467,6 +450,21 @@ class Blockchain(storage : BlockStorage)(val db : RocksDatabase) : BlockchainVie
     }
 
     outputs(outPoint.outputIndex)
+  }
+
+  companion object {
+    private var theBlockchain : Blockchain = null
+    fun create(db : RocksDatabase, storage : BlockStorage) {
+      theBlockchain = Blockchain(storage)(db)
+
+      // Load any in memory structur required by the Blockchain class from the on-disk storage.
+      BlockchainLoader(theBlockchain, storage)(db).load()
+      theBlockchain
+    }
+    fun get() {
+      assert( theBlockchain != null)
+      theBlockchain
+    }
   }
 }
 

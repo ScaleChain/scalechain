@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
-import io.scalechain.blockchain.net.{PeerCommunicator, Peer}
+import io.scalechain.blockchain.net.PeerCommunicator
+import io.scalechain.blockchain.net.Peer
 
 /**
   * The context for handling messages for a peer.

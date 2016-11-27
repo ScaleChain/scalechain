@@ -3,22 +3,31 @@ package io.scalechain.blockchain.chain.mining
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.{TransactionPriorityQueue, TransactionMagnet, TransactionBuilder, TransactionPool}
-import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes._
-import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.scalechain.blockchain.chain.TransactionPriorityQueue
+import io.scalechain.blockchain.chain.TransactionMagnet
+import io.scalechain.blockchain.chain.TransactionBuilder
+import io.scalechain.blockchain.chain.TransactionPool
+import io.scalechain.blockchain.storage.index.DatabaseTablePrefixes.*
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.storage.{TransactionTimeIndex, TransactionPoolIndex, BlockStorage}
-import io.scalechain.blockchain.storage.index.{TransactingRocksDatabase, KeyValueDatabase, RocksDatabase, TransactionDescriptorIndex}
-import io.scalechain.blockchain.transaction.{CoinsView, CoinAmount, CoinAddress}
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.storage.TransactionTimeIndex
+import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.BlockStorage
+import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
+import io.scalechain.blockchain.transaction.CoinsView
+import io.scalechain.blockchain.transaction.CoinAmount
+import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util.StopWatch
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
-
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
-import HashSupported._
 
 trait TemporaryTransactionPoolIndex : TransactionPoolIndex {
   protected override val PoolIndexPrefix = TEMP_TRANSACTION_POOL

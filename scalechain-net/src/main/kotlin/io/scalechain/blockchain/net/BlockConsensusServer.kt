@@ -1,17 +1,18 @@
 package io.scalechain.blockchain.net
 
-import java.io._
+import java.io.*
 
 import bftsmart.consensus.messages.ConsensusMessage
-import bftsmart.tom.{MessageContext, ServiceReplica}
-import bftsmart.tom.server.defaultservices.{DefaultSingleRecoverable, DefaultRecoverable}
+import bftsmart.tom.MessageContext
+import bftsmart.tom.ServiceReplica
+import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable
+import bftsmart.tom.server.defaultservices.DefaultRecoverable
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.codec.{BlockHeaderCodec, HashCodec}
-import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
+import io.scalechain.blockchain.proto.codec.HashCodec
+import io.scalechain.blockchain.script.*
 import org.slf4j.LoggerFactory
-import HashSupported._
-import collection.JavaConverters._
 
 class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
   private val logger = LoggerFactory.getLogger(BlockConsensusServer::class.java)

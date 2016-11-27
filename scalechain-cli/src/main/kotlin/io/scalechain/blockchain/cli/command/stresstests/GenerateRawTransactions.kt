@@ -1,17 +1,18 @@
 package io.scalechain.blockchain.cli.command.stresstests
 
-import java.io.{PrintWriter, File}
+import java.io.PrintWriter
+import java.io.File
 import java.util
 
-import io.scalechain.blockchain.chain.{TransactionBuilder}
+import io.scalechain.blockchain.chain.TransactionBuilder
 import io.scalechain.blockchain.cli.CoinMiner
-import io.scalechain.blockchain.cli.command.{RpcParameters, Command}
+import io.scalechain.blockchain.cli.command.RpcParameters
+import io.scalechain.blockchain.cli.command.Command
 import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.HexUtil
-import HashSupported._
 
 
 

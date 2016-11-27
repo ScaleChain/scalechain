@@ -1,22 +1,25 @@
 package io.scalechain.blockchain.cli
 
-import java.io.{File, ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.File
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.script.{BlockPrinterSetter, ScriptParser, ScriptBytes}
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.script.ops._
+import io.scalechain.blockchain.script.BlockPrinterSetter
+import io.scalechain.blockchain.script.ScriptParser
+import io.scalechain.blockchain.script.ScriptBytes
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.script.ops.*
 import io.scalechain.blockchain.storage.index.RocksDatabase
-import io.scalechain.blockchain.storage.{DiskBlockStorage, GenesisBlock, Storage}
+import io.scalechain.blockchain.storage.DiskBlockStorage
+import io.scalechain.blockchain.storage.GenesisBlock
+import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.transaction.BlockVerifier
-import io.scalechain.util.{ByteArray, HexUtil}
-import HexUtil._
-import scala.collection._
-//import io.scalechain.util.ByteArray
-//import ByteArray._
+import io.scalechain.util.ByteArray
+import io.scalechain.util.HexUtil
 
 /**
  * Created by kangmo on 11/3/15.

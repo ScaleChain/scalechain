@@ -1,10 +1,9 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{Transaction, Hash}
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.script.hash
 import io.scalechain.crypto.HashFunctions
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * Calculates Merkle root hash from transactions.

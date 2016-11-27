@@ -2,11 +2,13 @@ package io.scalechain.blockchain.api.command
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
-import io.scalechain.blockchain.api.command.rawtx._
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.{TransactionCodec, BlockCodec}
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util.{ByteArray, HexUtil}
+import io.scalechain.blockchain.api.command.rawtx.*
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.blockchain.proto.codec.BlockCodec
+import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.util.ByteArray
+import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
 
 

@@ -4,8 +4,12 @@ import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 
 import com.typesafe.scalalogging.Logger
-import io.netty.channel.{ChannelFuture, ChannelFutureListener, Channel}
-import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Version}
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelFutureListener
+import io.netty.channel.Channel
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.Version
 import io.scalechain.util.StackUtil
 //import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
@@ -154,18 +158,19 @@ data class PeerInfo(
                      // Whitelisted peers will not be banned if their ban score exceeds the maximum (100 by default).
                      // By default, peers connecting from localhost are whitelisted
                      //  whitelisted : Boolean // false
-                   )
-
-
-object PeerInfo {
-  fun create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo {
-    PeerInfo(
-      id=peerIndex,
-      addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
+                   ) {
+  companion object {
+    fun create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo {
+      PeerInfo(
+          id=peerIndex,
+          addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
       version=peer.versionOption.map(_.version),
       subver=peer.versionOption.map(_.userAgent),
       startingheight = peer.versionOption.map(_.startHeight)
-    )
+      )
+    }
   }
 }
+
+
 

@@ -93,6 +93,24 @@ class ScriptStack {
     return array.size
   }
 
+  /**
+   * Check if the stack is empty.
+   *
+   * @return true if the stack is empty. false otherwise.
+   */
+  fun isEmpty() : Boolean {
+    return array.isEmpty()
+  }
+
+  /**
+   * Check if the stack is not empty.
+   *
+   * @return true if the stack is not empty. false otherwise.
+   */
+  fun isNotEmpty() : Boolean {
+    return array.isNotEmpty()
+  }
+
   /** Push a big integer value on the top of the stack.
    *
    * @param value The value to push

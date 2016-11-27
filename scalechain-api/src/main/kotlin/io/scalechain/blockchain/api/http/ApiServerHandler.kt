@@ -16,13 +16,6 @@ import org.slf4j.LoggerFactory
 import collection.convert.wrapAll._
 import java.util
 
-object ApiServerHandler {
-  private fun send100Continue(ctx: ChannelHandlerContext) {
-    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, CONTINUE)
-    ctx.write(response)
-  }
-}
-
 class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
   private val logger = LoggerFactory.getLogger(ApiServerHandler::class.java)
 
@@ -95,5 +88,12 @@ class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
     val causeDescription = ExceptionUtil.describe( cause.getCause )
     logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     ctx.close
+  }
+
+  companion object {
+    private fun send100Continue(ctx: ChannelHandlerContext) {
+      val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, CONTINUE)
+      ctx.write(response)
+    }
   }
 }

@@ -1,14 +1,13 @@
 package io.scalechain.blockchain.chain
-import io.scalechain.blockchain.proto
-import io.scalechain.blockchain.proto.{Hash, Transaction, Block, BlockHeader}
+
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.BlockHeader
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 import scala.collection.mutable.ListBuffer
 
-
-object BlockBuilder {
-  fun newBuilder() = BlockBuilder
-}
 
 /**
   * Builds a block with a list of transactions.
@@ -60,5 +59,9 @@ class BlockBuilder {
       transactions
     )
     block
+  }
+
+  companion object {
+    fun newBuilder() = BlockBuilder
   }
 }

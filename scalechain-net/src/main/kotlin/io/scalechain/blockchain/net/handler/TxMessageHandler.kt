@@ -3,12 +3,15 @@ package io.scalechain.blockchain.net.handler
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.net.message.InvFactory
-import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.{Hash, ProtocolMessage, Transaction}
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.util.Config
 import org.slf4j.LoggerFactory
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.hash
 
 /**
   * The message handler for Tx message.

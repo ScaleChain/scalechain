@@ -1,23 +1,22 @@
 package io.scalechain.blockchain.api
 
 import com.typesafe.config.ConfigFactory
-import io.scalechain.blockchain.api.command.blockchain.p1.{GetTxOutResult, ScriptPubKey}
+import io.scalechain.blockchain.api.command.blockchain.p1.GetTxOutResult
+import io.scalechain.blockchain.api.command.blockchain.p1.ScriptPubKey
 import io.scalechain.blockchain.api.command.control.p1.GetInfoResult
-import io.scalechain.blockchain.api.command.blockchain._
-import io.scalechain.blockchain.api.command.wallet._
-import io.scalechain.blockchain.api.command.network._
-import io.scalechain.blockchain.api.command.rawtx._
+import io.scalechain.blockchain.api.command.blockchain.*
+import io.scalechain.blockchain.api.command.wallet.*
+import io.scalechain.blockchain.api.command.network.*
+import io.scalechain.blockchain.api.command.rawtx.*
 
-import io.scalechain.blockchain.api.domain._
+import io.scalechain.blockchain.api.domain.*
 import io.scalechain.blockchain.api.http.ApiServer
 import io.scalechain.blockchain.net.PeerInfo
-import io.scalechain.blockchain.proto.{HashFormat}
+import io.scalechain.blockchain.proto.HashFormat
 import io.scalechain.util.StringUtil
 import io.scalechain.wallet.UnspentCoinDescriptor
 import io.scalechain.wallet.WalletTransactionDescriptor
 import org.slf4j.LoggerFactory
-import spray.json.DefaultJsonProtocol._
-import spray.json._
 
 import scala.concurrent.ExecutionContextExecutor
 

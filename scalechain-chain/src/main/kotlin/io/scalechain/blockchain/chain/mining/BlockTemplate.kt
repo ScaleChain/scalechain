@@ -1,7 +1,8 @@
 package io.scalechain.blockchain.chain.mining
 
-import io.scalechain.blockchain.chain.{BlockBuilder, MerkleRootCalculator}
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.chain.BlockBuilder
+import io.scalechain.blockchain.chain.MerkleRootCalculator
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 /** The template of a block for creating a block.

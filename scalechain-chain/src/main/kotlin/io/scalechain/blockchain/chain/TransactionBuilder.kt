@@ -1,29 +1,16 @@
 package io.scalechain.blockchain.chain
 
 import io.scalechain.blockchain.script.ScriptSerializer
-import io.scalechain.blockchain.script.ops.{OpPush, OpReturn}
+import io.scalechain.blockchain.script.ops.OpPush
+import io.scalechain.blockchain.script.ops.OpReturn
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
-
-object TransactionBuilder {
-  /** create a transaction builder.
-    *
-    * @return The transaction builder.
-    */
-  fun newBuilder() = TransactionBuilder()
-
-  fun newGenerationTransaction(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : Transaction {
-    TransactionBuilder.newBuilder()
-      .addGenerationInput(coinbaseData)
-      .addOutput(CoinAmount(50), minerAddress)
-      .build()
-  }
-}
 
 
 /**
@@ -178,5 +165,20 @@ class TransactionBuilder() {
       newOutputs.toList,
       lockTime = lockTime
     )
+  }
+
+  companion object {
+    /** create a transaction builder.
+     *
+     * @return The transaction builder.
+     */
+    fun newBuilder() = TransactionBuilder()
+
+    fun newGenerationTransaction(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : Transaction {
+      TransactionBuilder.newBuilder()
+          .addGenerationInput(coinbaseData)
+          .addOutput(CoinAmount(50), minerAddress)
+          .build()
+    }
   }
 }

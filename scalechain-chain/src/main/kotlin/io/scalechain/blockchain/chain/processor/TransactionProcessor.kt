@@ -2,14 +2,12 @@ package io.scalechain.blockchain.chain.processor
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.{ErrorCode, ChainException}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto.{Transaction, Hash}
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Hash
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-
-object TransactionProcessor : TransactionProcessor(Blockchain.get)
 
 /** Processes a received transaction.
   *
@@ -124,5 +122,8 @@ class TransactionProcessor(val chain : Blockchain) {
     */
   fun putOrphan(txHash : Hash, transaction : Transaction)(implicit db : KeyValueDatabase) : Unit {
     chain.txOrphanage.putOrphan(txHash, transaction)
+  }
+
+  companion object : TransactionProcessor(Blockchain.get) {
   }
 }

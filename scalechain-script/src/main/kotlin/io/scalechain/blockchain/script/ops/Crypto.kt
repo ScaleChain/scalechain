@@ -26,7 +26,7 @@ class OpRIPEMD160() : Crypto {
   override fun opCode() = OpCode(0xa6)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpRIPEMD160")
     }
 
@@ -44,7 +44,7 @@ class OpSHA1() : Crypto {
   override fun opCode() = OpCode(0xa7)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSHA1")
     }
     val topItem = env.stack.pop()
@@ -61,7 +61,7 @@ class OpSHA256() : Crypto {
   override fun opCode() = OpCode(0xa8)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpSHA256")
     }
     val topItem = env.stack.pop()
@@ -78,7 +78,7 @@ class OpHash160() : Crypto {
   override fun opCode() = OpCode(0xa9)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpHash160")
     }
     val topItem = env.stack.pop()
@@ -95,7 +95,7 @@ class OpHash256() : Crypto {
   override fun opCode() = OpCode(0xaa)
 
   override fun execute(env : ScriptEnvironment): Unit {
-    if (env.stack.size() < 1) {
+    if (env.stack.isEmpty()) {
       throw ScriptEvalException(ErrorCode.NotEnoughInput, "ScriptOp:OpHash256")
     }
     val topItem = env.stack.pop()

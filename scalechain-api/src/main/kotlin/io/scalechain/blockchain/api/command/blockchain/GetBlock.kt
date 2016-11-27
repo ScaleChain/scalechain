@@ -1,15 +1,18 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.api.command.{BlockFormatter, RpcCommand}
-import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
-import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{BlockInfo, Block, HashFormat, Hash}
-import io.scalechain.util.{HexUtil, ByteArray}
-import HexUtil._
-import ByteArray._
-import Hash._
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.blockchain.api.command.BlockFormatter
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
+import io.scalechain.blockchain.api.domain.StringResult
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.proto.BlockInfo
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.HexUtil
 
 /*
   CLI command :

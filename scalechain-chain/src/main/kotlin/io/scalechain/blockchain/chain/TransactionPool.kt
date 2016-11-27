@@ -2,7 +2,9 @@ package io.scalechain.blockchain.chain
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixed
-import io.scalechain.blockchain.proto.{TransactionPoolEntry, Hash, Transaction}
+import io.scalechain.blockchain.proto.TransactionPoolEntry
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.storage.BlockStorage
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory

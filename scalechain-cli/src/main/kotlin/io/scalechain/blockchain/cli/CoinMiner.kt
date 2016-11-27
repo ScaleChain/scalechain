@@ -6,50 +6,27 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.net.handler.BlockMessageHandler
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
-import io.scalechain.blockchain.storage.index.{RocksDatabase, KeyValueDatabase}
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.util._
+import io.scalechain.util.*
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.net.{BlockBroadcaster, BlockGateway, PeerInfo, PeerCommunicator}
-import io.scalechain.blockchain.proto.{BlockConsensus, CoinbaseData, Hash, Block}
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.net.BlockBroadcaster
+import io.scalechain.blockchain.net.BlockGateway
+import io.scalechain.blockchain.net.PeerInfo
+import io.scalechain.blockchain.net.PeerCommunicator
+import io.scalechain.blockchain.proto.BlockConsensus
+import io.scalechain.blockchain.proto.CoinbaseData
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.script.hash
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
-import scala.annotation.tailrec
 import bftsmart.tom.ServiceProxy
-import scala.collection.JavaConverters._
 
 import scala.util.Random
 
 data class CoinMinerParams(P2PPort : Int, InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
-/**
-  * Created by kangmo on 3/15/16.
-  */
-object CoinMiner {
-  var theCoinMiner : CoinMiner = null
-
-  fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
-    theCoinMiner = CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
-    theCoinMiner.start()
-    theCoinMiner
-  }
-
-  fun get {
-    assert(theCoinMiner != null)
-    theCoinMiner
-  }
-
-  // For every 10 seconds, create a block template for mining a block.
-  // This means that transactions received within the time window may not be put into the mined block.
-  val MINING_TRIAL_WINDOW_MILLIS = 10000
-
-
-
-  fun coinbaseData(height : Long) {
-    CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
-  }
-}
-
 
 class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
   private val logger = LoggerFactory.getLogger(CoinMiner::class.java)
@@ -208,5 +185,30 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
       }
     }
     thread.start
+  }
+
+  companion object {
+    var theCoinMiner : CoinMiner = null
+
+    fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
+      theCoinMiner = CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
+      theCoinMiner.start()
+      theCoinMiner
+    }
+
+    fun get {
+      assert(theCoinMiner != null)
+      theCoinMiner
+    }
+
+    // For every 10 seconds, create a block template for mining a block.
+    // This means that transactions received within the time window may not be put into the mined block.
+    val MINING_TRIAL_WINDOW_MILLIS = 10000
+
+
+
+    fun coinbaseData(height : Long) {
+      CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
+    }
   }
 }

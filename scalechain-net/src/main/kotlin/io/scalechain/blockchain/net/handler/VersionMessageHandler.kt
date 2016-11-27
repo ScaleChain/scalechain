@@ -1,7 +1,9 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto.{Verack, ProtocolMessage, Version}
+import io.scalechain.blockchain.proto.Verack
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.blockchain.proto.Version
 import org.slf4j.LoggerFactory
 
 /**

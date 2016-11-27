@@ -2,10 +2,12 @@ package io.scalechain.blockchain.api.command.help
 
 import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash._
-import io.scalechain.blockchain.api.domain.{StringResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
+import io.scalechain.blockchain.api.domain.StringResult
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.proto.HashFormat
-import spray.json.DefaultJsonProtocol._
 
 /*
   CLI command :

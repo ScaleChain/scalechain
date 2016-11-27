@@ -1,8 +1,9 @@
 package io.scalechain.blockchain.cli
 
-import java.io._
+import java.io.*
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.{ErrorCode, FatalException}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.FatalException
 import io.scalechain.blockchain.proto.Block
 
 

@@ -7,32 +7,12 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
-import io.scalechain.blockchain.proto.{Hash, Block, BlockHeader}
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.util._
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.BlockHeader
+import io.scalechain.blockchain.script.hash
+import io.scalechain.util.*
 import org.slf4j.LoggerFactory
-
-import scala.annotation.tailrec
-
-object BlockBroadcaster {
-  var theBlockBroadcaster : BlockBroadcaster = null
-  var theBlockConsensusServer : BlockConsensusServer = null
-
-  fun create(nodeIndex : Int) : BlockBroadcaster {
-    if (theBlockBroadcaster == null) {
-      theBlockBroadcaster = BlockBroadcaster(nodeIndex)
-      assert( theBlockConsensusServer == null )
-      theBlockConsensusServer = BlockConsensusServer(nodeIndex)
-    }
-    theBlockBroadcaster
-  }
-
-  fun get() : BlockBroadcaster {
-    assert(theBlockBroadcaster != null)
-    assert(theBlockConsensusServer != null)
-    theBlockBroadcaster
-  }
-}
 
 class BlockBroadcaster( nodeIndex : Int) {
   val bftProxy : ServiceProxy = ServiceProxy(nodeIndex)
@@ -45,6 +25,26 @@ class BlockBroadcaster( nodeIndex : Int) {
   fun broadcastHeader(header : BlockHeader) {
     val rawBlockHeader : ByteArray = BlockHeaderCodec.serialize( header )
     bftProxy.invokeOrdered(rawBlockHeader)
+  }
+
+  companion object {
+    var theBlockBroadcaster : BlockBroadcaster = null
+    var theBlockConsensusServer : BlockConsensusServer = null
+
+    fun create(nodeIndex : Int) : BlockBroadcaster {
+      if (theBlockBroadcaster == null) {
+        theBlockBroadcaster = BlockBroadcaster(nodeIndex)
+        assert( theBlockConsensusServer == null )
+        theBlockConsensusServer = BlockConsensusServer(nodeIndex)
+      }
+      theBlockBroadcaster
+    }
+
+    fun get() : BlockBroadcaster {
+      assert(theBlockBroadcaster != null)
+      assert(theBlockConsensusServer != null)
+      theBlockBroadcaster
+    }
   }
 }
 
@@ -88,8 +88,6 @@ object PeerIndexCalculator {
     getPeerIndexInternal(p2pPort, 0, peerAddresses)
   }
 }
-
-object BlockGateway : BlockGateway
 
 /**
   * Created by kangmo on 7/18/16.
@@ -175,4 +173,5 @@ class BlockGateway {
       }
     }
   }
+  companion object {}
 }

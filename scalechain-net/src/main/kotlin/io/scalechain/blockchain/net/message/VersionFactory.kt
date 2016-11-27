@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.net.message
 
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.util.HexUtil._
+import io.scalechain.util.HexUtil.*
 
 /**
   * Created by kangmo on 6/27/16.

@@ -2,12 +2,17 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult}
-import io.scalechain.blockchain.proto.{HashFormat, Hash}
-import io.scalechain.wallet.{UnspentCoinDescriptor, Wallet}
+import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction.
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.wallet.UnspentCoinDescriptor
+import io.scalechain.wallet.Wallet
 
 import spray.json.DefaultJsonProtocol._
 

@@ -3,10 +3,12 @@ package io.scalechain.blockchain.api.http
 import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel._
+import io.netty.channel.*
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.handler.logging.{LogLevel, LoggingHandler}
-import io.netty.handler.ssl.{SslContextBuilder, SslContext}
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.util.SelfSignedCertificate
 import org.slf4j.LoggerFactory
 

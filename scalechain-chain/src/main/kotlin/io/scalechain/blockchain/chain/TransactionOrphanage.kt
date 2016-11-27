@@ -1,10 +1,12 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.proto.{OrphanTransactionDescriptor, Transaction, Hash}
-import io.scalechain.blockchain.script.HashSupported
+import io.scalechain.blockchain.proto.OrphanTransactionDescriptor
+import io.scalechain.blockchain.proto.Transaction
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.BlockStorage
-import HashSupported._
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
 
 /**
   * Created by kangmo on 6/9/16.

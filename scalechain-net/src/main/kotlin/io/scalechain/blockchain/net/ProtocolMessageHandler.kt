@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.net
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.net.handler._
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.net.handler.*
+import io.scalechain.blockchain.proto.*
 import org.slf4j.LoggerFactory
 
 /** Handle protocol messages after getting connected to a peer.

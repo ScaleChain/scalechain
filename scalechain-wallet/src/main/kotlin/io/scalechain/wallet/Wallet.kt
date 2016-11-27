@@ -3,32 +3,26 @@ package io.scalechain.wallet
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.{ErrorCode, WalletException}
-import io.scalechain.blockchain.chain.{Blockchain, TransactionAnalyzer, ChainEventListener}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.storage.index.{KeyValueDatabase, RocksDatabase}
-import io.scalechain.blockchain.storage.{BlockIndex, DiskBlockStorage}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.WalletException
+import io.scalechain.blockchain.Blockchain
+import io.scalechain.blockchain.TransactionAnalyzer
+import io.scalechain.blockchain.ChainEventListener
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.blockchain.storage.BlockIndex
+import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.transaction.SigHash.SigHash
 import io.scalechain.blockchain.transaction.TransactionSigner
 import io.scalechain.blockchain.transaction.SignedTransaction
-import io.scalechain.blockchain.transaction._
-import io.scalechain.crypto.{Hash160, HashFunctions, ECKey}
+import io.scalechain.blockchain.transaction.*
+import io.scalechain.crypto.Hash160
+import io.scalechain.crypto.HashFunctions
+import io.scalechain.crypto.ECKey
 import io.scalechain.util.GlobalStopWatch
 import org.slf4j.LoggerFactory
-
-object Wallet {
-  private var theWallet : Wallet = null
-  fun create() : Wallet {
-    theWallet = Wallet()
-    theWallet
-  }
-
-  fun get() {
-    assert(theWallet != null)
-    theWallet
-  }
-}
 
 /** The WalletOutput with additional information such as OutPoint.
   *
@@ -908,6 +902,18 @@ class Wallet() : ChainEventListener {
       } else {
         assert( store.getWalletTransaction(transactionHash).isEmpty )
       }
+    }
+  }
+  companion object {
+    private var theWallet : Wallet = null
+    fun create() : Wallet {
+      theWallet = Wallet()
+      theWallet
+    }
+
+    fun get() {
+      assert(theWallet != null)
+      theWallet
     }
   }
 }

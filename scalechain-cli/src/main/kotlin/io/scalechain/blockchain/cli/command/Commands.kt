@@ -1,6 +1,9 @@
 package io.scalechain.blockchain.cli.command
 
-import io.scalechain.blockchain.cli.command.stresstests.{MultiThreadTestRPC, MultiThreadTestLayers, GenerateAddress, GenerateRawTransactions}
+import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTestRPC
+import io.scalechain.blockchain.cli.command.stresstests.MultiThreadTestLayers
+import io.scalechain.blockchain.cli.command.stresstests.GenerateAddress
+import io.scalechain.blockchain.cli.command.stresstests.GenerateRawTransactions
 
 /**
   * Created by kangmo on 7/28/16.
