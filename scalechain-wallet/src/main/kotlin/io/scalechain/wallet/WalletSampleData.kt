@@ -7,8 +7,8 @@ import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 
 
-class WalletSampleData(wallet:Wallet)(protected override val db : KeyValueDatabase) : ChainSampleData(Some(wallet))(db) {
+class WalletSampleData(override val db : KeyValueDatabase, private val wallet:Wallet) : ChainSampleData(db, wallet) {
   override fun onAddressGeneration(account: String, address: CoinAddress): Unit {
-    wallet.importOutputOwnership(TestBlockchainView, account, address, false)(db)
+    wallet.importOutputOwnership(db, TestBlockchainView, account, address, false)
   }
 }

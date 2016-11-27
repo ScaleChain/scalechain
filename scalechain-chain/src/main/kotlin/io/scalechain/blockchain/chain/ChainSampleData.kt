@@ -60,7 +60,7 @@ class TestBlockIndex : BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : BlockBuildingTestTrait() {
+open class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : BlockBuildingTestTrait() {
 
   private val blockIndex = TestBlockIndex()
 

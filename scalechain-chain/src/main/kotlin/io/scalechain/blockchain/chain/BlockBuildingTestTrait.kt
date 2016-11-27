@@ -28,13 +28,13 @@ data class NewOutput(val amount : CoinAmount, val outputOwnership : OutputOwners
 abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   abstract val db : KeyValueDatabase
 
-  fun generateAccountAddress(account:String) : TransactionTestDataTrait.AddressData {
+  open fun generateAccountAddress(account:String) : TransactionTestDataTrait.AddressData {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     return addressData
   }
 
-  fun onAddressGeneration(account:String, address : CoinAddress) : Unit {
+  open fun onAddressGeneration(account:String, address : CoinAddress) : Unit {
     // by default, do nothing.
   }
 

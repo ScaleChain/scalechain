@@ -1,17 +1,15 @@
 package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.proto.CStringPrefixed
-import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.blockchain.proto.Transcodable
 import io.scalechain.blockchain.proto.codec.Codec
-import io.scalechain.blockchain.proto.codec.primitive.CStringCodec
 import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixedCodec
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import java.io.Closeable
 
 import java.util.Arrays
 
 
-interface ClosableIterator<T> : Iterator<T>, AutoCloseable {
+interface ClosableIterator<T> : Iterator<T>, Closeable {
   override fun close() : Unit
 }
 

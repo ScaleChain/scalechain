@@ -29,15 +29,7 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     * @param blockFile the file to read.
    */
   fun readFully(blockFile : File): Unit {
-    var stream : BlockDataInputStream= null
-    try {
-      stream = BlockDataInputStream( DataInputStream( BufferedInputStream (FileInputStream(blockFile))) )
-      while( readBlock(stream) ) {
-        // do nothing
-      }
-    } finally {
-      stream.close()
-    }
+    BlockDataInputStream( DataInputStream( BufferedInputStream (FileInputStream(blockFile))) ).use { stream -> while( readBlock(stream) ) {} }
   }
 
   /** Parse the byte array stream to get a block.

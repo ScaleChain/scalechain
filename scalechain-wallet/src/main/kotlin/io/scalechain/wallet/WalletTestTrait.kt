@@ -1,9 +1,7 @@
 package io.scalechain.wallet
 
-import io.scalechain.blockchain.chain.BlockchainTestTrait
 import io.scalechain.blockchain.transaction.ChainTestTrait
-import org.scalatest.Suite
-
+/*
 /**
   * Created by kangmo on 7/9/16.
   */
@@ -29,3 +27,4 @@ trait WalletTestTrait : BlockchainTestTrait with ChainTestTrait{
   }
 
 }
+*/

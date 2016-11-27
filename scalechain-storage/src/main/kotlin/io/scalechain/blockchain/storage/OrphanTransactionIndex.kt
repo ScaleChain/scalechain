@@ -66,7 +66,6 @@ interface OrphanTransactionIndex {
   fun getOrphanTransactionsByParent(db : KeyValueDatabase, missingTransactionHash : Hash) : List<Hash> {
     val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value))
     try {
-
       // BUGBUG : Change the code not to use Pair, but a data class. This is code so hard to read.
       return iterator.asSequence().toList().map { prefixedObject ->
         val cstringPrefixed = prefixedObject.first

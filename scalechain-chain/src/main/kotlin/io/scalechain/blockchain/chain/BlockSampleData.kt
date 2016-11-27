@@ -31,7 +31,7 @@ import io.scalechain.blockchain.script.hash
   *     ↘       ↘
   *       ↘ → → → → TX04
   */
-class BlockSampleData(override val db : KeyValueDatabase) : BlockBuildingTestTrait() {
+open class BlockSampleData(override val db : KeyValueDatabase) : BlockBuildingTestTrait() {
 
   val Addr1 = generateAccountAddress("Address1") // address 1
   val Addr2 = generateAccountAddress("Address2") // address 2
