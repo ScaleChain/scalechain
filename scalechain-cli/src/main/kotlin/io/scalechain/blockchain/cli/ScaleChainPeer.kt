@@ -100,7 +100,7 @@ object ScaleChainPeer {
     }
   }
 
-  protected<cli> fun initializeNetLayer(params: Parameters, indexDb : RocksDatabase, wallet: Wallet)(implicit db : KeyValueDatabase): PeerCommunicator {
+  protected[cli] fun initializeNetLayer(params: Parameters, chain : Blockchain, indexDb : RocksDatabase, wallet: Wallet)(implicit db : KeyValueDatabase): PeerCommunicator = {
 
     fun isMyself(addr: PeerAddress) {
       NetUtil.getLocalAddresses().contains(addr.address) && addr.port == params.p2pInboundPort
@@ -131,12 +131,16 @@ object ScaleChainPeer {
         Config.peerAddresses
       }
 
+    val peerCommunicator = PeerToPeerNetworking.getPeerCommunicator(
+      params.p2pInboundPort,
+      peerAddresses.filter(! isMyself(_) ))
+
+    Node.create(peerCommunicator, chain)
+
     val nodeIndex = PeerIndexCalculator.getPeerIndex(params.p2pInboundPort).get
     BlockBroadcaster.create(nodeIndex)
 
-    PeerToPeerNetworking.getPeerCommunicator(
-      params.p2pInboundPort,
-      peerAddresses.filter(! isMyself(_) ))
+    peerCommunicator
   }
 
   /** Initialize sub-moudles from the lower layer to the upper layer.
@@ -198,7 +202,7 @@ object ScaleChainPeer {
     // Step 7 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
 
-    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, indexDb, wallet)
+    val peerCommunicator: PeerCommunicator = initializeNetLayer(params, chain, indexDb, wallet)
 
     // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.

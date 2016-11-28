@@ -34,6 +34,9 @@ class BlockGatewaySpec : BlockchainTestTrait with ChainTestTrait with Matchers {
 
     super.beforeEach()
 
+    Node.theNode = null
+    Node.create(null, chain)
+
     keyValueDB = db
     assert(keyValueDB != null)
 

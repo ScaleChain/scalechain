@@ -1,5 +1,8 @@
 package io.scalechain.blockchain.net.p2p
 
+import java.util.{TimerTask, Timer}
+
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
 import com.typesafe.scalalogging.Logger
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFutureListener
@@ -19,7 +22,10 @@ import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by kangmo on 5/26/16.
   */
@@ -57,24 +63,31 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
               if (future.isCancelled) { // completed by cancellation
                 logger.warn(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
               }
-/*
+
               logger.info(s"Connection to ${address}:${port} closed. Will reconnect in a second.")
-              Thread.sleep(retryIntervalSeconds*1000)
-              // Retry connection.
-              connect(address, port)
-*/
+
+              val timer = new Timer(true);
+              timer.schedule( new TimerTask {
+                override def run() : Unit = {
+                  connect(address, port)
+                }
+              }, 1000);
+
+              peerSet.remove(channel.remoteAddress())
             }
           })
         } else {
           channel.close()
           nodeClient.close()
-          logger.info(s"Connection to ${address}:${port} failed. ")
 
           // TODO : Do we need to check future.isCanceled()?
           logger.info(s"Connection to ${address}:${port} failed. Will try in a second.")
-          Thread.sleep(retryIntervalSeconds*1000)
-          connect(address, port)
-
+          val timer = new Timer(true);
+          timer.schedule( new TimerTask {
+            override def run(): Unit = {
+              connect(address, port)
+            }
+          }, 1000);
         }
       }
     })

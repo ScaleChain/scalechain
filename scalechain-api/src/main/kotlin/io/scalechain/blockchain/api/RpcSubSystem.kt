@@ -1,8 +1,9 @@
 package io.scalechain.blockchain.api
 
+import io.scalechain.blockchain.{RpcException, ErrorCode}
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
-import io.scalechain.blockchain.net.{PeerInfo, PeerCommunicator, PeerSet}
+import io.scalechain.blockchain.net.{Node, PeerInfo, PeerCommunicator, PeerSet}
 import io.scalechain.blockchain.proto._
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.script.HashSupported._
@@ -120,9 +121,14 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @return
     */
   fun sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) {
-    TransactionProcessor.putTransaction(transaction.hash, transaction)(Blockchain.get.db)
+    // Do not process the send raw transaction RPC during initial block download.
+    if ( Node.get.isInitialBlockDownload() ) {
+      throw new RpcException( ErrorCode.BusyWithInitialBlockDownload, "Unable to send raw transactions while the initial block download is in progress.")
+    } else {
+      TransactionProcessor.putTransaction(transaction.hash, transaction)(Blockchain.get.db)
 
-    peerCommunicator.propagateTransaction(transaction)
+      peerCommunicator.propagateTransaction(transaction)
+    }
   }
 
   /** Get the list of information on each peer.

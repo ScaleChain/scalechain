@@ -25,7 +25,15 @@ class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
     null
   }
 
-  override fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray {
+  override def appExecuteBatch(commands: Array[ByteArray], msgCtxs: Array[MessageContext]): Array[ByteArray] = {
+    (commands zip msgCtxs).map{
+      case (command, ctx) => {
+        appExecuteOrdered(command, ctx)
+      }
+    }
+  }
+
+  private fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray = {
     try {
       logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
 
@@ -74,6 +82,9 @@ class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
       if (chain.hasBlock(bestBlockHash)(chain.db)) {
         // We have the hash. We are ok.
       } else {
+        logger.info(s"Setting the snapshot block hash. ${bestBlockHash}")
+
+        Node.get.setLastBlockHashForIBD(bestBlockHash)
         // We don't have the best block hash. Need to start IBD(Initial block download).
         // TODO : Switch to initial block download mode.
       }

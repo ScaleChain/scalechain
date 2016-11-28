@@ -4,11 +4,12 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import io.scalechain.blockchain.proto.codec.Codec
-import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.blockchain.proto.RecordLocator
-import io.scalechain.blockchain.BlockStorageException
-import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.proto.codec.MessagePartCodec
+import io.scalechain.blockchain.proto.{ProtocolMessage, RecordLocator}
+import io.scalechain.blockchain.{BlockStorageException, ErrorCode}
+
+
+
 
 
 /** A record file that contains set of records.
@@ -18,26 +19,24 @@ import io.scalechain.blockchain.ErrorCode
   * Details :
   * http://tutorials.jenkov.com/java-nio/file-channel.html
   */
-class RecordFile(private val path : File, private val maxFileSize : Long) : BlockAccessFile(path, maxFileSize){
+class RecordFile(val path : File, maxFileSize : Long) extends BlockAccessFile(path, maxFileSize){
   val rwLock = new ReentrantReadWriteLock()
 
-  init {
-    // Move to the end of file so that we can append records at the end of the file.
-    moveTo( size() )
-  }
+  // Move to the end of file so that we can append records at the end of the file.
+  moveTo( size() )
 
-  fun<T> readRecord(codec : Codec<T>, locator : RecordLocator) : T {
-    rwLock.readLock.lock()
+  def readRecord[T <: ProtocolMessage](locator : RecordLocator)(implicit codec : MessagePartCodec[T]) : T = {
+    rwLock.readLock.lock
     try {
       val buffer = read(locator.offset, locator.size)
-      return codec.decode(buffer.array())
+      codec.parse(buffer.array())
     } finally {
-      rwLock.readLock.unlock()
+      rwLock.readLock.unlock
     }
   }
 
-  fun<T> appendRecord(codec : Codec<T>, record : T) : RecordLocator {
-    rwLock.writeLock.lock()
+  def appendRecord[T <: ProtocolMessage](record : T)(implicit codec : MessagePartCodec[T]) : RecordLocator = {
+    rwLock.writeLock.lock
 
     try {
       // Move to the end of the file if we are not.
@@ -45,16 +44,16 @@ class RecordFile(private val path : File, private val maxFileSize : Long) : Bloc
         moveTo(size())
       }
 
-      val serializedBytes = codec.encode(record)
+      val serializedBytes = codec.serialize(record)
       val initialOffset = offset()
       val buffer = ByteBuffer.wrap(serializedBytes)
       if (initialOffset + buffer.capacity() > maxFileSize) {
         throw new BlockStorageException(ErrorCode.OutOfFileSpace)
       }
       append(buffer)
-      return RecordLocator(initialOffset, buffer.capacity())
+      RecordLocator(initialOffset, buffer.capacity())
     } finally {
-      rwLock.writeLock.unlock()
+      rwLock.writeLock.unlock
     }
   }
 }

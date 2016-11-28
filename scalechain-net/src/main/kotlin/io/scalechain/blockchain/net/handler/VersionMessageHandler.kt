@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
 import com.typesafe.scalalogging.Logger
+import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.proto.Verack
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.Version
@@ -22,5 +23,6 @@ object VersionMessageHandler {
     logger.info(s"Version accepted : ${version}")
     context.peer.updateVersion(version)
     context.peer.send(Verack())
+    Node.get.updateStatus
   }
 }
