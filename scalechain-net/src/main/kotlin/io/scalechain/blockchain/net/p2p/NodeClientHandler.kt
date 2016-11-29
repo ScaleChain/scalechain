@@ -17,10 +17,10 @@ import org.slf4j.LoggerFactory
 /**
   * Handles a client-side channel.
   */
-class NodeClientHandler(peerSet : PeerSet) : SimpleChannelInboundHandler<ProtocolMessage> {
+class NodeClientHandler(private val peerSet : PeerSet) : SimpleChannelInboundHandler<ProtocolMessage>() {
   private val logger = LoggerFactory.getLogger(NodeClientHandler::class.java)
 
-  var messageHandler : ProtocolMessageHandler = null
+  var messageHandler : ProtocolMessageHandler? = null
 
   override fun channelRead0(context : ChannelHandlerContext, message : ProtocolMessage) : Unit {
     if (messageHandler == null ) {
@@ -29,12 +29,12 @@ class NodeClientHandler(peerSet : PeerSet) : SimpleChannelInboundHandler<Protoco
     }
 
     // Process the received message, and send message to peers if necessary.
-    messageHandler.handle(message)
+    messageHandler!!.handle(message)
   }
 
   override fun exceptionCaught(ctx : ChannelHandlerContext, cause : Throwable) : Unit {
-    val causeDescription = ExceptionUtil.describe( cause.getCause )
-    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
+    val causeDescription = ExceptionUtil.describe( cause.cause )
+    logger.error("${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
     // TODO : BUGBUG : Need to close connection when an exception is thrown?
     //    ctx.close()
   }

@@ -22,36 +22,36 @@ object GetDataMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   fun handle( context : MessageHandlerContext, getData : GetData ) : Unit {
-    implicit val db = Blockchain.get.db
+    val db = Blockchain.get().db
     // TODO : Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
     val messagesToSend : List<ProtocolMessage> =
-      getData.inventories.map { inventory: InvVector =>
-        inventory.invType match {
-          case InvType.MSG_TX => {
+      getData.inventories.map { inventory: InvVector ->
+        when(inventory.invType){
+          InvType.MSG_TX -> {
             // Get the transaction we have. Orphan transactions are not returned.
             // TODO : send tx message only if it is in the relay memory. A 'tx' is put into the relay memory by sendfrom, sendtoaddress, sendmany RPC.
             // For now, send a transaction if we have it.
             // Returns Option<Transaction>
 
-            TransactionProcessor.getTransaction(inventory.hash)
+            TransactionProcessor.getTransaction(db, inventory.hash)
           }
-          case InvType.MSG_BLOCK => {
+          InvType.MSG_BLOCK -> {
             // Get the block we have. Orphan blocks are not returned.
             // Returns Option<Block>
-            BlockProcessor.get.getBlock(inventory.hash)
+            BlockProcessor.get().getBlock(inventory.hash)
           }
-          case _ => {
-            logger.warn(s"Unknown inventory type for the inventory : ${inventory}")
-            None
+          else -> {
+            logger.warn("Unknown inventory type for the inventory : ${inventory}")
+            null
           }
         }
-      }.filter(_.isDefined).map(_.get) // Filter out None values.
+      }.filterNotNull() // Filter out None values.
 
 
     // Step 3 : Send data messages ( either Transaction or Block )
-    messagesToSend foreach { message : ProtocolMessage =>
-      logger.trace(s"Responding to getdata. Message : ${MessageSummarizer.summarize(message)}")
+    messagesToSend.forEach { message : ProtocolMessage ->
+      logger.trace("Responding to getdata. Message : ${MessageSummarizer.summarize(message)}")
       context.peer.send(message)
     }
 

@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.handler
 
-import java.util.{TimerTask, Timer}
+import java.util.TimerTask
+import java.util.Timer
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
@@ -33,56 +34,56 @@ object InvMessageHandler {
     // TODO : Step 1 : Return an error if the number of inventories is more than 50,000
 
     // TODO : Step 2 : Add the inventory as a known inventory to the node that sent the "inv" message.
-    logger.trace(s"Handling Inventories receieved.")
+    logger.trace("Handling Inventories receieved.")
 
     var blockInventories = 0
     val inventoriesToGetData =
-    // Step 3 : Get a list of inventories to request data with GetData message.
-    inv.inventories.map { inventory: InvVector =>
-      if (inventory.invType == InvType.MSG_BLOCK) {
-        blockInventories += 1
-      }
-      // Step 3 : Check if we already have it
-      if (InventoryProcessor.alreadyHas(inventory)) {
-        // The inventory already exists.
-        /*
-        if (inventory.invType == InvType.MSG_BLOCK && BlockProcessor.hasOrphan(inventory.hash)) {
-          assert(!BlockProcessor.hasNonOrphan(inventory.hash))
-          // Step 3.A : If it is an orphan block, Request to get the root parent of the orphan to the peer that sent the inventory.
-          val orphanRoot = BlockProcessor.getOrphanRoot(inventory.hash)
-          val getBlocksMessage = GetBlocksFactory.create(inventory.hash)
-          context.peer.send(getBlocksMessage)
-          logger.info(s"Requesting getblocks of orphan parents in response to inv. Orphan Block: ${inventory.hash}, Message : ${MessageSummarizer.summarize(getBlocksMessage)}")
+      // Step 3 : Get a list of inventories to request data with GetData message.
+      inv.inventories.map { inventory : InvVector ->
+        if (inventory.invType == InvType.MSG_BLOCK) {
+          blockInventories += 1
         }
-      */
-        None
-      } else {
-        // Step 3.B : If we don't have it yet, send "getdata" message to the peer that sent the "inv" message
-        Some(inventory)
-      }
-    }.filter(_.isDefined).map(_.get) // filter out None values.
+        // Step 3 : Check if we already have it
+        if (InventoryProcessor.alreadyHas(inventory)) {
+          // The inventory already exists.
+          /*
+          if (inventory.invType == InvType.MSG_BLOCK && BlockProcessor.hasOrphan(inventory.hash)) {
+            assert(!BlockProcessor.hasNonOrphan(inventory.hash))
+            // Step 3.A : If it is an orphan block, Request to get the root parent of the orphan to the peer that sent the inventory.
+            val orphanRoot = BlockProcessor.getOrphanRoot(inventory.hash)
+            val getBlocksMessage = GetBlocksFactory.create(inventory.hash)
+            context.peer.send(getBlocksMessage)
+            logger.info(s"Requesting getblocks of orphan parents in response to inv. Orphan Block: ${inventory.hash}, Message : ${MessageSummarizer.summarize(getBlocksMessage)}")
+          }
+        */
+          null
+        } else {
+          // Step 3.B : If we don't have it yet, send "getdata" message to the peer that sent the "inv" message
+          inventory
+        }
+      }.filterNotNull() // filter out None values.
 
     // Step 4 : Send the GetData message to get data for the missing inventories in this node.
-    if (inventoriesToGetData.isEmpty) {
+    if (inventoriesToGetData.isEmpty()) {
       // Nothing to request.
     } else {
       val getDataMessage = GetDataFactory.create(inventoriesToGetData)
       context.peer.send(getDataMessage)
 
-      logger.trace(s"Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
+      logger.trace("Requesting getdata in response to inv. Message : ${MessageSummarizer.summarize(getDataMessage)}")
     }
 
 //    if (blockInventories == GetBlocksMessageHandler.MAX_HASH_PER_REQUEST) {
-      val node = Node.get
+      val node = Node.get()
       if (node.isInitialBlockDownload()) {
-        if (node.bestPeerForIBD == context.peer) {
+        if (node.bestPeerForIBD() == context.peer) {
           // After a second, summarize local blockchain and send getblocks again.
-          val timer = new Timer(true);
-          timer.schedule( new TimerTask {
-            override def run(): Unit = {
+          val timer = Timer(true)
+          timer.schedule( object : TimerTask() {
+            override fun run() : Unit  {
               // TODO : BUGBUG - Use the snapshot block hash for the hash stop.
               context.peer.send( GetBlocksFactory.create() )
-              logger.trace(s"Requesting the next batch of hashes to get the blocks.")
+              logger.trace("Requesting the next batch of hashes to get the blocks.")
             }
           }, 1000);
 

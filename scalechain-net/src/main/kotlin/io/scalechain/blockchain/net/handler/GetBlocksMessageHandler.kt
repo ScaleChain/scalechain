@@ -29,10 +29,10 @@ object GetBlocksMessageHandler {
   fun handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit {
     // TODO : Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
 
-    implicit val db : KeyValueDatabase = Blockchain.get.db
+    val db : KeyValueDatabase = Blockchain.get().db
 
     // Step 1 : Get the list of block hashes to send.
-    val locator = BlockLocator(Blockchain.get)
+    val locator = BlockLocator(Blockchain.get())
 
     // Step 2 : Skip the common block, start building the list of block hashes from the next block of the common block.
     //          Stop constructing the block hashes if we hit the count limit, 500. GetBlocks sends up to 500 block hashes.
@@ -50,13 +50,13 @@ object GetBlocksMessageHandler {
 */
 
     // Step 4 : Pack the block hashes into an Inv message, and reply it to the requester.
-    if (filteredBlockHashes.isEmpty) {
+    if (filteredBlockHashes.isEmpty()) {
       // Do nothing. Nothing to send.
-      logger.trace(s"Nothing to send in response to getblocks message.")
+      logger.trace("Nothing to send in response to getblocks message.")
     } else {
       val invMessage = InvFactory.createBlockInventories(filteredBlockHashes)
       context.peer.send(invMessage)
-      logger.trace(s"Sending inventories in response to getblocks message. ${MessageSummarizer.summarize(invMessage)}")
+      logger.trace("Sending inventories in response to getblocks message. ${MessageSummarizer.summarize(invMessage)}")
     }
   }
 }

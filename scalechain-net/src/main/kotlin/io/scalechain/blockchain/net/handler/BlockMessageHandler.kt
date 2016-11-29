@@ -20,7 +20,7 @@ object BlockMessageHandler {
   private val logger = LoggerFactory.getLogger(BlockMessageHandler.javaClass)
 
   // More than half of the peers should sign the block.
-  val RequiredSigningTransactions = Config.peerAddresses().length / 2 + 1
+  val RequiredSigningTransactions = Config.peerAddresses().size / 2 + 1
 
 
   /** Handle Block message.
@@ -33,15 +33,15 @@ object BlockMessageHandler {
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
-    val blockHash = block.header.hash
+    val blockHash = block.header.hash()
 
-    logger.trace(s"<P2P> Received a block. Hash : ${blockHash}, Header : ${block.header}")
-    val node = Node.get
+    logger.trace("<P2P> Received a block. Hash : ${blockHash}, Header : ${block.header}")
+    val node = Node.get()
 
-    val processedByIBD = node.synchronized {
+    val processedByIBD = synchronized(node) {
       if ( node.isInitialBlockDownload() ) {
         val peerBestHeight = node.bestPeerStartHeight()
-        if ( peerBestHeight > Blockchain.get.getBestBlockHeight() ) {
+        if ( peerBestHeight > Blockchain.get().getBestBlockHeight() ) {
           // putBlock returns true if the block was processed by it.
           BlockGateway.putBlock(blockHash, block)
         } else {

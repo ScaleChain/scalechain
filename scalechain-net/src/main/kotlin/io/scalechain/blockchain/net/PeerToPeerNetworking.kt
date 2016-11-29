@@ -17,7 +17,7 @@ object PeerToPeerNetworking {
   fun getPeerCommunicator(inboundPort : Int, peerAddresses : List<PeerAddress> ) : PeerCommunicator {
 
     // The peer set that keeps multiple PeerNode(s).
-    val peerSet = PeerSet.create
+    val peerSet = PeerSet.create()
 
     // TODO : BUGBUG : Need to call nodeServer.shutdown before the process finishes ?
     val nodeServer = NodeServer(peerSet)
@@ -25,10 +25,10 @@ object PeerToPeerNetworking {
     // Wait until the inbound port is bound.
     bindChannelFuture.sync()
 
-    peerAddresses.map { peer =>
+    peerAddresses.map { peer ->
       RetryingConnector(peerSet, retryIntervalSeconds=1).connect(peer.address, peer.port)
     }
 
-    PeerCommunicator(peerSet)
+    return PeerCommunicator(peerSet)
   }
 }

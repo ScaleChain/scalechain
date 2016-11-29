@@ -13,10 +13,10 @@ import io.scalechain.blockchain.proto.Transaction
 /**
   * Keeps unsigned blocks for a specific time.
   */
-class TimeBasedCache<T <: Object>(duration: Long, unit: TimeUnit) {
+class TimeBasedCache<T>(duration: Long, unit: TimeUnit) {
   val processors = Runtime.getRuntime().availableProcessors()
   val cache : Cache<Hash, T> =
-    CacheBuilder.newBuilder().expireAfterWrite(duration, unit).concurrencyLevel(processors).build<Hash, T>
+    CacheBuilder.newBuilder().expireAfterWrite(duration, unit).concurrencyLevel(processors).build<Hash, T>()
 
   fun put(hashKey : Hash, block : T) : Unit  {
     // Assumption : cache accepts concurrent put/get
@@ -25,10 +25,11 @@ class TimeBasedCache<T <: Object>(duration: Long, unit: TimeUnit) {
     cache.put(hashKey, block)
   }
 
-  fun get(hashKey : Hash) : Option<T> {
+  fun get(hashKey : Hash) : T? {
     // Assumption : cache accepts concurrent put/get
 
     val block = cache.getIfPresent(hashKey)
-    if (block == null) None else Some(block)
+    if (block == null) return null
+    else return block
   }
 }

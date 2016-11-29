@@ -17,11 +17,11 @@ import io.scalechain.util.ExceptionUtil
 import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
-class NodeServer(peerSet : PeerSet) {
+class NodeServer(private val peerSet : PeerSet) {
   private val logger = LoggerFactory.getLogger(NodeServer::class.java)
 
-  protected<net> val bossGroup : EventLoopGroup = NioEventLoopGroup(1)
-  protected<net> val workerGroup : EventLoopGroup = NioEventLoopGroup()
+  protected val bossGroup : EventLoopGroup = NioEventLoopGroup(1)
+  protected val workerGroup : EventLoopGroup = NioEventLoopGroup()
 
   fun listen(port : Int) : ChannelFuture {
     // TODO : BUGBUG : SelfSignedCertificate is insecure. Replace it with another one.
@@ -32,25 +32,25 @@ class NodeServer(peerSet : PeerSet) {
     val b : ServerBootstrap = ServerBootstrap()
 
     b.group(bossGroup, workerGroup)
-      .channel(classOf<NioServerSocketChannel>)
-      .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
+      .channel(NioServerSocketChannel::class.java)
+      .option(ChannelOption.SO_KEEPALIVE, true)
       .handler(LoggingHandler(LogLevel.INFO))
       .childHandler(NodeServerInitializer(sslCtx, peerSet))
 
     //b.bind(port).sync().channel().closeFuture().sync()
-    b.bind(port).addListener(ChannelFutureListener() {
+    return b.bind(port).addListener(ChannelFutureListener() {
       fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
-          logger.info(s"Successfully bound port : ${port}")
+          logger.info("Successfully bound port : ${port}")
         }
 
         if (future.cause() != null) { // completed with failure
-          logger.error(s"Failed to bind port : ${port}. Exception : ${future.cause.getMessage}")
+          logger.error("Failed to bind port : ${port}. Exception : ${future.cause().message}")
         }
 
         if (future.isCancelled) { // completed by cancellation
-          logger.error(s"Canceled to bind port : ${port}")
+          logger.error("Canceled to bind port : ${port}")
         }
       }
     })

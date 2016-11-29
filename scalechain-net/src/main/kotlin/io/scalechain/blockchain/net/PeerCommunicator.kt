@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 /**
   * Created by kangmo on 5/22/16.
   */
-class PeerCommunicator(peerSet : PeerSet) {
+class PeerCommunicator(private val peerSet : PeerSet) {
   private val logger = LoggerFactory.getLogger(PeerCommunicator::class.java)
 
   /*
@@ -23,7 +23,7 @@ class PeerCommunicator(peerSet : PeerSet) {
     }
   */
 
-  protected<net> fun sendToAll(message : ProtocolMessage): Unit {
+  protected fun sendToAll(message : ProtocolMessage): Unit {
     peerSet.sendToAll(message)
   }
 
@@ -54,14 +54,14 @@ class PeerCommunicator(peerSet : PeerSet) {
 
     var peerIndex = 0;
 
-    val peerInfosIter = for (
-      (address, peer) <- peerSet.peers()
-    ) yield {
+    val peerInfosIter = peerSet.peers().map { pair ->
+      val address = pair.first
+      val peer = pair.second
       peerIndex += 1
       PeerInfo.create(peerIndex, address, peer)
     }
 
-    peerInfosIter.toList
+    return peerInfosIter
   }
 
   /**
@@ -69,18 +69,18 @@ class PeerCommunicator(peerSet : PeerSet) {
     *
     * @return Some(best Peer) if there is any connected peer; None otherwise.
     */
-  def getBestPeer() : Option<Peer> = {
-    val peers = peerSet.peers().map(_._2)
-    if (peers.isEmpty) {
-      None
+  fun getBestPeer() : Peer?  {
+    val peers = peerSet.peers().map{ it.second }
+    if (peers.isEmpty()) {
+      return null
     } else {
-      def betterPeer(peer1 : Peer, peer2 : Peer) : Peer = {
-        if (peer1.versionOption.map(_.startHeight).getOrElse(0) > peer2.versionOption.map(_.startHeight).getOrElse(0))
-          peer1
+      fun betterPeer(peer1 : Peer, peer2 : Peer) : Peer  {
+        if ( (peer1.versionOption?.startHeight ?: 0) > (peer2.versionOption?.startHeight ?: 0) )
+          return peer1
         else
-          peer2
+          return peer2
       }
-      Some( peers.reduceLeft(betterPeer) )
+      return peers.reduce(::betterPeer)
     }
   }
 }

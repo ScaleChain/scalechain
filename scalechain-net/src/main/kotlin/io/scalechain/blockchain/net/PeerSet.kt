@@ -1,29 +1,17 @@
 package io.scalechain.blockchain.net
 
 import java.net.SocketAddress
-import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.util.concurrent.LinkedBlockingQueue
-
-import com.typesafe.scalalogging.Logger
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.ChannelFuture
-import io.netty.channel.ChannelFutureListener
 import io.netty.channel.Channel
-import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.group.ChannelGroupFuture
 import io.netty.channel.group.ChannelGroupFutureListener
 import io.netty.channel.group.ChannelGroup
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.util.concurrent.ImmediateEventExecutor
-import io.netty.util.concurrent.DefaultEventExecutorGroup
-import io.netty.util.concurrent.EventExecutor
-import io.netty.util.concurrent.GlobalEventExecutor
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.StackUtil
-import io.scalechain.util.CollectionUtil
 import org.slf4j.LoggerFactory
 
 
@@ -47,7 +35,7 @@ class PeerSet {
   //val channels : ChannelGroup = DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
   val channels : ChannelGroup = DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
-  val peerByAddress = mutable.HashMap<InetSocketAddress, Peer>()
+  val peerByAddress = mutableMapOf<InetSocketAddress, Peer>()
 
 /*
   fun getPeerByAddress(connectedPeer:Peer, remotePeerAddress : InetSocketAddress) : Peer {
@@ -69,32 +57,33 @@ class PeerSet {
     * @return
     */
   fun add(channel : Channel) : Peer {
-    synchronized {
-      channel.remoteAddress() match {
-        case inetAddress : InetSocketAddress => {
+    synchronized(this) {
+      val remoteAddress = channel.remoteAddress()
+      when {
+        remoteAddress is InetSocketAddress -> {
           val peer = Peer(channel)
-          peerByAddress.put(inetAddress, peer )
+          peerByAddress.put(remoteAddress, peer )
           channels.add(channel)
-          logger.trace(s"Added a peer to channel group. ${peer}")
-          peer
+          logger.trace("Added a peer to channel group. ${peer}")
+          return peer
         }
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
-        case embeddedSocketAddress : SocketAddress => {
-          if ( embeddedSocketAddress .toString == "embedded") {
+        remoteAddress is SocketAddress -> {
+          if ( remoteAddress.toString() == "embedded") {
             val peer = Peer(channel)
             // Put the peer as a peer on the localhost using port 1000.
             peerByAddress.put(InetSocketAddress(1000), peer )
             channels.add(channel)
-            logger.trace(s"Added a peer to channel group. ${peer}")
-            peer
+            logger.trace("Added a peer to channel group. ${peer}")
+            return peer
           } else {
-            val message = s"The remote address of the channel to add was not the type EmbeddedSocketAddress. Remote Address : ${channel.remoteAddress()}"
+            val message = "The remote address of the channel to add was not the type EmbeddedSocketAddress. Remote Address : ${channel.remoteAddress()}"
             logger.error(message)
             throw ChainException(ErrorCode.InternalError, message )
           }
         }
-        case _ => {
-          val message = s"The remote address of the channel to add was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}"
+        else -> {
+          val message = "The remote address of the channel to add was not the type InetSocketAddress. Remote Address : ${channel.remoteAddress()}"
           logger.error(message)
           throw ChainException(ErrorCode.InternalError, message )
         }
@@ -108,46 +97,46 @@ class PeerSet {
     * @param message The message to send.
     */
   fun sendToAll(message : ProtocolMessage): Unit {
-    synchronized {
+    synchronized(this) {
       val messageString = MessageSummarizer.summarize(message)
 
       if (channels.size > 0) {
-        logger.trace(s"Sending to all peers : ${messageString}")
+        logger.trace("Sending to all peers : ${messageString}")
 
         channels.writeAndFlush(message).addListener(ChannelGroupFutureListener() {
           fun operationComplete(future: ChannelGroupFuture) {
             assert(future.isDone)
-            val remoteAddresses = channels.iterator().asScala.map(_.remoteAddress).mkString(",");
+            val remoteAddresses = channels.iterator().asSequence().map{it.remoteAddress()}.joinToString(",");
             if (future.isSuccess) {
               // completed successfully
-              logger.debug(s"Successfully sent to peers : ${remoteAddresses}, ${messageString}")
+              logger.debug("Successfully sent to peers : ${remoteAddresses}, ${messageString}")
             }
 
             if (future.cause() != null) {
               // completed with failure
               val failureDescriptions =
-                future.cause.iterator.asScala.map { entry =>
-                  val channel: Channel = entry.getKey
-                  val throwable: Throwable = entry.getValue
+                future.cause().iterator().asSequence().map { entry ->
+                  val channel: Channel = entry.key
+                  val throwable: Throwable = entry.value
                   val causeDescription =
-                    if (throwable.getCause == null)
+                    if (throwable.cause == null)
                       ""
                     else
-                      s"Cause : { exception : ${throwable.getCause}, stack : ${StackUtil.getStackTrace(throwable.getCause)} }"
-                  s"An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
-                }.mkString("\n")
+                      "Cause : { exception : ${throwable.cause!!}, stack : ${StackUtil.getStackTrace(throwable.cause!!)} }"
+                  "An exception happened for remote address : ${channel.remoteAddress()}, Exception : ${throwable}, Stack Trace : ${StackUtil.getStackTrace(throwable)}. ${causeDescription}}"
+                }.joinToString("\n")
 
-              logger.debug(s"Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}")
+              logger.debug("Failed to send to (some of) peers : ${remoteAddresses}, detail : ${failureDescriptions}")
             }
 
             if (future.isCancelled) {
               // completed by cancellation
-              logger.debug(s"Canceled to send to peers : ${remoteAddresses}, ${messageString}")
+              logger.debug("Canceled to send to peers : ${remoteAddresses}, ${messageString}")
             }
           }
         })
       } else {
-        logger.warn(s"No connected peer to send the message : ${messageString}")
+        logger.warn("No connected peer to send the message : ${messageString}")
       }
     }
   }
@@ -160,26 +149,26 @@ class PeerSet {
     * @param remoteAddress The remote address of the peer to remove.
     */
   fun remove(remoteAddress : SocketAddress): Unit {
-    synchronized {
+    synchronized(this) {
       // Note : nothing to do for the channels.
       // when a channel is disconnected, the channel is removed from channels group.
 
-      remoteAddress match {
-        case inetAddress : InetSocketAddress => {
-          peerByAddress.remove(inetAddress)
+      when {
+        remoteAddress is InetSocketAddress -> {
+          peerByAddress.remove(remoteAddress)
         }
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
-        case embeddedSocketAddress : SocketAddress => {
-          if ( embeddedSocketAddress.toString == "embedded") {
+        remoteAddress is SocketAddress -> {
+          if ( remoteAddress.toString() == "embedded") {
             peerByAddress.remove(InetSocketAddress(1000) )
           } else {
-            val message = s"The remote address of the channel to remove was not the type EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
+            val message = "The remote address of the channel to remove was not the type EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
             logger.error(message)
             throw ChainException(ErrorCode.InternalError, message )
           }
         }
-        case _ => {
-          val message = s"The remote address of the channel to remove was not the type InetSocketAddress or EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
+        else -> {
+          val message = "The remote address of the channel to remove was not the type InetSocketAddress or EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
           logger.error(message)
           throw ChainException(ErrorCode.InternalError, message )
         }
@@ -200,17 +189,22 @@ class PeerSet {
   }
 */
   fun all() : Iterable<Peer> {
-    synchronized {
+    synchronized(this) {
       // BUGBUG : Make sure if it is safe to return an iterable from the synchronized block.
-      peerByAddress.values.filter(_.isLive)
+      return peerByAddress.values.filter{it.isLive()}
     }
   }
 
-  fun peers() : Iterable<(InetSocketAddress, Peer)> {
-    synchronized {
-      for ((address, peer) <- peerByAddress ;
-           if peer.isLive )
-        yield (address, peer)
+  fun peers() : Iterable<Pair<InetSocketAddress, Peer>> {
+    synchronized(this) {
+      return peerByAddress.map { entry ->
+        val address = entry.key
+        val peer = entry.value
+        if (peer.isLive())
+          Pair(address,peer)
+        else
+          null
+      }.filterNotNull()
     }
   }
 
@@ -219,20 +213,22 @@ class PeerSet {
     * @param address The address of the peer to find.
     * @return true if a peer from the address was found; false otherwise.
     */
-  fun hasPeer(address : InetSocketAddress) {
-    ! peers.filter { case (inetSocketAddress, peer) =>
-      inetSocketAddress.getAddress == address && peer.isLive
-    }.isEmpty
+  fun hasPeer(address : InetSocketAddress) : Boolean {
+    return peers().filter { pair ->
+      val inetSocketAddress = pair.first
+      val peer = pair.second
+      return inetSocketAddress.getAddress() == address && peer.isLive()
+    }.isNotEmpty()
   }
 
   companion object {
-    var thePeerSet : PeerSet = null
-    fun create : PeerSet {
+    var thePeerSet : PeerSet? = null
+    fun create() : PeerSet {
       if (thePeerSet == null)
         thePeerSet = PeerSet()
-      thePeerSet
+      return thePeerSet!!
     }
-    fun get : PeerSet = thePeerSet
+    fun get() : PeerSet = thePeerSet!!
   }
 }
 

@@ -15,7 +15,7 @@ object InvFactory {
     * @return The created Inv message.
     */
   fun createBlockInventories(blockHashes : List<Hash>) : Inv {
-    Inv(blockHashes.map{ hash : Hash =>
+    return Inv(blockHashes.map{ hash : Hash ->
       InvVector(
         InvType.MSG_BLOCK,
         hash
@@ -29,7 +29,7 @@ object InvFactory {
     * @return The created Inv message.
     */
   fun createTransactionInventories(transactionHashes : List<Hash>) : Inv {
-    Inv(transactionHashes.map{ hash : Hash =>
+    return Inv(transactionHashes.map{ hash : Hash ->
       InvVector(
         InvType.MSG_TX,
         hash

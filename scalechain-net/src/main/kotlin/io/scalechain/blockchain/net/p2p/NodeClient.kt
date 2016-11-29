@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory
 /**
   * Simple SSL chat client.
   */
-class NodeClient(peerSet : PeerSet) : AutoCloseable {
+class NodeClient(private val peerSet : PeerSet) : AutoCloseable {
   private val logger = LoggerFactory.getLogger(NodeClient::class.java)
 
-  protected<net> val group : EventLoopGroup = NioEventLoopGroup()
+  protected val group : EventLoopGroup = NioEventLoopGroup()
 
   fun connect(address : String, port : Int) : ChannelFuture {
     // Configure SSL.
@@ -37,8 +37,8 @@ class NodeClient(peerSet : PeerSet) : AutoCloseable {
 
     val b : Bootstrap = Bootstrap()
        b.group(group)
-      .channel(classOf<NioSocketChannel>)
-      .option(ChannelOption.SO_KEEPALIVE, Boolean.box(true))
+      .channel(NioSocketChannel::class.java)
+      .option(ChannelOption.SO_KEEPALIVE, true)
       .handler(LoggingHandler(LogLevel.INFO))
       .handler(NodeClientInitializer(sslCtx, address, port, peerSet))
 
@@ -46,27 +46,27 @@ class NodeClient(peerSet : PeerSet) : AutoCloseable {
     //val channel : Channel = b.connect(address, port).sync().channel()
     val channelFuture : ChannelFuture = b.connect(address, port)
 
-    channelFuture.addListener(ChannelFutureListener() {
-      fun operationComplete(future:ChannelFuture) {
+    return channelFuture.addListener(object : ChannelFutureListener {
+      override fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
-          logger.info(s"Successfully connected to ${address}:${port}")
+          logger.info("Successfully connected to ${address}:${port}")
         }
 
         if (future.cause() != null) { // completed with failure
-          val causeDescription = ExceptionUtil.describe( future.cause.getCause )
+          val causeDescription = ExceptionUtil.describe( future.cause().cause )
 
-          logger.info(s"Failed to connect to ${address}:${port}. Exception : ${future.cause.getMessage}")
+          logger.info("Failed to connect to ${address}:${port}. Exception : ${future.cause().message}")
         }
 
         if (future.isCancelled) { // completed by cancellation
-          logger.info(s"Canceled to connect to ${address}:${port}")
+          logger.info("Canceled to connect to ${address}:${port}")
         }
       }
     })
   }
 
-  fun close() : Unit {
+  override fun close() : Unit {
     group.shutdownGracefully()
   }
 }

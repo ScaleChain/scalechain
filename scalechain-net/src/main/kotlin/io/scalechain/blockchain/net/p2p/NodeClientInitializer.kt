@@ -14,7 +14,7 @@ import io.scalechain.blockchain.net.p2p.BitcoinProtocolDecoder
 /**
   * Creates a newly configured {@link ChannelPipeline} for a channel.
   */
-class NodeClientInitializer(sslCtx : SslContext, address : String, port : Int, peerSet : PeerSet) : ChannelInitializer<SocketChannel>{
+class NodeClientInitializer(private val sslCtx : SslContext, private val address : String, private val port : Int, private val peerSet : PeerSet) : ChannelInitializer<SocketChannel>() {
 
   override fun initChannel(ch : SocketChannel) : Unit {
     val pipeline : ChannelPipeline = ch.pipeline()

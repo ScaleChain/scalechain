@@ -25,8 +25,8 @@ data class Peer(private val channel : Channel) {
   /**
     * The version we got from the peer. This is set to some value only if we received the Version message.
     */
-  var versionOption : Option<Version> = None
-  var pongReceived : Option<Int> = None
+  var versionOption : Version? = null
+  var pongReceived : Int? = null
 
   /**
     * Update version received from the peer.
@@ -34,16 +34,16 @@ data class Peer(private val channel : Channel) {
     * @param version The version received from the peer.
     */
   fun updateVersion(version : Version) : Unit {
-    versionOption = Some(version)
+    versionOption = version
   }
 
   /** Return if this peer is live.
     *
     * @return True if this peer is live, false otherwise.
     */
-  fun isLive : Boolean {
+  fun isLive() : Boolean {
     // TODO : Implement this based on the time we received pong from this peer.
-    channel.isOpen && channel.isActive
+    return channel.isOpen && channel.isActive
     // Check if the time we received pong is within a threshold.
     //assert(false)
 //    true
@@ -55,15 +55,15 @@ data class Peer(private val channel : Channel) {
       fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
-          logger.debug(s"Successfully sent to peer : ${channel.remoteAddress}, ${messageString}")
+          logger.debug("Successfully sent to peer : ${channel.remoteAddress()}, ${messageString}")
         }
 
         if (future.cause() != null) { // completed with failure
-          logger.debug(s"Failed to send to peer : ${channel.remoteAddress}, ${messageString}, Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
+          logger.debug("Failed to send to peer : ${channel.remoteAddress()}, ${messageString}, Exception : ${future.cause().message}, Stack Trace : ${StackUtil.getStackTrace(future.cause())}")
         }
 
         if (future.isCancelled) { // completed by cancellation
-          logger.debug(s"Canceled to send to peer : ${channel.remoteAddress}, ${messageString}")
+          logger.debug("Canceled to send to peer : ${channel.remoteAddress()}, ${messageString}")
         }
       }
     })
@@ -73,9 +73,9 @@ data class Peer(private val channel : Channel) {
 
 data class PeerInfo(
                      // (Since : 0.10.0) The node’s index number in the local node address database.
-                     id : Int, // 9
+                     val id : Int, // 9
                      // The IP address and port number used for the connection to the remote node.
-                     addr : String, // "192.0.2.113:18333"
+                     val addr : String, // "192.0.2.113:18333"
                      // Our IP address and port number according to the remote node. M
                      // May be incorrect due to error or lying. Many SPV nodes set this to 127.0.0.1:8333
                      //  addrlocal : Option<String>, // "192.0.2.51:18333"
@@ -97,14 +97,14 @@ data class PeerInfo(
                      // Only shown if there’s an outstanding ping message
                      //  pingwait : Option<scala.math.BigDecimal>, // 0.04847123
                      // The protocol version number used by this node. See the protocol versions section for more information
-                     version : Option<Int>, // 70001
+                     val version : Int?, // 70001
                      // The user agent this node sends in its version message.
                      // This string will have been sanitized to prevent corrupting the JSON results. May be an empty string
-                     subver : Option<String>, // "/Satoshi:0.8.6/"
+                     val subver : String?, // "/Satoshi:0.8.6/"
                      // Set to true if this node connected to us; set to false if we connected to this node
                      //  inbound : Boolean, // false
                      // The height of the remote node’s block chain when it connected to us as reported in its version message
-                     startingheight : Option<Long> // 315280
+                     val startingheight : Long? // 315280
                      // The ban score we’ve assigned the node based on any misbehavior it’s made.
                      // By default, Bitcoin Core disconnects when the ban score reaches 100
                      //  banscore : Int,  // 0
@@ -125,12 +125,12 @@ data class PeerInfo(
                    ) {
   companion object {
     fun create(peerIndex : Int, remoteAddress : InetSocketAddress, peer : Peer) : PeerInfo {
-      PeerInfo(
-          id=peerIndex,
-          addr=s"${remoteAddress.getAddress.getHostAddress}:${remoteAddress.getPort}",
-      version=peer.versionOption.map(_.version),
-      subver=peer.versionOption.map(_.userAgent),
-      startingheight = peer.versionOption.map(_.startHeight)
+      return PeerInfo(
+        id=peerIndex,
+        addr="${remoteAddress.getAddress().getHostAddress()}:${remoteAddress.getPort()}",
+        version=peer.versionOption?.version,
+        subver=peer.versionOption?.userAgent,
+        startingheight = peer.versionOption?.startHeight?.toLong()
       )
     }
   }

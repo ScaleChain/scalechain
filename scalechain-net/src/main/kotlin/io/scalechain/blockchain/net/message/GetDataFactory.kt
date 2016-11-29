@@ -9,6 +9,6 @@ import io.scalechain.blockchain.proto.Hash
   */
 object GetDataFactory {
   fun create(inventories:List<InvVector>) : GetData {
-    GetData(inventories)
+    return GetData(inventories)
   }
 }

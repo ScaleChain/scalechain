@@ -11,15 +11,15 @@ import io.scalechain.blockchain.script.hash
   */
 object MessageSummarizer {
   fun summarize(message : ProtocolMessage) {
-    message match {
-      case m : Block => {
-        s"Block. Hash : ${m.header.hash}"
+    when {
+      message is Block -> {
+        "Block. Hash : ${message.header.hash()}"
       }
-      case m : Transaction => {
-        s"Transaction. Hash : ${m.hash}"
+      message is Transaction -> {
+        "Transaction. Hash : ${message.hash()}"
       }
-      case m => {
-        StringUtil.getBrief(m.toString, 256)
+      else -> {
+        StringUtil.getBrief(message.toString(), 256)
       }
     }
   }

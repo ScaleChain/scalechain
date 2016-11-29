@@ -256,6 +256,7 @@ data class Block(val header:BlockHeader,
   * However, the IPv4 address is written into the message as a 16 byte IPv4-mapped IPv6 address
   */
 data class IPv6Address(val address : ByteBuf) : Transcodable {
+  constructor(addressArray:ByteArray) : this(ByteBufExt.from(addressArray))
   override fun toString() : String = "IPv6Address($address)"
 
   fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array().reversed().toByteArray())

@@ -10,6 +10,6 @@ import io.scalechain.blockchain.proto.Hash
   */
 object HeadersFactory {
   fun create(blockHeaders : List<BlockHeader>) : Headers {
-    Headers(blockHeaders)
+    return Headers(blockHeaders)
   }
 }

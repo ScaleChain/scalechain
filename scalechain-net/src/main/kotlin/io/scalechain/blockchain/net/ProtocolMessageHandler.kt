@@ -22,47 +22,45 @@ class ProtocolMessageHandler(peer : Peer, communicator : PeerCommunicator)  {
     * @return The list of responses we created after handling each message in messages.
     */
   fun handle(message : ProtocolMessage): Unit {
-    // Return Some<ProtocolMessage> if we need to reply a message. Return None otherwise.
-    message match {
-      case version: Version => {
-        VersionMessageHandler.handle(context, version)
+    when {
+      message is Version -> {
+        VersionMessageHandler.handle(context, message)
       }
-      case ping : Ping => {
-        PingMessageHandler.handle(context, ping)
+      message is Ping -> {
+        PingMessageHandler.handle(context, message)
       }
-      case pong : Pong => {
-        PongMessageHandler.handle(context, pong)
+      message is Pong -> {
+        PongMessageHandler.handle(context, message)
       }
-      case verack: Verack => {
-        VerackMessageHandler.handle(context, verack)
+      message is Verack -> {
+        VerackMessageHandler.handle(context, message)
       }
-      case addr: Addr => {
-        AddrMessageHandler.handle(context, addr)
+      message is Addr -> {
+        AddrMessageHandler.handle(context, message)
       }
-      case inv: Inv => {
-        InvMessageHandler.handle(context, inv)
+      message is Inv -> {
+        InvMessageHandler.handle(context, message)
       }
-      case headers: Headers => {
-        HeadersMessageHandler.handle(context, headers)
+      message is Headers -> {
+        HeadersMessageHandler.handle(context, message)
       }
-      case getData : GetData => {
-        GetDataMessageHandler.handle(context, getData)
+      message is GetData -> {
+        GetDataMessageHandler.handle(context, message)
       }
-      case getBlocks : GetBlocks => {
-        GetBlocksMessageHandler.handle(context, getBlocks)
+      message is GetBlocks -> {
+        GetBlocksMessageHandler.handle(context, message)
       }
-      case getHeaders: GetHeaders => {
-        GetHeadersMessageHandler.handle(context, getHeaders)
+      message is GetHeaders -> {
+        GetHeadersMessageHandler.handle(context, message)
       }
-      case transaction: Transaction => {
-        TxMessageHandler.handle(context, transaction)
+      message is Transaction -> {
+        TxMessageHandler.handle(context, message)
       }
-      case block: Block => {
-        BlockMessageHandler.handle(context, block)
+      message is Block -> {
+        BlockMessageHandler.handle(context, message)
       }
-      case m: ProtocolMessage => {
-        logger.warn(s"Received a message, but done nothing : ${m.getClass.getName}" )
-        None
+      else -> {
+        logger.warn("Received a message, but done nothing : ${message.javaClass.name}" )
       }
     }
   }

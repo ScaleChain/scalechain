@@ -14,32 +14,31 @@ import io.scalechain.blockchain.proto.codec.HashCodec
 import io.scalechain.blockchain.script.*
 import org.slf4j.LoggerFactory
 
-class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
+class BlockConsensusServer(id: Int) : DefaultRecoverable() {
   private val logger = LoggerFactory.getLogger(BlockConsensusServer::class.java)
 
   private var replica: ServiceReplica = ServiceReplica(id, this, this)
 
   override fun appExecuteUnordered(command: ByteArray, msgCtx: MessageContext): ByteArray {
     // No support for the unordered command.
-    assert(false)
-    null
+    throw UnsupportedOperationException()
   }
 
-  override def appExecuteBatch(commands: Array[ByteArray], msgCtxs: Array[MessageContext]): Array[ByteArray] = {
-    (commands zip msgCtxs).map{
-      case (command, ctx) => {
-        appExecuteOrdered(command, ctx)
-      }
-    }
+  override fun appExecuteBatch(commands: Array<ByteArray>, msgCtxs: Array<MessageContext>): Array<ByteArray> {
+    return (commands zip msgCtxs).map{ pair ->
+      val command = pair.first
+      val ctx = pair.second
+      appExecuteOrdered(command, ctx)
+    }.toTypedArray()
   }
 
-  private fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray = {
+  private fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray {
     try {
-      logger.trace(s"appExecuteOrdered invoked : ${msgCtx}")
+      logger.trace("appExecuteOrdered invoked : ${msgCtx}")
 
-      val blockHeader = BlockHeaderCodec.parse(command)
+      val blockHeader = BlockHeaderCodec.decode(command)!!
 
-      logger.trace(s"appExecuteOrdered : received block header : ${blockHeader}")
+      logger.trace("appExecuteOrdered : received block header : ${blockHeader}")
 
       BlockGateway.putConsensualHeader(blockHeader)
 
@@ -50,65 +49,58 @@ class BlockConsensusServer(id: Int) : DefaultSingleRecoverable {
       }*/
 
       if (msgCtx != null) {
-        if (msgCtx.getConsensusId == -1) {
-          logger.trace(s"New consensual header : ${blockHeader.hash}, ${blockHeader}")
+        if (msgCtx.getConsensusId() == -1) {
+          logger.trace("New consensual header : ${blockHeader.hash()}, ${blockHeader}")
         }
         else {
-          logger.trace(s"<${msgCtx.getConsensusId}> New consensual header : ${blockHeader.hash}, ${blockHeader}")
+          logger.trace("<${msgCtx.getConsensusId()}> New consensual header : ${blockHeader.hash()}, ${blockHeader}")
         }
       }
       else {
-        logger.trace(s"New consensual header : ${blockHeader.hash}, ${blockHeader}")
+        logger.trace("New consensual header : ${blockHeader.hash()}, ${blockHeader}")
       }
       // Nothing to reply.
-      ByteArray()
+      return byteArrayOf()
     }
-    catch {
-      case ex: IOException => {
-        logger.error("Invalid request received!")
-        ByteArray()
-      }
+    catch( ex: IOException ) {
+      logger.error("Invalid request received!")
+      return byteArrayOf()
     }
   }
 
-  @SuppressWarnings(Array("unchecked"))
   override fun installSnapshot(state: ByteArray) {
     try {
       logger.trace("setState called")
-      val bestBlockHash = HashCodec.parse(state)
+      val bestBlockHash = HashCodec.decode(state)!!
 
       // See if we have the best block hash.
-      val chain = Blockchain.get
-      if (chain.hasBlock(bestBlockHash)(chain.db)) {
+      val chain = Blockchain.get()
+      if (chain.hasBlock(chain.db, bestBlockHash)) {
         // We have the hash. We are ok.
       } else {
-        logger.info(s"Setting the snapshot block hash. ${bestBlockHash}")
+        logger.info("Setting the snapshot block hash. ${bestBlockHash}")
 
-        Node.get.setLastBlockHashForIBD(bestBlockHash)
+        Node.get().setLastBlockHashForIBD(bestBlockHash)
         // We don't have the best block hash. Need to start IBD(Initial block download).
         // TODO : Switch to initial block download mode.
       }
     }
-    catch {
-      case e: Exception => {
-        logger.error("<ERROR> Error deserializing state: " + e.getMessage)
-      }
+    catch(e: Exception) {
+      logger.error("<ERROR> Error deserializing state: " + e.message)
     }
   }
 
-  override fun getSnapshot: ByteArray {
+  override fun getSnapshot(): ByteArray {
     try {
       System.out.println("getState called")
       // TODO : Rethink syncrhonization.
-      val chain = Blockchain.get
-      val rawBestBlockHash = HashCodec.serialize( chain.getBestBlockHash()(chain.db).get )
-      rawBestBlockHash
+      val chain = Blockchain.get()
+      val rawBestBlockHash = HashCodec.encode( chain.getBestBlockHash(chain.db)!! )
+      return rawBestBlockHash
     }
-    catch {
-      case ioe: IOException => {
-        logger.error("<ERROR> Error serializing state: " + ioe.getMessage)
-        return "ERROR".getBytes
-      }
+    catch (ioe: IOException){
+      logger.error("<ERROR> Error serializing state: " + ioe.message)
+      return "ERROR".toByteArray()
     }
   }
 }

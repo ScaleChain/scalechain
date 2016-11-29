@@ -11,8 +11,8 @@ import io.scalechain.blockchain.transaction.ChainEnvironment
   */
 object GetHeadersFactory {
   fun create(blockLocatorHashes:List<Hash>, hashStop : Hash = Hash.ALL_ZERO) : GetHeaders {
-    val env = ChainEnvironment.get
+    val env = ChainEnvironment.get()
 
-    GetHeaders(env.DefaultBlockVersion, blockLocatorHashes, hashStop)
+    return GetHeaders(env.DefaultBlockVersion.toLong(), blockLocatorHashes, hashStop)
   }
 }

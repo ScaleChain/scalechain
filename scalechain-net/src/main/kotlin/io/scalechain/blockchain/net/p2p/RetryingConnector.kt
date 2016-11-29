@@ -1,35 +1,21 @@
 package io.scalechain.blockchain.net.p2p
 
-import java.util.{TimerTask, Timer}
-
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
-import com.typesafe.scalalogging.Logger
+import java.util.TimerTask
+import java.util.Timer
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelFuture
-import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.message.VersionFactory
-import io.scalechain.blockchain.net.Peer
 import io.scalechain.blockchain.net.NodeClient
 import io.scalechain.blockchain.net.PeerSet
-import io.scalechain.blockchain.proto.IPv6Address
-import io.scalechain.blockchain.proto.NetworkAddress
-import io.scalechain.blockchain.proto.Version
-import io.scalechain.util.HexUtil.
-import io.scalechain.util.Config
 import io.scalechain.util.ExceptionUtil
 import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
-import scala.annotation.tailrec
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by kangmo on 5/26/16.
   */
-class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
+class RetryingConnector(private val peerSet : PeerSet, private val retryIntervalSeconds : Int) {
   private val logger = LoggerFactory.getLogger(RetryingConnector::class.java)
 
   fun connect(address : String, port : Int) : Unit {
@@ -41,34 +27,34 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
       fun operationComplete(future : ChannelFuture) : Unit {
         val channel : Channel = future.channel()
         if ( future.isSuccess() ) {
-          logger.info(s"Sending version message to ${channel.remoteAddress()}")
+          logger.info("Sending version message to ${channel.remoteAddress()}")
 
           // Upon successful connection, send the version message.
-          channel.writeAndFlush( VersionFactory.create )
+          channel.writeAndFlush( VersionFactory.create() )
 
 
-          future.channel().closeFuture.addListener( ChannelFutureListener() {
+          future.channel().closeFuture().addListener( ChannelFutureListener() {
             fun operationComplete(future:ChannelFuture) {
               assert( future.isDone )
 
               if (future.isSuccess) { // completed successfully
-                logger.info(s"Connection closed. Remote address : ${channel.remoteAddress()}")
+                logger.info("Connection closed. Remote address : ${channel.remoteAddress()}")
               }
 
               if (future.cause() != null) { // completed with failure
-                val causeDescription = ExceptionUtil.describe( future.cause.getCause )
-                logger.warn(s"Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause.getMessage}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
+                val causeDescription = ExceptionUtil.describe( future.cause().cause )
+                logger.warn("Failed to close connection. Remote address : ${channel.remoteAddress()}. Exception : ${future.cause().message}, Stack Trace : ${StackUtil.getStackTrace(future.cause())} ${causeDescription}")
               }
 
               if (future.isCancelled) { // completed by cancellation
-                logger.warn(s"Canceled to close connection. Remote address : ${channel.remoteAddress()}")
+                logger.warn("Canceled to close connection. Remote address : ${channel.remoteAddress()}")
               }
 
-              logger.info(s"Connection to ${address}:${port} closed. Will reconnect in a second.")
+              logger.info("Connection to ${address}:${port} closed. Will reconnect in a second.")
 
-              val timer = new Timer(true);
-              timer.schedule( new TimerTask {
-                override def run() : Unit = {
+              val timer = Timer(true);
+              timer.schedule( object : TimerTask() {
+                override fun run() : Unit  {
                   connect(address, port)
                 }
               }, 1000);
@@ -81,10 +67,10 @@ class RetryingConnector(peerSet : PeerSet, retryIntervalSeconds : Int) {
           nodeClient.close()
 
           // TODO : Do we need to check future.isCanceled()?
-          logger.info(s"Connection to ${address}:${port} failed. Will try in a second.")
-          val timer = new Timer(true);
-          timer.schedule( new TimerTask {
-            override def run(): Unit = {
+          logger.info("Connection to ${address}:${port} failed. Will try in a second.")
+          val timer = Timer(true);
+          timer.schedule( object : TimerTask() {
+            override fun run(): Unit  {
               connect(address, port)
             }
           }, 1000);

@@ -1,7 +1,4 @@
-apply plugin: 'application'
-
 dependencies {
-    compile project(':scalechain-api')
     compile project(':scalechain-net')
     compile project(':scalechain-wallet')
     compile project(':scalechain-chain')
@@ -13,6 +10,3 @@ dependencies {
     compile project(':scalechain-consensus')
     compile project(':scalechain-util')
 }
-
-mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'
-
