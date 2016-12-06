@@ -57,7 +57,7 @@ public final class DeliveryThread extends Thread {
      */
     public DeliveryThread(TOMLayer tomLayer, ServiceReplica receiver, Recoverable recoverer, ServerViewController controller) {
         super("Delivery Thread");
-        this.decided = new LinkedBlockingQueue<>();
+        this.decided = new LinkedBlockingQueue<Decision>();
 
         this.tomLayer = tomLayer;
         this.receiver = receiver;

@@ -110,7 +110,7 @@ public class CSTState implements ApplicationState {
         if (ci != null && ci.msgCtx[0].getProof() != null) { // do I have a proof for the consensus?
             
             Set<ConsensusMessage> proof = ci.msgCtx[0].getProof();
-            LinkedList<TOMMessage> requests = new LinkedList<>();
+            LinkedList<TOMMessage> requests = new LinkedList<TOMMessage>();
             
             //Recreate all TOMMessages ordered in the consensus
             for (int i = 0; i < ci.commands.length; i++) {

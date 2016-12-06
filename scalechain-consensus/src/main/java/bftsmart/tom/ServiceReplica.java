@@ -279,8 +279,8 @@ public class ServiceReplica {
     public void receiveMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs, TOMMessage[][] requests) {
         int numRequests = 0;
         int consensusCount = 0;
-        List<TOMMessage> toBatch = new ArrayList<>();
-        List<MessageContext> msgCtxts = new ArrayList<>();
+        List<TOMMessage> toBatch = new ArrayList<TOMMessage>();
+        List<MessageContext> msgCtxts = new ArrayList<MessageContext>();
         boolean noop = true;
 
         for (TOMMessage[] requestsFromConsensus : requests) {

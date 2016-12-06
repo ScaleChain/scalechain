@@ -164,8 +164,9 @@ public class ServiceProxyTest {
 				reply = (TOMMessage)response.get(proxy);
 				Assert.assertEquals(-1, reqId.get(proxy));
 				
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		} catch (NoSuchFieldException e) {

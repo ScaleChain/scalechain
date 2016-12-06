@@ -70,7 +70,7 @@ public class NettyClientServerCommunicationSystemClientSide extends SimpleChanne
     //******* EDUARDO BEGIN **************//
     private ClientViewController controller;
     //******* EDUARDO END **************//
-    private Map<Integer,NettyClientServerSession> sessionTable = new HashMap<>();
+    private Map<Integer,NettyClientServerSession> sessionTable = new HashMap<Integer,NettyClientServerSession>();
     private ReentrantReadWriteLock rl;
     //the signature engine used in the system
     private Signature signatureEngine;
@@ -436,7 +436,7 @@ public class NettyClientServerCommunicationSystemClientSide extends SimpleChanne
         this.closed = true;
         //Iterator sessions = sessionTable.values().iterator();
         rl.readLock().lock();
-        ArrayList<NettyClientServerSession> sessions = new ArrayList<>(sessionTable.values());
+        ArrayList<NettyClientServerSession> sessions = new ArrayList<NettyClientServerSession>(sessionTable.values());
         rl.readLock().unlock();
         for (NettyClientServerSession ncss : sessions) {
             Channel c = ncss.getChannel();           
