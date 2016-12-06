@@ -1,8 +1,0 @@
-//////////////////////////////////////////////////////////////////////////
-// scalechain-proto/build.sbt
-//////////////////////////////////////////////////////////////////////////
-
-libraryDependencies ++= Seq(
-  // def inetAddress = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reverse)
-  "com.google.guava" % "guava" % "20.0"
-)
