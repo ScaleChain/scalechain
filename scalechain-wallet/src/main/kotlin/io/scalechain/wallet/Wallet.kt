@@ -731,7 +731,7 @@ class Wallet() : ChainEventListener {
 
         val walletOutputOwnerships = getWalletOutputOwnerships(db, transactionOutput.lockingScript)
 
-        if (walletOutputOwnerships == null) {
+        if (walletOutputOwnerships.isEmpty()) {
           // Do nothing, the transaction output is not related to the output ownerships in the wallet.
         } else {
 
@@ -868,7 +868,7 @@ class Wallet() : ChainEventListener {
           store.delTransactionHash(db, ownership, transactionHash)
         }
 
-        if (walletOutputOwnerships == null) {
+        if (walletOutputOwnerships.isEmpty()) {
           // Do nothing, the transaction output is not related to the output ownerships in the wallet.
         } else {
           store.delWalletOutput(db, outPoint)

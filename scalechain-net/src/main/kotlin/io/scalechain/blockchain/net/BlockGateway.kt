@@ -208,7 +208,7 @@ open class BlockGateway {
 
         // An orphan block is one that received the consensual header, but did not have the parent of it.
         // If we accepted any orphan block, it means we reached at consensus. No need to do IBD any more.
-        if (acceptedChildHashes != null) {
+        if (acceptedChildHashes.isNotEmpty()) {
           logger.info("Reached at consensus accepting children, which received consensual headers, Stopping IBD. Parent Block Hash : ${blockHash}")
           Node.get().stopInitialBlockDownload()
         }

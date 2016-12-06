@@ -5,8 +5,6 @@ import io.scalechain.util.Config
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.Option
-import com.sun.tools.javac.tree.TreeInfo.args
-import org.apache.commons.cli.OptionBuilder
 import kotlin.system.exitProcess
 import io.scalechain.blockchain.cli.CommandArgumentConverter
 

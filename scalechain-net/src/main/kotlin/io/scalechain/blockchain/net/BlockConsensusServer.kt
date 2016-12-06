@@ -19,12 +19,12 @@ class BlockConsensusServer(id: Int) : DefaultRecoverable() {
 
   private var replica: ServiceReplica = ServiceReplica(id, this, this)
 
-  override fun appExecuteUnordered(command: ByteArray, msgCtx: MessageContext): ByteArray {
+  override fun appExecuteUnordered(command: ByteArray?, msgCtx: MessageContext?): ByteArray {
     // No support for the unordered command.
     throw UnsupportedOperationException()
   }
 
-  override fun appExecuteBatch(commands: Array<ByteArray>, msgCtxs: Array<MessageContext>): Array<ByteArray> {
+  override fun appExecuteBatch(commands: Array<out ByteArray>, msgCtxs: Array<out MessageContext?>): Array<out ByteArray> {
     return (commands zip msgCtxs).map{ pair ->
       val command = pair.first
       val ctx = pair.second
@@ -32,7 +32,7 @@ class BlockConsensusServer(id: Int) : DefaultRecoverable() {
     }.toTypedArray()
   }
 
-  private fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext): ByteArray {
+  private fun appExecuteOrdered(command: ByteArray, msgCtx: MessageContext?): ByteArray {
     try {
       logger.trace("appExecuteOrdered invoked : ${msgCtx}")
 

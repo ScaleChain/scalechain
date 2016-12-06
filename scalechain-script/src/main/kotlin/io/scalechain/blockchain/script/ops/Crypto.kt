@@ -129,7 +129,6 @@ class OpCodeSparator(private val sigCheckOffset : Int = 0) : Crypto {
 
 abstract class CheckSig() : Crypto {
   fun checkSig(script : Script, env : ScriptEnvironment): Unit {
-    assert(script != null)
     assert(env.transaction != null)
     assert(env.transactionInputIndex != null)
 

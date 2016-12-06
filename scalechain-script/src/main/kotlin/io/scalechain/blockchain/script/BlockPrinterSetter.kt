@@ -29,7 +29,7 @@ object BlockPrinterSetter {
               // The hash value and public key is used to verify the signature.
               val firstOp = scriptOps.operations[0]
               when {
-                firstOp != null && firstOp is OpPush -> {
+                firstOp is OpPush -> {
                   firstOp.inputValue!!.value.last()
                 }
                 else -> {
