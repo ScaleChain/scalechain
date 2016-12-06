@@ -12,6 +12,7 @@ import io.scalechain.test.TestMethods.A
 import java.util.*
 
 
+@RunWith(KTestJUnitRunner::class)
 class BytesSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {

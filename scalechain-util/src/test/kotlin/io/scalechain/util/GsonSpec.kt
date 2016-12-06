@@ -4,8 +4,10 @@ import com.google.gson.*
 import io.kotlintest.*
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 import java.lang.reflect.Type
 
+@RunWith(KTestJUnitRunner::class)
 class GsonSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {

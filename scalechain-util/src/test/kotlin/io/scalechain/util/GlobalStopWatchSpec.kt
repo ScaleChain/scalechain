@@ -3,8 +3,10 @@ package io.scalechain.util
 import io.kotlintest.*
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
+@RunWith(KTestJUnitRunner::class)
 class GlobalStopWatchSpec : FlatSpec(), Matchers {
 
     var watch : StopWatchEx? = null

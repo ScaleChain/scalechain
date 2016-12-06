@@ -3,12 +3,13 @@ package io.scalechain.util
 import io.kotlintest.*
 import io.kotlintest.matchers.*
 import io.kotlintest.specs.*
+import org.junit.runner.RunWith
 
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 
-
+@RunWith(KTestJUnitRunner::class)
 class TimeBasedCacheSpec : FlatSpec(), Matchers {
 
     val testPath = File("./target/unittests-IncompleteBlockCacheSpec-storage/")

@@ -3,11 +3,13 @@ package io.scalechain.util
 import io.kotlintest.*
 import io.kotlintest.matchers.*
 import io.kotlintest.specs.*
+import org.junit.runner.RunWith
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
 import kotlin.ByteArray
 
+@RunWith(KTestJUnitRunner::class)
 class Base58UtilSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {

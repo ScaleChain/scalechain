@@ -12,6 +12,7 @@ import io.scalechain.io.VarIntValues
 import java.io.ByteArrayOutputStream
 import java.util.*
 
+@RunWith(KTestJUnitRunner::class)
 class InputOutputStreamWithBlockDataOutputStreamSpec : FlatSpec(), Matchers {
 
     var bout    : ByteArrayOutputStream? = null

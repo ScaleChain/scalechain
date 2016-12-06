@@ -12,6 +12,7 @@ import io.scalechain.io.VarIntValues.B
 import java.io.ByteArrayInputStream
 import java.util.Arrays
 
+@RunWith(KTestJUnitRunner::class)
 class BlockDataInputStreamSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {

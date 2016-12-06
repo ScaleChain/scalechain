@@ -5,9 +5,7 @@ import io.scalechain.blockchain.*
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.io.InputOutputStream
-
-import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
+import io.netty.buffer.Unpooled
 
 /*
 trait SerializeParseUtil<T> {
@@ -106,7 +104,7 @@ object HashCodec : Codec<Hash> {
 
 object LockingScriptCodec : Codec<LockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : LockingScript? ) : LockingScript? {
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, obj?.byteBuf)
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data))
 
     if (io.isInput) {
       return LockingScript(
@@ -119,7 +117,7 @@ object LockingScriptCodec : Codec<LockingScript> {
 
 object UnlockingScriptCodec : Codec<UnlockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : UnlockingScript? ) : UnlockingScript? {
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, obj?.byteBuf)
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data))
 
     if (io.isInput) {
       return UnlockingScript(
@@ -228,7 +226,7 @@ object TransactionInputCodec : Codec<TransactionInput> {
       return GenerationTransactionInput(
         normalTxInput.outputTransactionHash,
         normalTxInput.outputIndex,
-        CoinbaseData(normalTxInput.unlockingScript.byteBuf),
+        CoinbaseData(Unpooled.wrappedBuffer(normalTxInput.unlockingScript.data)),
         normalTxInput.sequenceNumber
       )
     } else {

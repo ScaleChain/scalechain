@@ -8,9 +8,11 @@ import java.security.SecureRandom
 import io.kotlintest.*
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 import java.io.File
 import java.io.FileOutputStream
 
+@RunWith(KTestJUnitRunner::class)
 class ConfigSpec : FlatSpec(), Matchers {
 
     val PRIVATE_CONFIG_DATA =

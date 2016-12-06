@@ -27,7 +27,7 @@ data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
 
 //  fun toHex() : String = value.toString
 
-    override fun toString() = "Hash(${value})"
+    override fun toString() = """Hash("${HexUtil.hex(value)}")"""
 
     override fun equals(other : Any?) : Boolean {
         when {
@@ -132,7 +132,7 @@ interface TransactionInput : Transcodable {
     fun isCoinBaseInput() : Boolean {
         // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
         //println(s"${txInput.outputIndex}")
-        return outputTransactionHash.isAllZero() //&& (txInput.outputIndex == -1L)
+        return outputTransactionHash.isAllZero() && ( outputIndex == 0xFFFFFFFFL )
     }
 }
 
@@ -172,9 +172,9 @@ interface LockingScriptPrinter {
 }
 
 data class LockingScript(override val data : ByteArray) : Script {
-    lateinit var byteBuf : ByteBuf
+    //var byteBuf : ByteBuf = null
     constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
-        this.byteBuf = byteBuf
+        //this.byteBuf = byteBuf
     }
 
     override fun toString() : String {
@@ -194,9 +194,9 @@ interface UnlockingScriptPrinter {
 }
 
 data class UnlockingScript(override val data : ByteArray) : Script {
-    lateinit var byteBuf : ByteBuf
+    //lateinit var byteBuf : ByteBuf
     constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
-        this.byteBuf = byteBuf
+        //this.byteBuf = byteBuf
     }
 
     override fun toString(): String {

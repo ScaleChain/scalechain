@@ -6,7 +6,9 @@ import java.security.SecureRandom
 import io.kotlintest.*
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class NetUtilSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {

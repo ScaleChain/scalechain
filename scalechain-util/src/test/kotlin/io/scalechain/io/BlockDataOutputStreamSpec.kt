@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
 
+@RunWith(KTestJUnitRunner::class)
 class BlockDataOutputStreamSpec : FlatSpec(), Matchers {
 
     var bout    : ByteArrayOutputStream? = null

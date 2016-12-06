@@ -4,10 +4,12 @@ import io.kotlintest.*
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.util.HexUtil
+import org.junit.runner.RunWith
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
 
+@RunWith(KTestJUnitRunner::class)
 class HexFileLoaderSpec : FlatSpec(), Matchers {
 
     override fun beforeEach() {
