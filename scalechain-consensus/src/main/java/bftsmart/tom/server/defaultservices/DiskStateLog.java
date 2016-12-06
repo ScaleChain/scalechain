@@ -54,7 +54,7 @@ public class DiskStateLog extends StateLog {
 		this.isToLog = isToLog;
 		this.syncLog = syncLog;
 		this.syncCkp = syncCkp;
-		this.logPointers = new HashMap<Integer, Long>();
+		this.logPointers = new HashMap<>();
 	}
 
 	private void createLogFile() {

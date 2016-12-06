@@ -57,7 +57,7 @@ public final class DeliveryThread extends Thread {
      */
     public DeliveryThread(TOMLayer tomLayer, ServiceReplica receiver, Recoverable recoverer, ServerViewController controller) {
         super("Delivery Thread");
-        this.decided = new LinkedBlockingQueue<Decision>();
+        this.decided = new LinkedBlockingQueue<>();
 
         this.tomLayer = tomLayer;
         this.receiver = receiver;
@@ -170,9 +170,11 @@ public final class DeliveryThread extends Thread {
             /** THIS IS JOAO'S CODE, TO HANDLE STATE TRANSFER */
             deliverLock();
             while (tomLayer.isRetrievingState()) {
-                System.out.println("(DeliveryThread.run) Retrieving State.");
+                System.out.println("-- Retrieving State");
                 canDeliver.awaitUninterruptibly();
-                System.out.println("(DeliveryThread.run) canDeliver released.");
+                
+                if (tomLayer.getLastExec() == -1)
+                    System.out.println("-- Ready to process operations");
             }
             try {
                 ArrayList<Decision> decisions = new ArrayList<Decision>();
@@ -278,6 +280,7 @@ public final class DeliveryThread extends Thread {
     }
     
     protected void deliverUnordered(TOMMessage request, int regency) {
+
         MessageContext msgCtx = new MessageContext(request.getSender(), request.getViewID(), request.getReqType(),
                 request.getSession(), request.getSequence(), request.getOperationId(), request.getReplyServer(), request.serializedMessageSignature,
                 System.currentTimeMillis(), 0, 0, regency, -1, -1, null, null, false); // Since the request is unordered,

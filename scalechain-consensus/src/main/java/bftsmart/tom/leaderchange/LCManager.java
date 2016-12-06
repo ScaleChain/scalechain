@@ -174,7 +174,7 @@ public class LCManager {
      */
     public void addRequestsFromSTOP(TOMMessage[] requestsFromSTOP) {
         if (this.requestsFromSTOP == null)
-            this.requestsFromSTOP = new LinkedList<TOMMessage>();
+            this.requestsFromSTOP = new LinkedList<>();
         
         for (TOMMessage m : requestsFromSTOP)
             this.requestsFromSTOP.add(m);
@@ -818,7 +818,7 @@ public class LCManager {
         SecretKey secretKey = null;
         PublicKey pubRSAKey = null;
         
-        HashSet<Integer> alreadyCounted = new HashSet<Integer>(); //stores replica IDs that were already counted
+        HashSet<Integer> alreadyCounted = new HashSet<>(); //stores replica IDs that were already counted
             
         for (ConsensusMessage consMsg : ConsensusMessages) {
             

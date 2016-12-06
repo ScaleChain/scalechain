@@ -65,7 +65,7 @@ public class Epoch implements Serializable {
         this.consensus = parent;
         this.timestamp = timestamp;
         this.controller = controller;
-        this.proof = new HashSet<ConsensusMessage>();
+        this.proof = new HashSet<>();
         //ExecutionManager manager = consensus.getManager();
 
         this.lastView = controller.getCurrentView();

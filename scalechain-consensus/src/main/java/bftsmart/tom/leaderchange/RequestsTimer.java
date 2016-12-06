@@ -51,7 +51,7 @@ public class RequestsTimer {
     private ServerCommunicationSystem communication; // Communication system between replicas
     private ServerViewController controller; // Reconfiguration manager
     
-    private Hashtable <Integer, Timer> stopTimers = new Hashtable<Integer, Timer>();
+    private Hashtable <Integer, Timer> stopTimers = new Hashtable<>();
     
     //private Storage st1 = new Storage(100000);
     //private Storage st2 = new Storage(10000);

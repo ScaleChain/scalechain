@@ -53,8 +53,8 @@ public abstract class DefaultSingleRecoverable implements Recoverable, SingleExe
     private MessageDigest md;
         
     private StateLog log;
-    private List<byte[]> commands = new ArrayList<byte[]>();
-    private List<MessageContext> msgContexts = new ArrayList<MessageContext>();
+    private List<byte[]> commands = new ArrayList<>();
+    private List<MessageContext> msgContexts = new ArrayList<>();
     
     private StateManager stateManager;
     
@@ -100,8 +100,8 @@ public abstract class DefaultSingleRecoverable implements Recoverable, SingleExe
 	            saveCommands(commands.toArray(new byte[0][]), msgContexts.toArray(new MessageContext[0]));
 	        }
 			getStateManager().setLastCID(cid);
-	        commands = new ArrayList<byte[]>();
-                msgContexts = new ArrayList<MessageContext>();
+	        commands = new ArrayList<>();
+                msgContexts = new ArrayList<>();
         }
         return reply;
     }
