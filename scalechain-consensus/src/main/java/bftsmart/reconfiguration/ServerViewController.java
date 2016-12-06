@@ -144,11 +144,11 @@ public class ServerViewController extends ViewController {
     public byte[] executeUpdates(int cid) {
 
 
-        List<Integer> jSet = new LinkedList<>();
-        List<Integer> rSet = new LinkedList<>();
+        List<Integer> jSet = new LinkedList<Integer>();
+        List<Integer> rSet = new LinkedList<Integer>();
         int f = -1;
         
-        List<String> jSetInfo = new LinkedList<>();
+        List<String> jSetInfo = new LinkedList<String>();
         
         
         for (int i = 0; i < updates.size(); i++) {

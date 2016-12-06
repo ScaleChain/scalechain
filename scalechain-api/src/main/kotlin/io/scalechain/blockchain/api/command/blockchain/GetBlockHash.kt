@@ -1,17 +1,15 @@
 package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.UnsupportedFeature
-import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
-import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.HexUtil
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
+
 
 /*
   CLI command :
@@ -43,26 +41,19 @@ import io.scalechain.util.HexUtil
   *
   * https://bitcoin.org/en/developer-reference#getblockhash
   */
-object GetBlockHash : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object GetBlockHash : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
 
       // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
       val blockHeight : Long = request.params.get<Long>("Block Height", 0)
 
-      val blockHash = RpcSubSystem.get.getBlockHash(blockHeight)
+      val blockHash = RpcSubSystem.get().getBlockHash(blockHeight)
 
-      Right(Some(StringResult(HexUtil.hex(blockHash.value))))
-
-/*
-      // TODO : Implement
-      val blockHash = Hash("0000000000075c58ed39c3e50f99b32183d090aefa0cf8c324a82eea9b01a887")
-      val hashString = ByteArray.byteArrayToString(blockHash.value)
-      Right(Some(StringResult(hashString)))
-*/
+      Right(StringResult(HexUtil.hex(blockHash.value)))
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getblockhash index
       |
       |Returns hash of block in best-block-chain at index provided.
@@ -76,7 +67,7 @@ object GetBlockHash : RpcCommand {
       |Examples:
       |> bitcoin-cli getblockhash 1000
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getblockhash", "params": [1000] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

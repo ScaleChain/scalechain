@@ -4,6 +4,10 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+
 
 /*
   CLI command :
@@ -40,22 +44,22 @@ import io.scalechain.blockchain.api.domain.RpcResult
 */
 
 data class GetInfoResult(
-  version : Int,
-  protocolversion : Int,
-  walletversion : Int,
-  balance: Int,
-  blocks: Int,
-  timeoffset: Int,
-  connections : Int,
-  proxy: String,
-  difficulty: scala.math.BigDecimal,
-  testnet: Boolean,
-  keypoololdest: Long,
-  keypoolsize: Int,
-  paytxfee : Int,
+  val version : Int,
+  val protocolversion : Int,
+  val walletversion : Int,
+  val balance: Int,
+  val blocks: Int,
+  val timeoffset: Int,
+  val connections : Int,
+  val proxy: String,
+  val difficulty: java.math.BigDecimal,
+  val testnet: Boolean,
+  val keypoololdest: Long,
+  val keypoolsize: Int,
+  val paytxfee : Int,
   // Make sure the Json serialized format is like "5.0e-5"
-  relayfee: scala.math.BigDecimal,
-  errors: String
+  val relayfee: java.math.BigDecimal,
+  val errors: String
 ) : RpcResult
 
 /** GetInfo: prints various information about the node and the network.
@@ -64,33 +68,31 @@ data class GetInfoResult(
   *
   * https://bitcoin.org/en/developer-reference#getinfo
   */
-object GetInfo : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object GetInfo : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
-    Right(
-      Some(
-        GetInfoResult(
-          version = 110100,
-          protocolversion = 70002,
-          walletversion = 60000,
-          balance = 0,
-          blocks = 394722,
-          timeoffset = -24,
-          connections = 8,
-          proxy = "",
-          difficulty = java.math.BigDecimal(113354299801.47),
-          testnet = false,
-          keypoololdest = 1445528771,
-          keypoolsize = 101,
-          paytxfee = 0,
-          // Make sure the Json serialized format is like "5.0e-5"
-          relayfee = java.math.BigDecimal(5.0e-5),
-          errors = ""
-        )
+    return Right(
+      GetInfoResult(
+        version = 110100,
+        protocolversion = 70002,
+        walletversion = 60000,
+        balance = 0,
+        blocks = 394722,
+        timeoffset = -24,
+        connections = 8,
+        proxy = "",
+        difficulty = java.math.BigDecimal(113354299801.47),
+        testnet = false,
+        keypoololdest = 1445528771,
+        keypoolsize = 101,
+        paytxfee = 0,
+        // Make sure the Json serialized format is like "5.0e-5"
+        relayfee = java.math.BigDecimal(5.0e-5),
+        errors = ""
       )
     )
   }
-  fun help() : String =
+  override fun help() : String =
     """getinfo
       |Returns an object containing various state info.
       |
@@ -117,5 +119,5 @@ object GetInfo : RpcCommand {
       |Examples:
       |> bitcoin-cli getinfo
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }

@@ -22,9 +22,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
-import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
-import scodec.bits.BitVector;
-import scodec.bits.BitVector$;
 import java.util.List;
 import java.util.Vector;
 
@@ -33,6 +30,7 @@ import java.util.Vector;
  */
 @Sharable
 public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
+
     /**
      * An incomplete message, which needs to receive more data to construct a complete message.
      *
@@ -40,24 +38,27 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
      * (1) when the data received is less than 24 bytes, which is the length for the header of bitcoin message.
      * (2) when we received less than the length specified at the payload length( BitcoinMessageEnvelope.length ).
      */
-    private BitVector incompleteMessage = null;
+//    private BitVector incompleteMessage = null;
+
     /**
      * Creates a new instance with the current system character set.
      */
     public BitcoinProtocolDecoder() {
     }
-
+/*
     private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
-
+*/
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        BitVector inputMessage = null;
+        // TODO : Implement!
+        assert(false);
+//        BitVector inputMessage = null;
 /*
         if (msg.hasArray()) { // view as a byte array if possible.
             inputMessage = BitVector$.MODULE$.view(msg.array());
         } else if (msg.nioBufferCount() > 0) { // view as nio buffer if possible.
             inputMessage = BitVector$.MODULE$.view(msg.nioBuffer());
-        } else*/ { // last resort, allocate a new byte array.
+        } else*/ /*{ // last resort, allocate a new byte array.
             byte[] bytes = new byte[msg.readableBytes()];
             msg.readBytes(bytes);
             inputMessage = BitVector$.MODULE$.view(bytes);
@@ -73,6 +74,6 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
         incompleteMessage = codec.decode(inputMessage, messages);
         for (ProtocolMessage message : messages) {
             out.add(message);
-        }
+        }*/
     }
 }

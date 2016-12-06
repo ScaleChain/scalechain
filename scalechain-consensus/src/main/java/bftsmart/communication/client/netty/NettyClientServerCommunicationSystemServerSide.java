@@ -141,7 +141,7 @@ public class NettyClientServerCommunicationSystemServerSide extends SimpleChanne
             closeChannelAndEventLoop(mainChannel);
                 
             rl.readLock().lock();
-            ArrayList<NettyClientServerSession> sessions = new ArrayList<>(sessionTable.values());
+            ArrayList<NettyClientServerSession> sessions = new ArrayList<NettyClientServerSession>(sessionTable.values());
             rl.readLock().unlock();
             for (NettyClientServerSession ncss : sessions) {
                 

@@ -11,6 +11,9 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.wallet.Wallet
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -53,22 +56,22 @@ import io.scalechain.wallet.Wallet
   *
   * https://bitcoin.org/en/developer-reference#getreceivedbyaddress
   */
-object GetReceivedByAddress : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object GetReceivedByAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
       val addressString      : String                = request.params.get<String>("Address", 0)
-      val confirmation : Long = request.params.getOption<Long>("Confirmations", 1).getOrElse(1L)
+      val confirmation : Long = request.params.getOption<Long>("Confirmations", 1) ?: 1L
 
       val address = CoinAddress.from(addressString)
 
-      val amount : CoinAmount = Wallet.get.getReceivedByAddress(Blockchain.get, address, confirmation)(Blockchain.get.db)
+      val amount : CoinAmount = Wallet.get().getReceivedByAddress(Blockchain.get().db, Blockchain.get(), address, confirmation)
 
-      Right(Some(NumberResult(amount.value)))
+      Right(NumberResult(java.math.BigDecimal(amount.value)))
 
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getreceivedbyaddress "bitcoinaddress" ( minconf )
       |
       |Returns the total amount received by the given bitcoinaddress in transactions with at least minconf confirmations.
@@ -93,7 +96,7 @@ object GetReceivedByAddress : RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getreceivedbyaddress", "params": ["1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

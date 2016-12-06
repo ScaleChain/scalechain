@@ -2,17 +2,16 @@ package io.scalechain.blockchain.cli.command
 
 import java.io.IOException
 
-import io.scalechain.blockchain.{ErrorCode, HttpRequestException}
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.HttpRequestException
+import io.scalechain.blockchain.api.Json
 import io.scalechain.util.HttpRequester
 
-//import io.scalechain.util.HttpRequester
-import spray.json._
 
+// BUGBUG : We need to be able to pass Int, java.math.BigDecimal, a json object to params array.
+data class RpcRequest(val jsonrpc:String, val id:Int, val method:String, val params:Array<String>)
 
-// BUGBUG : We need to be able to pass Int, scala.math.BigDecimal, a json object to params array.
-data class RpcRequest(jsonrpc:String, id:Int, method:String, params:Array<String>)
-
-object RpcInvoker : DefaultJsonProtocol {
+object RpcInvoker {
   // BUGBUG : This code is too dirty. Make it cleaner.
   fun invoke(method : String, args : Array<String>, host : String, port : Int, user : String, password : String) : String {
 
@@ -32,13 +31,11 @@ object RpcInvoker : DefaultJsonProtocol {
       fun read(value :JsValue) = ""
     }
   */
-    implicit val implcitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
+    val jsonRequest = Json.get().toJson(rpcRequest)
 
-    val jsonRequest = (rpcRequest.toJson).toString
+    val result = HttpRequester.post("http://$host:$port/", jsonRequest, user, password)
 
-    val result = HttpRequester.post(s"http://$host:$port/", jsonRequest, user, password)
-
-    result
+    return result
   }
 }
 

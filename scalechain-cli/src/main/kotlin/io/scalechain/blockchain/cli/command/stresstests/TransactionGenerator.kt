@@ -19,113 +19,120 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import scala.util.Random
+import java.io.Closeable
 
-class TransactionGenerator(wallet : Wallet)(implicit db : KeyValueDatabase) : AutoCloseable {
+class TransactionGeneratorBlockchainView : BlockchainView {
+  val txMap = ConcurrentHashMap<Hash, Transaction>()
+  val availableOutputs = TransactionOutputSet()
 
-  val chainView = BlockchainView {
-    val txMap = ConcurrentHashMap<Hash, Transaction>()
-    val availableOutputs = TransactionOutputSet()
+  override fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock> {
+    throw UnsupportedOperationException()
+  }
 
-    fun getIterator(height : Long)(implicit db : KeyValueDatabase) : Iterator<ChainBlock> {
-      assert(false)
-      null
-    }
-    fun getBestBlockHeight() : Long {
-      assert(false)
-      0
-    }
+  override fun getBestBlockHeight() : Long {
+    throw UnsupportedOperationException()
+  }
 
-    fun getTransaction(transactionHash : Hash)(implicit db : KeyValueDatabase) : Option<Transaction> {
-      val tx = txMap.get(transactionHash)
-      if (tx == null) None else Some(tx)
-    }
+  override fun getTransaction(db : KeyValueDatabase, transactionHash : Hash) : Transaction? {
+    return txMap.get(transactionHash)
+  }
 
-    fun getTransactionOutput(outPoint : OutPoint)(implicit db : KeyValueDatabase) : TransactionOutput {
-      availableOutputs.getTransactionOutput(outPoint)
-    }
+  override fun getTransactionOutput(db : KeyValueDatabase, outPoint : OutPoint) : TransactionOutput {
+    return availableOutputs.getTransactionOutput(db, outPoint)
+  }
 
-    fun addTransaction(transaction : Transaction) {
-      val txHash = transaction.hash
-      txMap.put(txHash, transaction)
+  fun addTransaction(transaction : Transaction) {
+    val txHash = transaction.hash()
+    txMap.put(txHash, transaction)
 
-      for ( i <- 0 until transaction.outputs.length) {
-        val outPoint = OutPoint(txHash, i)
-        availableOutputs.addTransactionOutput(outPoint, transaction.outputs(i))
-      }
+    for ( i in 0 until transaction.outputs.size) {
+      val outPoint = OutPoint(txHash, i)
+      availableOutputs.addTransactionOutput(outPoint, transaction.outputs[i])
     }
   }
+}
+
+class TransactionGenerator(private val db : KeyValueDatabase, private val wallet : Wallet) : Closeable {
+
+
+
+  val chainView = TransactionGeneratorBlockchainView()
 
   fun addTransaction(tx : Transaction) {
     chainView.addTransaction(tx)
   }
 
-  fun close() {
-    db.close
+  override fun close() {
+    db.close()
   }
 
-  fun newTransaction(inputTxHash : Hash, inputStartIndex : Int, inputEndIndex : Int, newOwnerAddresses : IndexedSeq<CoinAddress>) : Transaction {
+  fun newTransaction(inputTxHash : Hash, inputStartIndex : Int, inputEndIndex : Int, newOwnerAddresses : List<CoinAddress>) : Transaction {
     val builder = TransactionBuilder.newBuilder()
 
-    for (i <- inputStartIndex to inputEndIndex) {
+    for (i in inputStartIndex .. inputEndIndex) {
       val outPoint = OutPoint(inputTxHash, i)
-      builder.addInput(chainView, outPoint)
+      builder.addInput(db, chainView, outPoint)
     }
 
-    val sumOfInputAmounts {
-      builder.inputs.map { input =>
-        chainView.getTransactionOutput(input.getOutPoint())
-      }.foldLeft(0L)(_ + _.value)
-    }
+    val sumOfInputAmounts  =
+      builder.inputs.map { input ->
+        chainView.getTransactionOutput(db, input.getOutPoint())
+      }.fold(0L, {sum, item -> sum + item.value } )
 
-    val splitOutputCount = newOwnerAddresses.length
-    val outputAmount = splitOutputCount
+    val splitOutputCount = newOwnerAddresses.size
 
     val eachOutputAmount = sumOfInputAmounts / splitOutputCount
-    for (i <- 0 until splitOutputCount) {
-      builder.addOutput(CoinAmount.from(eachOutputAmount), newOwnerAddresses(i))
+    for (i in 0 until splitOutputCount) {
+      builder.addOutput(CoinAmount.from(eachOutputAmount), newOwnerAddresses[i])
     }
 
     val transaction = builder.build()
 
-    transaction
+    return transaction
   }
 
-  fun newAddresses(addressCount : Int) : IndexedSeq<CoinAddress> {
-    (0 until addressCount).map { i =>
-      wallet.newAddress("")
+  fun newAddresses(addressCount : Int) : List<CoinAddress> {
+    return (0 until addressCount).map { i ->
+      wallet.newAddress(db, "")
     }
   }
 
-  fun signTransaction(transaction : Transaction, privateKeysOption : Option<List<PrivateKey>> = None ) : Transaction {
+  fun signTransaction(transaction : Transaction, privateKeysOption : List<PrivateKey>? = null ) : Transaction {
     val signedTransaction : SignedTransaction =
-      Wallet.get.signTransaction(
+      Wallet.get().signTransaction(
+        db,
         transaction,
         chainView,
-        List(),
+        listOf(),
         privateKeysOption,
         SigHash.ALL)
 
     assert(signedTransaction.complete)
-    signedTransaction.transaction
+    return signedTransaction.transaction
   }
 
   companion object {
-    Storage.initialize()
-    val walletDbPath = File(s"./target/transaction-generator-${Random.nextLong}")
-    FileUtils.deleteDirectory(walletDbPath)
-    walletDbPath.mkdir()
+    var db : KeyValueDatabase
+    var wallet : Wallet
 
-    val db : KeyValueDatabase = RocksDatabase(walletDbPath)
-    val wallet = Wallet.create
+    init {
+      Storage.initialize()
+      val walletDbPath = File("./target/transaction-generator-${Random().nextLong()}")
+      FileUtils.deleteDirectory(walletDbPath)
+      walletDbPath.mkdir()
 
-    fun create : TransactionGenerator {
-      TransactionGenerator(wallet)(db)
+      db = RocksDatabase(walletDbPath)
+      wallet = Wallet.create()
     }
 
-    fun generationTransaction( height : Long, privateKey: PrivateKey) {
+    fun create() : TransactionGenerator {
+      return TransactionGenerator(db, wallet)
+    }
+
+    fun generationTransaction( height : Long, privateKey: PrivateKey) : Transaction {
       val minerAddress = CoinAddress.from(privateKey)
       val coinbaseData = CoinMiner.coinbaseData(1)
-      TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
+      return TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
     }
   }
 }

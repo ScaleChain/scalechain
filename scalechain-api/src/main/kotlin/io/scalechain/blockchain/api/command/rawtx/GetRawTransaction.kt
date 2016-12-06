@@ -9,6 +9,8 @@ import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.HexUtil
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -111,32 +113,32 @@ import io.scalechain.util.HexUtil
 
 data class RawTransaction(
   // The serialized, hex-encoded data for 'txid'
-  hex           : String, // "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000"
+  val hex           : String, // "0100000001268a9ad7bfb21d3c086f0ff28f73a064964aa069ebb69a9e437da85c7e55c7d7000000006b483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326ffffffff0350ac6002000000001976a91456847befbd2360df0e35b4e3b77bae48585ae06888ac80969800000000001976a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac002d3101000000001976a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac00000000"
   // The transaction’s TXID encoded as hex in RPC byte order
-  txid          : Hash,   // "ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e",
+  val txid          : Hash,   // "ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e",
   // The transaction format version number
-  version       : Int,    // 1,
+  val version       : Int,    // 1,
   // The transaction’s locktime: either a Unix epoch date or block height; see the Locktime parsing rules
-  locktime      : Long,   // 0,
+  val locktime      : Long,   // 0,
   // An array of objects with each object being an input vector (vin) for this transaction.
   // Input objects will have the same order within the array as they have in the transaction,
   // so the first input listed will be input 0
-  vin           : List<RawTransactionInput>,
+  val vin           : List<RawTransactionInput>,
   // An array of objects each describing an output vector (vout) for this transaction.
   // Output objects will have the same order within the array as they have in the transaction,
   // so the first output listed will be output 0
-  vout          : List<RawTransactionOutput>,
+  val vout          : List<RawTransactionOutput>,
   // If the transaction has been included in a block on the local best block chain,
   // this is the hash of that block encoded as hex in RPC byte order
-  blockhash     : Option<Hash>,   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
+  val blockhash     : Hash?,   // "00000000103e0091b7d27e5dc744a305108f0c752be249893c749e19c1c82317",
   // If the transaction has been included in a block on the local best block chain,
   // this is how many confirmations it has. Otherwise, this is 0
-  confirmations : Long,   // 88192,
+  val confirmations : Long,   // 88192,
   // If the transaction has been included in a block on the local best block chain,
   // this is the block header time of that block (may be in the future)
-  time          : Option<Long>,   // 1398734825,
+  val time          : Long?,   // 1398734825,
   // This field is currently identical to the time field described above
-  blocktime     : Option<Long>    // 1398734825
+  val blocktime     : Long?   // 1398734825
 ) : RpcResult
 
 /** GetRawTransaction: gets a hex-encoded serialized transaction or a JSON object describing the transaction.
@@ -163,34 +165,37 @@ data class RawTransaction(
   *
   * https://bitcoin.org/en/developer-reference#getrawtransaction
   */
-object GetRawTransaction : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    //handlingException {
-      val txHashString : String                = request.params.get<String>("TXID", 0)
-      val verbose      : scala.math.BigDecimal = request.params.getOption<scala.math.BigDecimal>("Verbose", 1).getOrElse(scala.math.BigDecimal(0))
+object GetRawTransaction : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+      return handlingException {
+          val txHashString: String = request.params.get<String>("TXID", 0)
+          val verbose: java.math.BigDecimal = request.params.getOption<java.math.BigDecimal>("Verbose", 1) ?: java.math.BigDecimal(0)
 
-      val txHash = Hash ( HexUtil.bytes(txHashString) )
+          val txHash = Hash(HexUtil.bytes(txHashString))
 
-      val transactionOption = RpcSubSystem.get.getTransaction(txHash)
-      val bestBlockHeight : Long = RpcSubSystem.get.getBestBlockHeight()
-      val blockInfoOption = RpcSubSystem.get.getTransactionBlockInfo(txHash)
+          val transactionOption = RpcSubSystem.get().getTransaction(txHash)
+          val bestBlockHeight: Long = RpcSubSystem.get().getBestBlockHeight()
+          val blockInfoOption = RpcSubSystem.get().getTransactionBlockInfo(txHash)
 
-      val rawTransactionOption = transactionOption.map{ transaction =>
-        if (verbose != 0 ) {
-          TransactionFormatter.getRawTransaction(transaction, bestBlockHeight, blockInfoOption)
-        } else {
-          StringResult( TransactionFormatter.getSerializedTranasction(transaction) )
-        }
+          val rawTransactionOption =
+              if (transactionOption == null) null
+              else {
+                  if (verbose != java.math.BigDecimal(0)) {
+                      TransactionFormatter.getRawTransaction(transactionOption, bestBlockHeight, blockInfoOption)
+                  } else {
+                      StringResult(TransactionFormatter.getSerializedTranasction(transactionOption))
+                  }
+              }
+
+          // If the transaction wasn’t found, the result will be JSON null.
+          // This can occur because the transaction doesn’t exist in the block chain or memory pool,
+          // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
+
+          Right(rawTransactionOption)
       }
-
-      // If the transaction wasn’t found, the result will be JSON null.
-      // This can occur because the transaction doesn’t exist in the block chain or memory pool,
-      // or because it isn’t part of the transaction index. See the Bitcoin Core -help entry for -txindex
-
-      Right(rawTransactionOption)
-    //}
   }
-  fun help() : String =
+
+  override fun help() : String =
     """getrawtransaction "txid" ( verbose )
       |
       |NOTE: By default this function only works sometimes. This is when the tx is in the mempool
@@ -255,7 +260,7 @@ object GetRawTransaction : RpcCommand {
       |> bitcoin-cli getrawtransaction "mytxid"
       |> bitcoin-cli getrawtransaction "mytxid" 1
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getrawtransaction", "params": ["mytxid", 1] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

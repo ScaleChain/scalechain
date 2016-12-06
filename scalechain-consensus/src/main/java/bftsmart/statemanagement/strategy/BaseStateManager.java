@@ -60,11 +60,11 @@ public abstract class BaseStateManager implements StateManager {
     private HashMap<Integer, Integer> senderCIDs = null;
 
     public BaseStateManager() {
-        senderStates = new HashMap<>();
-        senderViews = new HashMap<>();
-        senderRegencies = new HashMap<>();
-        senderLeaders = new HashMap<>();
-        senderProofs = new HashMap<>();
+        senderStates = new HashMap<Integer, ApplicationState>();
+        senderViews = new HashMap<Integer, View>();
+        senderRegencies = new HashMap<Integer, Integer>();
+        senderLeaders = new HashMap<Integer, Integer>();
+        senderProofs = new HashMap<Integer, CertifiedDecision>();
     }
 
     protected int getReplies() {
@@ -230,12 +230,12 @@ public abstract class BaseStateManager implements StateManager {
             return;
         }
         if (senderCIDs == null) {
-            senderCIDs = new HashMap<>();
+            senderCIDs = new HashMap<Integer, Integer>();
         }
         senderCIDs.put(smsg.getSender(), smsg.getCID());
         if (senderCIDs.size() >= SVController.getQuorum()) {
 
-            HashMap<Integer, Integer> cids = new HashMap<>();
+            HashMap<Integer, Integer> cids = new HashMap<Integer, Integer>();
             for (int id : senderCIDs.keySet()) {
                                 
                 int value = senderCIDs.get(id);

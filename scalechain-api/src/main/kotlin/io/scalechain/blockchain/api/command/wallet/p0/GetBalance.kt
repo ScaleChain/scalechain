@@ -4,6 +4,9 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -27,13 +30,13 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#getbalance
   */
-object GetBalance : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object GetBalance : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """getbalance ( "account" minconf includeWatchonly )
       |
       |If account is not specified, returns the server's total available balance.
@@ -59,7 +62,7 @@ object GetBalance : RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getbalance", "params": ["*", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

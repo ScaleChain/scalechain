@@ -4,6 +4,10 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+
 
 /*
   CLI command :
@@ -27,13 +31,13 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#getnetworkhashps
   */
-object GetNetworkHashPS : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object GetNetworkHashPS : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """prioritisetransaction <txid> <priority delta> <fee delta>
       |Accepts the transaction into mined blocks at a higher (or lower) priority
       |
@@ -52,7 +56,7 @@ object GetNetworkHashPS : RpcCommand {
       |Examples:
       |> bitcoin-cli prioritisetransaction "txid" 0.0 10000
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "prioritisetransaction", "params": ["txid", 0.0, 10000] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

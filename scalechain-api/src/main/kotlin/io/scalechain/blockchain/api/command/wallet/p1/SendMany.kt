@@ -4,6 +4,9 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -37,13 +40,13 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#sendmany
   */
-object SendMany : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object SendMany : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """sendmany "fromaccount" {"address":amount,...} ( minconf "comment" ["address",...] )
       |
       |Send multiple times. Amounts are double-precision floating point numbers.
@@ -83,7 +86,7 @@ object SendMany : RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendmany", "params": ["", "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}", 6, "testing"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 
 }
 

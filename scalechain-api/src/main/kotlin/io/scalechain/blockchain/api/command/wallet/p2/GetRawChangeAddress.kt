@@ -4,6 +4,9 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -28,13 +31,13 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#getrawchangeaddress
   */
-object GetRawChangeAddress : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object GetRawChangeAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """getrawchangeaddress
       |
       |Returns a new Bitcoin address, for receiving change.
@@ -46,7 +49,7 @@ object GetRawChangeAddress : RpcCommand {
       |Examples:
       |> bitcoin-cli getrawchangeaddress
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getrawchangeaddress", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

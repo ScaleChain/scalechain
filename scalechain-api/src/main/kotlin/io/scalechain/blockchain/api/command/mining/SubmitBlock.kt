@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.api.command.mining
 
+import com.google.gson.JsonObject
 import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
@@ -7,6 +8,10 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+
 
 /*
   CLI command :
@@ -59,13 +64,14 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#submitblock
   */
-object SubmitBlock : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object SubmitBlock : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       val serializedBlock : String  = request.params.get<String>("Block", 0)
-      val parameters      : JsObject = request.params.paramValues(1) match {
-        case jsObject : JsObject => jsObject
-        case _ => throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
+
+      val parameters      : JsonObject = when(request.params.paramValues[1]) {
+        is JsonObject -> request.params.paramValues[1].asJsonObject
+        else -> throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
       }
 /*
       // Step 1 : decode the block
@@ -94,7 +100,7 @@ object SubmitBlock : RpcCommand {
       throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """submitblock "hexdata" ( "jsonparametersobject" )
       |
       |Attempts to submit block to network.
@@ -113,7 +119,7 @@ object SubmitBlock : RpcCommand {
       |Examples:
       |> bitcoin-cli submitblock "mydata"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": ["mydata"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

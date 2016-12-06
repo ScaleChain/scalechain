@@ -20,7 +20,7 @@ open class BlockAccessFile(path : File, maxFileSize : Long) {
     }
   }
 
-  fun read(offset : Long, size : Int) : ByteArray{
+  fun read(offset : Long, size : Int) : ByteArray {
     moveTo(offset)
 
     val buffer = ByteBuffer.allocate(size)

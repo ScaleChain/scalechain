@@ -2,16 +2,14 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
 import io.scalechain.wallet.Wallet
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -46,18 +44,18 @@ import io.scalechain.wallet.Wallet
   *
   * https://bitcoin.org/en/developer-reference#getaccountaddress
   */
-object GetAccountAddress : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object GetAccountAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       val account: String = request.params.get<String>("Account", 0)
 
-      val receivingCoinAddress : CoinAddress = Wallet.get.getReceivingAddress(account)(Blockchain.get.db)
+      val receivingCoinAddress : CoinAddress = Wallet.get().getReceivingAddress(Blockchain.get().db, account)
 
-      val address = receivingCoinAddress.base58
-      Right(Some(StringResult(address)))
+      val address = receivingCoinAddress.base58()
+      Right(StringResult(address))
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getaccountaddress "account"
       |
       |DEPRECATED. Returns the current Bitcoin address for receiving payments to this account.
@@ -73,7 +71,7 @@ object GetAccountAddress : RpcCommand {
       |> bitcoin-cli getaccountaddress ""
       |> bitcoin-cli getaccountaddress "myaccount"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getaccountaddress", "params": ["myaccount"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

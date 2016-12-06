@@ -92,10 +92,10 @@ data class PeerInfo(
                      // The Unix epoch time when we connected to this node
                      //  conntime : Long, // 1419265985
                      // The number of seconds this node took to respond to our last P2P ping message
-                     //  pingtime : scala.math.BigDecimal, // 0.05617800
+                     //  pingtime : java.math.BigDecimal, // 0.05617800
                      // The number of seconds we’ve been waiting for this node to respond to a P2P ping message.
                      // Only shown if there’s an outstanding ping message
-                     //  pingwait : Option<scala.math.BigDecimal>, // 0.04847123
+                     //  pingwait : Option<java.math.BigDecimal>, // 0.04847123
                      // The protocol version number used by this node. See the protocol versions section for more information
                      val version : Int?, // 70001
                      // The user agent this node sends in its version message.

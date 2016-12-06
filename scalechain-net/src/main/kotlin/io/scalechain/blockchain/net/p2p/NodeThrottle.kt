@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.net.p2p
 
-import com.typesafe.scalalogging.Logger
+import org.slf4j.Logger
+
 
 /**
   * Created by kangmo on 8/7/16.

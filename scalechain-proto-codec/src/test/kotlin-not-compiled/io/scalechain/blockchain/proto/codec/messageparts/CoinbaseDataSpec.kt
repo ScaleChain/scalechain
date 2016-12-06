@@ -33,7 +33,7 @@ class CoinbaseDataSpec : PayloadTestSuite<CoinbaseData>  {
       61 6e 63 65 6c 6c 6f 72  20 6f 6e 20 62 72 69 6e
       6b 20 6f 66 20 73 65 63  6f 6e 64 20 62 61 69 6c
       6f 75 74 20 66 6f 72 20  62 61 6e 6b 73
-    """.stripMargin)
+    """.trimMargin())
 
   val message = null//CoinbaseData()
 

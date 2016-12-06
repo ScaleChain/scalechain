@@ -67,15 +67,15 @@ interface ChainEnvironment {
 
     /** The current environment.
      */
-    lateinit var activeEnvironmentOption : ChainEnvironment
+    var activeEnvironmentOption : ChainEnvironment? = null
 
     /** Create an environment object based on the given environment name.
      *
      * @param environmentName The name of the environment.
      * @return The environment object.
      */
-    fun create(environmentName : String) : ChainEnvironment {
-      activeEnvironmentOption = EnvironmentByName.get(environmentName)!!
+    fun create(environmentName : String) : ChainEnvironment? {
+      activeEnvironmentOption = EnvironmentByName.get(environmentName)
       return activeEnvironmentOption
     }
 
@@ -84,7 +84,7 @@ interface ChainEnvironment {
      * @return Some(env) if any chain environment is active. None otherwise.
      */
     fun get() : ChainEnvironment {
-      return activeEnvironmentOption
+      return activeEnvironmentOption!!
     }
   }
 }
@@ -209,5 +209,5 @@ object RegTestEnvironment : TestEnvironment()
   */
 // BUGBUG : Interface changed. from interface ChainTestTrait to object ChainTest
 interface ChainTestTrait {
-  fun env() = ChainEnvironment.create("testnet")
+  fun env() = ChainEnvironment.create("testnet")!!
 }

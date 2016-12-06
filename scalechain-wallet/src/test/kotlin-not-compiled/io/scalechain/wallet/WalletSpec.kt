@@ -321,7 +321,7 @@ String Response : {
         0L
       )),
       0,
-      negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      negativeFeeOption = Some(java.math.BigDecimal(-1)),
       None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = true
     ).get
@@ -331,9 +331,9 @@ String Response : {
       ('account           ("Alice")),
       ('address           (Some(S.Alice.Addr1.address.base58))),
       ('category          ("send")),
-      ('amount   (scala.math.BigDecimal(50))),
+      ('amount   (java.math.BigDecimal(50))),
       ('vout     (Some(S.S1_AliceGenCoin_A50.outPoint.outputIndex))),
-      ('fee      (Some(scala.math.BigDecimal(-1)))),
+      ('fee      (Some(java.math.BigDecimal(-1)))),
       ('confirmations  (Some(2))),
       ('generated  (None)),
       ('blockhash  (Some(S.S2_BlockHash))),
@@ -356,7 +356,7 @@ String Response : {
         0L
       )),
       0,
-      negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      negativeFeeOption = Some(java.math.BigDecimal(-1)),
       None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = false
     ) shouldBe None // need to update
@@ -369,7 +369,7 @@ String Response : {
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Right(S.S2_BobCoin1_A10.output),
       0,
-      negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      negativeFeeOption = Some(java.math.BigDecimal(-1)),
       None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = true
     ).get
@@ -379,9 +379,9 @@ String Response : {
       ('account           ("Bob")),
       ('address           (Some(S.Bob.Addr1.address.base58))),
       ('category          ("receive")),
-      ('amount   (scala.math.BigDecimal(10))),
+      ('amount   (java.math.BigDecimal(10))),
       ('vout     (Some(S.S2_BobCoin1_A10.outPoint.outputIndex))),
-      ('fee      (Some(scala.math.BigDecimal(-1)))),
+      ('fee      (Some(java.math.BigDecimal(-1)))),
       ('confirmations  (Some(2))),
       ('generated  (None)),
       ('blockhash  (Some(S.S2_BlockHash))),
@@ -399,7 +399,7 @@ String Response : {
       walletTx(S.S2_AliceToBobTx, Some(S.S2_Block), S.S2_BlockHeight),
       Right(S.S2_BobCoin1_A10.output),
       0,
-      negativeFeeOption = Some(scala.math.BigDecimal(-1)),
+      negativeFeeOption = Some(java.math.BigDecimal(-1)),
       None, // TODO : BUGBUG Need to provide output ownership filter.
       includeWatchOnly = false
     ) shouldBe None // need to update
@@ -653,7 +653,7 @@ String Response : {
       ('account (Some("Carry"))),
       ('scriptPubKey (hex(S.S3_CarrayGenCoin_A50.output.lockingScript.data))),
       ('redeemScript (None)),
-      ('amount (scala.math.BigDecimal(50L))),
+      ('amount (java.math.BigDecimal(50L))),
       ('confirmations (1)),
       ('spendable (false)) // because of coinbase maturity
     )
@@ -686,7 +686,7 @@ String Response : {
       ('account (Some("Alice"))),
       ('scriptPubKey (hex(S.S2_AliceChangeCoin1_A39.output.lockingScript.data))),
       ('redeemScript (None)),
-      ('amount (scala.math.BigDecimal(39L))),
+      ('amount (java.math.BigDecimal(39L))),
       ('confirmations (2)),
       ('spendable (true))
     )

@@ -1,51 +1,55 @@
 package io.scalechain.blockchain.api.http
 
 import com.typesafe.scalalogging.Logger
-import io.netty.buffer.{Unpooled, ByteBuf}
-import io.netty.channel.{SimpleChannelInboundHandler, ChannelHandlerContext, ChannelFutureListener}
+import io.netty.buffer.Unpooled
+import io.netty.buffer.ByteBuf
+import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelFutureListener
 import io.netty.handler.codec.DecoderResult
-import io.netty.handler.codec.http.HttpHeaders.Names._
-import io.netty.handler.codec.http.HttpResponseStatus._
-import io.netty.handler.codec.http.HttpVersion._
-import io.netty.handler.codec.http._
-import io.netty.util.{ReferenceCountUtil, CharsetUtil}
+import io.netty.handler.codec.http.HttpHeaders.Names.*
+import io.netty.handler.codec.http.HttpResponseStatus.*
+import io.netty.handler.codec.http.HttpVersion.*
+import io.netty.handler.codec.http.*
+import io.netty.util.ReferenceCountUtil
+import io.netty.util.CharsetUtil
 import io.scalechain.blockchain.api.RequestHandler
 import io.scalechain.blockchain.net.p2p.NodeThrottle
-import io.scalechain.util.{StackUtil, ExceptionUtil}
+import io.scalechain.util.StackUtil
+import io.scalechain.util.ExceptionUtil
 import org.slf4j.LoggerFactory
-import collection.convert.wrapAll._
-import java.util
+import java.util.*
 
-class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
+class ApiServerHandler : SimpleChannelInboundHandler<Any>() {
   private val logger = LoggerFactory.getLogger(ApiServerHandler::class.java)
 
-  private var request: HttpRequest = null
+  private var request: HttpRequest? = null
   /** Buffer that stores the response content */
-  private final val requestData: StringBuilder = StringBuilder
+  private final val requestData: StringBuilder = StringBuilder()
 
   override fun channelReadComplete(ctx: ChannelHandlerContext) {
-    ctx.flush
+    ctx.flush()
   }
 
-  protected fun channelRead0(ctx: ChannelHandlerContext, msg: AnyRef) {
-    if (msg.isInstanceOf<HttpRequest>) {
-      val request: HttpRequest = msg.asInstanceOf<HttpRequest>
+  override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
+    if (msg is HttpRequest) {
+      val request: HttpRequest = msg
       this.request = request
       if (HttpHeaders.is100ContinueExpected(request)) {
         ApiServerHandler.send100Continue(ctx)
       }
       requestData.setLength(0)
     }
-    if (msg.isInstanceOf<HttpContent>) {
-      val httpContent: HttpContent = msg.asInstanceOf<HttpContent>
-      val content: ByteBuf = httpContent.content
+    if (msg is HttpContent) {
+      val httpContent: HttpContent = msg
+      val content: ByteBuf = httpContent.content()
       if (content.isReadable) {
         requestData.append(content.toString(CharsetUtil.UTF_8))
       }
-      if (msg.isInstanceOf<LastHttpContent>) {
-        val trailer: LastHttpContent = msg.asInstanceOf<LastHttpContent>
+      if (msg is LastHttpContent) {
+        val trailer: LastHttpContent = msg
 
-        val responseString = RequestHandler.handleRequest(requestData.toString)
+        val responseString = RequestHandler.handleRequest(requestData.toString())
 
         if (!writeResponse(trailer, ctx, responseString)) {
           ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
@@ -58,11 +62,11 @@ class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
 
   private fun writeResponse(currentObj: HttpObject, ctx: ChannelHandlerContext, responseString : String): Boolean {
     val keepAlive: Boolean = HttpHeaders.isKeepAlive(request)
-    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, if (currentObj.getDecoderResult.isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
-    response.headers.set(CONTENT_TYPE, "application/json; charset=UTF-8")
+    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, if (currentObj.getDecoderResult().isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
+    response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8")
     if (keepAlive) {
-      response.headers.set(CONTENT_LENGTH, response.content.readableBytes)
-      response.headers.set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+      response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
+      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
     }
     /*
     val cookieString: String = request.headers.get(COOKIE)
@@ -85,9 +89,9 @@ class ApiServerHandler : SimpleChannelInboundHandler<AnyRef> {
   }
 
   override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-    val causeDescription = ExceptionUtil.describe( cause.getCause )
-    logger.error(s"${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
-    ctx.close
+    val causeDescription = ExceptionUtil.describe( cause.cause )
+    logger.error("${cause}. Stack : ${StackUtil.getStackTrace(cause)} ${causeDescription}")
+    ctx.close()
   }
 
   companion object {

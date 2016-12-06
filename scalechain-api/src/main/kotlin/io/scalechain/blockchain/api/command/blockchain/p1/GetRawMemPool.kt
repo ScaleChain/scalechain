@@ -5,7 +5,9 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import org.slf4j.LoggerFactory
-
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 /*
   CLI command :
     bitcoin-cli -testnet getrawmempool
@@ -49,14 +51,14 @@ import org.slf4j.LoggerFactory
   *
   * https://bitcoin.org/en/developer-reference#getrawmempool
   */
-object GetRawMemPool : RpcCommand {
+object GetRawMemPool : RpcCommand() {
 
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """getrawmempool ( verbose )
       |
       |Returns all transaction ids in memory pool as a json array of string transaction ids.
@@ -93,7 +95,7 @@ object GetRawMemPool : RpcCommand {
       |> bitcoin-cli getrawmempool true
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getrawmempool", "params": [true] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
       |
-    """.stripMargin
+    """.trimMargin()
 }
 
 

@@ -76,7 +76,7 @@ object InvMessageHandler {
 //    if (blockInventories == GetBlocksMessageHandler.MAX_HASH_PER_REQUEST) {
       val node = Node.get()
       if (node.isInitialBlockDownload()) {
-        if (node.bestPeerForIBD() == context.peer) {
+        if (node.bestPeerForIBD == context.peer) {
           // After a second, summarize local blockchain and send getblocks again.
           val timer = Timer(true)
           timer.schedule( object : TimerTask() {

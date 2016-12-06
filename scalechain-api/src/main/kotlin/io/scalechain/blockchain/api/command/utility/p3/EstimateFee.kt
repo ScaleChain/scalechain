@@ -4,6 +4,9 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -30,13 +33,13 @@ import io.scalechain.blockchain.api.domain.RpcResult
   *
   * https://bitcoin.org/en/developer-reference#estimatefee
   */
-object EstimateFee : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+object EstimateFee : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
     assert(false)
-    Right(None)
+    return Right(null)
   }
-  fun help() : String =
+  override fun help() : String =
     """estimatefee nblocks
       |
       |Estimates the approximate fee per kilobyte needed for a transaction to begin
@@ -53,7 +56,7 @@ object EstimateFee : RpcCommand {
       |
       |Example:
       |> bitcoin-cli estimatefee 6
-    """.stripMargin
+    """.trimMargin()
 }
 
 

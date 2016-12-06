@@ -1,13 +1,11 @@
 package io.scalechain.blockchain.api.domain
 
-trait RpcResult
+interface RpcResult
 // Return JsNull. (for submitblock)
 //data class NullResult() : RpcResult
-data class StringResult(value : String) : RpcResult
-data class StringListResult(value : List<String>) : RpcResult
-data class NumberResult(value : scala.math.BigDecimal) : RpcResult
+data class StringResult(val value : String) : RpcResult
+data class StringListResult(val value : List<String>) : RpcResult
+data class NumberResult(val value : java.math.BigDecimal) : RpcResult
 
-
-
-data class RpcResponse(result : Option<RpcResult>, error:Option<RpcError>, id:Long)
+data class RpcResponse(val result : RpcResult?, val error : RpcError?, val id : Long)
 

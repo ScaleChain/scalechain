@@ -14,8 +14,10 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.util.HexUtil
-import io.scalechain.util.ByteArray
 import io.scalechain.wallet.Wallet
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 
 /*
@@ -45,50 +47,47 @@ import io.scalechain.wallet.Wallet
   *
   * https://bitcoin.org/en/developer-reference#importaddress
   */
-object ImportAddress : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object ImportAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       val scriptOrAddress  : String = request.params.get<String>("Script", 0)
-      val account          : String = request.params.getOption<String>("Account" , 1).getOrElse("")
-      val rescanBlockchain : Boolean = request.params.getOption<Boolean>("Rescan Blockchain", 2).getOrElse(true)
-///      val p2sh  : Boolean = request.params.getOption<Boolean>("Allow P2SH Scripts"  , 3).getOrElse(false)
+      val account          : String = request.params.getOption<String>("Account" , 1) ?: ""
+      val rescanBlockchain : Boolean = request.params.getOption<Boolean>("Rescan Blockchain", 2) ?: true
+///      val p2sh  : Boolean = request.params.getOption<Boolean>("Allow P2SH Scripts"  , 3) ?: false
 
       val coinOwnership =
         // Step 1 : Check if it is an address.
         try {
           CoinAddress.from(scriptOrAddress)
-        } catch {
-          case e : GeneralException => {
-            // Step 2 : Check if it is a public key hash script.
-            val scriptBytes = ByteArray.arrayToByteArray(HexUtil.bytes(scriptOrAddress))
-            try {
-              ParsedPubKeyScript( ScriptParser.parse(LockingScript(scriptBytes)) )
-            } catch {
-              case e : ScriptParseException => {
-                // Step 3 : If it is neither an address nor an script, throw an exception.
-                // The RpcInvalidAddress is converted to an RPC error, RPC_INVALID_ADDRESS_OR_KEY by handlingException.
-                throw GeneralException(ErrorCode.RpcInvalidAddress)
-              }
-            }
+        } catch(e : GeneralException) {
+          // Step 2 : Check if it is a public key hash script.
+          val scriptBytes = HexUtil.bytes(scriptOrAddress)
+          try {
+            ParsedPubKeyScript( ScriptParser.parse(LockingScript(scriptBytes)) )
+          } catch(e : ScriptParseException) {
+            // Step 3 : If it is neither an address nor an script, throw an exception.
+            // The RpcInvalidAddress is converted to an RPC error, RPC_INVALID_ADDRESS_OR_KEY by handlingException.
+            throw GeneralException(ErrorCode.RpcInvalidAddress)
           }
         }
 
-      Wallet.get.importOutputOwnership(
-        Blockchain.get,
+      Wallet.get().importOutputOwnership(
+        Blockchain.get().db,
+        Blockchain.get(),
         account,
         coinOwnership,
         rescanBlockchain
-      )(Blockchain.get.db)
+      )
 
       // None is converted to JsNull, so we will have { result : null .. } within the response json.
-      Right(None)
+      Right(null)
     }
   }
 
   // BUGBUG : Add fourth parameter.
   // 4. p2sh                 (boolean, optional, default=false) Add the P2SH version of the script as well
 
-  fun help() : String =
+  override fun help() : String =
     """importaddress "address" ( "label" rescan p2sh )
       |
       |Adds a script (in hex) or address that can be watched as if it were in your wallet but cannot be used to spend.
@@ -111,7 +110,7 @@ object ImportAddress : RpcCommand {
       |
       |As a JSON-RPC call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "importaddress", "params": ["myscript", "testing", false] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

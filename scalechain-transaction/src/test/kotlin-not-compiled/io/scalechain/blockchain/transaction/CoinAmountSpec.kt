@@ -8,11 +8,11 @@ import org.scalatest._
   */
 class CoinAmountSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   "CoinAmount.from" should "create a CoinAmount with correct value" in {
-    CoinAmount.from(100000000) shouldBe CoinAmount( scala.math.BigDecimal(1))
-    CoinAmount.from(1) shouldBe CoinAmount( scala.math.BigDecimal(0.00000001))
+    CoinAmount.from(100000000) shouldBe CoinAmount( java.math.BigDecimal(1))
+    CoinAmount.from(1) shouldBe CoinAmount( java.math.BigDecimal(0.00000001))
   }
   "coinUnits" should "return a correct units of coins" in {
-    CoinAmount( scala.math.BigDecimal(1)).coinUnits shouldBe 100000000
-    CoinAmount( scala.math.BigDecimal(0.00000001)).coinUnits shouldBe 1
+    CoinAmount( java.math.BigDecimal(1)).coinUnits shouldBe 100000000
+    CoinAmount( java.math.BigDecimal(0.00000001)).coinUnits shouldBe 1
   }
 }

@@ -1,73 +1,61 @@
 package io.scalechain.blockchain.cli
 
-import java.util
-
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.mining.BlockMining
-import io.scalechain.blockchain.net.handler.BlockMessageHandler
-import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.storage.index.RocksDatabase
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util.*
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.*
-import io.scalechain.blockchain.proto.BlockConsensus
 import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.script.hash
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
-import bftsmart.tom.ServiceProxy
 
 import scala.util.Random
 
-data class CoinMinerParams(P2PPort : Int, InitialDelayMS : Int, HashDelayMS : Int, MaxBlockSize : Int )
+data class CoinMinerParams(val P2PPort : Int, val InitialDelayMS : Int, val HashDelayMS : Int, val MaxBlockSize : Int )
 
-class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams)(rocksDB : RocksDatabase) {
+class CoinMiner(private val db : RocksDatabase, private val minerAccount : String, private val wallet : Wallet, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator, private val params : CoinMinerParams) {
   private val logger = LoggerFactory.getLogger(CoinMiner::class.java)
-
-  import CoinMiner._
-  implicit val db : KeyValueDatabase = rocksDB
 
   /**
     * Check if we can start mining.
     *
     * @return true if we can mine; false otherwise.
     */
-  fun canMine() : Boolean = {
-    val maxPeerCount = Config.peerAddresses.length
-    val node = Node.get
+  fun canMine() : Boolean {
+    val maxPeerCount = Config.peerAddresses().size
+    val node = Node.get()
     if (maxPeerCount == 1) {
       // regression test mode with only one node.
-      true
+      return true
     } else if (node.isInitialBlockDownload()) { // During the initial block download, do not do mining.
-      false
+      return false
     } else {
       val bestPeerOption = node.getBestPeer()
-      if (bestPeerOption.isDefined) {
-        val bestPeer = bestPeerOption.get
+      if (bestPeerOption != null) {
+        val bestPeer = bestPeerOption
         val bestBlockHeight = chain.getBestBlockHeight()
 
         // Did we catch up the best peer, which has the highest block height by the time we connected ?
-        bestBlockHeight >= bestPeer.versionOption.map(_.startHeight).getOrElse(0)
+        return bestBlockHeight >= bestPeer.versionOption?.startHeight ?: 0
       } else {
-        false
+        return false
       }
     }
   }
 
 
   fun start() : Unit {
-    val thread = Thread {
-      override fun run {
-        logger.info(s"Miner started. Params : ${params}")
+    val thread = object : Thread() {
+      override fun run() : Unit {
+        logger.info("Miner started. Params : ${params}")
         val random = Random(System.currentTimeMillis())
 
         // TODO : Need to eliminate this code.
         // Sleep for one minute to wait for each peer to start.
-        Thread.sleep(params.InitialDelayMS)
+        Thread.sleep(params.InitialDelayMS.toLong())
 
         var nonce : Int = 1
 
@@ -83,16 +71,16 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
           // The mined coin goes to minerAccount if the best block height is less than INITIAL_SETUP_BLOCKS.
           val minerAddress =
             if (bestBlockHeight < Config.InitialSetupBlocks) {
-              val receivingAddress = wallet.getReceivingAddress(minerAccount)
+              val receivingAddress = wallet.getReceivingAddress(db, minerAccount)
               if (Config.hasPath("scalechain.mining.address") ) {
                 println("TEST : has path : scalechain.mining.address")
                 val miningAddressString = Config.getString("scalechain.mining.address")
                 println("TEST : mining address string : miningAddressString")
                 if (receivingAddress.base58() != miningAddressString) {
                   val miningAddress = CoinAddress.from(miningAddressString)
-                  println(s"TEST : loading mining address : ${miningAddress.base58}")
+                  println("TEST : loading mining address : ${miningAddress.base58()}")
                   // Import the given address, and set it as the receiving address of the mining account
-                  wallet.importOutputOwnership(chain, minerAccount, miningAddress, false)
+                  wallet.importOutputOwnership(db, chain, minerAccount, miningAddress, false)
 
                   // If the scalechain.mining.address is specified, do not sleep for the initial setup blocks.
                   // This is to create the first block on top of the genesis block to have a generation transaction
@@ -103,38 +91,36 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   println("TEST : mining address loaded")
 
                   // After the first block, sleep like other nodes.
-                  Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+                  Thread.sleep( (params.HashDelayMS + random.nextInt(params.HashDelayMS)).toLong() )
                   receivingAddress
                 }
               } else {
                 // To give the node that has 'scalechain.mining.address' to mine the first block, sleep at least params.HashDelayMS.
-                Thread.sleep(params.HashDelayMS + random.nextInt(params.HashDelayMS))
+                Thread.sleep( (params.HashDelayMS + random.nextInt(params.HashDelayMS)).toLong() )
                 receivingAddress
               }
             } else {
-              Thread.sleep(random.nextInt(params.HashDelayMS))
-              wallet.getReceivingAddress("internal")
+              Thread.sleep(random.nextInt(params.HashDelayMS).toLong())
+              wallet.getReceivingAddress(db, "internal")
             }
 
 
           //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 
-          if (canMine) {
+          if (canMine()) {
             //chain.synchronized {
               // Step 2 : Create the block template
-              val bestBlockHash = chain.getBestBlockHash()
-              if (bestBlockHash.isDefined) {
-                val blockHeight = chain.getBlockInfo(bestBlockHash.get)(rocksDB).get.height
+              val bestBlockHash = chain.getBestBlockHash(db)
+              if (bestBlockHash != null) {
+                val blockHeight = chain.getBlockInfo(db, bestBlockHash)!!.height
                 val COINBASE_MESSAGE = coinbaseData(blockHeight + 1)
 
-                val blockTemplate {
-                  val blockMining = BlockMining(chain.txDescIndex, chain.txPool, chain)(rocksDB)
-                  Some(blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize))
-                }
+                val blockMining = BlockMining(db, chain.txDescIndex(), chain.txPool, chain)
+                val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
 
-                if (blockTemplate.isDefined) {
+                if (blockTemplate != null) {
                   // Step 3 : Get block header
-                  val blockHeader = blockTemplate.get.getBlockHeader(Hash(bestBlockHash.get.value))
+                  val blockHeader = blockTemplate.getBlockHeader(Hash(bestBlockHash.value))
                   val startTime = System.currentTimeMillis()
                   var blockFound = false;
 
@@ -145,20 +131,20 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
                   // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
 
                   // Check the best block hash once more.
-                  if ( bestBlockHash.get.value == chain.getBestBlockHash().get.value ) {
+                  if ( bestBlockHash.value == chain.getBestBlockHash(db)!!.value ) {
                     // Step 5 : When a block is found, create the block and put it on the blockchain.
                     // Also propate the block to the peer to peer network.
-                    val block = blockTemplate.get.createBlock(blockHeader, blockHeader.nonce)
-                    val blockHeaderHash = block.header.hash
+                    val block = blockTemplate.createBlock(blockHeader, blockHeader.nonce)
+                    val blockHeaderHash = block.header.hash()
 
                     peerCommunicator.propagateBlock(block)
 
                     BlockGateway.putReceivedBlock(blockHeaderHash, block)
 
-                    BlockBroadcaster.get.broadcastHeader(block.header)
+                    BlockBroadcaster.get().broadcastHeader(block.header)
 
                     blockFound = true
-                    logger.trace(s"Block Mined.\n hash : ${blockHeaderHash}\n\n")
+                    logger.trace("Block Mined.\n hash : ${blockHeaderHash}\n\n")
                   }
                 } else {
                   logger.trace("Not enough signed transactions with the previous block hash.")
@@ -173,31 +159,29 @@ class CoinMiner(minerAccount : String, wallet : Wallet, chain : Blockchain, peer
         }
       }
     }
-    thread.start
+    thread.start()
   }
 
   companion object {
-    var theCoinMiner : CoinMiner = null
+    var theCoinMiner : CoinMiner? = null
 
-    fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) {
-      theCoinMiner = CoinMiner(minerAccount, wallet, chain, peerCommunicator, params)(indexDb)
-      theCoinMiner.start()
-      theCoinMiner
+    fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) : CoinMiner {
+      theCoinMiner = CoinMiner(indexDb, minerAccount, wallet, chain, peerCommunicator, params)
+      theCoinMiner!!.start()
+      return theCoinMiner!!
     }
 
-    fun get {
+    fun get() : CoinMiner {
       assert(theCoinMiner != null)
-      theCoinMiner
+      return theCoinMiner!!
     }
 
     // For every 10 seconds, create a block template for mining a block.
     // This means that transactions received within the time window may not be put into the mined block.
     val MINING_TRIAL_WINDOW_MILLIS = 10000
 
-
-
-    fun coinbaseData(height : Long) {
-      CoinbaseData(s"height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".getBytes)
+    fun coinbaseData(height : Long) : CoinbaseData {
+      return CoinbaseData(ByteBufExt.from("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo."))
     }
   }
 }

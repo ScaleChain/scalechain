@@ -21,7 +21,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
-import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
 import io.scalechain.util.StringUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -36,15 +35,18 @@ public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMess
     public BitcoinProtocolEncoder() {
     }
 
-    private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
+    //private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
+        // TODO : Implement
+        /*
         // TODO : Make sure that we are not having any performance issue here.
         byte[] bytes = codec.encode(msg);
 
         ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
 
         out.add( buffer );
+        */
     }
 }

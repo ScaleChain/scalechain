@@ -1,13 +1,11 @@
 package io.scalechain.blockchain.api.command
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
 import io.scalechain.blockchain.api.command.rawtx.*
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.util.ByteArray
+import io.scalechain.blockchain.script.hash
 import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
 
@@ -22,22 +20,22 @@ object BlockFormatter {
     * @return The GetBlockResult instance.
     */
   fun getBlockResult(blockInfo : BlockInfo, block : Block) : GetBlockResult {
-    val serializedBlock = BlockCodec.serialize(block)
+    val serializedBlock = BlockCodec.encode(block)
 
-    val blockHash = block.header.hash
+    val blockHash = block.header.hash()
 
-    val txHashes = block.transactions.map { tx => tx.hash }
+    val txHashes = block.transactions.map { tx -> tx.hash() }
 
-    GetBlockResult(
+    return GetBlockResult(
       hash = blockHash,
-      size = serializedBlock.length,
+      size = serializedBlock.size,
       height = blockInfo.height,
       version = block.header.version,
       merkleroot = Hash(block.header.hashMerkleRoot.value),
       tx = txHashes,
       time = block.header.timestamp,
       nonce = block.header.nonce,
-      previousblockhash = Some(Hash(block.header.hashPrevBlock.value))
+      previousblockhash = Hash(block.header.hashPrevBlock.value)
     )
   }
 
@@ -49,8 +47,8 @@ object BlockFormatter {
     * @return The serialized string value.
     */
   fun getSerializedBlock(block : Block) : String {
-    val rawBlockData : ByteArray = BlockCodec.serialize(block)
-    HexUtil.hex(rawBlockData)
+    val rawBlockData : ByteArray = BlockCodec.encode(block)
+    return HexUtil.hex(rawBlockData)
   }
 }
 
@@ -66,7 +64,7 @@ object TransactionDecoder {
     */
   fun decodeTransaction(serializedTransaction : String) : Transaction {
     val rawTransaction = HexUtil.bytes(serializedTransaction)
-    TransactionCodec.parse(rawTransaction)
+    return TransactionCodec.decode(rawTransaction)!!
   }
 
   /** Decodes multiple transactions from a hex string.
@@ -78,9 +76,9 @@ object TransactionDecoder {
     */
   fun decodeTransactions(serializedTransactions : String) : List<Transaction> {
     val rawTransactions = HexUtil.bytes(serializedTransactions)
-    TransactionCodec.parseMany(rawTransactions)
-  }
 
+    return TransactionCodec.parseMany(rawTransactions)
+  }
 }
 
 // <API Layer> encode a transaction
@@ -93,7 +91,7 @@ object TransactionEncoder {
     * @return The serialized transaction.
     */
   fun encodeTransaction(transaction : Transaction) : ByteArray {
-    TransactionCodec.serialize(transaction)
+    return TransactionCodec.encode(transaction)
   }
 }
 
@@ -109,7 +107,7 @@ object BlockDecoder {
     */
   fun decodeBlock(serializedBlock : String) : Block {
     val rawBlock = HexUtil.bytes(serializedBlock)
-    BlockCodec.parse(rawBlock)
+    return BlockCodec.decode(rawBlock)!!
   }
 }
 
@@ -123,48 +121,48 @@ object TransactionFormatter {
     * Used by : sign raw transaction
     */
   fun getSerializedTranasction(transaction : Transaction) : String {
-    val rawTransactionData : ByteArray = TransactionCodec.serialize(transaction)
-    HexUtil.hex(rawTransactionData)
+    val rawTransactionData : ByteArray = TransactionCodec.encode(transaction)
+    return HexUtil.hex(rawTransactionData)
   }
 
 
-  protected<command> fun convertTransactionInputs( inputs : List<TransactionInput> ) : List<RawTransactionInput> {
-    inputs.map { input =>
-      input match {
-        case in : NormalTransactionInput => {
-          assert( in.outputIndex < Integer.MAX_VALUE)
+  private fun convertTransactionInputs( inputs : List<TransactionInput> ) : List<RawTransactionInput> {
+    return inputs.map { input ->
+      when {
+        input is NormalTransactionInput -> {
+          assert( input.outputIndex < Integer.MAX_VALUE)
 
           RawNormalTransactionInput(
-            txid      = Hash( in.outputTransactionHash.value ),
-            vout      = in.outputIndex.toInt,
-            scriptSig = RawScriptSig( ByteArray.byteArrayToString(in.unlockingScript.data) ),
-            sequence  = in.sequenceNumber
+            txid      = Hash( input.outputTransactionHash.value ),
+            vout      = input.outputIndex.toInt(),
+            scriptSig = RawScriptSig( HexUtil.hex(input.unlockingScript.data) ),
+            sequence  = input.sequenceNumber
           )
-
         }
-        case in : GenerationTransactionInput => {
+        input is GenerationTransactionInput -> {
           RawGenerationTransactionInput(
-            coinbase  = ByteArray.byteArrayToString(in.coinbaseData.data),
-            sequence  = in.sequenceNumber
+            coinbase  = HexUtil.hex(input.coinbaseData.data.array()),
+            sequence  = input.sequenceNumber
           )
         }
+        else -> throw AssertionError()
       }
     }
   }
 
-  protected<command> fun convertTransactionOutputs(outputs : List<TransactionOutput>) : List<RawTransactionOutput> {
+  fun convertTransactionOutputs(outputs : List<TransactionOutput>) : List<RawTransactionOutput> {
     var outputIndex = -1 // Because we add 1 to the outputIndex, we set it to -1 to start from 0.
-    val rawTxOutputs = outputs.map { output =>
+    val rawTxOutputs = outputs.map { output ->
         outputIndex += 1
         RawTransactionOutput(
-          value        = output.value,
+          value        = java.math.BigDecimal( output.value ),
           n            = outputIndex,
           scriptPubKey = RawScriptPubKey(
-            ByteArray.byteArrayToString(output.lockingScript.data)
+            HexUtil.hex(output.lockingScript.data)
           )
         )
       }
-    rawTxOutputs
+    return rawTxOutputs
   }
 
   /** Convert a transaction to a RawTransaction instance.
@@ -176,16 +174,16 @@ object TransactionFormatter {
     * @param blockInfoOption Some(blockInfo) if the transaction is included in a block; None otherwise.
     * @return The converted RawTransaction instance.
     */
-  fun getRawTransaction(transaction : Transaction, bestBlockHeight : Long, blockInfoOption : Option<BlockInfo>) : RawTransaction {
+  fun getRawTransaction(transaction : Transaction, bestBlockHeight : Long, blockInfoOption : BlockInfo?) : RawTransaction {
     val serializedTransaction = getSerializedTranasction(transaction)
 
     val confirmations =
-      if (blockInfoOption.isDefined) {
-        if (bestBlockHeight >= blockInfoOption.get.height) {
+      if (blockInfoOption != null) {
+        if (bestBlockHeight >= blockInfoOption.height) {
           // If the block is the best block, we can say, 1 confirmation.
-          bestBlockHeight - blockInfoOption.get.height + 1L
+          bestBlockHeight - blockInfoOption.height + 1L
         } else {
-          logger.error(s"The best block height(${bestBlockHeight}) is less than the block height${blockInfoOption.get.height} which has a transaction.")
+          logger.error("The best block height(${bestBlockHeight}) is less than the block height${blockInfoOption.height} which has a transaction.")
           assert(false)
           0L
         }
@@ -193,17 +191,17 @@ object TransactionFormatter {
         0L
       }
 
-    RawTransaction(
+    return RawTransaction(
       hex      = serializedTransaction,
-      txid     = transaction.hash,
+      txid     = transaction.hash(),
       version  = transaction.version,
       locktime = transaction.lockTime,
       vin      = convertTransactionInputs(transaction.inputs),
       vout     = convertTransactionOutputs(transaction.outputs),
-      blockhash  = blockInfoOption.map(_.blockHeader.hash),
+      blockhash  = blockInfoOption?.blockHeader?.hash(),
       confirmations = confirmations,
-      time     = blockInfoOption.map(_.blockHeader.timestamp),
-      blocktime     = blockInfoOption.map(_.blockHeader.timestamp)
+      time     = blockInfoOption?.blockHeader?.timestamp,
+      blocktime     = blockInfoOption?.blockHeader?.timestamp
     )
   }
 
@@ -215,8 +213,8 @@ object TransactionFormatter {
     * @return The converted DecodedRawTransaction instance.
     */
   fun getDecodedRawTransaction(transaction : Transaction) : DecodedRawTransaction {
-    DecodedRawTransaction(
-      txid     = transaction.hash,
+    return DecodedRawTransaction(
+      txid     = transaction.hash(),
       version  = transaction.version,
       locktime = transaction.lockTime,
       vin      = convertTransactionInputs(transaction.inputs),

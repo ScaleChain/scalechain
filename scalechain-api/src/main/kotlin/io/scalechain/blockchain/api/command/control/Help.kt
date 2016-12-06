@@ -2,12 +2,14 @@ package io.scalechain.blockchain.api.command.help
 
 import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+
 
 /*
   CLI command :
@@ -49,7 +51,7 @@ import io.scalechain.blockchain.proto.HashFormat
   *
   * https://bitcoin.org/en/developer-reference#help
   */
-object Help : RpcCommand {
+object Help : RpcCommand() {
   val helpForAllCommands =
     """
       |== Blockchain ==
@@ -82,29 +84,28 @@ object Help : RpcCommand {
       |listtransactions ( "account" count from includeWatchonly)
       |listunspent ( minconf maxconf  ["address",...] )
       |sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
-    """.stripMargin
+    """.trimMargin()
 
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
-      val rpcName: Option<String> = request.params.getOption<String>("RPC", 0)
+      val rpcName: String? = request.params.getOption<String>("RPC", 0)
 
-      if (rpcName.isEmpty) {
-        Right(Some(StringResult(helpForAllCommands)))
+      if (rpcName == null) {
+        Right(StringResult(helpForAllCommands))
       } else {
-        val command = rpcName.get
 
-        val serviceOption = Services.serviceByCommand.get(command)
-        if (serviceOption.isDefined) {
-          Right(Some(StringResult(serviceOption.get.help)))
+        val serviceOption = Services.serviceByCommand.get(rpcName)
+        if (serviceOption != null) {
+          Right(StringResult(serviceOption.help()))
         } else {
-          Left(RpcError(0, "Invalid command", command))
+          Left(RpcError(0, "Invalid command", rpcName))
         }
       }
     }
   }
 
-  fun help() : String =
+  override fun help() : String =
     """help ( "command" )
       |
       |List all commands, or get help for a specified command.
@@ -114,7 +115,7 @@ object Help : RpcCommand {
       |
       |Result:
       |"text"     (string) The help text
-    """.stripMargin
+    """.trimMargin()
 }
 
 

@@ -5,6 +5,9 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import org.slf4j.LoggerFactory
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -42,33 +45,32 @@ import org.slf4j.LoggerFactory
 */
 
 data class ScriptPubKey(
-                         asm: String,
-                         hex: String,
-                         reqSigs: Int,
-                         `type` : String,
-                         addresses : Array<String>
+                         val asm: String,
+                         val hex: String,
+                         val reqSigs: Int,
+                         val `type` : String,
+                         val addresses : Array<String>
                        )
 
 data class GetTxOutResult(
-                           bestblock : String,
-                           confirmations: Int,
-                           value: Int,
-                           scriptPubKey: ScriptPubKey,
-                           version: Int,
-                           coinbase : Boolean
-                         ) : RpcResult
+    val bestblock : String,
+    val confirmations: Int,
+    val value: Int,
+    val scriptPubKey: ScriptPubKey,
+    val version: Int,
+    val coinbase : Boolean
+) : RpcResult
 
 /** GetTxOut: returns details about a transaction output.
   * Only unspent transaction outputs (UTXOs) are guaranteed to be available.
   *
   * https://bitcoin.org/en/developer-reference#gettxout
   */
-object GetTxOut : RpcCommand {
+object GetTxOut : RpcCommand() {
 
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     // TODO : Implement
-    Right(
-      Some(
+    return Right(
         GetTxOutResult(
           bestblock = "000000000000000001ef38012ed2e2f674e59bf2314e55f2b4e6f71a7657df50",
           confirmations = 5,
@@ -78,15 +80,14 @@ object GetTxOut : RpcCommand {
             hex = "76a91460692856b3121dab03f477f130b9fee7e6e6023488ac",
             reqSigs = 1,
             `type` = "pubkeyhash",
-            addresses = Array<String>( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
+            addresses = arrayOf( "19nmqtjciexd6NU9VNp5JTu4hht98pULn5" )
           ),
           version = 1,
           coinbase = false
         )
-      )
     )
   }
-  fun help() : String =
+  override fun help() : String =
     """gettxout "txid" n ( includemempool )
       |
       |Returns details about an unspent transaction output.
@@ -126,7 +127,7 @@ object GetTxOut : RpcCommand {
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettxout", "params": ["txid", 1] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
       |
-    """.stripMargin
+    """.trimMargin()
 }
 
 

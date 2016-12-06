@@ -8,6 +8,9 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.net.PeerInfo
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 
 /*
@@ -52,7 +55,7 @@ import io.scalechain.blockchain.net.PeerInfo
 */
 
 
-data class GetPeerInfoResult(peerInfos : List<PeerInfo>) : RpcResult
+data class GetPeerInfoResult(val peerInfos : List<PeerInfo>) : RpcResult
 
 /** GetPeerInfo: returns data about each connected network node.
   *
@@ -66,14 +69,14 @@ data class GetPeerInfoResult(peerInfos : List<PeerInfo>) : RpcResult
   *
   * https://bitcoin.org/en/developer-reference#getpeerinfo
   */
-object GetPeerInfo : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
-      val peerInfos = RpcSubSystem.get.getPeerInfos()
-      Right(Some(GetPeerInfoResult(peerInfos)))
+object GetPeerInfo : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val peerInfos = RpcSubSystem.get().getPeerInfos()
+      Right(GetPeerInfoResult(peerInfos))
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getpeerinfo
       |
       |Returns data about each connected network node as a json array of objects.
@@ -121,7 +124,7 @@ object GetPeerInfo : RpcCommand {
       |Examples:
       |> bitcoin-cli getpeerinfo
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getpeerinfo", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

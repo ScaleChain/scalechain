@@ -340,7 +340,7 @@ public final class Acceptor {
         } else { //... if not, we can use MAC vectores
             int[] processes = this.controller.getCurrentViewAcceptors();
 
-            HashMap<Integer, byte[]> macVector = new HashMap<>();
+            HashMap<Integer, byte[]> macVector = new HashMap<Integer, byte[]>();
 
             for (int id : processes) {
 

@@ -16,7 +16,7 @@ import io.scalechain.blockchain.api.command.wallet.p3.GetTransaction
   * to the actual Service object (such as GetBlock)
   */
 object Services {
-  val all = Seq (
+  val all = listOf(
     GetBestBlockHash,
     GetBlock,
     GetBlockHash,
@@ -46,9 +46,8 @@ object Services {
   //
   // Following steps are the necessary to get the command string from the object singleton.
   //
-  // getSimpleName => GetBestBlockHash$
-  // toLowerCase   => getbestblockhash$
-  // dropRight(1)  => getbestblockhash
-  val serviceByCommand = (all.map(_.getClass.getSimpleName.toLowerCase.dropRight(1)) zip all).toMap
+  // getSimpleName => GetBestBlockHash
+  // toLowerCase   => getbestblockhash
+  val serviceByCommand = (all.map{it.javaClass.getSimpleName().toLowerCase()} zip all).toMap()
 }
 

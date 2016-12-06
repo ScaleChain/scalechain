@@ -1,16 +1,22 @@
 package io.scalechain.blockchain.cli
 
+import io.netty.buffer.Unpooled
 import java.io.*
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.FatalException
 import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
+import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import java.nio.ByteBuffer
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
 
 
 /** For each block read by the block reader, we will have a function call.
  *
  */
-trait BlockReadListener {
+interface BlockReadListener {
   /** This function is called whenever we finish reading and decoding a block.
    *
    * @param block The block read by the Reader.
@@ -29,7 +35,15 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     * @param blockFile the file to read.
    */
   fun readFully(blockFile : File): Unit {
-    BlockDataInputStream( DataInputStream( BufferedInputStream (FileInputStream(blockFile))) ).use { stream -> while( readBlock(stream) ) {} }
+    val raf = RandomAccessFile(blockFile, "r")
+    raf.use { raf ->
+      val channel = raf.getChannel()
+      val byteBuffer : MappedByteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())
+      byteBuffer.load()
+      val wrappedBuffer = Unpooled.wrappedBuffer(byteBuffer)
+      val stream = CodecInputOutputStream(wrappedBuffer, isInput = true)
+      while( readBlock(stream) ) ;
+    }
   }
 
   /** Parse the byte array stream to get a block.
@@ -45,22 +59,21 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     *
     * @return Some(Block) if we successfully read a block. None otherwise.
     */
-  fun parseBlock(stream : BlockDataInputStream) : Option<Block> {
+  fun parseBlock(stream : CodecInputOutputStream) : Block? {
     val magic = try {
-      stream.readLittleEndianInt()
-    } catch {
-      case e : EOFException => -1
+      Codecs.UInt32L.transcode(stream, null)
+    } catch(e : EOFException) {
+      -1
     }
     if (magic == -1) {
-      None // End of file.
+      return null // End of file.
     } else {
       // BUGBUG : Does this work even though the integer we read is a signed int?
       if (magic != 0xD9B4BEF9)
         throw FatalException(ErrorCode.InvalidBlockMagic)
 
-      val blockSize        = stream.readLittleEndianInt()
-      val blockBytes = stream.readBytes(blockSize)
-      Some(BlockCodec.parse(blockBytes))
+      Codecs.UInt32L.transcode(stream, null)!!
+      return BlockCodec.transcode(stream, null)
     }
   }
 
@@ -70,13 +83,13 @@ class BlockFileReader(val blockListener : BlockReadListener) {
    * @param stream The byte array stream where we read the block data.
    * @return True if a block was read, False if we met EOF of the input block file.
    */
-  fun readBlock(stream : BlockDataInputStream): Boolean {
+  fun readBlock(stream : CodecInputOutputStream): Boolean {
     val blockOption = parseBlock(stream)
-    if (blockOption.isDefined) {
-      blockListener.onBlock(blockOption.get)
-      true
+    if (blockOption != null) {
+      blockListener.onBlock(blockOption)
+      return true
     } else {
-      false
+      return false
     }
   }
 }
@@ -98,15 +111,15 @@ class BlockDirectoryReader(val blockListener : BlockReadListener) {
     val directory = File(path)
     if (directory.exists()) {
       // For each file in the path
-      for (file <- directory.listFiles.sortBy(_.getName())) {
+      for (file in directory.listFiles().sortedBy { file : File -> file.getName() } ) {
         if (file.getName().startsWith("blk") && file.getName().endsWith(".dat")) {
           val fileReader = BlockFileReader(blockListener)
           fileReader.readFully(file)
         }
       }
-      true
+      return true
     } else {
-      false
+      return false
     }
   }
 }

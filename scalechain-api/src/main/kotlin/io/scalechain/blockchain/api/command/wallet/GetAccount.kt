@@ -2,16 +2,14 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
 import io.scalechain.wallet.Wallet
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -44,19 +42,19 @@ import io.scalechain.wallet.Wallet
   *
   * https://bitcoin.org/en/developer-reference#getaccount
   */
-object GetAccount : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object GetAccount : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       val address: String = request.params.get<String>("Address", 0)
 
       val coinAddress = CoinAddress.from(address)
 
 
-      val accountNameOption : Option<String> = Wallet.get.getAccount(coinAddress)(Blockchain.get.db)
-      Right(Some(StringResult(accountNameOption.getOrElse(""))))
+      val accountNameOption : String? = Wallet.get().getAccount(Blockchain.get().db, coinAddress)
+      Right(StringResult(accountNameOption ?: ""))
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getaccount "bitcoinaddress"
       |
       |DEPRECATED. Returns the account associated with the given address.
@@ -70,7 +68,7 @@ object GetAccount : RpcCommand {
       |Examples:
       |> bitcoin-cli getaccount "1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getaccount", "params": ["1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

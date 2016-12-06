@@ -36,7 +36,7 @@ class BlockInfoCodecSpecWithBlockLocator : PayloadTestSuite<BlockInfo>  {
 
   val payload = bytes(
     """6400000000000000a08601000000000000ec03000000000000040000007b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f701eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f4fd202964940420f00d2040000ff010000000a00000000000000c8000000
-    """.stripMargin)
+    """.trimMargin())
 
   val message = BlockInfo(
     height = 100L,

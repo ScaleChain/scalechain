@@ -1,19 +1,21 @@
 package io.scalechain.blockchain.api
 
-import io.scalechain.blockchain.{RpcException, ErrorCode}
+import io.scalechain.blockchain.RpcException
+import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
-import io.scalechain.blockchain.net.{Node, PeerInfo, PeerCommunicator, PeerSet}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.script.HashSupported
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.net.Node
+import io.scalechain.blockchain.net.PeerInfo
+import io.scalechain.blockchain.net.PeerCommunicator
+import io.scalechain.blockchain.net.PeerSet
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionVerifier
-import spray.json.JsObject
-import HashSupported._
+import com.google.gson.Gson
 
-class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(implicit db : KeyValueDatabase) {
+class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator) {
 
   /** Get the hash of a block specified by the block height on the best blockchain.
     *
@@ -23,7 +25,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @return The hash of the block header.
     */
   fun getBlockHash(blockHeight : Long) : Hash {
-    chain.getBlockHash(blockHeight)
+    return chain.getBlockHash(db, blockHeight)
   }
 
   /** Get a block searching by the header hash.
@@ -33,8 +35,8 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param blockHash The header hash of the block to search.
     * @return The searched block.
     */
-  fun getBlock(blockHash: Hash): Option<(BlockInfo, Block)> {
-    chain.getBlock(blockHash)
+  fun getBlock(blockHash: Hash): Pair<BlockInfo, Block>? {
+    return chain.getBlock(db, blockHash)
   }
 
   /** Get the header hash of the most recent block on the best block chain.
@@ -43,8 +45,8 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     *
     * @return The header hash of the most recent block.
     */
-  fun getBestBlockHash(): Option<Hash> {
-    chain.getBestBlockHash()
+  fun getBestBlockHash(): Hash? {
+    return chain.getBestBlockHash(db)
   }
 
 
@@ -56,7 +58,7 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @return The height of the best block.
     */
   fun getBestBlockHeight() : Long {
-    chain.getBestBlockHeight()
+    return chain.getBestBlockHeight()
   }
 
   /**
@@ -65,8 +67,8 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param txHash The hash of the transaction to get the block info of the block which has the transaction.
     * @return Some(block info) if the transaction is included in a block; None otherwise.
     */
-  fun getTransactionBlockInfo(txHash : Hash) : Option<BlockInfo> {
-    chain.getTransactionBlockInfo(txHash)
+  fun getTransactionBlockInfo(txHash : Hash) : BlockInfo? {
+    return chain.getTransactionBlockInfo(db, txHash)
   }
 
   /** Get a transaction searching by the transaction hash.
@@ -76,20 +78,23 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param txHash The header hash of the transaction to search.
     * @return The searched block.
     */
-  fun getTransaction(txHash : Hash): Option<Transaction> {
-    chain.getTransaction(txHash)
+  fun getTransaction(txHash : Hash): Transaction? {
+    return chain.getTransaction(db, txHash)
   }
 
 
   /** List of responses for submitblock RPC.
     */
-  object SubmitBlockResult : Enumeration {
+  enum class SubmitBlockResult {
+    DUPLICATE, DUPLICATE_INVALID, INCONCLUSIVE, REJECTED
+/*
     val DUPLICATE         = Val(nextId, "duplicate")
     val DUPLICATE_INVALID = Val(nextId, "duplicate-invalid")
     val INCONCLUSIVE      = Val(nextId, "inconclusive")
     val REJECTED          = Val(nextId, "rejected")
+*/
   }
-
+/*
   /** Accepts a block, verifies it is a valid addition to the block chain, and broadcasts it to the network.
     *
     * Used by : submitblock RPC.
@@ -98,20 +103,20 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @param parameters The JsObject we got from the second parameter of submitblock RPC. A common parameter is a workid string.
     * @return Some(SubmitBlockResult) if any error happend; None otherwise.
     */
-  fun submitBlock(block : Block, parameters : JsObject) : Option<SubmitBlockResult.Value> {
+  fun submitBlock(block : Block, parameters : Any?) : SubmitBlockResult? {
     // TODO : BUGBUG : parameters is not used.
-    val blockHash = block.header.hash
-    if (chain.hasBlock(blockHash)) {
-      Some(SubmitBlockResult.DUPLICATE)
+    val blockHash = block.header.hash()
+    if (chain.hasBlock(db, blockHash)) {
+      return SubmitBlockResult.DUPLICATE
     } else {
       peerCommunicator.propagateBlock(block)
-      chain.withTransaction { transactingDB =>
-        chain.putBlock(Hash(blockHash.value), block)(transactingDB)
+      chain.withTransaction { transactingDB ->
+        chain.putBlock(transactingDB, Hash(blockHash.value), block)
       }
-      None
+      return null
     }
   }
-
+*/
   /** Validates a transaction and broadcasts it to the peer-to-peer network.
     *
     * Used by : sendrawtransaction RPC.
@@ -122,10 +127,10 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     */
   fun sendRawTransaction(transaction : Transaction, allowHighFees : Boolean) {
     // Do not process the send raw transaction RPC during initial block download.
-    if ( Node.get.isInitialBlockDownload() ) {
-      throw new RpcException( ErrorCode.BusyWithInitialBlockDownload, "Unable to send raw transactions while the initial block download is in progress.")
+    if ( Node.get().isInitialBlockDownload() ) {
+      throw RpcException( ErrorCode.BusyWithInitialBlockDownload, "Unable to send raw transactions while the initial block download is in progress.")
     } else {
-      TransactionProcessor.putTransaction(transaction.hash, transaction)(Blockchain.get.db)
+      TransactionProcessor.putTransaction(Blockchain.get().db, transaction.hash(), transaction)
 
       peerCommunicator.propagateTransaction(transaction)
     }
@@ -138,26 +143,26 @@ class RpcSubSystem(chain : Blockchain, peerCommunicator: PeerCommunicator)(impli
     * @return The list of peer information.
     */
   fun getPeerInfos() : List<PeerInfo> {
-    peerCommunicator.getPeerInfos()
+    return peerCommunicator.getPeerInfos()
   }
 
   fun verifyTransaction( transaction : Transaction ) : Unit {
-    implicit val db : KeyValueDatabase = Blockchain.get.db
+    val db : KeyValueDatabase = Blockchain.get().db
 
-    TransactionVerifier(transaction).verify(Blockchain.get)
+    TransactionVerifier(db, transaction).verify(Blockchain.get())
   }
 
   companion object {
-    private var theRpcSubSystem : RpcSubSystem = null
+    private var theRpcSubSystem : RpcSubSystem? = null
 
-    fun create(chain : Blockchain, peerCommunicator: PeerCommunicator) {
-      theRpcSubSystem = RpcSubSystem(chain, peerCommunicator)(chain.db)
-      theRpcSubSystem
+    fun create(chain : Blockchain, peerCommunicator: PeerCommunicator) : RpcSubSystem {
+      theRpcSubSystem = RpcSubSystem(chain.db, chain, peerCommunicator)
+      return theRpcSubSystem!!
     }
 
-    fun get {
+    fun get() : RpcSubSystem {
       assert(theRpcSubSystem != null)
-      theRpcSubSystem
+      return theRpcSubSystem!!
     }
   }
 }

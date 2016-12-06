@@ -4,29 +4,25 @@ import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.api.domain.RpcResponse
 import io.scalechain.blockchain.api.domain.RpcParams
 import io.scalechain.blockchain.api.domain.RpcRequest
-import io.scalechain.blockchain.api.domain.RpcParamsJsonFormat
 import io.scalechain.util.StringUtil
 
 import org.slf4j.LoggerFactory
-import scala.util.Random
+import java.util.*
 
 object RequestHandler : ServiceDispatcher {
   private val logger = LoggerFactory.getLogger(RequestHandler.javaClass)
 
-  import RpcParamsJsonFormat._
-
   //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
 
-  import RpcResponseJsonFormat._
-
-  val requestLog = java.io.FileWriter(s"./target/request-${Math.abs(Random.nextInt)}.log")
+  val requestLog = java.io.FileWriter("./target/request-${Math.abs(Random().nextInt())}.log")
   //var requestCount = 0
   fun handleRequest(requestString : String) : String {
     //requestCount += 1
     //requestLog.write(s"Request<${requestCount}> : ${requestString}\n\n")
-    logger.trace(s"String Request : ${requestString}")
+    logger.trace("String Request : ${requestString}")
 
-    val parsedRequest = requestString.parseJson
+    val request = Json.get().fromJson(requestString, RpcRequest::class.java)
+/*
     assert( parsedRequest != null)
 
     val id = parsedRequest.asJsObject.fields("id")
@@ -39,13 +35,13 @@ object RequestHandler : ServiceDispatcher {
       method = method.convertTo<String>,
       params = params.convertTo<RpcParams>
     )
-
+*/
     val serviceResponse : RpcResponse = dispatch(request)
-    val stringResponse = serviceResponse.toJson.prettyPrint
+    val stringResponse = Json.get().toJson(serviceResponse)
     // Show the first 256 chars of the response.
     //requestLog.write(s"Response<${requestCount}> : ${StringUtil.getBrief(stringResponse,2048)}\n\n")
     //requestLog.flush()
-    logger.trace(s"String Response : ${StringUtil.getBrief(stringResponse,2048)}")
-    stringResponse
+    logger.trace("String Response : ${StringUtil.getBrief(stringResponse,2048)}")
+    return stringResponse
   }
 }

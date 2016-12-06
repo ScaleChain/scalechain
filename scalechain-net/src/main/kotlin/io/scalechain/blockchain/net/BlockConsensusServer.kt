@@ -80,7 +80,7 @@ class BlockConsensusServer(id: Int) : DefaultRecoverable() {
       } else {
         logger.info("Setting the snapshot block hash. ${bestBlockHash}")
 
-        Node.get().setLastBlockHashForIBD(bestBlockHash)
+        Node.get().lastBlockHashForIBD = bestBlockHash
         // We don't have the best block hash. Need to start IBD(Initial block download).
         // TODO : Switch to initial block download mode.
       }

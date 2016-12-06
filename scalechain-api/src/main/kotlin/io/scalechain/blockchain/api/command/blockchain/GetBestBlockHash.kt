@@ -7,8 +7,12 @@ import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+import io.scalechain.util.HexUtil
+
 
 /*
   CLI command :
@@ -40,16 +44,17 @@ import io.scalechain.blockchain.proto.Hash
   *
   * https://bitcoin.org/en/developer-reference#getbestblockhash
   */
-object GetBestBlockHash : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
-      val hashOption : Option<Hash> = RpcSubSystem.get.getBestBlockHash()
-      Right(hashOption.map{ hash =>
-        StringResult(ByteArray.byteArrayToString(hash.value))
-      })
+object GetBestBlockHash : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return return handlingException {
+      val hashOption : Hash? = RpcSubSystem.get().getBestBlockHash()
+      Right(
+        if (hashOption == null) null
+        else StringResult(HexUtil.hex(hashOption.value))
+      )
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getbestblockhash
       |
       |Returns the hash of the best (tip) block in the longest block chain.
@@ -60,7 +65,7 @@ object GetBestBlockHash : RpcCommand {
       |Examples
       |> bitcoin-cli getbestblockhash
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getbestblockhash", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

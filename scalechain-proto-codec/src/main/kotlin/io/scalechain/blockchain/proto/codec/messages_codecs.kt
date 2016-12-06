@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.proto.codec
 
+import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.blockchain.*
@@ -516,6 +517,18 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
       )
     }
     return null
+  }
+
+  fun parseMany(bytes : ByteArray) : List<Transaction> {
+    val byteBuf = Unpooled.wrappedBuffer(bytes)
+    val io = CodecInputOutputStream( byteBuf, isInput = true)
+    val txList = mutableListOf<Transaction>()
+    while (byteBuf.isReadable) {
+      // BUGBUG : What happens if only half of a raw transaction bytes is passed to bytes?
+      val tx = transcode(io, null)!!
+      txList.add( tx )
+    }
+    return txList
   }
 }
 

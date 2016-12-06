@@ -6,6 +6,9 @@ import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.UnsupportedFeature
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -72,15 +75,15 @@ import io.scalechain.blockchain.UnsupportedFeature
   *
   * https://bitcoin.org/en/developer-reference#sendfrom
   */
-object SendFrom : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
+object SendFrom : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
       val fromAccount:   String                = request.params.get<String>("From Account", 0)
       val toAddress:     String                = request.params.get<String>("To Address", 1)
-      val amount:        scala.math.BigDecimal = request.params.get<scala.math.BigDecimal>("Amount", 2)
-      val confirmations: Long                  = request.params.getOption<Long>("Confirmations", 3).getOrElse(1L)
-      val comment:       Option<String>        = request.params.getOption<String>("Comment", 4)
-      val commentTo:     Option<String>        = request.params.getOption<String>("Comment To", 5)
+      val amount:        java.math.BigDecimal  = request.params.get<java.math.BigDecimal>("Amount", 2)
+      val confirmations: Long                  = request.params.getOption<Long>("Confirmations", 3) ?: 1L
+      val comment:       String?               = request.params.getOption<String>("Comment", 4)
+      val commentTo:     String?               = request.params.getOption<String>("Comment To", 5)
 /*
       // TODO : Implement
       val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
@@ -91,7 +94,7 @@ object SendFrom : RpcCommand {
     }
   }
 
-  fun help() : String =
+  override fun help() : String =
     """sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
       |
       |DEPRECATED (use sendtoaddress). Sent an amount from an account to a bitcoin address.
@@ -120,7 +123,7 @@ object SendFrom : RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendfrom", "params": ["tabby", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd", 0.01, 6, "donation", "seans outpost"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

@@ -2,16 +2,14 @@ package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
-import io.scalechain.blockchain.proto.HashFormat
 import io.scalechain.wallet.Wallet
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -51,17 +49,17 @@ import io.scalechain.wallet.Wallet
   *
   * https://bitcoin.org/en/developer-reference#getnewaddress
   */
-object GetNewAddress : RpcCommand {
-  fun invoke(request : RpcRequest) : Either<RpcError, Option<RpcResult>> {
-    handlingException {
-      val account: String = request.params.getOption<String>("Account", 0).getOrElse("")
+object GetNewAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account: String = request.params.getOption<String>("Account", 0) ?: ""
 
-      val newCoinAddress : CoinAddress = Wallet.get.newAddress(account)(Blockchain.get.db)
+      val newCoinAddress : CoinAddress = Wallet.get().newAddress(Blockchain.get().db, account)
 
-      Right(Some(StringResult(newCoinAddress.base58)))
+      Right(StringResult(newCoinAddress.base58()))
     }
   }
-  fun help() : String =
+  override fun help() : String =
     """getnewaddress ( "account" )
       |
       |Returns a new Bitcoin address for receiving payments.
@@ -77,7 +75,7 @@ object GetNewAddress : RpcCommand {
       |Examples:
       |> bitcoin-cli getnewaddress
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 
 }
 
