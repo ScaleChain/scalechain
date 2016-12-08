@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.domain
 
 import io.scalechain.blockchain.{ErrorCode, RpcException}
-import org.scalatest._
-import spray.json.DefaultJsonProtocol._
+import org.scalatest.*
+import spray.json.DefaultJsonProtocol.*
 import spray.json.{JsArray, JsNumber, JsString}
 
 /**
@@ -26,8 +26,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   }
 
   // These tests are not passing. We will make it pass soon.
-  "getListOption" should "return some list if the parameter exists" in {
-    val arguments = List( // array of parameters
+  "getListOption" should "return some list if the parameter exists" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -36,11 +36,11 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getListOption<String>("param1", 0) shouldBe Some(List("foo", "bar"))
+    params.getListOption<String>("param1", 0) shouldBe listOf("foo", "bar"))
   }
 
-  "getListOption" should "return none if the parameter is missing" in {
-    val arguments = List( // array of parameters
+  "getListOption" should "return none if the parameter is missing" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -49,11 +49,11 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getListOption<String>("param2", 1) shouldBe None
+    params.getListOption<String>("param2", 1) shouldBe null
   }
 
-  "getListOption" should "throw an exception if the parameter type mismatches" in {
-    val arguments = List( // array of parameters
+  "getListOption" should "throw an exception if the parameter type mismatches" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -66,8 +66,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
-  "getListOption" should "throw an exception if the parameter is not an JsArray" in {
-    val arguments = List( // array of parameters
+  "getListOption" should "throw an exception if the parameter is not an JsArray" {
+    val arguments = listOf( // array of parameters
       JsString("foo") // the first parameter is NOT an array
     )
 
@@ -77,30 +77,30 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
-  "getOption" should "return some value if the parameter exists" in {
-    val arguments = List( // array of parameters
+  "getOption" should "return some value if the parameter exists" {
+    val arguments = listOf( // array of parameters
        JsString("foo")
     )
 
     val params = RpcParams(arguments)
 
-    params.getOption<String>("param1", 0) shouldBe Some("foo")
+    params.getOption<String>("param1", 0) shouldBe "foo")
 
   }
 
-  "getOption" should "return none if the parameter is missing" in {
-    val arguments = List( // array of parameters
+  "getOption" should "return none if the parameter is missing" {
+    val arguments = listOf( // array of parameters
       JsString("foo")
     )
 
     val params = RpcParams(arguments)
 
-    params.getOption<String>("param2", 1) shouldBe None
+    params.getOption<String>("param2", 1) shouldBe null
 
   }
 
-  "getOption" should "throw an exception if the parameter type mismatches" in {
-    val arguments = List( // array of parameters
+  "getOption" should "throw an exception if the parameter type mismatches" {
+    val arguments = listOf( // array of parameters
       JsString("foo")
     )
 
@@ -111,44 +111,44 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
   }
 
-  "getOption" should "return some value if the parameter validation succeeds" in {
+  "getOption" should "return some value if the parameter validation succeeds" {
     val intValue : Int = 100
     val longValue : Long = 100L
     val decimalValue : java.math.BigDecimal = java.math.BigDecimal(100)
 
-    val arguments = List( // array of parameters
+    val arguments = listOf( // array of parameters
       JsNumber("100")
     )
 
     val params = RpcParams(arguments)
 
-    params.getOption<Int>("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe Some(intValue)
-    params.getOption<Long>("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe Some(longValue)
+    params.getOption<Int>("param1", 0, listOf(IntRangeValidator(Some(1),Some(200)))) shouldBe intValue)
+    params.getOption<Long>("param1", 0, listOf(LongRangeValidator(Some(1L),Some(200L)))) shouldBe longValue)
     params.getOption<java.math.BigDecimal>(
       "param1",
       0,
-      List(BigDecimalRangeValidator(
+      listOf(BigDecimalRangeValidator(
             Some(java.math.BigDecimal(1)),
             Some(java.math.BigDecimal(200)))
       )
-    ) shouldBe Some(decimalValue)
+    ) shouldBe decimalValue)
   }
 
-  "getOption" should "throw an exception if the parameter validation fails" in {
+  "getOption" should "throw an exception if the parameter validation fails" {
     val intValue : Int = 100
     val longValue : Long = 100L
     val decimalValue : java.math.BigDecimal = java.math.BigDecimal(100)
 
-    val arguments = List( // array of parameters
+    val arguments = listOf( // array of parameters
       JsNumber("0"),  // less than the min value
       JsNumber("201") // greater than the max value
     )
 
     val params = RpcParams(arguments)
 
-    val intValidators = List(IntRangeValidator(Some(1),Some(200)))
-    val longValidators = List(LongRangeValidator(Some(1L),Some(200L)))
-    val bigDecimalValidators = List(BigDecimalRangeValidator(
+    val intValidators = listOf(IntRangeValidator(Some(1),Some(200)))
+    val longValidators = listOf(LongRangeValidator(Some(1L),Some(200L)))
+    val bigDecimalValidators = listOf(BigDecimalRangeValidator(
       Some(java.math.BigDecimal(1)),
       Some(java.math.BigDecimal(200)))
     )
@@ -163,8 +163,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   }
 
 
-  "get" should "return a value if the parameter exists" in {
-    val arguments = List( // array of parameters
+  "get" should "return a value if the parameter exists" {
+    val arguments = listOf( // array of parameters
       JsString("foo")
     )
 
@@ -173,8 +173,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     params.get<String>("param1", 0) shouldBe "foo"
   }
 
-  "get" should "throw an exception if a required parameter is missing" in {
-    val arguments = List( // array of parameters
+  "get" should "throw an exception if a required parameter is missing" {
+    val arguments = listOf( // array of parameters
       JsString("foo")
     )
 
@@ -184,8 +184,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     thrown.code shouldBe ErrorCode.RpcMissingRequiredParameter
   }
 
-  "get" should "throw an exception if the parameter type mismatches" in {
-    val arguments = List( // array of parameters
+  "get" should "throw an exception if the parameter type mismatches" {
+    val arguments = listOf( // array of parameters
       JsString("foo")
     )
 
@@ -196,23 +196,23 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
   }
 
-  "get" should "return an value if the parameter validation succeeds" in {
+  "get" should "return an value if the parameter validation succeeds" {
     val intValue : Int = 100
     val longValue : Long = 100L
     val decimalValue : java.math.BigDecimal = java.math.BigDecimal(100)
 
-    val arguments = List( // array of parameters
+    val arguments = listOf( // array of parameters
       JsNumber("100")
     )
 
     val params = RpcParams(arguments)
 
-    params.get<Int>("param1", 0, List(IntRangeValidator(Some(1),Some(200)))) shouldBe intValue
-    params.get<Long>("param1", 0, List(LongRangeValidator(Some(1L),Some(200L)))) shouldBe longValue
+    params.get<Int>("param1", 0, listOf(IntRangeValidator(Some(1),Some(200)))) shouldBe intValue
+    params.get<Long>("param1", 0, listOf(LongRangeValidator(Some(1L),Some(200L)))) shouldBe longValue
     params.get<java.math.BigDecimal>(
       "param1",
       0,
-      List(BigDecimalRangeValidator(
+      listOf(BigDecimalRangeValidator(
         Some(java.math.BigDecimal(1)),
         Some(java.math.BigDecimal(200)))
       )
@@ -221,21 +221,21 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   }
 
 
-  "get" should "throw an exception if the parameter validation fails" in {
+  "get" should "throw an exception if the parameter validation fails" {
     val intValue : Int = 100
     val longValue : Long = 100L
     val decimalValue : java.math.BigDecimal = java.math.BigDecimal(100)
 
-    val arguments = List( // array of parameters
+    val arguments = listOf( // array of parameters
       JsNumber("0"),  // less than the min value
       JsNumber("201") // greater than the max value
     )
 
     val params = RpcParams(arguments)
 
-    val intValidators = List(IntRangeValidator(Some(1),Some(200)))
-    val longValidators = List(LongRangeValidator(Some(1L),Some(200L)))
-    val bigDecimalValidators = List(BigDecimalRangeValidator(
+    val intValidators = listOf(IntRangeValidator(Some(1),Some(200)))
+    val longValidators = listOf(LongRangeValidator(Some(1L),Some(200L)))
+    val bigDecimalValidators = listOf(BigDecimalRangeValidator(
       Some(java.math.BigDecimal(1)),
       Some(java.math.BigDecimal(200)))
     )
@@ -251,8 +251,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
 
 
-  "getList" should "return a list if the parameter exists" in {
-    val arguments = List( // array of parameters
+  "getList" should "return a list if the parameter exists" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -261,12 +261,12 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
 
     val params = RpcParams(arguments)
 
-    params.getList<String>("param1", 0) shouldBe List("foo", "bar")
+    params.getList<String>("param1", 0) shouldBe listOf("foo", "bar")
 
   }
 
-  "getList" should "throw an exception if a required parameter is missing" in {
-    val arguments = List( // array of parameters
+  "getList" should "throw an exception if a required parameter is missing" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -279,8 +279,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     thrown.code shouldBe ErrorCode.RpcMissingRequiredParameter
   }
 
-  "getList" should "throw an exception if the parameter type mismatches" in {
-    val arguments = List( // array of parameters
+  "getList" should "throw an exception if the parameter type mismatches" {
+    val arguments = listOf( // array of parameters
       JsArray( // the first parameter is an array
         JsString("foo"),
         JsString("bar")
@@ -293,8 +293,8 @@ class RpcParamsSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
   }
 
-  "getList" should "throw an exception if the parameter is not an JsArray" in {
-    val arguments = List( // array of parameters
+  "getList" should "throw an exception if the parameter is not an JsArray" {
+    val arguments = listOf( // array of parameters
       JsString("foo") // the first parameter is NOT an array
     )
 

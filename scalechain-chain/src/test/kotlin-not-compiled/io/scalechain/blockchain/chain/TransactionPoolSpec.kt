@@ -8,8 +8,8 @@ import io.scalechain.blockchain.{ChainException, ErrorCode, RpcException}
 import io.scalechain.blockchain.chain.processor.{BlockProcessor, TransactionProcessor}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 /**
   * Created by kangmo on 6/16/16.
@@ -43,11 +43,11 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     super.afterEach()
   }
 
-  "addTransactionToPool" should "add non-orphan transactions spending UTXOs" in {
+  "addTransactionToPool" should "add non-orphan transactions spending UTXOs" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -66,11 +66,11 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     )
   }
 
-  "getOldestTransactions" should "not return removed transactions" in {
+  "getOldestTransactions" should "not return removed transactions" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -94,15 +94,15 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
       p.removeTransactionFromPool(txHash)
     }
 
-    p.getOldestTransactions(100) shouldBe List()
+    p.getOldestTransactions(100) shouldBe listOf()
 
   }
 
-  "getOldestTransactions" should "should return the given maximum number of transactions" in {
+  "getOldestTransactions" should "should return the given maximum number of transactions" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -119,11 +119,11 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     )
   }
 
-  "addTransactionToPool" should "add transactions even though there are some orphans depending on them" in {
+  "addTransactionToPool" should "add transactions even though there are some orphans depending on them" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -154,18 +154,18 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     chain.txOrphanage.hasOrphan(TX04a.transaction.hash) shouldBe false
     chain.txOrphanage.hasOrphan(TX05a.transaction.hash) shouldBe false
 
-    chain.txOrphanage.getOrphansDependingOn(TX03.transaction.hash) shouldBe List()
-    chain.txOrphanage.getOrphansDependingOn(TX03a.transaction.hash) shouldBe List()
-    chain.txOrphanage.getOrphansDependingOn(TX04.transaction.hash) shouldBe List()
-    chain.txOrphanage.getOrphansDependingOn(TX04a.transaction.hash) shouldBe List()
-    chain.txOrphanage.getOrphansDependingOn(TX05a.transaction.hash) shouldBe List()
+    chain.txOrphanage.getOrphansDependingOn(TX03.transaction.hash) shouldBe listOf()
+    chain.txOrphanage.getOrphansDependingOn(TX03a.transaction.hash) shouldBe listOf()
+    chain.txOrphanage.getOrphansDependingOn(TX04.transaction.hash) shouldBe listOf()
+    chain.txOrphanage.getOrphansDependingOn(TX04a.transaction.hash) shouldBe listOf()
+    chain.txOrphanage.getOrphansDependingOn(TX05a.transaction.hash) shouldBe listOf()
   }
 
-  "addTransactionToPool" should "throw an exception for an orphan transaction" in {
+  "addTransactionToPool" should "throw an exception for an orphan transaction" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     val thrown = the <ChainException> thrownBy {
       p.addTransactionToPool(TX03.transaction.hash, TX03.transaction)
@@ -173,11 +173,11 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     thrown.code shouldBe ErrorCode.ParentTransactionNotFound
   }
 
-  "addTransactionToPool" should "throw an exception for a double spending non-orphan transaction" in {
+  "addTransactionToPool" should "throw an exception for a double spending non-orphan transaction" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -190,11 +190,11 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
     thrown.code shouldBe ErrorCode.TransactionOutputAlreadySpent
   }
 
-  "removeTransactionFromPool" should "remove transactions from a pool" in {
+  "removeTransactionFromPool" should "remove transactions from a pool" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
     chain.putBlock(BLK01.header.hash, BLK01)
     chain.putBlock(BLK02.header.hash, BLK02)
@@ -219,7 +219,7 @@ class TransactionPoolSpec : BlockchainTestTrait with TransactionTestDataTrait wi
   // 1. "addTransactionToPool" should "add transactions even though there are some orphans depending on them"
   // 2. "removeTransactionFromPool" should "remove transactions from a pool"
   /*
-  "getTransactionsFromPool" should "" in {
+  "getTransactionsFromPool" should "" {
 
   }
   */

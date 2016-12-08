@@ -116,7 +116,7 @@ data class RpcParams(val paramValues:List<JsonElement>) {
         throw RpcException(ErrorCode.RpcMissingRequiredParameter, "A mandatory parameter $name at index $index is missing.")
   }
 
-  inline fun <reified T : Any> getList(name: String, index: Int): List<T> {
+  inline fun <reified T : Any> getlistOf(name: String, index: Int): List<T> {
     val listOption = getListOption<T>(name, index)
     return listOption ?:
         throw RpcException(ErrorCode.RpcMissingRequiredParameter, "A mandatory parameter $name at index $index is missing.")

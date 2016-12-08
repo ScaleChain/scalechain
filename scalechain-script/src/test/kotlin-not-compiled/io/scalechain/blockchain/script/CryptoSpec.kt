@@ -1,10 +1,10 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.script.ops._
+import io.scalechain.blockchain.script.ops.*
 import io.scalechain.util.HexUtil
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.prop.Tables.Table
 
 /** Test crypto operations in Crypto.scala
@@ -67,9 +67,9 @@ class CryptoSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
       ( stack(),               OpHash256(), ErrorCode.NotEnoughInput)
     )
 
-  "operations" should "run and push expected value on the stack." in {
+  "operations" should "run and push expected value on the stack." {
     forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperations(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, listOf(operation), expectation);
     }
   }
 }

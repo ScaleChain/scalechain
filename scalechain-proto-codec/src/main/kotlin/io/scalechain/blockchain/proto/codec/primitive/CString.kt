@@ -5,9 +5,9 @@ package io.scalechain.blockchain.proto.codec.primitive
 import io.scalechain.blockchain.proto.{ProtocolMessage}
 import io.scalechain.blockchain.proto.codec.{SerializeParseUtil, MessagePartCodec}
 import scodec.Attempt.{Successful, Failure}
-import scodec._
-import scodec.bits._
-import scodec.codecs._
+import scodec.*
+import scodec.bits.*
+import scodec.codecs.*
 
 
 data class StringMessage(value:String) : ProtocolMessage

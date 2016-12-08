@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.net
 
-import org.scalatest._
+import org.scalatest.*
 
 /**
   * Created by kangmo on 11/2/15.
@@ -22,6 +22,6 @@ class PeerSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     //
   }
 
-  "method" should "" in {
+  "method" should "" {
   }
 }

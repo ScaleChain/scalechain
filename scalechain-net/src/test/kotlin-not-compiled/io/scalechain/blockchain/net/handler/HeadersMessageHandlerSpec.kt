@@ -3,7 +3,7 @@ package io.scalechain.blockchain.net.handler
 import java.io.File
 
 import io.netty.channel.embedded.EmbeddedChannel
-import org.scalatest._
+import org.scalatest.*
 
 
 class HeadersMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
@@ -11,6 +11,6 @@ class HeadersMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
 
   val testPath = File("./target/unittests-HeadersMessageHandlerSpec/")
 
-  "handle" should "" in {
+  "handle" should "" {
   }
 }

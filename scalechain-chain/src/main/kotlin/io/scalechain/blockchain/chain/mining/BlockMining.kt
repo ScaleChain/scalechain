@@ -158,7 +158,7 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
     val (txCount, sortedTransactions) = selectTransactions(generationTransaction, validTransactions, maxBlockSize)
     watch.stop("selectTx")
 
-//    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head._1)
+//    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head.*1)
 //    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
  //   val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
 

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.cli.blockchain
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.cli.APITestSuite
-import org.scalatest._
+import org.scalatest.*
 
 /**
   * Created by kangmo on 11/2/15.
@@ -27,7 +27,7 @@ class GetBestBlockHashSpec : FlatSpec with BeforeAndAfterEach with APITestSuite 
     //
   }
 
-  "GetBestBlockHash" should "return the best block hash" in {
+  "GetBestBlockHash" should "return the best block hash" {
     val result = invoke(GetBestBlockHash)
     result.right.get.get.asInstanceOf<StringResult>.value.length shouldBe 64
   }

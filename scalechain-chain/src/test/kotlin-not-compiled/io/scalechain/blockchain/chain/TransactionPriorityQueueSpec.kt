@@ -5,8 +5,8 @@ import java.io.File
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import io.scalechain.blockchain.script.HashSupported._
+import org.scalatest.*
+import io.scalechain.blockchain.script.HashSupported.*
 
 /**
   * Created by kangmo on 6/30/16.
@@ -30,9 +30,9 @@ class TransactionPriorityQueueSpec : BlockchainTestTrait with TransactionTestDat
 
     data = TransactionSampleData()
     val d = data
-    import d._
-    import d.Tx._
-    import d.Block._
+    import d.*
+    import d.Tx.*
+    import d.Block.*
 
     // put the genesis block
     chain.putBlock(data.env.GenesisBlockHash, data.env.GenesisBlock)
@@ -51,11 +51,11 @@ class TransactionPriorityQueueSpec : BlockchainTestTrait with TransactionTestDat
     // finalize a test.
   }
 
-  "enqueue" should "throw ChainException if the required transaction is not found" in {
+  "enqueue" should "throw ChainException if the required transaction is not found" {
     val d = data
-    import d._
-    import d.Tx._
-    import d.Block._
+    import d.*
+    import d.Tx.*
+    import d.Block.*
 
     a<ChainException> should be thrownBy {
       q.enqueue(TX04_02.transaction)
@@ -63,13 +63,13 @@ class TransactionPriorityQueueSpec : BlockchainTestTrait with TransactionTestDat
   }
 
 
-  "enqueue" should "enqueue transaction if all required transactions exist" in {
+  "enqueue" should "enqueue transaction if all required transactions exist" {
     val d = data
-    import d._
-    import d.Tx._
-    import d.Block._
+    import d.*
+    import d.Tx.*
+    import d.Block.*
 
-    val inputTransactions = List(
+    val inputTransactions = listOf(
       TX04_01, // fee 1 SC
       TX04_02, // fee 2 SC
       TX04_03, // fee 4 SC
@@ -87,25 +87,25 @@ class TransactionPriorityQueueSpec : BlockchainTestTrait with TransactionTestDat
       q.enqueue(tx.transaction)
     }
 
-    q.dequeue shouldBe Some(TX04_04.transaction)    // fee 12 SC
-    q.dequeue shouldBe Some(TX04_05_01.transaction) // fee 8 SC
-    q.dequeue shouldBe Some(TX04_05_02.transaction) // fee 6 SC
+    q.dequeue shouldBe TX04_04.transaction)    // fee 12 SC
+    q.dequeue shouldBe TX04_05_01.transaction) // fee 8 SC
+    q.dequeue shouldBe TX04_05_02.transaction) // fee 6 SC
     Set(TX04_03.transaction, TX04_05_03.transaction) should contain (q.dequeue.get) // fee 4 SC
     Set(TX04_03.transaction, TX04_05_03.transaction) should contain (q.dequeue.get) // fee 4 SC
     Set(TX04_02.transaction, TX04_05_04.transaction) should contain (q.dequeue.get) // fee 2 SC
     Set(TX04_02.transaction, TX04_05_04.transaction) should contain (q.dequeue.get) // fee 2 SC
-    q.dequeue shouldBe Some(TX04_01.transaction)    // fee 1 SC
-    q.dequeue shouldBe Some(TX04_05_05.transaction) // fee 0 SC
-    q.dequeue shouldBe None
+    q.dequeue shouldBe TX04_01.transaction)    // fee 1 SC
+    q.dequeue shouldBe TX04_05_05.transaction) // fee 0 SC
+    q.dequeue shouldBe null
   }
 
-  "dequeue" should "return None if enqueue was not invoked" in {
+  "dequeue" should "return None if enqueue was not invoked" {
     val d = data
-    import d._
-    import d.Tx._
-    import d.Block._
+    import d.*
+    import d.Tx.*
+    import d.Block.*
 
-    q.dequeue shouldBe None
+    q.dequeue shouldBe null
   }
 
 }

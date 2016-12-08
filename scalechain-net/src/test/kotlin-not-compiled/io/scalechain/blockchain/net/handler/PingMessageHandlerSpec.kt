@@ -3,13 +3,13 @@ package io.scalechain.blockchain.net.handler
 import java.io.File
 
 import io.netty.channel.embedded.EmbeddedChannel
-import org.scalatest._
+import org.scalatest.*
 
 class PingMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
 
   val testPath = File("./target/unittests-PingMessageHandlerSpec/")
 
-  "handle" should "" in {
+  "handle" should "" {
   }
 }

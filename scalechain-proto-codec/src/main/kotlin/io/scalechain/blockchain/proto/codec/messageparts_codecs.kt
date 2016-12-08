@@ -43,7 +43,7 @@ trait SerializeParseUtil<T> {
   }
 
   fun parse(data: ByteArray) : T {
-    val bitVector: BitVector = BitVector.view(data)
+    val bitVector: BitVector = Unpooled.wrappedBuffer(data)
 
     codec.decode(bitVector) match {
       case Attempt.Successful(DecodeResult(decoded, remainder)) => {
@@ -77,7 +77,7 @@ trait SerializeParseUtil<T> {
 
   fun parseMany(data: ByteArray) : List<T> {
     val decodedItems = ListBuffer<T>()
-    val bitVector: BitVector = BitVector.view(data)
+    val bitVector: BitVector = Unpooled.wrappedBuffer(data)
     parseManyInternal(bitVector, decodedItems)
     decodedItems.toList
   }

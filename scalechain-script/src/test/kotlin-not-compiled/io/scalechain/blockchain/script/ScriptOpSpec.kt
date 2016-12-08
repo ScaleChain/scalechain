@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import org.scalatest._
+import org.scalatest.*
 
 /** Test common super classes of script operations in ScriptOp.scala
   *
@@ -22,6 +22,6 @@ class ScriptOpSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
     //
   }
 
-  "method" should "do something" in {
+  "method" should "do something" {
   }
 }

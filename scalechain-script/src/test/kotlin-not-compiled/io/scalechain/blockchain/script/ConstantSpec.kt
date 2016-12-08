@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.{ScriptEvalException, ErrorCode}
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.prop.Tables.Table
 
 /** Test pseudo word operations in PseudoWord.scala
@@ -75,9 +75,9 @@ class ConstantSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
       (stack(), OpNum(16), stack(16))
     )
 
-  "operations" should "run and push expected value on the stack." in {
+  "operations" should "run and push expected value on the stack." {
     forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperations(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, listOf(operation), expectation);
     }
   }
 

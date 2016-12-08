@@ -1,11 +1,11 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.script.{ops, ScriptOpList, ScriptValue}
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
 
 import io.scalechain.util.ByteArray
-import ByteArray._
+import ByteArray.*
 
 class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with TransactionTestDataTrait with ChainTestTrait with Matchers {
 
@@ -24,11 +24,11 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
     //
   }
 
-  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pk)" in {
+  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pk)" {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val encodedPublicKey = publicKey.encode()
-    val p2pkScript = ScriptOpList( List(
+    val p2pkScript = ScriptOpList( listOf(
                         OpPush(encodedPublicKey.length, ScriptValue.valueOf(encodedPublicKey)),
                         OpCheckSig()) )
 
@@ -36,14 +36,14 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
 
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(p2pkScript)
 
-    extractedAdddress shouldBe List(expectedAddress)
+    extractedAdddress shouldBe listOf(expectedAddress)
   }
 
-  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pkh)" in {
+  "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pkh)" {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val publicKeyHash = publicKey.getHash()
-    val p2pkScript = ScriptOpList( List(
+    val p2pkScript = ScriptOpList( listOf(
                          OpDup(),
                          OpHash160(),
                          OpPush(publicKeyHash.value.length, ScriptValue.valueOf(publicKeyHash.value)),
@@ -55,10 +55,10 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
 
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(p2pkScript)
 
-    extractedAdddress shouldBe List(expectedAddress)
+    extractedAdddress shouldBe listOf(expectedAddress)
   }
 
-  "extractAddress(ScriptOpList)" should "extract an address from a ParsedPubKeyScript" in {
+  "extractAddress(ScriptOpList)" should "extract an address from a ParsedPubKeyScript" {
     val privateKey = PrivateKey.generate
     val pubKeyScript = ParsedPubKeyScript.from(privateKey)
 
@@ -66,18 +66,18 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
 
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(pubKeyScript.scriptOps)
 
-    extractedAdddress shouldBe List(expectedAddress)
+    extractedAdddress shouldBe listOf(expectedAddress)
 
   }
 
-  "extractAddresses(LockingScript)" should "extract an address from a locking script of pay to public key hash" in {
+  "extractAddresses(LockingScript)" should "extract an address from a locking script of pay to public key hash" {
     val privateKey = PrivateKey.generate
     val pubKeyScript = ParsedPubKeyScript.from(privateKey)
 
     val expectedAddress  = CoinAddress.from(privateKey)
     val extractedAdddress = LockingScriptAnalyzer.extractAddresses(pubKeyScript.lockingScript())
 
-    extractedAdddress shouldBe List(expectedAddress)
+    extractedAdddress shouldBe listOf(expectedAddress)
   }
 
   "extractAddresses(LockingScript)" should "extract multiple addresses for multisig script" ignore {
@@ -85,7 +85,7 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
   }
 
 
-  "extractOutputOwnership" should "extract a coin address" in {
+  "extractOutputOwnership" should "extract a coin address" {
     val privateKey = PrivateKey.generate
     val pubKeyScript = ParsedPubKeyScript.from(privateKey)
 
@@ -95,9 +95,9 @@ class LockingScriptAnalyzerSpec : FlatSpec with BeforeAndAfterEach with Transact
     extractedOwnership shouldBe expectedAddress
   }
 
-  "extractOutputOwnership" should "extract a parsed public key script " in {
+  "extractOutputOwnership" should "extract a parsed public key script " {
     // A simple locking script asking to provide any unlocking script that results in value 5 on the value stack.
-    val scriptOps = ScriptOpList( List(
+    val scriptOps = ScriptOpList( listOf(
       OpNum(5), OpEqual()
     ))
 

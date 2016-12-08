@@ -3,9 +3,9 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.prop.Tables.Table
 
 /** Test bitwise logic operations in BitwiseLogic.scala
@@ -49,9 +49,9 @@ class BitwiseLogicSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrai
       (stack("Hello", "World"),      OpEqualVerify(),  ErrorCode.InvalidTransaction)
     )
 
-  "operations" should "run and push expected value on the stack." in {
+  "operations" should "run and push expected value on the stack." {
     forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperations(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, listOf(operation), expectation);
     }
   }
 
@@ -65,9 +65,9 @@ class BitwiseLogicSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrai
       (OpXor())
     )
 
-  "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
+  "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." {
     forAll(disabledOperations) { (operation: ScriptOp) =>
-      verifyOperations(stack(), List(operation), ErrorCode.DisabledScriptOperation);
+      verifyOperations(stack(), listOf(operation), ErrorCode.DisabledScriptOperation);
     }
   }
 }

@@ -47,7 +47,7 @@ object BlockPrinterSetter {
     TransactionPrinter.printer =
       object : TransactionPrinter {
         override fun toString(transaction : Transaction) : String {
-          return "Transaction(version=${transaction.version}, inputs=List(${transaction.inputs.joinToString(",")}), outputs=List(${transaction.outputs.joinToString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash()} */)"
+          return "Transaction(version=${transaction.version}, inputs=listOf(${transaction.inputs.joinToString(",")}), outputs=listOf(${transaction.outputs.joinToString(",")}), lockTime=${transaction.lockTime}L /* hash:${transaction.hash()} */)"
         }
       }
   }

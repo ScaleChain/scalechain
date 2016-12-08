@@ -10,14 +10,14 @@ import io.scalechain.blockchain.proto.codec.{TransactionCodec, HashCodec}
 import io.scalechain.blockchain.proto.{CoinbaseData, TransactionPoolEntry, Hash, Transaction}
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.{TransactionPoolIndex, DiskBlockStorage, Storage}
-import io.scalechain.blockchain.transaction._
+import io.scalechain.blockchain.transaction.*
 import io.scalechain.test.PerformanceTestTrait
 import io.scalechain.util.{StopWatch, StringUtil, GlobalStopWatch}
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.spi.LoggerFactory
-import org.scalatest._
-import io.scalechain.blockchain.script.HashSupported._
-import scodec.bits.BitVector
+import org.scalatest.*
+import io.scalechain.blockchain.script.HashSupported.*
+
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -50,9 +50,9 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
   "perftest" should "measure performance on register transaction" ignore {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
 
     import ch.qos.logback.classic.Logger
@@ -104,9 +104,9 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
   }
 
   fun prepareTestTransactions(txCount : Long, data : BlockSampleData = BlockSampleData(), genTxOption : Option<Transaction> = None) : ListBuffer<(Hash, Transaction)> {
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     val generationAddress = wallet.newAddress("generation")
     val generationTx =
@@ -135,8 +135,8 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
       val coin2Amount = Random.nextInt(18)
       val splitTxOrg = normalTransaction(
         s"splitTx-${testLoopCount}",
-        spendingOutputs = List( mergedCoin ),
-        newOutputs = List(
+        spendingOutputs = listOf( mergedCoin ),
+        newOutputs = listOf(
           NewOutput(CoinAmount(coin1Amount), newAddress1),
           NewOutput(CoinAmount(coin2Amount), newAddress2),
           NewOutput(CoinAmount(50-coin1Amount-coin2Amount), newAddress3)
@@ -150,8 +150,8 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
       val mergeTx = normalTransaction(
         s"mergeTx-${testLoopCount}",
-        spendingOutputs = List( getOutput(splitTx,0), getOutput(splitTx,1), getOutput(splitTx,2) ),
-        newOutputs = List(
+        spendingOutputs = listOf( getOutput(splitTx,0), getOutput(splitTx,1), getOutput(splitTx,2) ),
+        newOutputs = listOf(
           NewOutput(CoinAmount(50), newAddress3)
         )
       )
@@ -172,9 +172,9 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
   "encoding/decoding key/value" should "measure performance" ignore {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
@@ -247,11 +247,11 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
   }
 
-  "single thread perf test" should "measure performance for mining blocks" in {
+  "single thread perf test" should "measure performance for mining blocks" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
@@ -363,9 +363,9 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
   "single thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>
@@ -406,9 +406,9 @@ class WalletPerformanceSpec : FlatSpec with PerformanceTestTrait with WalletTest
 
   "multi thread perf test" should "measure performance by adding transactions to the pool" ignore {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     import ch.qos.logback.classic.Logger
     val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).asInstanceOf<Logger>

@@ -37,6 +37,9 @@ object Codecs {
     fun fixedByteArray(length : Int )
         = FixedByteArrayCodec(length)
 
+    fun fixedReversedByteArray(length : Int)
+        = FixedReversedByteArrayCodec(length)
+
     fun variableByteBuf( lengthCodec : Codec<Long> )
         = VariableByteBufCodec(lengthCodec)
 
@@ -47,11 +50,11 @@ object Codecs {
 
     val VariableString = variableString( VariableInt )
 
-    fun<T> variableList(lengthCodec : Codec<Long>, valueCodec : Codec<T>)
+    fun<T> variablelistOf(lengthCodec : Codec<Long>, valueCodec : Codec<T>)
         = VariableListCodec<T>(lengthCodec, valueCodec)
 
-    fun<T> variableList(valueCodec : Codec<T>)
-        = variableList(VariableInt, valueCodec)
+    fun<T> variablelistOf(valueCodec : Codec<T>)
+        = variablelistOf(VariableInt, valueCodec)
 
     fun<T> optional( flagCodec : Codec<Boolean>, valueCodec : Codec<T>)
         = OptionalCodec<T>(flagCodec, valueCodec)

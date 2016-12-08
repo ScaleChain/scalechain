@@ -49,7 +49,7 @@ object HeadersMessageHandler {
         }
         // Step 2 : Request next block headers.
         // BUGBUG : We need to construct block locators instead of simply sending the last block header hash we received.
-        val getHeadersMessage = GetHeadersFactory.create( List( headers.headers.last.hash ) )
+        val getHeadersMessage = GetHeadersFactory.create( listOf( headers.headers.last.hash ) )
         context.peer.send(getHeadersMessage)
     */
 

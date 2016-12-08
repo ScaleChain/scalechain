@@ -4,7 +4,7 @@ import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.ops.{OpCheckSig, OpPushData, OpEqual}
 import io.scalechain.util.HexUtil
-import org.scalatest._
+import org.scalatest.*
 import sun.font.Script
 
 /**
@@ -26,7 +26,7 @@ class ParsedPubKeyScriptSpec : FlatSpec with BeforeAndAfterEach with Transaction
     //
   }
 
-  "ParsedPubKeyScript.from(lockingScript)" should "parse a locking script created by lockingScript method" in {
+  "ParsedPubKeyScript.from(lockingScript)" should "parse a locking script created by lockingScript method" {
     val privateKey = PrivateKey.generate()
     val expectedPubKeyScript = ParsedPubKeyScript.from(privateKey)
     val actualPubKeyScript = ParsedPubKeyScript.from(expectedPubKeyScript.lockingScript)
@@ -36,7 +36,7 @@ class ParsedPubKeyScriptSpec : FlatSpec with BeforeAndAfterEach with Transaction
     checksigScriptScrubbed shouldBe expectedPubKeyScript
   }
 
-  "ParsedPubKeyScript.from(pubKeyHash)" should "create a ParsedPubKeyScript from the public key hash" in {
+  "ParsedPubKeyScript.from(pubKeyHash)" should "create a ParsedPubKeyScript from the public key hash" {
     val privateKey = PrivateKey.generate()
     val expectedPubKeyScript = ParsedPubKeyScript.from(privateKey)
     val publicKey = PublicKey.from(privateKey)
@@ -56,17 +56,17 @@ class ParsedPubKeyScriptSpec : FlatSpec with BeforeAndAfterEach with Transaction
   */
 
 
-  "isValid" should "return true if it is created by ParsedPubKeyScript.from(privateKey)" in {
+  "isValid" should "return true if it is created by ParsedPubKeyScript.from(privateKey)" {
     val privateKey = PrivateKey.generate()
     val pubKeyScript = ParsedPubKeyScript.from(privateKey)
     pubKeyScript.isValid shouldBe true
   }
 
-  "isValid" should "return true even though the script operations does not match standard patterns" in {
+  "isValid" should "return true even though the script operations does not match standard patterns" {
     ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A).isValid shouldBe true
   }
 
-  "stringKey" should "return hex representation of the locking script" in {
+  "stringKey" should "return hex representation of the locking script" {
     val pubKeyScript = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
     pubKeyScript.stringKey shouldBe HexUtil.hex(pubKeyScript.lockingScript().data)
   }

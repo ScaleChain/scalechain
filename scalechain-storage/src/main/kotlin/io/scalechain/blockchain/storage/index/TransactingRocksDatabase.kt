@@ -101,7 +101,7 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
 
     {
       try {
-        using(seek(Some(key))) in { it =>
+        using(seek(Some(key))) { it =>
           val (searchedKey, searchedValue) = it.next()
           if (ArrayUtil.isEqual(key, searchedKey)) {
 //            println(s"get ${HexUtil.hex(key)} => Some(${HexUtil.hex(searchedValue)})")

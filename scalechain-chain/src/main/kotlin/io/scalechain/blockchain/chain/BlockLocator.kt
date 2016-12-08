@@ -76,8 +76,8 @@ class BlockLocator(private val chain : Blockchain) {
       // Step 1 : Find any matching hash from the list of locator hashes
       // Use hashes.view instead of hashes to stop calling chain.hasBlock when we hit any matching hash on the chain.
       //
-      // scala> List(1,2,3)
-      // res0: List<Int> = List(1, 2, 3)
+      // scala> listOf(1,2,3)
+      // res0: List<Int> = listOf(1, 2, 3)
       //
       // scala> (res0.view.map{ i=> println(s"$i"); i *2 }).head
       // 1

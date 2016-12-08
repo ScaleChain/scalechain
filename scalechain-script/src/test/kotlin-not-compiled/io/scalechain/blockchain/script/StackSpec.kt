@@ -1,9 +1,9 @@
 package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.{ErrorCode}
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.prop.Tables.Table
 
 /** Test stack operations in Stack.scala
@@ -216,9 +216,9 @@ class StackSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
       (stack(2,3,3),             Op2Swap(),  ErrorCode.NotEnoughInput)
     )
 
-  "operations" should "manipulate the stack correctly" in {
+  "operations" should "manipulate the stack correctly" {
     forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperations(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, listOf(operation), expectation);
     }
   }
 
@@ -248,13 +248,13 @@ class StackSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait {
       (stack(1),       stack(),  OpFromAltStack(),  ErrorCode.NotEnoughInput, null)
     )
 
-  "operations" should "manipulate the main stack and alt correctly" in {
+  "operations" should "manipulate the main stack and alt correctly" {
     forAll(altStackOperations) { ( mainStackInputs : Array<ScriptValue>,
                                    altStackInputs : Array<ScriptValue>,
                                    operation : ScriptOp,
                                    expectation : AnyRef,
                                    altStackOutputs : Array<ScriptValue> )  =>
-      verifyOperationsWithAltStack(mainStackInputs, altStackInputs, List(operation), expectation, altStackOutputs)
+      verifyOperationsWithAltStack(mainStackInputs, altStackInputs, listOf(operation), expectation, altStackOutputs)
     }
   }
 }

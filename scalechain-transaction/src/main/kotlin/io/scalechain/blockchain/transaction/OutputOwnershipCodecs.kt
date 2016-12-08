@@ -36,7 +36,7 @@ object ParsedPubKeyScriptCodec : Codec<ParsedPubKeyScript> {
 
 // From sample code of scodec.
 /*
-    "support building a codec for an ADT" in {
+    "support building a codec for an ADT" {
       sealed trait Direction
       case object Stay : Direction
       data class Go(units: Int) : Direction

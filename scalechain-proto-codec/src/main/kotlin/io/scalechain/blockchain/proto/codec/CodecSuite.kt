@@ -6,14 +6,14 @@ package io.scalechain.blockchain.proto.codec
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import scodec._
-import scodec.bits.BitVector
+import scodec.*
+
 import shapeless.Lazy
 
 import scala.collection.GenTraversable
-import scala.concurrent.duration._
-import org.scalatest._
-import Arbitrary._
+import scala.concurrent.duration.*
+import org.scalatest.*
+import Arbitrary.*
 
 abstract class CodecSuite : WordSpec with Matchers with GeneratorDrivenPropertyChecks {
 

@@ -1,16 +1,10 @@
 package io.scalechain.blockchain.proto.codec
 
-/*
-import scodec.Codec
-import scodec.bits.BitVector
-
-
-trait CodecTestUtil {
-  fun decodeFully<T>(bitVector:BitVector)(implicit codec:Codec<T>) : T =
-    codec.decode(bitVector).require.value
-
-  fun encode<T>(message : T)(implicit codec:Codec<T>) =
-    codec.encode(message).require
+interface CodecTestUtil {
+  fun<T> decodeFully(codec:Codec<T>, bytes : ByteArray) : T = codec.decode(bytes)!!
+  fun<T> encode(codec:Codec<T>, message : T) : ByteArray = codec.encode(message)
+  fun<T> roundTrip(codec:Codec<T>, message : T) : Boolean {
+    return codec.decode(codec.encode(message)) == message
+  }
 }
 
-*/

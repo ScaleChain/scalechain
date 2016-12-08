@@ -34,7 +34,7 @@ class TransactionSpec : FlatSpec(), Matchers {
     init {
         "toString" should "return default string representation if the printer is not set" {
             println("Transaction : " + transaction.toString())
-            transaction.toString() shouldBe """Transaction(version=1, inputs=List(NormalTransactionInput(outputTransactionHash=Hash("0101010101010101010101010101010101010101010101010101010101010101"), outputIndex=1L, unlockingScript=UnlockingScript("0001"), sequenceNumber=1000L)), outputs=List(TransactionOutput(value=10L, lockingScript=LockingScript("0203"))), lockTime=2000L)"""
+            transaction.toString() shouldBe """Transaction(version=1, inputs=listOf(NormalTransactionInput(outputTransactionHash=Hash("0101010101010101010101010101010101010101010101010101010101010101"), outputIndex=1L, unlockingScript=UnlockingScript("0001"), sequenceNumber=1000L)), outputs=listOf(TransactionOutput(value=10L, lockingScript=LockingScript("0203"))), lockTime=2000L)"""
         }
 
         "toString" should "return the printer's result if the printer is set" {

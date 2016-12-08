@@ -10,13 +10,13 @@ class OutputOwnershipCodecsSpec : CodecSuite with TransactionTestDataTrait with 
 
   "OutputOwnershipCodecsSpec" should {
 
-    "roundtrip" in {
+    "roundtrip" {
       roundtrip(OutputOwnershipCodec.codec, ADDR1.address)
     }
   }
 
   "publicKeyScript" should {
-    "roundtrip" in {
+    "roundtrip" {
       val expectedScriptOps = ScriptParser.parse( ADDR1.pubKeyScript.lockingScript() )
 
       val serialized = ParsedPubKeyScriptCodec.serialize(ADDR1.pubKeyScript)

@@ -2,7 +2,7 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.{Block, Transaction, LockingScript, GenerationTransactionInput, NormalTransactionInput}
 import io.scalechain.blockchain.script.ScriptEnvironment
-import org.scalatest._
+import org.scalatest.*
 
 /**
  * Created by kangmo on 11/16/15.

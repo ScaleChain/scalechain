@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.{ErrorCode, WalletException}
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.*
 
 /**
   * Created by kangmo on 5/18/16.
@@ -20,7 +20,7 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
     store.putOutputOwnership(ACCOUNT3, ADDR3.address)
   }
 
-  "putTransactionOutPoint" should "put an out point per output ownership." in {
+  "putTransactionOutPoint" should "put an out point per output ownership." {
     prepareOutPointTest()
 
     assert(store.ownershipExists(ADDR1.address))
@@ -31,7 +31,7 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
     store.getTransactionOutPoints(Some(ADDR1.address)).toSet shouldBe Set(OUTPOINT1)
   }
 
-  "putTransactionOutPoint" should "put many out points per output ownership." in {
+  "putTransactionOutPoint" should "put many out points per output ownership." {
     prepareOutPointTest()
 
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
@@ -40,13 +40,13 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
     store.getTransactionOutPoints(Some(ADDR1.address)).toSet shouldBe Set(OUTPOINT1, OUTPOINT2, OUTPOINT3)
   }
 
-  "delTransactionOutPoint" should "do nothing if the out point was not found for an ownership." in {
+  "delTransactionOutPoint" should "do nothing if the out point was not found for an ownership." {
     prepareOutPointTest()
 
     store.delTransactionOutPoint(ADDR1.address, OUTPOINT1)
   }
 
-  "delTransactionOutPoint" should "del an out point when it was the only out point for an ownership." in {
+  "delTransactionOutPoint" should "del an out point when it was the only out point for an ownership." {
     prepareOutPointTest()
 
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
@@ -54,7 +54,7 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
     store.getTransactionOutPoints(Some(ADDR1.address)).toSet shouldBe Set()
   }
 
-  "getTransactionOutPoints" should "del an out point when it was NOT the only out point for an ownership." in {
+  "getTransactionOutPoints" should "del an out point when it was NOT the only out point for an ownership." {
     prepareOutPointTest()
 
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
@@ -64,7 +64,7 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
     store.getTransactionOutPoints(Some(ADDR1.address)).toSet shouldBe Set(OUTPOINT2, OUTPOINT3)
   }
 
-  "getTransactionOutPoints" should "get all out points for all output ownerships if None is passed for the parameter." in {
+  "getTransactionOutPoints" should "get all out points for all output ownerships if None is passed for the parameter." {
     prepareOutPointTest()
 
     store.putTransactionOutPoint(ADDR1.address, OUTPOINT1)
@@ -75,7 +75,7 @@ trait WalletStoreOutPointTestTrait : FlatSpec with WalletStoreTestDataTrait with
   }
 
 
-  "putTransactionOutPoint" should "throw an exception if the output ownership does not exist." in {
+  "putTransactionOutPoint" should "throw an exception if the output ownership does not exist." {
     prepareOutPointTest()
 
     val thrown = the<WalletException> thrownBy {

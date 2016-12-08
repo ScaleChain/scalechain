@@ -2,9 +2,9 @@ package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ScriptParseException
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.prop.Tables.Table
 
 /** Test flow control operations in FlowControl.scala
@@ -43,7 +43,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(
+        listOf(
           OpIf(),
             Op1()
           // OpEndIf() is missing.
@@ -57,7 +57,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(
+        listOf(
           OpIf(),
             Op1()
           // OpEndIf() is missing.
@@ -72,7 +72,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(
+        listOf(
           OpIf(),
             Op1(),
           OpElse(),
@@ -88,7 +88,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(
+        listOf(
           OpIf(),
             Op1(),
           OpElse(),
@@ -99,7 +99,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       )
     )
 
-  "invalidIfStatements" should "should throw an exception." in {
+  "invalidIfStatements" should "should throw an exception." {
     forAll(invalidIfStatements) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
@@ -123,7 +123,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(1),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               Op1(),
               OpIf(),
@@ -142,7 +142,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(0),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               Op1(),
               OpIf(),
@@ -161,7 +161,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(1),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               Op0(),
               OpIf(),
@@ -180,7 +180,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(0),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               Op0(),
               OpIf(),
@@ -204,7 +204,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(1),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               OpNum(4),
             OpElse(),
@@ -226,7 +226,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(0),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               OpNum(4),
             OpElse(),
@@ -248,7 +248,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(1),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               OpNum(4),
             OpElse(),
@@ -270,7 +270,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         (
           stack(0),       // input stack.
           // list of operations to execute.
-          List(
+          listOf(
             OpIf(),
               OpNum(4),
             OpElse(),
@@ -285,7 +285,7 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
         )
       )
 
-  "nestedIfStatements" should "serialize and parse and execute." in {
+  "nestedIfStatements" should "serialize and parse and execute." {
     forAll(nestedIfStatements) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
@@ -314,61 +314,61 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpEndIf()),
         stack(4) // (expected) output stack.
       ),
       // if false stmt1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpEndIf()),
         stack()       // (expected) output stack.
       ),
       // if true stmt1 else stmt2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpElse(), OpNum(8), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpElse(), OpNum(8), OpEndIf()),
         stack(4)       // (expected) output stack.
       ),
       // if false stmt1 else stmt2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpElse(), OpNum(8), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpElse(), OpNum(8), OpEndIf()),
         stack(8)       // (expected) output stack.
       ),
       // if true multi-stmts-1 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpNum(5), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpNum(5), OpEndIf()),
         stack(4,5)       // (expected) output stack.
       ),
       // if false multi-stmts-1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpNum(5), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpNum(5), OpEndIf()),
         stack()       // (expected) output stack.
       ),
       // if true multi-stmts-1 else multi-stmts-2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpNum(5), OpElse(), OpNum(8), OpNum(9), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpNum(5), OpElse(), OpNum(8), OpNum(9), OpEndIf()),
         stack(4, 5)       // (expected) output stack.
       ),
       // if false multi-stmts-1 else multi-stmts-2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpIf(), OpNum(4), OpNum(5), OpElse(), OpNum(8), OpNum(9), OpEndIf()),
+        listOf(OpIf(), OpNum(4), OpNum(5), OpElse(), OpNum(8), OpNum(9), OpEndIf()),
         stack(8, 9)
       ) // (expected) output stack.
     )
 
-  "ifOperationsForParser" should "serialize and parse and execute." in {
+  "ifOperationsForParser" should "serialize and parse and execute." {
     forAll(ifOperationsForParser) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation, serializeAndExecute=true);
     }
@@ -394,56 +394,56 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4)), null)),
+        listOf(OpCond(invert=false, ops(OpNum(4)), null)),
         stack(4) // (expected) output stack.
       ),
       // if false stmt1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4)), null)),
+        listOf(OpCond(invert=false, ops(OpNum(4)), null)),
         stack()       // (expected) output stack.
       ),
       // if true stmt1 else stmt2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4)), ops(OpNum(8)))),
+        listOf(OpCond(invert=false, ops(OpNum(4)), ops(OpNum(8)))),
         stack(4)       // (expected) output stack.
       ),
       // if false stmt1 else stmt2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4)), ops(OpNum(8)))),
+        listOf(OpCond(invert=false, ops(OpNum(4)), ops(OpNum(8)))),
         stack(8)       // (expected) output stack.
       ),
       // if true multi-stmts-1 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4),OpNum(5)), null)),
+        listOf(OpCond(invert=false, ops(OpNum(4),OpNum(5)), null)),
         stack(4,5)       // (expected) output stack.
       ),
       // if false multi-stmts-1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4),OpNum(5)), null)),
+        listOf(OpCond(invert=false, ops(OpNum(4),OpNum(5)), null)),
         stack()       // (expected) output stack.
       ),
       // if true multi-stmts-1 else multi-stmts-2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
+        listOf(OpCond(invert=false, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
         stack(4, 5)       // (expected) output stack.
       ),
       // if false multi-stmts-1 else multi-stmts-2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=false, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
+        listOf(OpCond(invert=false, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
         stack(8, 9)
       ), // (expected) output stack.
 
@@ -454,61 +454,61 @@ class FlowControlSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4)), null)),
+        listOf(OpCond(invert=true, ops(OpNum(4)), null)),
         stack() // (expected) output stack.
       ),
       // if not false stmt1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4)), null)),
+        listOf(OpCond(invert=true, ops(OpNum(4)), null)),
         stack(4)       // (expected) output stack.
         ),
       // if not true stmt1 else stmt2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4)), ops(OpNum(5)))),
+        listOf(OpCond(invert=true, ops(OpNum(4)), ops(OpNum(5)))),
         stack(5)       // (expected) output stack.
         ),
       // if not false stmt1 else stmt2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4)), ops(OpNum(5)))),
+        listOf(OpCond(invert=true, ops(OpNum(4)), ops(OpNum(5)))),
         stack(4)       // (expected) output stack.
         ),
       // if not true multi-stmts-1 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4),OpNum(5)), null)),
+        listOf(OpCond(invert=true, ops(OpNum(4),OpNum(5)), null)),
         stack()       // (expected) output stack.
         ),
       // if not false multi-stmts-1 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4),OpNum(5)), null)),
+        listOf(OpCond(invert=true, ops(OpNum(4),OpNum(5)), null)),
         stack(4,5)       // (expected) output stack.
         ),
       // if not true multi-stmts-1 else multi-stmts-2 end
       (
         stack(1),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
+        listOf(OpCond(invert=true, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
         stack(8, 9)       // (expected) output stack.
         ),
       // if not false multi-stmts-1 else multi-stmts-2 end
       (
         stack(0),       // input stack.
         // list of operations to execute.
-        List(OpCond(invert=true, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
+        listOf(OpCond(invert=true, ops(OpNum(4),OpNum(5)), ops(OpNum(8), OpNum(9)))),
         stack(4, 5)
       ) // (expected) output stack.
     )
 
-  "ifOperations" should "run and push expected value on the stack." in {
+  "ifOperations" should "run and push expected value on the stack." {
     forAll(ifOperations) { ( inputValues : Array<ScriptValue>, operations : List<ScriptOp>, expectation : AnyRef )  =>
       verifyOperations(inputValues, operations, expectation);
     }

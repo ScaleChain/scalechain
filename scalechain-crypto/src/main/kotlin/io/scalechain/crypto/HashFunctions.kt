@@ -42,6 +42,13 @@ object HashFunctions {
     return SHA256( sha256md.digest(input) )
   }
 
+  fun sha256(input: ByteArray, offset : Int, length : Int) : SHA256 {
+    val sha256md = MessageDigest.getInstance("SHA-256")
+    sha256md.update(input, offset, length)
+    return SHA256( sha256md.digest() )
+  }
+
+
   /**
    *
    * @param input
@@ -72,4 +79,9 @@ object HashFunctions {
   fun hash256(input: ByteArray) : Hash256 {
     return Hash256( sha256( sha256(input).value ).value )
   }
+
+  fun hash256(input: ByteArray, offset : Int, length : Int) : Hash256 {
+    return Hash256( sha256( sha256(input, offset, length).value ).value )
+  }
+
 }

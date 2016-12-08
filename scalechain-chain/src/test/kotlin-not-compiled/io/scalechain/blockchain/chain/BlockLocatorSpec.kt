@@ -7,7 +7,7 @@ import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{TransactionTestDataTrait, ChainTestTrait, ChainEnvironment}
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.*
 
 /**
   * Created by kangmo on 5/28/16.
@@ -41,13 +41,13 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     super.afterEach()
   }
 
-  "getLocatorHashes" should "return only genesis block hash if there is only the genesis block." in {
+  "getLocatorHashes" should "return only genesis block hash if there is only the genesis block." {
     locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
       env.GenesisBlockHash
     ))
   }
 
-  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 1" in {
+  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 1" {
     putBlocks(1)
 
     locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
@@ -56,7 +56,7 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 2" in {
+  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 2" {
     putBlocks(2)
 
     locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
@@ -66,7 +66,7 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 10" in {
+  "getLocatorHashes" should "return all hashes and genesis block if the best block height is 10" {
     putBlocks(10)
 
     locator.getLocatorHashes() shouldBe BlockLocatorHashes( List (
@@ -86,10 +86,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getLocatorHashes" should "return the first 10 hashes and genesis block if the best block height is 11" in {
+  "getLocatorHashes" should "return the first 10 hashes and genesis block if the best block height is 11" {
     putBlocks(11)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(11), // Add the first 10 hashes
       numberToHash(10),
       numberToHash(9),
@@ -107,10 +107,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
 
   }
 
-  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 12" in {
+  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 12" {
     putBlocks(12)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(12), // Add the first 10 hashes
       numberToHash(11),
       numberToHash(10),
@@ -128,10 +128,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 13" in {
+  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 13" {
     putBlocks(13)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(13), // Add the first 10 hashes
       numberToHash(12),
       numberToHash(11),
@@ -149,10 +149,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 15" in {
+  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 15" {
     putBlocks(15)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(15), // Add the first 10 hashes
       numberToHash(14),
       numberToHash(13),
@@ -172,10 +172,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
   }
 
 
-  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 16" in {
+  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 16" {
     putBlocks(16)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(16), // Add the first 10 hashes
       numberToHash(15),
       numberToHash(14),
@@ -196,10 +196,10 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
   }
 
 
-  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 17" in {
+  "getLocatorHashes" should "return the first 10 hashes and hashes jumped exponentially and genesis block if the best block height is 17" {
     putBlocks(17)
 
-    locator.getLocatorHashes() shouldBe BlockLocatorHashes( List(
+    locator.getLocatorHashes() shouldBe BlockLocatorHashes( listOf(
       numberToHash(17), // Add the first 10 hashes
       numberToHash(16),
       numberToHash(15),
@@ -220,44 +220,44 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     ))
   }
 
-  "getHashes" should "return the genesis block if the genesis block is the only hash it matches" in {
+  "getHashes" should "return the genesis block if the genesis block is the only hash it matches" {
     putBlocks(32)
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
           env.GenesisBlockHash
         )
       ),
       env.GenesisBlockHash,
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
         env.GenesisBlockHash
     )
   }
 
-  "getHashes" should "return the genesis block if no block matches" in {
+  "getHashes" should "return the genesis block if no block matches" {
     putBlocks(32)
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         SampleData.S2_BlockHash // No block matches.
       )
       ),
       env.GenesisBlockHash,
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       env.GenesisBlockHash
     )
   }
 
-  "getHashes" should "return five hashes from the genesis block if no block matches and hashStop is all zero." in {
+  "getHashes" should "return five hashes from the genesis block if no block matches and hashStop is all zero." {
     putBlocks(32)
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         SampleData.S2_BlockHash // No block matches. Ignored
       )
       ),
       ALL_ZERO_HASH, // hashStop is all zero : Get 5 hashes.
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       env.GenesisBlockHash,
       numberToHash(1),
       numberToHash(2),
@@ -266,16 +266,16 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
     )
   }
 
-  "getHashes" should "return matching hashes from the genesis block up to the hashStop if no block matches and hashStop is NOT all zero." in {
+  "getHashes" should "return matching hashes from the genesis block up to the hashStop if no block matches and hashStop is NOT all zero." {
     putBlocks(32)
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         SampleData.S2_BlockHash // No block matches.
       )
       ),
       Hash( numberToHash(3).value), // hashStop 3
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       env.GenesisBlockHash,
       numberToHash(1),
       numberToHash(2),
@@ -284,48 +284,48 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
   }
 
 
-  "getHashes" should "return the matching hash only if the stop hash is the matching hash" in {
+  "getHashes" should "return the matching hash only if the stop hash is the matching hash" {
     putBlocks(32)
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       Hash( numberToHash(3).value), // hashStop 3
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3) // Only hash 3 is returned.
     )
   }
 
-  "getHashes" should "ignore hashes that are not matched" in {
+  "getHashes" should "ignore hashes that are not matched" {
     putBlocks(32)
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         SampleData.S2_BlockHash, // No block matches. Ignored
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       Hash( numberToHash(3).value), // hashStop 3
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3) // Only hash 3 is returned.
     )
   }
 
-  "getHashes" should "return the matching hash up to the hashStop if the stop hash is in the five hashes from the matching hash" in {
+  "getHashes" should "return the matching hash up to the hashStop if the stop hash is in the five hashes from the matching hash" {
     putBlocks(32)
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       Hash( numberToHash(6).value), // hashStop 6
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3),
       numberToHash(4),
       numberToHash(5),
@@ -334,13 +334,13 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
 
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       Hash( numberToHash(7).value), // hashStop 7
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3),
       numberToHash(4),
       numberToHash(5),
@@ -350,13 +350,13 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
 
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       Hash( numberToHash(8).value), // hashStop 8, but we can only send five hashes at once.
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3),
       numberToHash(4),
       numberToHash(5),
@@ -366,17 +366,17 @@ class BlockLocatorSpec : BlockchainTestTrait with TransactionTestDataTrait with 
   }
 
 
-  "getHashes" should "return five hashes from the matching hash if the stop hash is all zero" in {
+  "getHashes" should "return five hashes from the matching hash if the stop hash is all zero" {
     putBlocks(32)
 
     locator.getHashes(
-      BlockLocatorHashes( List(
+      BlockLocatorHashes( listOf(
         Hash( numberToHash(3).value ) // block matches at 3
       )
       ),
       ALL_ZERO_HASH, // Get 5 hashes without any hashStop.
       MAX_HASH_COUNT
-    ) shouldBe List(
+    ) shouldBe listOf(
       numberToHash(3), // 5 hashes from the hash 3 is returned.
       numberToHash(4),
       numberToHash(5),

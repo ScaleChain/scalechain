@@ -99,7 +99,7 @@ object ListTransactions : RpcCommand() {
       // More than one object in this array may come from a single transaction. Array may be empty
       /*
       val transactionItems =
-        List(
+        listOf(
           TransactionItem(
             involvesWatchonly = Some(true),
             account = "someone else's address2",
@@ -114,7 +114,7 @@ object ListTransactions : RpcCommand() {
             blockindex = Some(11),
             blocktime = Some(1411051649),
             txid = Some(Hash("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
-            List(),
+            listOf(),
             time = 1418695703,
             timereceived = Some(1418925580),
             comment = None,

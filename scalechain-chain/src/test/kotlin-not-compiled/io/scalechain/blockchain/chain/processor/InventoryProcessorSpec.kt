@@ -7,8 +7,8 @@ import io.scalechain.blockchain.proto.{InvVector, InvType, Hash}
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 import scala.util.Random
 
@@ -46,11 +46,11 @@ class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait
     // finalize a test.
   }
 
-  "alreadyHas" should "return true for a block on the blockchain." in {
+  "alreadyHas" should "return true for a block on the blockchain." {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     b.acceptBlock(BLK01.header.hash, BLK01)
     b.acceptBlock(BLK02.header.hash, BLK02)
@@ -61,11 +61,11 @@ class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait
     i.alreadyHas( InvVector( InvType.MSG_BLOCK, BLK03a.header.hash ) ) shouldBe true
   }
 
-  "alreadyHas" should "return true for an orphan block." in {
+  "alreadyHas" should "return true for an orphan block." {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     i.alreadyHas( InvVector( InvType.MSG_BLOCK, BLK03a.header.hash ) ) shouldBe false
     b.putOrphan(BLK03a)
@@ -74,11 +74,11 @@ class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait
 
   /*
 
-    "alreadyHas" should "return true for a transaction in a non-orphan block." in {
+    "alreadyHas" should "return true for a transaction in a non-orphan block." {
       val data = BlockSampleData()
-      import data._
-      import data.Block._
-      import data.Tx._
+      import data.*
+      import data.Block.*
+      import data.Tx.*
 
       b.acceptBlock(BLK01.header.hash, BLK01)
       b.acceptBlock(BLK02.header.hash, BLK02)
@@ -87,22 +87,22 @@ class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait
       i.alreadyHas( InvVector( InvType.MSG_TX, TX03.transaction.hash ) ) shouldBe true
     }
 
-    "alreadyHas" should "return false for a transaction in an orphan block." in {
+    "alreadyHas" should "return false for a transaction in an orphan block." {
       val data = BlockSampleData()
-      import data._
-      import data.Block._
-      import data.Tx._
+      import data.*
+      import data.Block.*
+      import data.Tx.*
 
       b.putOrphan(BLK03a)
 
       i.alreadyHas( InvVector( InvType.MSG_TX, TX03.transaction.hash ) ) shouldBe false
     }
 
-    "alreadyHas" should "return true for a transaction in the transaction pool." in {
+    "alreadyHas" should "return true for a transaction in the transaction pool." {
       val data = BlockSampleData()
-      import data._
-      import data.Block._
-      import data.Tx._
+      import data.*
+      import data.Block.*
+      import data.Tx.*
 
       b.acceptBlock(BLK01.header.hash, BLK01)
       b.acceptBlock(BLK02.header.hash, BLK02)
@@ -111,11 +111,11 @@ class InventoryProcessorSpec : BlockchainTestTrait with TransactionTestDataTrait
       i.alreadyHas( InvVector( InvType.MSG_TX, TX03.transaction.hash ) ) shouldBe true
     }
 
-    "alreadyHas" should "return true for an orphan transaction." in {
+    "alreadyHas" should "return true for an orphan transaction." {
       val data = BlockSampleData()
-      import data._
-      import data.Block._
-      import data.Tx._
+      import data.*
+      import data.Block.*
+      import data.Tx.*
 
       t.putOrphan(TX03.transaction.hash, TX03.transaction)
 

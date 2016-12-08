@@ -89,7 +89,7 @@ object ListUnspent : RpcCommand() {
       // item of the list : An object describing a particular unspent output belonging to this wallet
       /*
       val unspentCoins =
-        List(
+        listOf(
           UnspentCoin(
             txid = Hash("d54994ece1d11b19785c7248868696250ab195605b469632b7bd68130e880c9a"),
             vout = 1,

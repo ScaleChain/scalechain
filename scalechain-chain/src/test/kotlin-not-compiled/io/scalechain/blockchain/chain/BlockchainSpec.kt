@@ -7,7 +7,7 @@ import io.scalechain.blockchain.storage.{BlockStorage, DiskBlockStorage, Storage
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.scalechain.crypto.HashFunctions
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.*
 
 // Remove the ignore annotation after creating the "by block height" index
 class BlockchainSpec : BlockchainTestTrait with TransactionTestDataTrait with Matchers {
@@ -28,62 +28,62 @@ class BlockchainSpec : BlockchainTestTrait with TransactionTestDataTrait with Ma
     // finalize a test.
   }
 
-  "putBlock" should "put the genesis block" in {
+  "putBlock" should "put the genesis block" {
     chain.putBlock(Hash( env.GenesisBlockHash.value) , env.GenesisBlock)
     val Some((blockInfo, block)) = chain.getBlock(env.GenesisBlockHash)
     blockInfo.height shouldBe 0
     blockInfo.blockHeader shouldBe env.GenesisBlock.header
     blockInfo.transactionCount shouldBe env.GenesisBlock.transactions.length
 
-    chain.getBestBlockHash() shouldBe Some(env.GenesisBlockHash)
+    chain.getBestBlockHash() shouldBe env.GenesisBlockHash)
     chain.getBlockHash(0) shouldBe env.GenesisBlockHash
   }
 
-  "setEventListener" should "" in {
+  "setEventListener" should "" {
   }
 
-  "setBestBlock" should "" in {
+  "setBestBlock" should "" {
   }
 
-  "putBlock" should "" in {
+  "putBlock" should "" {
   }
 
-  "putBlockHeader" should "" in {
+  "putBlockHeader" should "" {
   }
 
-  "putTransaction" should "" in {
+  "putTransaction" should "" {
   }
 
-  "getIterator" should "" in {
+  "getIterator" should "" {
   }
 
-  "getBestBlockHeight" should "" in {
+  "getBestBlockHeight" should "" {
   }
 
-  "getBestBlockHash" should "" in {
+  "getBestBlockHash" should "" {
   }
 
-  "getBlockHash" should "" in {
+  "getBlockHash" should "" {
   }
 
-  "getBlockInfo" should "" in {
+  "getBlockInfo" should "" {
   }
 
-  "hasBlock" should "" in {
+  "hasBlock" should "" {
   }
 
-  "getBlock" should "" in {
+  "getBlock" should "" {
   }
 
-  "getBlockHeader" should "" in {
+  "getBlockHeader" should "" {
   }
 
-  "getTransaction" should "" in {
+  "getTransaction" should "" {
   }
 
-  "hasTransaction" should "" in {
+  "hasTransaction" should "" {
   }
 
-  "getTransactionOutput" should "" in {
+  "getTransactionOutput" should "" {
   }
 }

@@ -171,7 +171,7 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
     // Remove duplicate by converting to a set, and return as a list.
     return acceptedChildren.toSet().toList()
 /*
-    newly_added_blocks = List(block hash)
+    newly_added_blocks = listOf(block hash)
     LOOP newBlock := For each newly_added_blocks
       LOOP orphanBlock := For each orphan block which depends on the new Block as the parent of it
     // Store the block into the blockchain database.

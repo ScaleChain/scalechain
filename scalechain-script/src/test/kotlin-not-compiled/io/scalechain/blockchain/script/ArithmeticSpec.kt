@@ -3,9 +3,9 @@ package io.scalechain.blockchain.script
 import java.math.BigInteger
 
 import io.scalechain.blockchain.{ErrorCode, ScriptEvalException}
-import io.scalechain.blockchain.script.ops._
-import org.scalatest._
-import org.scalatest.prop.TableDrivenPropertyChecks._
+import io.scalechain.blockchain.script.ops.*
+import org.scalatest.*
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 
 /** Test arithmetic operations in Arithmetic.scala
  *
@@ -186,9 +186,9 @@ class ArithmeticSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait 
       (stack( 2, -1, 1), OpWithin(), stack(0))
     )
 
-  "operations" should "run and push expected value on the stack." in {
+  "operations" should "run and push expected value on the stack." {
     forAll(operations) { ( inputValues : Array<ScriptValue>, operation : ScriptOp, expectation : AnyRef )  =>
-      verifyOperations(inputValues, List(operation), expectation);
+      verifyOperations(inputValues, listOf(operation), expectation);
     }
   }
 
@@ -206,13 +206,13 @@ class ArithmeticSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrait 
       (OpRShift())
     )
 
-  "operations" should "work even though we have overflow on the output." in {
+  "operations" should "work even though we have overflow on the output." {
     // TODO : Implement it later.
   }
 
-  "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." in {
+  "disabled operations" should "throw ScriptEvalException with DisabledScriptOperation error code." {
     forAll(disabledOperations) { (operation : ScriptOp) =>
-      verifyOperations(stack(), List(operation), ErrorCode.DisabledScriptOperation);
+      verifyOperations(stack(), listOf(operation), ErrorCode.DisabledScriptOperation);
     }
   }
 

@@ -10,8 +10,8 @@ import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 class TxMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   this: Suite =>
@@ -43,9 +43,9 @@ class TxMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
   // TODO : Block Mining : Rewrite test case
   "transaction message handler" should "be able to filter incomplete transaction while mining" ignore {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -68,7 +68,7 @@ class TxMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the genesis transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction,
       TX04_03.transaction
@@ -81,7 +81,7 @@ class TxMessageHandlerSpec : MessageHandlerTestTrait with Matchers {
     chain.putBlock(block2.header.hash, block2)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block2.transactions.drop(1) shouldBe List(
+    block2.transactions.drop(1) shouldBe listOf(
       TX04_04.transaction,
       TX04_05_01.transaction,
       TX04_05_02.transaction,

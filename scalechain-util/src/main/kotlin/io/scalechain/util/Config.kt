@@ -10,7 +10,7 @@ open class Config(val config : com.typesafe.config.Config) {
     fun hasPath(path : String) = config.hasPath(path)
     fun getInt(path: String) = config.getInt(path)
     fun getString(path: String) = config.getString(path)
-    fun getConfigList(path : String) = config.getConfigList(path)
+    fun getConfiglistOf(path : String) = config.getConfigList(path)
     var privateCache : Boolean? = null
 
     fun isPrivate() : Boolean {
@@ -28,7 +28,7 @@ open class Config(val config : com.typesafe.config.Config) {
     }
 
     fun peerAddresses() : List<PeerAddress> {
-        return getConfigList("scalechain.p2p.peers").map { peer ->
+        return getConfiglistOf("scalechain.p2p.peers").map { peer ->
             PeerAddress(peer.getString("address"), peer.getInt("port"))
         }
     }

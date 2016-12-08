@@ -1,7 +1,9 @@
 package io.scalechain.util
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
+import java.util.*
 
 /**
  * Created by kangmo on 21/11/2016.
@@ -62,3 +64,6 @@ fun ByteBuf.kotlinHex() : String {
     // BUGBUG : Optimize by passing ByteBuf to HexUtil not to copy the byte array
     return HexUtil.kotlinHex(this.array())
 }
+
+fun ByteBuf.readableByteCount() = this.writerIndex() - this.readerIndex()
+fun ByteBuf.toByteArray() = ByteBufUtil.getBytes(this)

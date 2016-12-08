@@ -6,9 +6,9 @@ package io.scalechain.blockchain.cli
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.{PeerAddress, HexUtil}
-import HexUtil._
+import HexUtil.*
 
-import org.scalatest._
+import org.scalatest.*
 
 /**
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
@@ -16,7 +16,7 @@ import org.scalatest._
   */
 class CoinMinerSpec : FlatSpec with BeforeAndAfterEach with Matchers {
   this: Suite =>
-  import Hash._
+  import Hash.*
 
   override fun beforeEach() {
     // set-up code
@@ -31,8 +31,8 @@ class CoinMinerSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     //
   }
 
-  "isLessThan" should "return true only if the left hash is less than the right hash." in {
-    import CoinMiner._
+  "isLessThan" should "return true only if the left hash is less than the right hash." {
+    import CoinMiner.*
     isLessThan(Hash("00000"), Hash("00000")) shouldBe false
     isLessThan(Hash("00001"), Hash("00000")) shouldBe false
     isLessThan(Hash("00000"), Hash("00001")) shouldBe true

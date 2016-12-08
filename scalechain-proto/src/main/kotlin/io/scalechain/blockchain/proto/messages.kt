@@ -39,7 +39,7 @@ data class Verack(private val dummy : Int = 0) : ProtocolMessage {
  *  Non-advertised nodes should be forgotten after typically 3 hours
  */
 data class Addr(val addresses : List<NetworkAddressWithTimestamp>) : ProtocolMessage {
-  override fun toString() = "Addr(List(${addresses.joinToString(",")}))"
+  override fun toString() = "Addr(listOf(${addresses.joinToString(",")}))"
 }
 
 enum class InvType {
@@ -55,7 +55,7 @@ data class InvVector(val invType:InvType, val hash : Hash) : ProtocolMessage {
  *  It can be received unsolicited, or in reply to getblocks.
  */
 data class Inv(val inventories:List<InvVector>) : ProtocolMessage {
-  override fun toString() = "Inv(List(${inventories.joinToString(",")}))"
+  override fun toString() = "Inv(listOf(${inventories.joinToString(",")}))"
 }
 
 /** GetData ; getdata is used in response to inv, to retrieve the content of a specific object,
@@ -66,7 +66,7 @@ data class Inv(val inventories:List<InvVector>) : ProtocolMessage {
  * (which modern nodes do not).
  */
 data class GetData(val inventories:List<InvVector>) : ProtocolMessage {
-  override fun toString() = "GetData(List(${inventories.joinToString(",")}))"
+  override fun toString() = "GetData(listOf(${inventories.joinToString(",")}))"
 }
 
 
@@ -74,7 +74,7 @@ data class GetData(val inventories:List<InvVector>) : ProtocolMessage {
  * For example, because the requested transaction was not in the memory pool or relay set.
  */
 data class NotFound(val inventories:List<InvVector>) : ProtocolMessage {
-  override fun toString() = "NotFound(List(${inventories.joinToString(",")}))"
+  override fun toString() = "NotFound(listOf(${inventories.joinToString(",")}))"
 }
 
 
@@ -93,7 +93,7 @@ data class GetBlocks( val version : Long,
                       val blockLocatorHashes : List<Hash>,
                       val hashStop : Hash
                     ) : ProtocolMessage  {
-  override fun toString() = "GetBlocks(${version}L, List(${blockLocatorHashes.joinToString(",")}), $hashStop)"
+  override fun toString() = "GetBlocks(${version}L, listOf(${blockLocatorHashes.joinToString(",")}), $hashStop)"
 }
 
 
@@ -109,14 +109,14 @@ data class GetHeaders(  val version : Long,
                         val blockLocatorHashes : List<Hash>,
                         val hashStop : Hash
                      ) : ProtocolMessage {
-  override fun toString() = "GetHeaders(${version}L, List(${blockLocatorHashes.joinToString(",")}), $hashStop)"
+  override fun toString() = "GetHeaders(${version}L, listOf(${blockLocatorHashes.joinToString(",")}), $hashStop)"
 }
 
 
 /** Headers ; The headers packet returns block headers in response to a getheaders packet.
  */
 data class Headers(val headers:List<BlockHeader>) : ProtocolMessage {
-  override fun toString() = "Headers(List(${headers.joinToString(",")}))"
+  override fun toString() = "Headers(listOf(${headers.joinToString(",")}))"
 }
 
 

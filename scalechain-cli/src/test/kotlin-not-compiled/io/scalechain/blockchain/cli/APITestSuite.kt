@@ -39,7 +39,7 @@ trait APITestSuite : Matchers {
   val RPC_PASSWORD = "pleasechangethispassword123@.@"
   StartPeer()
 
-  fun invoke(command : RpcCommand, args : List<JsValue> = List()) : Either<RpcError, RpcResult?> {
+  fun invoke(command : RpcCommand, args : List<JsValue> = listOf()) : Either<RpcError, RpcResult?> {
     val request = RpcRequest(Some("1.0"), 1L, "command-unused", RpcParams(args))
     command.invoke(request)
   }

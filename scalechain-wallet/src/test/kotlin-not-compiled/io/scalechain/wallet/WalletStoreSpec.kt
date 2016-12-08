@@ -5,7 +5,7 @@ import java.io.File
 import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.transaction.{ChainTestTrait, ChainEnvironment}
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.*
 
 import scala.util.Random
 

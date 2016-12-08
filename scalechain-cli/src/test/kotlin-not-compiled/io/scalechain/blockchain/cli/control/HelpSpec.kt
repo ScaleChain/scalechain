@@ -4,7 +4,7 @@ import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.help.Help
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.cli.APITestSuite
-import org.scalatest._
+import org.scalatest.*
 import spray.json.JsString
 
 /**
@@ -27,17 +27,17 @@ class HelpSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
     //
   }
 
-  "Help" should "list commands if no argument is provided." in {
+  "Help" should "list commands if no argument is provided." {
     val response = invoke(Help)
     val result = response.right.get.get.asInstanceOf<StringResult>
     result.value.contains("== Blockchain ==") shouldBe true
   }
 
-  "Help" should "show a help for a command if the command argument is provided." in {
+  "Help" should "show a help for a command if the command argument is provided." {
     // For each command, try to run help.
     for (command <- Services.serviceByCommand.keys) {
       println(s"Testing if help for command, $command works well.")
-      val response = invoke(Help, List(JsString(command)))
+      val response = invoke(Help, listOf(JsString(command)))
       val result = response.right.get.get.asInstanceOf<StringResult>
       result.value.contains(command) shouldBe true
     }

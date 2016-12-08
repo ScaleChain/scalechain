@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.api.domain
 
-import org.scalatest._
+import org.scalatest.*
 import spray.json.DefaultJsonProtocol.StringJsonFormat
-import spray.json._
+import spray.json.*
 
 /**
   * Test cases for validating our assumptions on spray.io
@@ -35,7 +35,7 @@ class SprayIoSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     }
   }
 
-  "convertTo" should "be able to leave JsValue as is if we want" in {
+  "convertTo" should "be able to leave JsValue as is if we want" {
     val jsStr = JsString("abc")
     jsStr.convertTo<JsValue> shouldBe jsStr
   }

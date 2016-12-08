@@ -6,61 +6,62 @@ import java.security.MessageDigest
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
+
 // Create one when we write a performance testing case using Kotlin.
-/*
-trait PerformanceTestTrait : FlatSpec with Matchers {
+interface PerformanceTestTrait {
 
   fun sha256(value : ByteArray) : ByteArray {
-    MessageDigest.getInstance("SHA-1").digest(value).array
+    return MessageDigest.getInstance("SHA-1").digest(value)
   }
 
-  fun rand32bytes = sha256(BigInteger.valueOf(Random.nextLong).toByteArray)
+  fun rand32bytes() = sha256(BigInteger.valueOf(Random().nextLong()).toByteArray())
 
-  fun measure<T>(subject: String)(block: => T)(implicit loopCount: Int) : T {
-    println(s"Performance test started. ${subject}.")
+  fun<T> measure(loopCount: Int, subject: String, block: (() -> T)) : T {
+    println("Performance test started. ${subject}.")
     val startTimestamp = System.currentTimeMillis()
 
-    val returnValue = block
+    val returnValue = block()
 
-    val elapsedSecond = (System.currentTimeMillis() - startTimestamp) / 1000d
-    println(s"Elapsed second : ${elapsedSecond}")
-    println(s"Total loops : ${loopCount}")
-    println(s"Loops per second : ${loopCount / elapsedSecond} /s ")
+    val elapsedSecond = (System.currentTimeMillis() - startTimestamp) / 1000
+    println("Elapsed second : ${elapsedSecond}")
+    println("Total loops : ${loopCount}")
+    println("Loops per second : ${loopCount / elapsedSecond} /s ")
 
-    returnValue
+    return returnValue
   }
 
-  fun measureWithSize(subject: String)(block: => Int)(implicit loopCount: Int) : Unit {
-    println(s"Performance test started. ${subject}.")
+  fun measureWithSize(loopCount: Int, subject: String, block: (() -> Int)) : Unit {
+    println("Performance test started. ${subject}.")
     val startTimestamp = System.currentTimeMillis()
 
-    val totalSizeProcessed = block
+    val totalSizeProcessed = block()
 
-    val elapsedSecond = (System.currentTimeMillis() - startTimestamp) / 1000d
-    println(s"Elapsed second : ${elapsedSecond}")
-    println(s"Total loops : ${loopCount}")
-    println(s"Loops per second : ${loopCount / elapsedSecond} /s ")
-    println(s"Size per second : ${totalSizeProcessed / elapsedSecond} /s ")
+    val elapsedSecond = (System.currentTimeMillis() - startTimestamp) / 1000
+    println("Elapsed second : ${elapsedSecond}")
+    println("Total loops : ${loopCount}")
+    println("Loops per second : ${loopCount / elapsedSecond} /s ")
+    println("Size per second : ${totalSizeProcessed / elapsedSecond} /s ")
   }
 
-  fun prepareKeyValue(count: Long): List<(ByteArray, ByteArray)> {
-    val buffer = ListBuffer<(ByteArray, ByteArray)>()
-    for (i <- 0L to count) {
+  fun prepareKeyValue(count: Int): List<Pair<ByteArray, ByteArray>> {
+    val buffer = mutableListOf<Pair<ByteArray, ByteArray>>()
+    for (i in 0 .. count) {
       // 32 byte key
-      val key = rand32bytes
+      val key = rand32bytes()
       // 256 byte value
       val value =
-        rand32bytes ++
-          rand32bytes ++
-          rand32bytes ++
-          rand32bytes ++
-          rand32bytes ++
-          rand32bytes ++
-          rand32bytes ++
-          rand32bytes
-      buffer.append((key, value))
+        rand32bytes() +
+          rand32bytes() +
+          rand32bytes() +
+          rand32bytes() +
+          rand32bytes() +
+          rand32bytes() +
+          rand32bytes() +
+          rand32bytes()
+      buffer.add(Pair(key, value))
     }
-    buffer.toList
+    return buffer
   }
 }
-*/

@@ -73,7 +73,7 @@ class ApiServerHandler : SimpleChannelInboundHandler<Any>() {
     if (cookieString != null) {
       val cookies: util.Set<Cookie> = CookieDecoder.decode(cookieString)
       if (!cookies.isEmpty) {
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConversions.*
         for (cookie <- cookies) {
           response.headers.add(SET_COOKIE, ServerCookieEncoder.encode(cookie))
         }

@@ -67,11 +67,11 @@ interface TransactionTestDataTrait : ChainTestTrait, ProtoTestData {
     TransactionOutput( value, pubKeyScript.lockingScript() )
   }
 
-  companion object {
+  companion object : ProtoTestData {
       private val txTestData = object : TransactionTestDataTrait {}
-      val TXHASH1 = ProtoTestData.transaction1.hash()
-      val TXHASH2 = ProtoTestData.transaction2.hash()
-      val TXHASH3 = ProtoTestData.transaction3.hash()
+      val TXHASH1 = transaction1().hash()
+      val TXHASH2 = transaction2().hash()
+      val TXHASH3 = transaction3().hash()
       /*
         val DUMMY_TXHASH1 = Hash
         val DUMMY_TXHASH2 =

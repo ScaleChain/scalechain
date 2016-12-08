@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.script
 
-import org.scalatest._
+import org.scalatest.*
 
 /** Test reserved word operations in ReservedWord.scala
   *
@@ -22,6 +22,6 @@ class ReservedWordSpec : FlatSpec with BeforeAndAfterEach with OperationTestTrai
     //
   }
 
-  "method" should "do something" in {
+  "method" should "do something" {
   }
 }

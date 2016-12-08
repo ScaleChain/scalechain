@@ -13,7 +13,7 @@ import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.storage.index.DB
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.HexUtil
-//import io.scalechain.util.Using._
+//import io.scalechain.util.Using.*
 import org.slf4j.LoggerFactory
 
 /**

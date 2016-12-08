@@ -105,7 +105,7 @@ class ConfigSpec : FlatSpec(), Matchers {
             }
 
             shouldThrow<ConfigException.Missing> {
-                config?.getConfigList("scalechain.notexistent")
+                config?.getConfiglistOf("scalechain.notexistent")
             }
         }
 
@@ -114,7 +114,7 @@ class ConfigSpec : FlatSpec(), Matchers {
         }
 
         "getConfigList" should "return a list of configuration items" {
-            val peers = config?.getConfigList("scalechain.p2p.peers")!!
+            val peers = config?.getConfiglistOf("scalechain.p2p.peers")!!
 
             peers.map{ it.toString() } shouldBe listOf(
                 """Config(SimpleConfigObject({"address":"127.0.0.1","port":"7643"}))""",

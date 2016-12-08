@@ -5,8 +5,8 @@ import java.io.File
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 /**
   * Created by kangmo on 6/16/16.
@@ -42,66 +42,66 @@ class TransactionMagnetSpec : BlockchainTestTrait with TransactionTestDataTrait 
     tm = null
   }
 
-  "markOutputSpent" should "" in {
+  "markOutputSpent" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "markOutputUnspent" should "" in {
+  "markOutputUnspent" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "markAllOutputsUnspent" should "" in {
+  "markAllOutputsUnspent" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "detachTransactionInput" should "" in {
+  "detachTransactionInput" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "detachTransactionInputs" should "" in {
+  "detachTransactionInputs" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "detachTransaction" should "" in {
+  "detachTransaction" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "attachTransactionInput" should "" in {
+  "attachTransactionInput" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "attachTransactionInputs" should "" in {
+  "attachTransactionInputs" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 
-  "attachTransaction" should "" in {
+  "attachTransaction" should "" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
   }
 }

@@ -1,8 +1,8 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.TransactionOutput
-import org.scalatest._
-import io.scalechain.util.HexUtil._
+import org.scalatest.*
+import io.scalechain.util.HexUtil.bytes
 /**
   * Created by kangmo on 5/18/16.
   */
@@ -23,7 +23,7 @@ class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAft
     //
   }
 
-  "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(privateKey)" in {
+  "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(privateKey)" {
     val privateKey = PrivateKey.generate
     val expectedAddress = CoinAddress.from(privateKey)
     val actualAddress = CoinAddress.from(expectedAddress.base58)
@@ -31,7 +31,7 @@ class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAft
     actualAddress shouldBe expectedAddress
   }
 
-  "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(publicKeyHash)" in {
+  "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(publicKeyHash)" {
     val privateKey = PrivateKey.generate
     val publicKey = PublicKey.from(privateKey)
     val expectedAddress = CoinAddress.from(publicKey.getHash.value)
@@ -41,13 +41,13 @@ class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAft
   }
 
 
-  "isValid" should "return true if it is valid" in {
+  "isValid" should "return true if it is valid" {
     CoinAddress(env.PubkeyAddressVersion, bytes("0" * 40)).isValid shouldBe true
     CoinAddress(env.ScriptAddressVersion, bytes("0" * 40)).isValid shouldBe true
 
   }
 
-  "isValid" should "return false if it is invalid" in {
+  "isValid" should "return false if it is invalid" {
     // invalid version
     CoinAddress('X', bytes("0" * 40)).isValid shouldBe false
     // invalid length
@@ -56,19 +56,19 @@ class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAft
     CoinAddress(env.ScriptAddressVersion, bytes("0" * 42)).isValid shouldBe false
   }
 
-  "base58" should "return base58 representation of the address" in {
+  "base58" should "return base58 representation of the address" {
     val privateKey = PrivateKey.generate
     val address = CoinAddress.from(privateKey)
     address.base58.length should be > 0
   }
 
-  "stringKey" should "return base58 representation of the address" in {
+  "stringKey" should "return base58 representation of the address" {
     val privateKey = PrivateKey.generate
     val address = CoinAddress.from(privateKey)
     address.stringKey shouldBe address.base58
   }
 
-  "lockingScript" should "produce locking script of the coin" in {
+  "lockingScript" should "produce locking script of the coin" {
     val privateKey = PrivateKey.generate
     val address = CoinAddress.from(privateKey)
 
@@ -84,7 +84,7 @@ class CoinAddressSpec : FlatSpec with TransactionTestDataTrait with BeforeAndAft
   }
   */
 
-  "base58" should "hit an assertion if it is not valid" in {
+  "base58" should "hit an assertion if it is not valid" {
     // invalid length
     val invalidAddress = CoinAddress(env.ScriptAddressVersion, bytes("0"*38))
 

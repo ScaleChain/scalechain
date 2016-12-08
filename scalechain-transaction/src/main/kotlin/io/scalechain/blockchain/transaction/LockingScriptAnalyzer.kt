@@ -103,6 +103,6 @@ object LockingScriptAnalyzer {
 
     // TODO : Need to return ParsedPubKeyScript.
     // ParsedPubKeyScript is not supported for an output ownership. Check Wallet.importOutputOwnership
-    return addresses //::: List(ParsedPubKeyScript(scriptOperations))
+    return addresses //::: listOf(ParsedPubKeyScript(scriptOperations))
   }
 }

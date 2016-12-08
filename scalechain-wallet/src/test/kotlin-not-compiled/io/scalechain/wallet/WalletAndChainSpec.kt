@@ -10,7 +10,7 @@ import io.scalechain.blockchain.storage.{DiskBlockStorage, Storage}
 import io.scalechain.blockchain.transaction.{ChainBlock, TransactionTestDataTrait}
 import org.apache.commons.io.FileUtils
 import org.scalatest.{Suite, Matchers, BeforeAndAfterEach, FlatSpec}
-import HashSupported._
+import HashSupported.*
 /**
   * Test if Wallet returns expected data during block reorganization.
   */
@@ -56,17 +56,17 @@ class WalletAndChainSpec : FlatSpec with WalletTestTrait with BeforeAndAfterEach
     }
   }
 
-  "blockchain" should "reorganize blocks" in {
+  "blockchain" should "reorganize blocks" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     wallet.importOutputOwnership(chain, "test account", Addr1.address, rescanBlockchain = false)
     wallet.importOutputOwnership(chain, "test account", Addr2.address, rescanBlockchain = false)
     wallet.importOutputOwnership(chain, "test account", Addr3.address, rescanBlockchain = false)
 
-    List(
+    listOf(
       GEN01,
       GEN02, TX02,
       GEN03b, TX03, TX03b,

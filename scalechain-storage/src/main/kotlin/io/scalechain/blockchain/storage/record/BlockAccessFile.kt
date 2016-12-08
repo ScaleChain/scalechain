@@ -20,12 +20,12 @@ open class BlockAccessFile(path : File, maxFileSize : Long) {
     }
   }
 
-  fun read(offset : Long, size : Int) : ByteArray {
+  fun read(offset : Long, size : Int) : ByteBuffer {
     moveTo(offset)
 
     val buffer = ByteBuffer.allocate(size)
     fileChannel.read(buffer)
-    return buffer.array()
+    return buffer
   }
 
   fun append(buffer:ByteBuffer) : Unit {

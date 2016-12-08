@@ -5,8 +5,8 @@ import java.io.File
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 /**
   * Created by kangmo on 6/16/16.
@@ -40,22 +40,22 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
     // finalize a test.
   }
 
-  "putOrphan" should "put an orphan" in {
+  "putOrphan" should "put an orphan" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.hasOrphan(TX02.transaction.hash) shouldBe true
   }
 
 
-  "delOrphan" should "del orphans matching the given hashes" in {
+  "delOrphan" should "del orphans matching the given hashes" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
@@ -66,47 +66,47 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
 
     o.delOrphan( TX02.transaction.hash )
     o.delOrphan( TX04a.transaction.hash )
-    o.getOrphan(TX02.transaction.hash) shouldBe None
-    o.getOrphan(TX03.transaction.hash) shouldBe Some(TX03.transaction)
-    o.getOrphan(TX04a.transaction.hash) shouldBe None
+    o.getOrphan(TX02.transaction.hash) shouldBe null
+    o.getOrphan(TX03.transaction.hash) shouldBe TX03.transaction)
+    o.getOrphan(TX04a.transaction.hash) shouldBe null
   }
 
-  "getOrphan" should "return None for a non-existent orphan" in {
+  "getOrphan" should "return None for a non-existent orphan" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
-    o.getOrphan(TX02.transaction.hash) shouldBe None
+    o.getOrphan(TX02.transaction.hash) shouldBe null
   }
 
-  "getOrphan" should "return Some(orphan) for an orphan" in {
+  "getOrphan" should "return Some(orphan) for an orphan" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
 
-    o.getOrphan(TX02.transaction.hash) shouldBe Some(TX02.transaction)
-    o.getOrphan(TX03.transaction.hash) shouldBe Some(TX03.transaction)
+    o.getOrphan(TX02.transaction.hash) shouldBe TX02.transaction)
+    o.getOrphan(TX03.transaction.hash) shouldBe TX03.transaction)
   }
 
-  "hasOrphan" should "return false for a non-existent orphan" in {
+  "hasOrphan" should "return false for a non-existent orphan" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.hasOrphan(TX02.transaction.hash) shouldBe false
   }
 
-  "hasOrphan" should "return true for an orphan" in {
+  "hasOrphan" should "return true for an orphan" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.hasOrphan(TX02.transaction.hash) shouldBe true
@@ -119,11 +119,11 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
     *          ↘      ↘
     *            ↘ → → → → TX04
     */
-  "getOrphansDependingOn" should "be able to put dependent orphans first" in {
+  "getOrphansDependingOn" should "be able to put dependent orphans first" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
@@ -136,11 +136,11 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
   }
 
 
-  "getOrphansDependingOn" should "be able to put depending orphans first" in {
+  "getOrphansDependingOn" should "be able to put depending orphans first" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX04.transaction.hash, TX04.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
@@ -152,11 +152,11 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
     o.getOrphansDependingOn(TX04.transaction.hash).toSet shouldBe Set()
   }
 
-  "removeDependenciesOn" should "remove dependencies on a transaction" in {
+  "removeDependenciesOn" should "remove dependencies on a transaction" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX02.transaction.hash, TX02.transaction )
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
@@ -185,11 +185,11 @@ class TransactionOrphanageSpec : BlockchainTestTrait with TransactionTestDataTra
     o.getOrphansDependingOn(TX04.transaction.hash).toSet shouldBe Set()
   }
 
-  "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" in {
+  "getOrphansDependingOn" should "return depending orphans if even though the parent was not put yet" {
     val data = BlockSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     o.putOrphan(TX03.transaction.hash, TX03.transaction )
     o.putOrphan(TX04.transaction.hash, TX04.transaction )

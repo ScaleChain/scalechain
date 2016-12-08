@@ -5,7 +5,7 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.blockchain.*
 
-internal val HashListCodec = Codecs.variableList( HashCodec )
+internal val HashListCodec = Codecs.variablelistOf( HashCodec )
 
 /**
   * <Description>
@@ -124,7 +124,7 @@ object AddrCodec : ProtocolMessageCodec<Addr> {
   override val command = "addr"
   override val clazz = Addr::class.java
 
-  private val networkAddressWithTimestampListCodec = Codecs.variableList(
+  private val networkAddressWithTimestampListCodec = Codecs.variablelistOf(
       NetworkAddressWithTimestampCodec
   )
 
@@ -166,7 +166,7 @@ internal object InvVectorCodec : Codec<InvVector> {
 }
 
 internal val InvVectorListCodec : Codec<List<InvVector>> =
-    Codecs.variableList( InvVectorCodec )
+    Codecs.variablelistOf( InvVectorCodec )
 
 /**
   * <Description>
@@ -256,7 +256,7 @@ object GetDataCodec : ProtocolMessageCodec<GetData> {
   }
 /*
   val codec : Codec<GetData> {
-    ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
+    ( "inventories" | VarList.varlistOf(InvCodec.invVectorCodec) )
   }.as<GetData>
 */
 }
@@ -305,7 +305,7 @@ object NotFoundCodec : ProtocolMessageCodec<NotFound> {
 
 /*
   val codec : Codec<NotFound> {
-    ( "inventories" | VarList.varList(InvCodec.invVectorCodec) )
+    ( "inventories" | VarList.varlistOf(InvCodec.invVectorCodec) )
   }.as<NotFound>
 */
 }
@@ -381,7 +381,7 @@ object BlockCodec : ProtocolMessageCodec<Block> {
   override val command = "block"
   override val clazz = Block::class.java
 
-  private val TransactionListCodec = Codecs.variableList( TransactionCodec )
+  private val TransactionListCodec = Codecs.variablelistOf( TransactionCodec )
   override fun transcode(io : CodecInputOutputStream, obj : Block? ) : Block? {
     val header = BlockHeaderCodec.transcode(io, obj?.header)
     val transactions = TransactionListCodec.transcode(io, obj?.transactions)
@@ -499,8 +499,8 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
   override val command = "tx"
   override val clazz = Transaction::class.java
 
-  private val TransactionInputListCodec = Codecs.variableList( TransactionInputCodec )
-  private val TransactionOutputListCodec = Codecs.variableList( TransactionOutputCodec )
+  private val TransactionInputListCodec = Codecs.variablelistOf( TransactionInputCodec )
+  private val TransactionOutputListCodec = Codecs.variablelistOf( TransactionOutputCodec )
 
   override fun transcode(io : CodecInputOutputStream, obj : Transaction? ) : Transaction? {
     val version  = Codecs.Int32L.transcode(io, obj?.version)
@@ -533,7 +533,7 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
 }
 
 internal val BlockHeaderListCodec : Codec<List<BlockHeader>> =
-  Codecs.variableList(BlockHeaderCodec)
+  Codecs.variablelistOf(BlockHeaderCodec)
 /**
   * <Description>
   * The headers message sends one or more block headers to a node
@@ -592,7 +592,7 @@ object HeadersCodec : ProtocolMessageCodec<Headers> {
   )
 
   val codec : Codec<Headers> {
-    ("headers" | VarList.varList(blockHeaderCoodec))
+    ("headers" | VarList.varlistOf(blockHeaderCoodec))
   }.as<Headers>
 */
 }

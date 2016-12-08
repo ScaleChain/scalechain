@@ -1,7 +1,7 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.{Hash, Transaction, WalletTransaction, WalletOutput}
-import io.scalechain.blockchain.script.HashSupported._
+import io.scalechain.blockchain.script.HashSupported.*
 import io.scalechain.blockchain.transaction.{OutputOwnership, TransactionTestDataTrait}
 import org.scalatest.Matchers
 

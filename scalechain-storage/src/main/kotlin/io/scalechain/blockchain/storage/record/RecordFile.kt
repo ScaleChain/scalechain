@@ -18,7 +18,7 @@ import io.scalechain.blockchain.ErrorCode
   * Details :
   * http://tutorials.jenkov.com/java-nio/file-channel.html
   */
-class RecordFile(private val path : File, private val maxFileSize : Long) : BlockAccessFile(path, maxFileSize){
+class RecordFile(val path : File, private val maxFileSize : Long) : BlockAccessFile(path, maxFileSize){
   val rwLock = ReentrantReadWriteLock()
 
   init {
@@ -29,7 +29,7 @@ class RecordFile(private val path : File, private val maxFileSize : Long) : Bloc
   fun<T> readRecord(codec : Codec<T>, locator : RecordLocator) : T {
     rwLock.readLock().lock()
     try {
-      val buffer = read(locator.offset, locator.size)
+      val buffer = read(locator.offset, locator.size).array()
       return codec.decode(buffer)!!
     } finally {
       rwLock.readLock().unlock()

@@ -231,7 +231,7 @@ data class Transaction(val version : Int,
     if (TransactionPrinter.printer != null)
         return TransactionPrinter.printer!!.toString(this)
     else
-        return "Transaction(version=$version, inputs=List(${inputs.joinToString(",")}), outputs=List(${outputs.joinToString(",")}), lockTime=${lockTime}L)"
+        return "Transaction(version=$version, inputs=listOf(${inputs.joinToString(",")}), outputs=listOf(${outputs.joinToString(",")}), lockTime=${lockTime}L)"
   }
 }
 
@@ -243,7 +243,7 @@ data class Block(val header:BlockHeader,
                  val transactions : List<Transaction>) : ProtocolMessage {
 
     override fun toString() : String =
-        "Block(header=$header, transactions=List(${transactions.joinToString(",")}))"
+        "Block(header=$header, transactions=listOf(${transactions.joinToString(",")}))"
 
     companion object {
         // Need to move these to configurations.

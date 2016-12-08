@@ -10,7 +10,7 @@ object HexUtil {
     /** Convert hex string to a byte array.
      *
      * c.f.> The output of DumpChain produces strings such as bytes("cafebebe").
-     * Because we have HexUtil.bytes, we can copy the output of DumpChain to Scala source codes, if we imported HexUtil._ .
+     * Because we have HexUtil.bytes, we can copy the output of DumpChain to Scala source codes, if we imported HexUtil.* .
      *
      * @param hexString The hex string such as "cafebebe"
      * @return A byte array, which is converted from the given hex string.

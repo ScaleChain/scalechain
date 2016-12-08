@@ -6,9 +6,9 @@ import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction._
-import org.scalatest._
-import HashSupported._
+import io.scalechain.blockchain.transaction.*
+import org.scalatest.*
+import HashSupported.*
 
 
 // Remove the ignore annotation after creating the "by block height" index
@@ -37,11 +37,11 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     // finalize a test.
   }
 
-  "blockchain" should "be able to create an empty block" in {
+  "blockchain" should "be able to create an empty block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
     chain.putBlock( BLK03.header.hash, BLK03 )
@@ -50,14 +50,14 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check transactions in the block. No transaction should exist.
-    block1.transactions.drop(1) shouldBe List()
+    block1.transactions.drop(1) shouldBe listOf()
   }
 
-  "blockchain" should "be able to accept one transaction in a block" in {
+  "blockchain" should "be able to accept one transaction in a block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -69,16 +69,16 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction
     )
   }
 
-  "blockchain" should "be able to accept two transactions in a block" in {
+  "blockchain" should "be able to accept two transactions in a block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -91,17 +91,17 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction
     )
   }
 
-  "blockchain" should "be able to accept three transactions in a block" in {
+  "blockchain" should "be able to accept three transactions in a block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -115,18 +115,18 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction,
       TX04_03.transaction
     )
   }
 
-  "blockchain" should "be able to accept four transactions in a block" in {
+  "blockchain" should "be able to accept four transactions in a block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -141,7 +141,7 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction,
       TX04_03.transaction,
@@ -150,11 +150,11 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
   }
 
 
-  "blockchain" should "be able to accept transactions in two blocks" in {
+  "blockchain" should "be able to accept transactions in two blocks" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -169,7 +169,7 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction,
       TX04_03.transaction,
@@ -186,7 +186,7 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block2.header.hash, block2)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block2.transactions.drop(1) shouldBe List(
+    block2.transactions.drop(1) shouldBe listOf(
       TX04_05_01.transaction,
       TX04_05_02.transaction,
       TX04_05_03.transaction,
@@ -196,11 +196,11 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
   }
 
 
-  "blockchain" should "be able to accept transactions in one block" in {
+  "blockchain" should "be able to accept transactions in one block" {
     val data = TransactionSampleData()
-    import data._
-    import data.Block._
-    import data.Tx._
+    import data.*
+    import data.Block.*
+    import data.Tx.*
 
     chain.putBlock( BLK01.header.hash, BLK01 )
     chain.putBlock( BLK02.header.hash, BLK02 )
@@ -221,7 +221,7 @@ class BlockchainWithTransactionSpec : BlockchainTestTrait with ChainTestTrait wi
     chain.putBlock(block1.header.hash, block1)
 
     // Drop the generation transaction and check all transactions are in the block.
-    block1.transactions.drop(1) shouldBe List(
+    block1.transactions.drop(1) shouldBe listOf(
       TX04_01.transaction,
       TX04_02.transaction,
       TX04_03.transaction,

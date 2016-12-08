@@ -2,7 +2,7 @@ package io.scalechain.blockchain.cli
 
 import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
 import io.scalechain.blockchain.proto.Block
-import org.scalatest._
+import org.scalatest.*
 
 /**
  * Created by kangmo on 11/2/15.
@@ -23,7 +23,7 @@ class BlockDirectoryReaderSpec : FlatSpec with BeforeAndAfterEach with Matchers 
     //
   }
 
-  "readFrom" should "read all blocks in a file" in {
+  "readFrom" should "read all blocks in a file" {
     val READ_BLOCKS_UP_TO = 500
     val blocks = Array<Block>(READ_BLOCKS_UP_TO)
     var blocksRead = 0

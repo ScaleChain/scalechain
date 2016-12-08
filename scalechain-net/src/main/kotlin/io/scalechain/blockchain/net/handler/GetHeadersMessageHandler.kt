@@ -45,9 +45,9 @@ object GetHeadersMessageHandler {
         if (getHeaders.blockLocatorHashes.isEmpty) {
           // Step 1.A : If no block locator hash was set, send the hash stop.
           if (BlockProcessor.hasNonOrphan(getHeaders.hashStop)) {
-            List(getHeaders.hashStop)
+            listOf(getHeaders.hashStop)
           } else {
-            List()
+            listOf()
           }
         } else {
           // Step 1.B.1 : Get the list of block hashes to send.

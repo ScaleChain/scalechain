@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.transaction
 
-import org.scalatest._
+import org.scalatest.*
 
 class PublicKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with Matchers {
   this: Suite =>
@@ -18,7 +18,7 @@ class PublicKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with 
     //
   }
 
-  "PublicKey.from(encoded)" should "decode a uncompressed public key" in {
+  "PublicKey.from(encoded)" should "decode a uncompressed public key" {
     val privateKey = PrivateKey.generate()
     val publicKey = PublicKey.from(privateKey)
 
@@ -27,7 +27,7 @@ class PublicKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with 
     parsedPublicKey shouldBe publicKey
   }
 /*
-  "PublicKey.from(encoded)" should "decode an comcompressed public key" in {
+  "PublicKey.from(encoded)" should "decode an comcompressed public key" {
     val privateKey = PrivateKey.generate()
     val publicKey = PublicKey.from(privateKey, compressed = true)
 
@@ -38,7 +38,7 @@ class PublicKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with 
 */
 
 /*
-  "PublicKey.from(privateKey)" should "create a compressed public key" in {
+  "PublicKey.from(privateKey)" should "create a compressed public key" {
     val privateKey = PrivateKey.generate()
     val publicKey = PublicKey.from(privateKey, compressed = true)
 
@@ -47,7 +47,7 @@ class PublicKeySpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with 
   }
 */
 
-  "PublicKey.from(privateKey)" should "create an uncompressed public key" in {
+  "PublicKey.from(privateKey)" should "create an uncompressed public key" {
     val privateKey = PrivateKey.generate()
     val publicKey = PublicKey.from(privateKey)
 

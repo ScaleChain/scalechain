@@ -5,8 +5,8 @@ import java.io.File
 import io.scalechain.blockchain.script.HashSupported
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
-import org.scalatest._
-import HashSupported._
+import org.scalatest.*
+import HashSupported.*
 
 /**
   * Created by kangmo on 6/16/16.
@@ -40,61 +40,61 @@ class BlockMagnetSpec : BlockchainTestTrait with TransactionTestDataTrait with M
     // finalize a test.
   }
 
-  "setEventListener" should "" in {
+  "setEventListener" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
 
   }
 
-  "detachBlock" should "" in {
+  "detachBlock" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
-  "detachBlocksAfter" should "" in {
+  "detachBlocksAfter" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
-  "attachBlock" should "" in {
+  "attachBlock" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
-  "collectBlockInfos" should "" in {
+  "collectBlockInfos" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
 
-  "attachBlocksAfter" should "" in {
+  "attachBlocksAfter" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
-  "reorganize" should "" in {
+  "reorganize" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 
-  "findCommonBlock" should "" in {
+  "findCommonBlock" should "" {
     val data = BlockSampleData()
-    import data._
-    import data.Tx._
-    import data.Block._
+    import data.*
+    import data.Tx.*
+    import data.Block.*
   }
 }
