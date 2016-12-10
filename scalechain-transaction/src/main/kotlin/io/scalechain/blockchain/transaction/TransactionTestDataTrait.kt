@@ -6,11 +6,14 @@ import io.scalechain.blockchain.proto.OutPoint
 import io.scalechain.blockchain.script.ops.*
 import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.hash
+import io.scalechain.util.ListExt
 
 /**
   * Created by kangmo on 5/18/16.
   */
 interface TransactionTestDataTrait : ChainTestTrait, ProtoTestData {
+  fun filledString(count : Int, byte : Byte) = String(ListExt.fill(count, byte).toByteArray())
+
   data class AddressData(val privateKey : PrivateKey, val publicKey : PublicKey, val pubKeyScript : ParsedPubKeyScript, val address : CoinAddress)
 
   /** Get rid of bytes data in OpCheckSig in the operations of ParsedPubKeyScript.

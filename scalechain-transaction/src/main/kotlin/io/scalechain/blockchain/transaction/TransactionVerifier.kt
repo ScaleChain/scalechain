@@ -55,7 +55,7 @@ class TransactionVerifier(private val db : KeyValueDatabase, private val spendin
   * @param transaction (for debugging) When an exception is thrown, we attach this transaction to create a MergedScript instance, which is logged for debugging Script execution.
   * @param inputIndex (for debugging) When an exception is thrown, this is necessary to create a MergedScript.
   */
-class NormalTransactionVerifier(private val db : KeyValueDatabase, private val transactionInput : NormalTransactionInput, private val transaction : Transaction, private val inputIndex : Int) {
+class NormalTransactionVerifier(private val db : KeyValueDatabase?, private val transactionInput : NormalTransactionInput, private val transaction : Transaction, private val inputIndex : Int) {
 
   /** Convert any exception happened within the body to TransactionVerificationException
     *
@@ -98,7 +98,7 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase, private val t
 //    try {
       val output =
         chainView.getTransactionOutput(
-          db,
+          db!!,
           OutPoint(
             Hash( transactionInput.outputTransactionHash.value) ,
             transactionInput.outputIndex.toInt()
@@ -289,7 +289,7 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase, private val t
   }
 }
 
-class GenerationTransactionVerifier(db : KeyValueDatabase, transaction : GenerationTransactionInput) {
+class GenerationTransactionVerifier(db : KeyValueDatabase?, transaction : GenerationTransactionInput) {
   /** Verify that 100 blocks are created after the generation transaction was created.
     * Generation transactions do not reference any UTXO, as it creates UTXO from the scratch.
     * So, we don't have to verify the locking script and unlocking script, but we need to make sure that at least 100 blocks are created
@@ -299,7 +299,7 @@ class GenerationTransactionVerifier(db : KeyValueDatabase, transaction : Generat
     * @param chainView A blockchain view that can get the transaction output pointed by an out point.
     * @throws TransactionVerificationException if the verification failed.
     */
-  fun verify(env : ScriptEnvironment, chainView : BlockchainView): Unit {
+  fun verify(env : ScriptEnvironment?, chainView : BlockchainView?): Unit {
     //assert(env == null)
     //assert(chainView == null)
     // Do nothing.

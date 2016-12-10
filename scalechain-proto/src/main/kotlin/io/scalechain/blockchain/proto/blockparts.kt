@@ -3,6 +3,7 @@ package io.scalechain.blockchain.proto
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.scalechain.util.*
+import java.util.*
 
 /** A hash data class that can represent transaction hash or block hash.
   * Used by an inventory vector, InvVector.
@@ -38,7 +39,7 @@ data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
     }
 
     override fun hashCode() : Int {
-        return Unpooled.wrappedBuffer(value).hashCode()
+        return Arrays.hashCode(value)
     }
 
     override operator fun compareTo(other : Hash): Int {
@@ -182,6 +183,20 @@ data class LockingScript(override val data : ByteArray) : Script {
             return LockingScriptPrinter.printer!!.toString(this)
         else
             return "LockingScript(${HexUtil.kotlinHex(data)})"
+    }
+
+    // BUGBUG : Add test code
+    override fun equals(other : Any?) : Boolean {
+        when {
+            other == null -> return false
+            other is LockingScript -> return Arrays.equals(this.data, other.data)
+            else -> return false
+        }
+    }
+
+    // BUGBUG : Add test code
+    override fun hashCode() : Int {
+        return Arrays.hashCode(data)
     }
 }
 

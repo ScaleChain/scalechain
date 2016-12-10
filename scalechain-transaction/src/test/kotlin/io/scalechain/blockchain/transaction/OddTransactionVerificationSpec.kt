@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.proto.NormalTransactionInput
 import io.scalechain.blockchain.proto.Transaction
@@ -9,41 +11,22 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.blockchain.script.{ScriptParser, BlockPrinterSetter}
 import io.scalechain.util.HexUtil.bytes
-import org.scalatest.prop.TableDrivenPropertyChecks.*
-import org.scalatest.prop.Tables.Table
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Suite}
 
 /** Test cases that have transactions failed verification after the release of v0.2.
   * We got these cases by running scalechain and logging BlovkVerifier.getFailures for every 1000 blocks.
   */
-class OddTransactionVerificationSpec : FlatSpec with BeforeAndAfterEach with ChainTestTrait with SignatureTestTrait {
-
-  this: Suite =>
-
-  override fun beforeEach() {
-    // set-up code
-    //
-
-    super.beforeEach()
-  }
-
-  override fun afterEach() {
-    super.afterEach()
-    // tear-down code
-    //
-  }
+class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, SignatureTestTrait {
 
   val transactionInputs =
-    Table(
+    table(
       // column names
-      ("subject", "mergedScript"),
+      headers("subject", "mergedScript"),
 
       // Summarize the locking/unlocking script as a subject.
       // The MergedScript creating code was copied from the output of DumpChain merge-scripts,
       // which reads all transactions from blkNNNNN.dat file written by the reference implementation.
-      (
+      row(
         "[[ErrorCode(invalid_signature_format)]message=ScriptOp:CheckSig]",
         MergedScript(
           transaction=
@@ -88,7 +71,7 @@ class OddTransactionVerificationSpec : FlatSpec with BeforeAndAfterEach with Cha
         )
       ),
 
-      ( "[[ErrorCode(invalid_signature_format)]message=ScriptOp:CheckMultiSig, invalid raw signature format.]",
+      row( "[[ErrorCode(invalid_signature_format)]message=ScriptOp:CheckMultiSig, invalid raw signature format.]",
         MergedScript(
           transaction=
             Transaction(
@@ -204,14 +187,13 @@ class OddTransactionVerificationSpec : FlatSpec with BeforeAndAfterEach with Cha
       )
       */
     )
-
-  "scripts" should "be leave true value on top of the stack" {
-
-    forAll(transactionInputs) { ( subject : String, mergedScript : MergedScript ) =>
-      //      println("subject: "+subject)
-      //      println("mergedScript: " + mergedScript )
-      verifyTransactionInput(subject, mergedScript.transaction, mergedScript.inputIndex, mergedScript.lockingScript);
+    init {
+        "scripts" should "be leave true value on top of the stack" {
+            forAll(transactionInputs) { subject, mergedScript ->
+                //      println("subject: "+subject)
+                //      println("mergedScript: " + mergedScript )
+                verifyTransactionInput(subject, mergedScript.transaction, mergedScript.inputIndex, mergedScript.lockingScript);
+            }
+        }
     }
-  }
-
 }
