@@ -67,7 +67,7 @@ object GetReceivedByAddress : RpcCommand() {
 
       val amount : CoinAmount = Wallet.get().getReceivedByAddress(Blockchain.get().db, Blockchain.get(), address, confirmation)
 
-      Right(NumberResult(java.math.BigDecimal(amount.value)))
+      Right(NumberResult(amount.value))
 
     }
   }

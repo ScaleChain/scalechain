@@ -11,6 +11,7 @@ import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
+import java.math.BigDecimal
 import java.math.BigInteger
 
 
@@ -145,7 +146,7 @@ class TransactionBuilder() {
 
     // Step 4 : Check if sum of input values is greater than or equal to the sum of output values.
     if (!inputs[0].isCoinBaseInput()) {
-      if (calculateFee(spendingOutputs, newOutputs).value < BigInteger.valueOf(0)) {
+      if (calculateFee(spendingOutputs, newOutputs).value < BigDecimal.valueOf(0)) {
         throw GeneralException(ErrorCode.NotEnoughInputAmounts)
       }
     }

@@ -3,6 +3,7 @@ package io.scalechain.blockchain.transaction
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.TransactionOutput
+import io.scalechain.test.TestMethods.filledString
 import io.scalechain.util.HexUtil.bytes
 /**
   * Created by kangmo on 5/18/16.

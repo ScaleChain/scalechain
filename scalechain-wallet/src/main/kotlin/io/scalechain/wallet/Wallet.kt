@@ -218,7 +218,7 @@ class Wallet() : ChainEventListener {
         // We get a wallet transaction from the wallet database.
         // It means that all inputs were validated, so the output pointed by an input of a validtransaction should exist.
         val ownership = LockingScriptAnalyzer.extractOutputOwnership(spentOutput.lockingScript)
-        Triple(ownership, "send", java.math.BigDecimal(CoinAmount.from(spentOutput.value).value))
+        Triple(ownership, "send", CoinAmount.from(spentOutput.value).value)
       }
       inputOrOutput is Either.Right -> {
         val output = inputOrOutput.value
@@ -238,7 +238,7 @@ class Wallet() : ChainEventListener {
           "receive"
         }
 
-        Triple(ownership, category, java.math.BigDecimal(CoinAmount.from(output.value).value))
+        Triple(ownership, category, CoinAmount.from(output.value).value)
       }
       else -> throw AssertionError()
     }
@@ -460,7 +460,7 @@ class Wallet() : ChainEventListener {
         account       = if (addressOption != null) store.getAccount( db, addressOption ) else null,
         scriptPubKey  = HexUtil.hex(walletOutput.walletOutput.transactionOutput.lockingScript.data),
         redeemScript  = redeemScriptOption,
-        amount        = java.math.BigDecimal( CoinAmount.from(walletOutput.walletOutput.transactionOutput.value ).value ),
+        amount        = CoinAmount.from(walletOutput.walletOutput.transactionOutput.value ).value,
         confirmations = confirmations,
         spendable     = !walletOutput.walletOutput.coinbase || (confirmations >= env.CoinbaseMaturity)
       )

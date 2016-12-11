@@ -10,6 +10,7 @@ import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.blockchain.transaction.CoinsView
+import java.math.BigDecimal
 import java.math.BigInteger
 
 data class TransactionWithFee(val transaction : Transaction, val fee : CoinAmount)
@@ -34,7 +35,7 @@ object TransactionFeeCalculator {
       acc + output.value
     })
     val feeAmount = totalInputAmount - totalOutputAmount
-    return CoinAmount(BigInteger.valueOf(feeAmount))
+    return CoinAmount(BigDecimal.valueOf(feeAmount))
   }
 }
 
