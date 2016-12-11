@@ -198,7 +198,7 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
     * @param maxBlockSize The maximum block size. The serialized block size including the block header and transactions should not exceed the size.
     * @return The count and list of transactions to put into a block.
     */
-  protected fun selectTransactions(generationTransaction:Transaction, transactions : List<Transaction>, maxBlockSize : Int) : Pair<Int, List<Transaction>> {
+  fun selectTransactions(generationTransaction:Transaction, transactions : List<Transaction>, maxBlockSize : Int) : Pair<Int, List<Transaction>> {
 
 //    val candidateTransactions = ListBuffer<Transaction>()
 //    candidateTransactions ++= transactions

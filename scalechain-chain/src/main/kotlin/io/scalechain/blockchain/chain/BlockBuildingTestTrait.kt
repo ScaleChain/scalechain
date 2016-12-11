@@ -153,7 +153,7 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
     return CoinAddress.from(PrivateKey.generate())
   }
 
-  fun mineBlock(db : KeyValueDatabase, chain : Blockchain) {
+  fun mineBlock(db : KeyValueDatabase, chain : Blockchain) : Block {
     assert(db is RocksDatabase)
     val rocksDB = db as RocksDatabase
 
@@ -162,7 +162,7 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)
     val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash(db)!! ), nonce = 0 )
-    doMining( block, requiredHashCalulcations = 4)
+    return doMining( block, requiredHashCalulcations = 4)
   }
 
 }

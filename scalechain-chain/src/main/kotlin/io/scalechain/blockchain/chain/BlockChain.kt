@@ -453,7 +453,7 @@ class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : B
   }
 
   companion object {
-    private var theBlockchain : Blockchain? = null
+    var theBlockchain : Blockchain? = null
     fun create(db : RocksDatabase, storage : BlockStorage) : Blockchain {
       theBlockchain = Blockchain(db, storage)
 

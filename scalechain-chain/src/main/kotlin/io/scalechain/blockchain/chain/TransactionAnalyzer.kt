@@ -9,7 +9,7 @@ import io.scalechain.blockchain.transaction.BlockchainView
   */
 object TransactionAnalyzer {
 
-  private fun sumAmount(outputs : List<TransactionOutput>) : java.math.BigDecimal {
+  internal fun sumAmount(outputs : List<TransactionOutput>) : java.math.BigDecimal {
     return outputs.fold( java.math.BigDecimal.valueOf(0), { sum, output ->
       sum + java.math.BigDecimal.valueOf(output.value)
     })

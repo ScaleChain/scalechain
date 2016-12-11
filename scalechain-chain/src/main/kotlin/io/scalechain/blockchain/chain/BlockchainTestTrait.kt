@@ -1,9 +1,11 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.specs.FlatSpec
 import java.io.File
 import java.lang.ref.WeakReference
 
 import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
@@ -12,21 +14,22 @@ import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 
-/*
-trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 
-  this: Suite =>
+abstract class BlockchainTestTrait : FlatSpec() {
 
-  val testPath : File
+  abstract val testPath : File
 
-  Storage.initialize()
 
   val TEST_RECORD_FILE_SIZE = 1024 * 1024
 
-  var storage : DiskBlockStorage = null
-  var chain : Blockchain = null
+  lateinit var storage : DiskBlockStorage
+  lateinit var chain : Blockchain
 
-  implicit var db : KeyValueDatabase = null
+  lateinit var db : KeyValueDatabase
+
+  init {
+    Storage.initialize()
+  }
 
   override fun beforeEach() {
     // initialize a test.
@@ -36,8 +39,8 @@ trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 
     val rocksDB = RocksDatabase(testPath)
     db = rocksDB
-    storage = DiskBlockStorage(testPath, TEST_RECORD_FILE_SIZE)
-    chain = Blockchain(storage)(rocksDB)
+    storage = DiskBlockStorage(db, testPath, TEST_RECORD_FILE_SIZE)
+    chain = Blockchain(rocksDB, storage)
     BlockProcessor.theBlockProcessor = null
     BlockProcessor.create(chain)
 
@@ -53,29 +56,26 @@ trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
     db.close()
     storage.close()
 
-    storage = null
-    chain   = null
-    db      = null
     Blockchain.theBlockchain = null
 
     FileUtils.deleteDirectory(testPath)
   }
 
 
-  val SampleData = ChainSampleData(None)
+  val SampleData = ChainSampleData(db, null)
 
-  fun createBlock(height : Int ) {
+  fun createBlock(height : Long ) : Block {
     assert(height > 0)
-    SampleData.S1_Block.copy(
+    return SampleData.S1_Block.copy(
       header = SampleData.S1_Block.header.copy(
-        hashPrevBlock = Hash( chain.getBlockHash(height-1).value),
+        hashPrevBlock = Hash( chain.getBlockHash(db, height-1).value),
         nonce = height
       )
     )
   }
 
-  fun numberToHash(blockHeight : Int) {
-    createBlock(blockHeight).header.hash
+  fun numberToHash(blockHeight : Int) : Hash {
+    return createBlock(blockHeight.toLong()).header.hash()
 /*
     Hash( HashCalculator.blockHeaderHash( createBlock(blockHeight).header ).value ) {
       // Put height of the block on the hash for debugging purpose.
@@ -89,11 +89,11 @@ trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
 
 
   fun putBlocks(blockCount : Int) {
-    for (blockHeight <- 1 to blockCount) {
+    for (blockHeight in 1 .. blockCount) {
       val blockHash = numberToHash(blockHeight)
       //println(s"putblocks : ${blockCount}, ${blockHash}, ${createBlock(blockHeight)} ")
       // put a block using genesis block, as we don't check if the block hash matches in the putBlock method.
-      chain.putBlock(blockHash, createBlock(blockHeight))
+      chain.putBlock(db, blockHash, createBlock(blockHeight.toLong()))
     }
   }
   /*
@@ -109,4 +109,3 @@ trait BlockchainTestTrait : FlatSpec with BeforeAndAfterEach {
   }
   */
 }
-*/

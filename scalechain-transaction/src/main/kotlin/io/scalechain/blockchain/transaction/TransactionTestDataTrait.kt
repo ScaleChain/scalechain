@@ -63,8 +63,8 @@ interface TransactionTestDataTrait : ChainTestTrait, ProtoTestData {
     )
   }
 
-  fun generateTransactionOutput(value : Long, pubKeyScript : ParsedPubKeyScript) {
-    TransactionOutput( value, pubKeyScript.lockingScript() )
+  fun generateTransactionOutput(value : Long, pubKeyScript : ParsedPubKeyScript) : TransactionOutput {
+    return TransactionOutput( value, pubKeyScript.lockingScript() )
   }
 
   companion object : ProtoTestData {

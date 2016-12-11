@@ -1,0 +1,65 @@
+package io.scalechain.blockchain.chain
+
+import java.io.File
+
+import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.kotlintest.matchers.Matchers
+
+/**
+  * Created by kangmo on 6/16/16.
+  */
+class BlockMagnetSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+
+  override val testPath = File("./target/unittests-BlockMagnetSpec/")
+
+  lateinit var bm : BlockMagnet
+
+  override fun beforeEach() {
+    super.beforeEach()
+
+    // put the genesis block
+    chain.putBlock(db, env().GenesisBlockHash, env().GenesisBlock)
+
+    bm = chain.blockMagnet
+  }
+
+  override fun afterEach() {
+
+    super.afterEach()
+
+    // finalize a test.
+  }
+
+  init {
+
+    "setEventListener" should "" {
+/*
+      val data = BlockSampleData(db)
+      val B = data.Block
+      val T = data.Tx
+*/
+    }
+
+    "detachBlock" should "" {
+    }
+
+    "detachBlocksAfter" should "" {
+    }
+
+    "attachBlock" should "" {
+    }
+
+    "collectBlockInfos" should "" {
+    }
+
+
+    "attachBlocksAfter" should "" {
+    }
+
+    "reorganize" should "" {
+    }
+
+    "findCommonBlock" should "" {
+    }
+  }
+}

@@ -15,7 +15,7 @@ object MerkleRootCalculator {
     * @param hash2 The second hash value
     * @return The hash value calcuated from the concatenated hash values.
     */
-  private fun mergeHash(hash1 : Hash, hash2 : Hash) : Hash {
+  internal fun mergeHash(hash1 : Hash, hash2 : Hash) : Hash {
     val concatenated = hash1.value + hash2.value
 
     return Hash( HashFunctions.hash256(concatenated).value )
@@ -25,7 +25,7 @@ object MerkleRootCalculator {
     * @param hashes The list of hashes for calculating the merkle root hash.
     * @return
     */
-  private fun mergeHashes(hashes : List<Hash>) : List<Hash> {
+  internal fun mergeHashes(hashes : List<Hash>) : List<Hash> {
     // The number of hashes should be even.
     // TODO : Optimize, i%2==0 could be expensive.
     assert( hashes.size % 2 == 0)
@@ -49,7 +49,7 @@ object MerkleRootCalculator {
     * @param hashes The list of hashes for calculating the merkle root hash.
     * @return
     */
-  private fun calculateMerkleRoot(hashes : MutableList<Hash>) : List<Hash> {
+  internal fun calculateMerkleRoot(hashes : MutableList<Hash>) : List<Hash> {
     assert (hashes.size > 0)
     if (hashes.size == 1) { // The base condition. If the number of hashes is one, we are done.
       return hashes

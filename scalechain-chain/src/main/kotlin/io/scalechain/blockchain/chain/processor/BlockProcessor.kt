@@ -212,7 +212,7 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
   }
 */
   companion object {
-    private var theBlockProcessor : BlockProcessor? = null
+    var theBlockProcessor : BlockProcessor? = null
     fun create(chain : Blockchain) {
       if (theBlockProcessor == null) {
         theBlockProcessor = BlockProcessor(chain.db, chain)
