@@ -22,6 +22,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
+import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
+
 import java.util.List;
 import java.util.Vector;
 
@@ -45,35 +47,11 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
      */
     public BitcoinProtocolDecoder() {
     }
-/*
+
     private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
-*/
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        // TODO : Implement!
-        assert(false);
-//        BitVector inputMessage = null;
-/*
-        if (msg.hasArray()) { // view as a byte array if possible.
-            inputMessage = BitVector$.MODULE$.view(msg.array());
-        } else if (msg.nioBufferCount() > 0) { // view as nio buffer if possible.
-            inputMessage = BitVector$.MODULE$.view(msg.nioBuffer());
-        } else*/ /*{ // last resort, allocate a new byte array.
-            byte[] bytes = new byte[msg.readableBytes()];
-            msg.readBytes(bytes);
-            inputMessage = BitVector$.MODULE$.view(bytes);
-        }
-
-        Vector<ProtocolMessage> messages = new Vector<ProtocolMessage>();
-
-        if (incompleteMessage != null) { // If we have any incomplete message, prepend it to the current message.
-            inputMessage = incompleteMessage.$plus$plus(inputMessage);
-        }
-
-        // In case there is any remaining bits, we keep it in incompleteMessage
-        incompleteMessage = codec.decode(inputMessage, messages);
-        for (ProtocolMessage message : messages) {
-            out.add(message);
-        }*/
+        codec.decode(msg, out);
     }
 }

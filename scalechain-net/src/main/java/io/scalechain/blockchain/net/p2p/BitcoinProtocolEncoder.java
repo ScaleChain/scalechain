@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
+import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
 import io.scalechain.util.StringUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -35,18 +36,24 @@ public class BitcoinProtocolEncoder extends MessageToMessageEncoder<ProtocolMess
     public BitcoinProtocolEncoder() {
     }
 
-    //private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
+    private BitcoinProtocolCodec codec = new BitcoinProtocolCodec( new BitcoinProtocol() );
+
+    /**
+     * Allocate a {@link ByteBuf} which will be used for constructing an encoded byte buffer of protocol message.
+     * BUGBUG : Modify this method to return a {@link ByteBuf} with a perfect matching initial capacity.
+     */
+    protected ByteBuf allocateBuffer(
+      ChannelHandlerContext ctx,
+      @SuppressWarnings("unused") ProtocolMessage msg) throws Exception {
+        return ctx.alloc().ioBuffer(1024);
+    }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ProtocolMessage msg, List<Object> out) throws Exception {
-        // TODO : Implement
-        /*
-        // TODO : Make sure that we are not having any performance issue here.
-        byte[] bytes = codec.encode(msg);
+        ByteBuf encodedByteBuf = allocateBuffer(ctx, msg);
 
-        ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
+        codec.encode(msg, encodedByteBuf);
 
-        out.add( buffer );
-        */
+        out.add(encodedByteBuf);
     }
 }

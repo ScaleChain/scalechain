@@ -2,6 +2,8 @@ package io.scalechain.blockchain.proto.codec
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ProtocolCodecException
 import java.nio.charset.StandardCharsets
 
 import io.scalechain.crypto.HashFunctions
@@ -13,6 +15,7 @@ import io.scalechain.util.ArrayUtil
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.readableByteCount
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import io.scalechain.util.toByteArray
 
 /** The envelope message that wraps actual payload.
  * Field Size,  Description,  Data type,  Comments
@@ -96,29 +99,6 @@ data class BitcoinMessageEnvelope(
     override fun toString() = """BitcoinMessageEnvelope($magic, \"${command}\", $length, $checksum, $payload)"""
 
     companion object {
-      val MIN_DATA_BITS = 24 * 8
-
-      val COMMAND_SIZE = 12
-
-      private fun decodeCommand(zeroPaddedCommand : ByteArray): String {
-        assert(zeroPaddedCommand.size == COMMAND_SIZE)
-
-        // command is a 0 padded string. Get rid of trailing 0 values.
-        val command: ByteArray = ArrayUtil.unpad(zeroPaddedCommand, 0.toByte())
-
-        // BUGBUG : Dirty code. make it clean.
-        return String(command, StandardCharsets.US_ASCII)
-      }
-
-      private fun encodeCommand(command: String) : ByteArray {
-        assert(command.length <= COMMAND_SIZE)
-
-        // BUGBUG : Dirty code. make it clean.
-        val bytes = command.toByteArray(StandardCharsets.US_ASCII)
-        // Pad the array with 0, to make the size to 12 bytes.
-        return ArrayUtil.pad(bytes, COMMAND_SIZE /* targetLength */ , 0 /* value */)
-      }
-
       /**
        * Calculate checksum from a range of a byte array.
        * @param buffer The byte array to check.
@@ -144,20 +124,23 @@ data class BitcoinMessageEnvelope(
           byteBuf
         )
       }
-/*
+
+      fun isMagicValid(magic : Magic) = magic == BitcoinConfiguration.config.magic
+
       fun verify(envelope : BitcoinMessageEnvelope) : Unit {
 
-        if ( envelope.magic != BitcoinConfiguration.config.magic)
+        if ( !isMagicValid(envelope.magic) )
           throw ProtocolCodecException( ErrorCode.IncorrectMagicValue )
 
         if ( envelope.length != envelope.payload.readableByteCount() )
           throw ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
 
         // BUGBUG : Try to avoid byte array copy.
-        if ( envelope.checksum != checksum( envelope.payload.toByteArray() ) )
+        val payloadBytes = envelope.payload.toByteArray()
+        if ( envelope.checksum != checksum( payloadBytes, 0, payloadBytes.size) )
           throw ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
       }
-*/
+
 /*
       fun encode(msg: BitcoinMessageEnvelope) : {
         for {
@@ -194,17 +177,40 @@ data class BitcoinMessageEnvelope(
 }
 
 object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
+  val COMMAND_SIZE = 12
+
+  private fun decodeCommand(zeroPaddedCommand : ByteArray): String {
+    assert(zeroPaddedCommand.size == COMMAND_SIZE)
+
+    // command is a 0 padded string. Get rid of trailing 0 values.
+    val command: ByteArray = ArrayUtil.unpad(zeroPaddedCommand, 0.toByte())
+
+    // BUGBUG : Dirty code. make it clean.
+    return String(command, StandardCharsets.US_ASCII)
+  }
+
+  private fun encodeCommand(command: String) : ByteArray {
+    assert(command.length <= COMMAND_SIZE)
+
+    // BUGBUG : Dirty code. make it clean.
+    val bytes = command.toByteArray(StandardCharsets.US_ASCII)
+    // Pad the array with 0, to make the size to 12 bytes.
+    return ArrayUtil.pad(bytes, COMMAND_SIZE /* targetLength */ , 0 /* value */)
+  }
+
+  val COMMAND_LENGTH = 12
+  val PayloadLengthCodec = Codecs.UInt32L
     override fun transcode(io: CodecInputOutputStream, obj: BitcoinMessageEnvelope?): BitcoinMessageEnvelope? {
         val magic    = MagicCodec.transcode(io, obj?.magic)
-        val command  = Codecs.fixedByteArray(12).transcode(io, obj?.command?.toByteArray())
-        val length   = Codecs.UInt32L.transcode(io, obj?.length?.toLong())
+        val command  = Codecs.fixedByteArray(COMMAND_LENGTH).transcode(io, if (obj==null) null else encodeCommand(obj.command))
+        val length   = PayloadLengthCodec.transcode(io, obj?.length?.toLong())
         val checksum = ChecksumCodec.transcode(io, obj?.checksum)
         val payload  = io.fixedBytes(obj?.length ?: length!!.toInt() , obj?.payload)
 
         if (io.isInput) {
             return BitcoinMessageEnvelope(
                 magic!!,
-                String(command!!),
+                decodeCommand(command!!),
                 length!!.toInt(),
                 checksum!!,
                 payload!!
@@ -212,6 +218,49 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
         }
         return null
     }
+
+  val PAYLOAD_LENGTH_SIZE = PayloadLengthCodec.encode(0L).size
+  val MIN_ENVELOPE_BYTES = envelopSize(payloadLength=0)
+
+  val PAYLOAD_LENGTH_OFFSET = Magic.VALUE_SIZE + COMMAND_LENGTH // command
+
+  fun envelopSize(payloadLength : Long ) : Long {
+    return Magic.VALUE_SIZE +
+           COMMAND_LENGTH + // command
+           PAYLOAD_LENGTH_SIZE + // length
+           Checksum.VALUE_SIZE +
+           payloadLength // payload
+  }
+
+  fun getPayloadLength(encodedByteBuf : ByteBuf) : Long {
+    val payloadLengthByteBuf = Unpooled.buffer() // BUGBUG : Is this resulting in a performance issue?
+    encodedByteBuf.getBytes(encodedByteBuf.readerIndex() + PAYLOAD_LENGTH_OFFSET, payloadLengthByteBuf, 0, PAYLOAD_LENGTH_SIZE)
+
+    val payloadLength = PayloadLengthCodec.decode(payloadLengthByteBuf)
+    return payloadLength!!
+  }
+
+  fun getMagic(encodedByteBuf : ByteBuf) : Magic {
+    val magicByteBuf = Unpooled.buffer() // BUGBUG : Is this resulting in a performance issue?
+    encodedByteBuf.getBytes(encodedByteBuf.readerIndex(), magicByteBuf, 0, Magic.VALUE_SIZE)
+
+    val magic = MagicCodec.decode(magicByteBuf)
+    return magic!!
+  }
+
+  fun decodable(encodedByteBuf : ByteBuf) : Boolean {
+    if ( encodedByteBuf.readableByteCount() < MIN_ENVELOPE_BYTES) {
+      return false
+    }
+
+    if ( BitcoinMessageEnvelope.isMagicValid(getMagic(encodedByteBuf)) ) {
+      val payloadLength = getPayloadLength(encodedByteBuf)
+
+      return encodedByteBuf.readableByteCount() >= envelopSize(payloadLength)
+    } else {
+      return false
+    }
+  }
 }
 
 

@@ -1,23 +1,21 @@
 package io.scalechain.blockchain.proto.codec
 
-/*
-import io.scalechain.blockchain.{ErrorCode, ProtocolCodecException}
-import io.scalechain.blockchain.proto.{Hash, Block, ProtocolMessage}
-import io.scalechain.util.HexUtil
-import scodec.{DecodeResult, Attempt}
-import scodec.bits.{BitVector}
 
-class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
-  fun encode(message : ProtocolMessage): ByteArray {
+import io.netty.buffer.ByteBuf
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.ProtocolCodecException
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.proto.ProtocolMessage
+import io.scalechain.util.HexUtil
+import io.scalechain.util.readableByteCount
+
+class BitcoinProtocolCodec( private val protocol : NetworkProtocol ) {
+  fun encode(message : ProtocolMessage, byteBuf : ByteBuf) {
     val envelope = BitcoinMessageEnvelope.build(protocol, message)
-    BitcoinMessageEnvelope.codec.encode(envelope) match {
-      case Attempt.Successful(bitVector) => {
-        bitVector.toByteArray
-      }
-      case Attempt.Failure(err) => {
-        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
-      }
-    }
+
+    val io = CodecInputOutputStream(byteBuf, isInput = false)
+    BitcoinMessageEnvelopeCodec.transcode(io, envelope)
   }
 
   /** Decode bits and add decoded messages to the given vector.
@@ -26,77 +24,21 @@ class BitcoinProtocolCodec( protocol : NetworkProtocol ) {
     * @param messages The messages decoded from the given BitVector. The BitVector may have multiple messages, with or without an incomplete message. However, the BitVector itself may not have enough data to construct a message.
     * @return BitVector If we do not have enough data to construct a message, return the data as BitVector instead of constructing a message.
     */
-  fun decode(bitVector : BitVector, messages : java.util.Vector<ProtocolMessage>) : BitVector {
-    if ( bitVector.length < BitcoinMessageEnvelope.MIN_DATA_BITS) {
-      bitVector
-    } else {
-      val (envelope, remainder) = BitcoinMessageEnvelope.codec.decode(bitVector) match {
-        case Attempt.Successful(DecodeResult(decoded, remainder)) => {
+  tailrec fun decode(encodedByteBuf : ByteBuf, messages : java.util.List<Any>) : Unit {
+    if ( BitcoinMessageEnvelopeCodec.decodable(encodedByteBuf) ) {
+//      val io = CodecInputOutputStream(encodedByteBuf, isInput = false)
+      val envelope = BitcoinMessageEnvelopeCodec.decode(encodedByteBuf)!!
 
-          (decoded, remainder)
-        }
-        case Attempt.Failure(err) => {
-          throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
-        }
+      BitcoinMessageEnvelope.verify(envelope)
+      val protocolMessage = protocol.decode( envelope.payload, envelope.command )
+
+      messages.add( protocolMessage )
+
+      if ( encodedByteBuf.readableByteCount() >= BitcoinMessageEnvelopeCodec.MIN_ENVELOPE_BYTES) {
+        decode(encodedByteBuf, messages )
       }
-
-
-      if ( (envelope.payload.length / 8) < envelope.length  ) { // Not enough data received for an envelope.
-        bitVector
-      } else {
-        BitcoinMessageEnvelope.verify(envelope)
-        val protocolMessage = protocol.decode( envelope.command, envelope.payload )
-/*
-        if (envelope.command == "block") {
-          val block = protocolMessage.asInstanceOf<Block>
-          if (block.header.hashPrevBlock == Hash("000000006f6709b76bed31001b32309167757007aa4fb899f8168c8e9c084b1a")) {
-            println(s"decoded:\n$protocolMessage\nprotocol data:\n${HexUtil.hex(bitVector.bytes.toArray)}\n")
-            System.exit(-1)
-          }
-        }
-*/
-        messages.add( protocolMessage )
-
-        if ( remainder.isEmpty ) {
-          null
-        } else {
-          decode(remainder, messages )
-        }
-      }
-
-      /*
-      println("received : " + envelope)
-
-      try {
-        if ( (envelope.payload.length / 8) < envelope.length  ) { // Not enough data received for an envelope.
-          println("Not enough data.")
-          bitVector
-        } else {
-          BitcoinMessageEnvelope.verify(envelope)
-          val protocolMessage = protocol.decode( envelope.command, envelope.payload )
-
-          messages.add( protocolMessage )
-
-          println("adding : " + protocolMessage)
-
-          if ( remainder.isEmpty ) {
-            null
-          } else {
-            println("remaining : " + remainder.length)
-
-            decode(remainder, messages )
-          }
-        }
-      } catch {
-        case e : Exception => {
-          println("Exception : " + e)
-          e.printStackTrace()
-          throw e
-        }
-      }
-      */
     }
   }
 }
 
-*/
+
