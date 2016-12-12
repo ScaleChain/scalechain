@@ -9,17 +9,17 @@ import io.scalechain.util.HexUtil
 
 class TestBlockIndex : BlockIndex {
   var bestBlockHash : Hash? = null
-  var bestBlockHeight = -1
+  var bestBlockHeight = -1L
   val transactions = mutableMapOf<Hash, Transaction>()
   val blocks = mutableMapOf<Hash, Pair<BlockInfo,Block>>()
 
-  fun addBlock(block : Block, height : Int) : Unit {
+  fun addBlock(block : Block, height : Long) : Unit {
     val blockHash : Hash = block.header.hash()
     blocks.put(
       blockHash,
       Pair(
         BlockInfo(
-          height.toLong(),
+          height,
           0,    // chain work
           null, // next block hash.
           block.transactions.size,
@@ -92,7 +92,7 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
       throw UnsupportedOperationException()
     }
     override fun getBestBlockHeight() : Long {
-      return blockIndex.bestBlockHeight.toLong()
+      return blockIndex.bestBlockHeight
     }
 
     override fun getTransaction(db : KeyValueDatabase, transactionHash : Hash) : Transaction? {
@@ -141,7 +141,7 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
 
 
   // Test cases may override this method to check the status of blockchain.
-  fun onStepFinish(stepNumber : Int): Unit {
+  open fun onStepFinish(stepNumber : Int): Unit {
     // to nothing
   }
 
@@ -164,7 +164,7 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
   // Create the first block.
   val S1_Block = newBlock(listOf(S1_AliceGenTx))
   val S1_BlockHash = getBlockHash(S1_Block)
-  val S1_BlockHeight = 1
+  val S1_BlockHeight = 1L
 
   val __dummy3 = onStepFinish(1)
 
@@ -197,7 +197,7 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
   // Create the second block.
   val S2_Block = newBlock(listOf(S2_BobGenTx, S2_AliceToBobTx))
   val S2_BlockHash = getBlockHash(S2_Block)
-  val S2_BlockHeight = 2
+  val S2_BlockHeight = 2L
 
   val __dummy4 = onStepFinish(2)
 
@@ -232,7 +232,7 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
   // Create the second block.
   val S3_Block = newBlock(listOf(S3_CarryGenTx, S3_BobToAliceAndCarrayTx))
   val S3_BlockHash = getBlockHash(S3_Block)
-  val S3_BlockHeight = 3
+  val S3_BlockHeight = 3L
 
   val __dummy5 = onStepFinish(3)
 

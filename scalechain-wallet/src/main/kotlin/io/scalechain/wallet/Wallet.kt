@@ -109,7 +109,7 @@ class Wallet() : ChainEventListener {
     * @param accountOption The account to get transactions related to an account
     */
   // BUGBUG : Use list instead of Set? To eliminate duplicate transaction hashes, are we using Set? Need investigation.
-  protected fun getTransactionHashes(db : KeyValueDatabase, accountOption : String?) : List<Hash> {
+  internal fun getTransactionHashes(db : KeyValueDatabase, accountOption : String?) : List<Hash> {
     return store.getOutputOwnerships(db, accountOption).flatMap { ownership : OutputOwnership ->
       store.getTransactionHashes(db, ownership)
     }
@@ -121,53 +121,53 @@ class Wallet() : ChainEventListener {
     * @param accountOption
     * @return
     */
-  protected fun getWalletTransactions(db : KeyValueDatabase, accountOption : String?) : List<WalletTransaction> {
+  internal fun getWalletTransactions(db : KeyValueDatabase, accountOption : String?) : List<WalletTransaction> {
     return getTransactionHashes(db, accountOption).map { transactionHash: Hash ->
       store.getWalletTransaction(db, transactionHash) // returns Option<WalletTransaction>
     }.filterNotNull() // Filter out null values.
   }
 
-  protected val WalletTransactionComparatorInDescendingOrder = object : Comparator<WalletTransaction> {
+  internal val WalletTransactionComparatorInDescendingOrder = object : Comparator<WalletTransaction> {
     override fun compare(o1: WalletTransaction?, o2: WalletTransaction?): Int {
       if (isMoreRecentThan(o1!!, o2!!)) return -1
       else if (isMoreRecentThan(o2!!, o1!!)) return 1
       else return 0
     }
+  }
 
-    /**
-     * See if the first transaction is more recent than the second transaction.
-     *
-     * This method is used to sort transactions by recency in descending order.
-     *
-     * @param a The first transaction to compre.
-     * @param b The second transaction to compre.
-     * @return true if the first one is more recent. false otherwise.
-     */
-    protected fun isMoreRecentThan(a : WalletTransaction, b : WalletTransaction) : Boolean {
-      // Case 1 : If only one of the two transactions has an empty block index, it is more recent one as the transaction is in the mempool.
-      if (a.blockIndex != null && b.blockIndex == null) {
-        return false
-      } else if (a.blockIndex == null && b.blockIndex != null) { // Case 2 : Same as case 1.
+  /**
+   * See if the first transaction is more recent than the second transaction.
+   *
+   * This method is used to sort transactions by recency in descending order.
+   *
+   * @param a The first transaction to compre.
+   * @param b The second transaction to compre.
+   * @return true if the first one is more recent. false otherwise.
+   */
+  internal fun isMoreRecentThan(a : WalletTransaction, b : WalletTransaction) : Boolean {
+    // Case 1 : If only one of the two transactions has an empty block index, it is more recent one as the transaction is in the mempool.
+    if (a.blockIndex != null && b.blockIndex == null) {
+      return false
+    } else if (a.blockIndex == null && b.blockIndex != null) { // Case 2 : Same as case 1.
+      return true
+
+    } else if (a.blockIndex == null && b.blockIndex == null) {
+
+      // Case 3 : Both of the transactions are in the mempool.
+      // Sort by receivedTime
+      return a.addedTime > b.addedTime
+    } else { // Case 4 : Both transactions are in blocks in the best blockchain.
+      // Sort by (blockIndex, transactionIndex)
+      val aIndex = a.blockIndex!!
+      val bIndex = b.blockIndex!!
+      if (aIndex > bIndex) {
         return true
-
-      } else if (a.blockIndex == null && b.blockIndex == null) {
-
-        // Case 3 : Both of the transactions are in the mempool.
-        // Sort by receivedTime
-        return a.addedTime > b.addedTime
-      } else { // Case 4 : Both transactions are in blocks in the best blockchain.
-        // Sort by (blockIndex, transactionIndex)
-        val aIndex = a.blockIndex!!
-        val bIndex = b.blockIndex!!
-        if (aIndex > bIndex) {
-          return true
-        } else if (aIndex < bIndex) {
-          return false
-        } else { //aIndex == bIndex
-          // We should never have two transactions that have the same transaction index in a block.
-          assert(a.transactionIndex!! != b.transactionIndex!!)
-          return a.transactionIndex!! > b.transactionIndex!!
-        }
+      } else if (aIndex < bIndex) {
+        return false
+      } else { //aIndex == bIndex
+        // We should never have two transactions that have the same transaction index in a block.
+        assert(a.transactionIndex!! != b.transactionIndex!!)
+        return a.transactionIndex!! > b.transactionIndex!!
       }
     }
   }
@@ -189,7 +189,7 @@ class Wallet() : ChainEventListener {
     * @param includeWatchOnly true to include transaction inputs and outputs related to the watch-only addresses. false otherwise.
     * @return the transformed TransactionDescriptor.
     */
-  protected fun getTransactionDescriptor(db : KeyValueDatabase,
+  internal fun getTransactionDescriptor(db : KeyValueDatabase,
                                          blockchainView  : BlockchainView,
                                          walletTransaction : WalletTransaction,
                                          inputOrOutput : Either<TransactionInput, TransactionOutput>,
@@ -411,7 +411,7 @@ class Wallet() : ChainEventListener {
     *                              None to iterate UTXOs for all output ownership.
     * @return The iterator for UTXOs.
     */
-  protected fun getTransactionOutputs(db : KeyValueDatabase, outputOwnershipOption : OutputOwnership?) : List<WalletOutputWithInfo> {
+  internal fun getTransactionOutputs(db : KeyValueDatabase, outputOwnershipOption : OutputOwnership?) : List<WalletOutputWithInfo> {
     return store.getTransactionOutPoints(db, outputOwnershipOption).map { outPoint ->
 
       //println(s"getTransactionOutPoints : ${outPoint}")
@@ -437,7 +437,7 @@ class Wallet() : ChainEventListener {
     * @param walletOutput Some(output) if it is not spent yet. None if it is already spent.
     * @return The converted UnspentCoinDescriptor.
     */
-  protected fun getUnspentCoinDescription( db : KeyValueDatabase,
+  internal fun getUnspentCoinDescription( db : KeyValueDatabase,
                                            blockchainView : BlockchainView,
                                            addressOption  : CoinAddress?,
                                            walletOutput   : WalletOutputWithInfo ) : UnspentCoinDescriptor? {
@@ -473,7 +473,7 @@ class Wallet() : ChainEventListener {
     * @param blockHeight The height of a block, where the transaction exists.
     * @return
     */
-  protected fun getConfirmations( db : KeyValueDatabase, blockchainView : BlockchainView, blockHeight : Long, outPointOption : OutPoint? = null) : Long {
+  internal fun getConfirmations( db : KeyValueDatabase, blockchainView : BlockchainView, blockHeight : Long, outPointOption : OutPoint? = null) : Long {
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
@@ -657,7 +657,7 @@ class Wallet() : ChainEventListener {
     * @param outputOwnerships The output ownerships to check if they exist in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected fun getWalletOutputOwnerships(db : KeyValueDatabase, outputOwnerships : List<OutputOwnership>) : List<OutputOwnership> {
+  internal fun getWalletOutputOwnerships(db : KeyValueDatabase, outputOwnerships : List<OutputOwnership>) : List<OutputOwnership> {
     return outputOwnerships.filter { ownership : OutputOwnership ->
       store.ownershipExists(db, ownership)
     }
@@ -669,7 +669,7 @@ class Wallet() : ChainEventListener {
     * @param lockingScript The locking script to check to produce any possible output ownerships that matches ones in the wallet database.
     * @return The filtered list of output ownerships that are in the wallet database.
     */
-  protected fun getWalletOutputOwnerships(db : KeyValueDatabase, lockingScript : LockingScript) : List<OutputOwnership> {
+  internal fun getWalletOutputOwnerships(db : KeyValueDatabase, lockingScript : LockingScript) : List<OutputOwnership> {
     val outputOwnerships : List<OutputOwnership> = LockingScriptAnalyzer.extractPossibleOutputOwnerships(lockingScript)
     return getWalletOutputOwnerships(db, outputOwnerships)
   }
@@ -713,7 +713,7 @@ class Wallet() : ChainEventListener {
                               None if the block is in the mempool.
 
     */
-  protected fun registerTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction, chainBlock : ChainBlock?, transactionIndex : Int?) : Unit {
+  internal fun registerTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction, chainBlock : ChainBlock?, transactionIndex : Int?) : Unit {
     synchronized(this) { // threads can compete : (1) block attach/detach (2) putTransaction.
       //println(s"registerTransaction=${transaction}")
 
@@ -842,7 +842,7 @@ class Wallet() : ChainEventListener {
     *
     * @param transaction The transaction to register.
     */
-  protected fun unregisterTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction) : Unit {
+  internal fun unregisterTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction) : Unit {
     synchronized(this) { // threads can compete : (1) block attach/detach (2) putTransaction.
       val currentTime = System.currentTimeMillis()
 

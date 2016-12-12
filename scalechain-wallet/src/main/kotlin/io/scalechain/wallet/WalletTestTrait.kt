@@ -1,14 +1,14 @@
 package io.scalechain.wallet
 
+import io.scalechain.blockchain.chain.BlockchainTestTrait
 import io.scalechain.blockchain.transaction.ChainTestTrait
-/*
+
 /**
   * Created by kangmo on 7/9/16.
   */
-trait WalletTestTrait : BlockchainTestTrait with ChainTestTrait{
-  this: Suite =>
+abstract class WalletTestTrait : BlockchainTestTrait(), ChainTestTrait{
 
-  var wallet : Wallet = null
+  lateinit var wallet : Wallet
 
   override fun beforeEach() {
     super.beforeEach()
@@ -16,15 +16,12 @@ trait WalletTestTrait : BlockchainTestTrait with ChainTestTrait{
     wallet = Wallet.create()
     chain.setEventListener(wallet)
 
-    chain.putBlock(env.GenesisBlockHash, env.GenesisBlock)
+    chain.putBlock(db, env().GenesisBlockHash, env().GenesisBlock)
   }
 
   override fun afterEach() {
 
     super.afterEach()
-
-    wallet  = null
   }
 
 }
-*/
