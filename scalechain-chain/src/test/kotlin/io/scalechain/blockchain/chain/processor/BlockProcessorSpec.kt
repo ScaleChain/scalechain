@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain.processor
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
@@ -10,7 +11,9 @@ import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class BlockProcessorSpec : BlockchainTestTrait(), Matchers, TransactionTestDataTrait {
 
   override val testPath = File("./target/unittests-BlockProcessorSpec/")

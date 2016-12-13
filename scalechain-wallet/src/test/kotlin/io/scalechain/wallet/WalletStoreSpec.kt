@@ -1,13 +1,16 @@
 package io.scalechain.wallet
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.transaction.ChainTestTrait
+import org.junit.runner.RunWith
 import java.util.*
 
 import scala.util.Random
 
+@RunWith(KTestJUnitRunner::class)
 class WalletStoreSpec : WalletTestTrait(),
   WalletStoreAccountTestTrait,
   WalletStoreOutPointTestTrait,

@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.TransactionOutput
@@ -9,10 +10,12 @@ import io.scalechain.blockchain.script.ops.OpPushData
 import io.scalechain.blockchain.script.ops.OpEqual
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait.Companion.SIMPLE_SCRIPT_OPS_A
 import io.scalechain.util.HexUtil
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 5/18/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
 
   override fun beforeEach() {

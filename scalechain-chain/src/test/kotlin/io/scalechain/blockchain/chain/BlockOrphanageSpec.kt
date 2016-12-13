@@ -1,15 +1,18 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.kotlintest.matchers.Matchers
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 6/16/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockOrphanageSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
 
   override val testPath = File("./target/unittests-BlockOrphangeSpec/")

@@ -1,13 +1,17 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.test.TestMethods.filledString
 import io.scalechain.util.HexUtil.bytes
+import org.junit.runner.RunWith
+
 /**
   * Created by kangmo on 5/18/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
 
   override fun beforeEach() {

@@ -1,15 +1,18 @@
 package io.scalechain.wallet
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
 import io.scalechain.blockchain.chain.BlockSampleData
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
+import org.junit.runner.RunWith
 
 /**
   * Test if Wallet returns expected data during block reorganization.
   */
+@RunWith(KTestJUnitRunner::class)
 class WalletAndChainSpec : WalletTestTrait(), Matchers {
 
   override val testPath = File("./target/unittests-WalletAndChainSpec-storage/")

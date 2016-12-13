@@ -1,14 +1,17 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import java.math.BigInteger
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.script.ops.*
+import org.junit.runner.RunWith
 
 /** Test splice operations in Splice.scala
   *
   */
+@RunWith(KTestJUnitRunner::class)
 class SpliceSpec : OperationTestTrait() {
   val operations =
     table(

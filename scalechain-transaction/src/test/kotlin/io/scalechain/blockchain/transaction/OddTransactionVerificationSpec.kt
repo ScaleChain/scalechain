@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.LockingScript
@@ -12,10 +13,12 @@ import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.util.HexUtil.bytes
+import org.junit.runner.RunWith
 
 /** Test cases that have transactions failed verification after the release of v0.2.
   * We got these cases by running scalechain and logging BlovkVerifier.getFailures for every 1000 blocks.
   */
+@RunWith(KTestJUnitRunner::class)
 class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, SignatureTestTrait {
 
   val transactionInputs =

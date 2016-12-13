@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 
 
 /**
   * Created by kangmo on 5/18/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class CoinAmountSpec : FlatSpec(), Matchers {
   init {
     "CoinAmount.from" should "create a CoinAmount with correct value" {

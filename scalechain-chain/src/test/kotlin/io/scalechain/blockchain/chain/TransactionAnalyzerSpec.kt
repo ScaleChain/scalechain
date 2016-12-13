@@ -1,9 +1,12 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class TransactionAnalyzerSpec : FlatSpec(), TransactionTestDataTrait, Matchers {
   val D = TransactionTestDataTrait
   init {

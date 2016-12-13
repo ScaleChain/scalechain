@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Transaction
@@ -7,10 +8,12 @@ import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.proto.GenerationTransactionInput
 import io.scalechain.blockchain.proto.NormalTransactionInput
 import io.scalechain.blockchain.script.ScriptEnvironment
+import org.junit.runner.RunWith
 
 /**
  * Created by kangmo on 11/16/15.
  */
+@RunWith(KTestJUnitRunner::class)
 interface SignatureTestTrait : Matchers {
 
   fun verifyTransactionInput(subject : String, spendingTransaction : Transaction, inputIndex : Int, lockingScript : LockingScript): Unit

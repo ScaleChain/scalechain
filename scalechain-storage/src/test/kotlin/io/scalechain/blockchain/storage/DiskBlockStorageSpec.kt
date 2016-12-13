@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.proto.*
@@ -8,10 +9,12 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import org.apache.commons.io.FileUtils
 import io.scalechain.blockchain.storage.test.TestData.block1
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class DiskBlockStorageSpec : BlockStorageTestTrait()  {
 
   override lateinit var db : KeyValueDatabase

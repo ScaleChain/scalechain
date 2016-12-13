@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.net.handler
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.TransactionSampleData
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.transaction.ChainEnvironment
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class TxMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
   override val testPath = File("./target/unittests-TransactionMessageHandlerSpec/")

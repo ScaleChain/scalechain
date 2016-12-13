@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.script.ops.*
+import org.junit.runner.RunWith
 
 /** Test pseudo word operations in PseudoWord.scala
   *
   */
+@RunWith(KTestJUnitRunner::class)
 class ConstantSpec : OperationTestTrait() {
 
   val string75bytes = "123456789012345678901234567890123456789012345678901234567890123456789012345"

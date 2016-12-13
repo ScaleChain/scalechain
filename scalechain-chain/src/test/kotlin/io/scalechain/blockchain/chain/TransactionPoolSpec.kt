@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
@@ -10,10 +11,12 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 6/16/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class TransactionPoolSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
   override val testPath = File("./target/unittests-TransactionPoolSpec/")
 

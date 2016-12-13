@@ -1,11 +1,14 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.ScriptValue
 import io.scalechain.blockchain.script.ops.*
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
 
   init {

@@ -1,10 +1,12 @@
 package io.scalechain.blockchain.storage.index
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
 import org.junit.Ignore
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
@@ -12,6 +14,7 @@ import org.junit.Ignore
 // This test fails if it runs with sbt.
 // https://github.com/eligosource/eventsourced/wiki/Installation#native
 @Ignore
+@RunWith(KTestJUnitRunner::class)
 class LevelDatabaseKeyValueSpec : KeyValueDatabaseTestTrait() {
 
   init {
@@ -40,6 +43,7 @@ class LevelDatabaseKeyValueSpec : KeyValueDatabaseTestTrait() {
 }
 
 @Ignore
+@RunWith(KTestJUnitRunner::class)
 class LevelDatabaseKeyValueSeekSpec : KeyValueSeekTestTrait() {
 
   init {
@@ -68,6 +72,7 @@ class LevelDatabaseKeyValueSeekSpec : KeyValueSeekTestTrait() {
 }
 
 @Ignore
+@RunWith(KTestJUnitRunner::class)
 class LevelDatabaseKeyValuePrefixedSeekSpec : KeyValuePrefixedSeekTestTrait() {
 
   init {

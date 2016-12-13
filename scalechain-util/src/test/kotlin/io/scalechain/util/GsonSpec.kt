@@ -7,6 +7,7 @@ import io.kotlintest.specs.FlatSpec
 import org.junit.runner.RunWith
 import java.lang.reflect.Type
 
+// Test cases about the assumptions on Gson library.
 @RunWith(KTestJUnitRunner::class)
 class GsonSpec : FlatSpec(), Matchers {
 

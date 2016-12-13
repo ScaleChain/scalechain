@@ -1,11 +1,14 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.script.ops.*
+import org.junit.runner.RunWith
 
 /** Test stack operations in Stack.scala
   *
   */
+@RunWith(KTestJUnitRunner::class)
 class StackSpec : OperationTestTrait() {
   val EMPTY_ARRAY = longArrayOf(0L)
 

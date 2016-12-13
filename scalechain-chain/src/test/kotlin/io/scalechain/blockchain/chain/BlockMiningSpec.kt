@@ -1,13 +1,16 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
 import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.RocksDatabase
+import org.junit.runner.RunWith
 
 // Need to rewrite test case
+@RunWith(KTestJUnitRunner::class)
 class BlockMiningSpec : BlockchainTestTrait(), Matchers {
 
   override val testPath = File("./target/unittests-BlockMiningSpec/")

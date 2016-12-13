@@ -1,10 +1,13 @@
 package io.scalechain.blockchain.storage.index
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
 import org.apache.commons.io.FileUtils
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class TransactingRocksDatabasePerformanceSpec : KeyValueDatabasePerformanceTrait() {
   init {
     Storage.initialize()

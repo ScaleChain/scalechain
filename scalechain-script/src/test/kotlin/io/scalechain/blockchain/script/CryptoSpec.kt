@@ -1,12 +1,15 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.script.ops.*
 import io.scalechain.util.HexUtil
+import org.junit.runner.RunWith
 
 /** Test crypto operations in Crypto.scala
   *
   */
+@RunWith(KTestJUnitRunner::class)
 class CryptoSpec : OperationTestTrait() {
 
   val operations =

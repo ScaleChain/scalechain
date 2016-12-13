@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.transaction
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.*
@@ -7,10 +8,12 @@ import io.scalechain.blockchain.script.ops.OpPush
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.util.HexUtil.bytes
+import org.junit.runner.RunWith
 
 /** Test signature validation operations in Crypto.scala
   *
   */
+@RunWith(KTestJUnitRunner::class)
 class SignatureCheckingSpec : FlatSpec(), Matchers, SignatureTestTrait {
 
   val transactionInputs =

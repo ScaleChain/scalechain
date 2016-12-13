@@ -1,14 +1,17 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.script.ops.*
 import io.scalechain.test.TestMethods.filledString
 import io.scalechain.util.HexUtil
+import org.junit.runner.RunWith
 import java.util.*
 
 /**
  * Created by kangmo on 11/12/15.
  */
+@RunWith(KTestJUnitRunner::class)
 class ScriptSerializerSpec : OperationTestTrait() {
   val serializedOperations =
     table(

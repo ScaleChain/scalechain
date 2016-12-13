@@ -1,5 +1,6 @@
 package io.scalechain.wallet
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
@@ -17,6 +18,7 @@ import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
 import io.scalechain.util.HexUtil.bytes
 import io.scalechain.util.HexUtil.hex
+import org.junit.runner.RunWith
 
 // TODO : BUGBUG : Need to check if coinbase maturity for transaction validation. Need to change test cases as well.
 
@@ -24,6 +26,7 @@ import io.scalechain.util.HexUtil.hex
   * Created by kangmo on 5/12/16.
   */
 //@Ignore
+@RunWith(KTestJUnitRunner::class)
 class WalletSpec : WalletTestTrait(), TransactionTestDataTrait, Matchers {
 
   override val testPath = File("./target/unittests-WalletSpec-storage/")

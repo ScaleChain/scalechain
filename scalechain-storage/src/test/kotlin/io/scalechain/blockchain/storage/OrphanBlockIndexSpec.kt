@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import java.io.File
@@ -11,10 +12,12 @@ import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import io.scalechain.util.HexUtil.bytes
 import io.scalechain.util.ListExt
 import org.apache.commons.io.FileUtils
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 6/4/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class OrphanBlockIndexSpec : FlatSpec(), Matchers {
 
   /** Create a dummy orphan block.

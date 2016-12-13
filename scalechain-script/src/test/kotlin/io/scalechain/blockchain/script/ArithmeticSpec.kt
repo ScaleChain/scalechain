@@ -1,13 +1,16 @@
 package io.scalechain.blockchain.script
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.properties.Row3
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.script.ops.*
+import org.junit.runner.RunWith
 
 
 /** Test arithmetic operations in Arithmetic.scala
  *
  */
+@RunWith(KTestJUnitRunner::class)
 class ArithmeticSpec : OperationTestTrait() {
   val operations =
     table(

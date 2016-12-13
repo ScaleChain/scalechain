@@ -1,13 +1,16 @@
 package io.scalechain.blockchain.chain
 
+import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.transaction.TransactionTestDataTrait
 import io.kotlintest.matchers.Matchers
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 6/16/16.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockMagnetSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
 
   override val testPath = File("./target/unittests-BlockMagnetSpec/")

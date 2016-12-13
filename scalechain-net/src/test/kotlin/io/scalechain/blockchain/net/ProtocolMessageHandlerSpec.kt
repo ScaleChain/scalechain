@@ -1,8 +1,11 @@
 package io.scalechain.blockchain.net
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class ProtocolMessageHandlerSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {

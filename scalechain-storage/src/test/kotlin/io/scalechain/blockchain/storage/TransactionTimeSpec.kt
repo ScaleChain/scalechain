@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.CStringPrefixed
@@ -10,7 +11,9 @@ import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import org.apache.commons.io.FileUtils
+import org.junit.runner.RunWith
 
+@RunWith(KTestJUnitRunner::class)
 class TransactionTimeSpec  : FlatSpec(), Matchers {
 
   val testPath = File("./target/unittests-TransactionTimeSpec")

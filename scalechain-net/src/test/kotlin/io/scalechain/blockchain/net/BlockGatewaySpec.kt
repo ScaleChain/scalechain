@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import java.io.File
 
@@ -9,12 +10,14 @@ import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.BlockHeader
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.transaction.ChainTestTrait
+import org.junit.runner.RunWith
 
 
 /**
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockGatewaySpec : BlockchainTestTrait(), ChainTestTrait, Matchers {
   override val testPath = File("./target/unittests-BlockGatewaySpec/")
 

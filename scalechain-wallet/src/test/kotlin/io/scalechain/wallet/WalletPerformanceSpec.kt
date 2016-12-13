@@ -14,14 +14,16 @@ import io.scalechain.test.PerformanceTestTrait
 import io.scalechain.util.StopWatch
 import io.scalechain.blockchain.script.hash
 import ch.qos.logback.classic.Logger
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.*
 import io.scalechain.util.ByteBufExt
+import org.junit.runner.RunWith
 import java.util.*
 
 /**
   * Created by kangmo on 7/4/16.
   */
-
+@RunWith(KTestJUnitRunner::class)
 class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestDataTrait, Matchers {
 
   override val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")

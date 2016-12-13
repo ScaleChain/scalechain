@@ -3,16 +3,11 @@ package io.scalechain.blockchain.cli.blockchain
 import io.scalechain.blockchain.api.command.blockchain.GetBestBlockHash
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.cli.APITestSuite
-import org.scalatest.*
 
 /**
   * Created by kangmo on 11/2/15.
   */
-// The test does not pass yet. Will make it pass soon.
-@Ignore
-class GetBestBlockHashSpec : FlatSpec with BeforeAndAfterEach with APITestSuite {
-  this: Suite =>
-
+class GetBestBlockHashSpec : APITestSuite() {
   override fun beforeEach() {
     // set-up code
     //
@@ -27,8 +22,10 @@ class GetBestBlockHashSpec : FlatSpec with BeforeAndAfterEach with APITestSuite 
     //
   }
 
-  "GetBestBlockHash" should "return the best block hash" {
-    val result = invoke(GetBestBlockHash)
-    result.right.get.get.asInstanceOf<StringResult>.value.length shouldBe 64
+  init {
+    "GetBestBlockHash" should "return the best block hash" {
+      val result = invoke(GetBestBlockHash)
+      (result.right()!! as StringResult).value.length shouldBe 64
+    }
   }
 }
