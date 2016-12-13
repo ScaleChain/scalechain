@@ -2,15 +2,17 @@ package io.scalechain.blockchain.net.handler
 
 import io.netty.channel.embedded.EmbeddedChannel
 import io.scalechain.blockchain.chain.BlockchainTestTrait
-import io.scalechain.blockchain.net.{PeerCommunicator, PeerSet, Peer}
+import io.scalechain.blockchain.net.PeerCommunicator
+import io.scalechain.blockchain.net.PeerSet
+import io.scalechain.blockchain.net.Peer
 
 /**
   * Created by kangmo on 6/4/16.
   */
-trait MessageHandlerTestTrait : BlockchainTestTrait {
+abstract class MessageHandlerTestTrait : BlockchainTestTrait() {
 
-  var context : MessageHandlerContext = null
-  var channel : EmbeddedChannel = null
+  lateinit var context : MessageHandlerContext
+  lateinit var channel : EmbeddedChannel
 
   override fun beforeEach() {
     // initialization code.
@@ -25,13 +27,12 @@ trait MessageHandlerTestTrait : BlockchainTestTrait {
     super.afterEach()
 
     // finalization code
-    context = null
     channel.close()
   }
 
-  fun context(embeddedChannel: EmbeddedChannel) {
-    val peerSet = PeerSet.create
+  fun context(embeddedChannel: EmbeddedChannel) : MessageHandlerContext {
+    val peerSet = PeerSet.create()
     val peer : Peer = peerSet.add(embeddedChannel)
-    MessageHandlerContext(peer, PeerCommunicator(peerSet) )
+    return MessageHandlerContext(peer, PeerCommunicator(peerSet) )
   }
 }

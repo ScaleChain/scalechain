@@ -1,12 +1,9 @@
 package io.scalechain.blockchain.net
 
-import org.scalatest.*
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 
-/**
-  * Created by kangmo on 11/2/15.
-  */
-class ProtocolDecoderSpec : FlatSpec with BeforeAndAfterEach with Matchers {
-  this: Suite =>
+class ProtocolDecoderSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {
     // set-up code
@@ -22,6 +19,8 @@ class ProtocolDecoderSpec : FlatSpec with BeforeAndAfterEach with Matchers {
     //
   }
 
-  "method" should "" {
+  init {
+    "method" should "" {
+    }
   }
 }
