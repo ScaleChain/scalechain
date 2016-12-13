@@ -13,7 +13,6 @@ import io.scalechain.util.HexUtil
 import io.scalechain.util.ArrayUtil
 
 import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.util.readableByteCount
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
 import io.scalechain.util.toByteArray
 
@@ -116,11 +115,13 @@ data class BitcoinMessageEnvelope(
         val byteBuf = Unpooled.buffer()
         protocol.encode(byteBuf, message)
 
+        val payload = byteBuf.toByteArray()
+
         return BitcoinMessageEnvelope(
           BitcoinConfiguration.config.magic,
           protocol.getCommand(message),
-          byteBuf.readableByteCount(),
-          checksum(byteBuf.array(), byteBuf.readerIndex(), byteBuf.readableByteCount()),
+          payload.size,
+          checksum(payload, 0, payload.size),
           byteBuf
         )
       }
@@ -132,7 +133,7 @@ data class BitcoinMessageEnvelope(
         if ( !isMagicValid(envelope.magic) )
           throw ProtocolCodecException( ErrorCode.IncorrectMagicValue )
 
-        if ( envelope.length != envelope.payload.readableByteCount() )
+        if ( envelope.length != envelope.payload.readableBytes() )
           throw ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
 
         // BUGBUG : Try to avoid byte array copy.
@@ -140,38 +141,6 @@ data class BitcoinMessageEnvelope(
         if ( envelope.checksum != checksum( payloadBytes, 0, payloadBytes.size) )
           throw ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
       }
-
-/*
-      fun encode(msg: BitcoinMessageEnvelope) : {
-        for {
-          magic <- Magic.codec.encode(BitcoinConfiguration.config.magic)
-          // BUBUG : DIRTY_CODE, remove .map(_.asInstanceOf<Byte>)
-          command <- bytes(12).encode(ByteVector(encodeCommand(msg.command).map(_.asInstanceOf<Byte>)))
-          length <- uint32L.encode(msg.length)
-          checksum <- Checksum.codec.encode(msg.checksum)
-        } yield magic ++ command ++ length ++ checksum ++ msg.payload
-      }
-
-      fun decode(bits: BitVector) : scodec.Attempt<scodec.DecodeResult<BitcoinMessageEnvelope>> {
-        for {
-          magic <- Magic.codec.decode(bits)
-          command <- bytes(12).decode(magic.remainder)
-          length <- uint32L.decode(command.remainder)
-          checksum <- Checksum.codec.decode(length.remainder)
-          (payload, rest) = checksum.remainder.splitAt(length.value * 8)
-        } yield scodec.DecodeResult(
-                  BitcoinMessageEnvelope(
-                    magic.value,
-                    // BUBUG : DIRTY_CODE, remove : map(_.asInstanceOf<java.lang.Byte>)
-                    decodeCommand(command.value.toArray.map(_.asInstanceOf<java.lang.Byte>)),
-                    length.value.toInt,
-                    checksum.value,
-                    payload),
-                  rest)
-      }
-
-      val codec = Codec<BitcoinMessageEnvelope>(encode _, decode _)
-*/
     }
 
 }
@@ -249,14 +218,14 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
   }
 
   fun decodable(encodedByteBuf : ByteBuf) : Boolean {
-    if ( encodedByteBuf.readableByteCount() < MIN_ENVELOPE_BYTES) {
+    if ( encodedByteBuf.readableBytes() < MIN_ENVELOPE_BYTES) {
       return false
     }
 
     if ( BitcoinMessageEnvelope.isMagicValid(getMagic(encodedByteBuf)) ) {
       val payloadLength = getPayloadLength(encodedByteBuf)
 
-      return encodedByteBuf.readableByteCount() >= envelopSize(payloadLength)
+      return encodedByteBuf.readableBytes() >= envelopSize(payloadLength)
     } else {
       return false
     }

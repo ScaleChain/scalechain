@@ -11,12 +11,14 @@ import io.netty.buffer.ByteBuf
  *
  * @param stream Either an input stream or an output stream.
  */
-// BUGBUG : Changed interface. From Either<BlockDataInputStream, BlockDataOutputStream> to istream, ostream
 open class InputOutputStream( open val byteBuf : ByteBuf, open val isInput : Boolean ) {
     fun fixedBytes(length : Int, bytes : ByteBuf?) : ByteBuf {
+        assert(length >= 0)
+
         if (isInput) {
             return byteBuf.readBytes(length)
         } else {
+            assert(bytes != null)
             return byteBuf.writeBytes(bytes!!, length)
         }
     }

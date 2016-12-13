@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.primitive.ProvideCodec
 import io.scalechain.io.InputOutputStream
+import io.scalechain.util.toByteArray
 import kotlin.reflect.KClass
 
 /**
@@ -40,7 +41,7 @@ interface Codec<T> {
 
     fun decode(byteBuf : ByteBuf) : T? = transcode(CodecInputOutputStream(byteBuf, isInput = true), null)
 
-    fun encode(value: T) : ByteArray = encodeAsByteBuf(value).array()
+    fun encode(value: T) : ByteArray = encodeAsByteBuf(value).toByteArray()
 
     fun encodeAsByteBuf(value:T) : ByteBuf {
         val byteBuf = Unpooled.buffer()

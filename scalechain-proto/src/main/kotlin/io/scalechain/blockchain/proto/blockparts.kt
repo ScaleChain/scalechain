@@ -11,7 +11,7 @@ import java.util.*
   * @param value
   */
 data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
-    constructor(value : ByteBuf) : this(value.array())
+    constructor(value : ByteBuf) : this(value.toByteArray())
     init {
         assert(value.size > 0)
     }
@@ -174,7 +174,7 @@ interface LockingScriptPrinter {
 
 data class LockingScript(override val data : ByteArray) : Script {
     //var byteBuf : ByteBuf = null
-    constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
+    constructor(byteBuf : ByteBuf) : this(byteBuf.toByteArray()) {
         //this.byteBuf = byteBuf
     }
 
@@ -210,7 +210,7 @@ interface UnlockingScriptPrinter {
 
 data class UnlockingScript(override val data : ByteArray) : Script {
     //lateinit var byteBuf : ByteBuf
-    constructor(byteBuf : ByteBuf) : this(byteBuf.array()) {
+    constructor(byteBuf : ByteBuf) : this(byteBuf.toByteArray()) {
         //this.byteBuf = byteBuf
     }
 
@@ -274,7 +274,7 @@ data class IPv6Address(val address : ByteBuf) : Transcodable {
   constructor(addressArray:ByteArray) : this(ByteBufExt.from(addressArray))
   override fun toString() : String = "IPv6Address($address)"
 
-  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array().reversed().toByteArray())
+  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.toByteArray().reversed().toByteArray())
 }
 
 // TODO : Add a comment

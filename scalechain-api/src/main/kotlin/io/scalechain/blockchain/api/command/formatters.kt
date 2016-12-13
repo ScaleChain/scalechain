@@ -7,6 +7,7 @@ import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.script.hash
 import io.scalechain.util.HexUtil
+import io.scalechain.util.toByteArray
 import org.slf4j.LoggerFactory
 
 
@@ -141,7 +142,7 @@ object TransactionFormatter {
         }
         input is GenerationTransactionInput -> {
           RawGenerationTransactionInput(
-            coinbase  = HexUtil.hex(input.coinbaseData.data.array()),
+            coinbase  = HexUtil.hex(input.coinbaseData.data.toByteArray()),
             sequence  = input.sequenceNumber
           )
         }

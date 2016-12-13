@@ -13,6 +13,7 @@ import io.scalechain.crypto.Hash256
 import io.scalechain.crypto.HashFunctions
 import io.scalechain.crypto.TransactionSigHash
 import io.scalechain.util.Utils
+import io.scalechain.util.toByteArray
 import io.scalechain.util.writeUnsignedIntLE
 import java.util.Arrays
 
@@ -125,6 +126,6 @@ object TransactionSignature {
     writeBuffer.writeUnsignedIntLE( (0x000000ff and howToHash).toLong())
 
     // Step 3 : Calculate hash
-    return HashFunctions.hash256(writeBuffer.array())
+    return HashFunctions.hash256(writeBuffer.toByteArray())
   }
 }

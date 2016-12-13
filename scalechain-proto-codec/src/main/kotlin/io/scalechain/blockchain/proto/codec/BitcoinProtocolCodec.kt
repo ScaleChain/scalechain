@@ -8,7 +8,6 @@ import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.HexUtil
-import io.scalechain.util.readableByteCount
 
 class BitcoinProtocolCodec( private val protocol : NetworkProtocol ) {
   fun encode(message : ProtocolMessage, byteBuf : ByteBuf) {
@@ -34,7 +33,7 @@ class BitcoinProtocolCodec( private val protocol : NetworkProtocol ) {
 
       messages.add( protocolMessage )
 
-      if ( encodedByteBuf.readableByteCount() >= BitcoinMessageEnvelopeCodec.MIN_ENVELOPE_BYTES) {
+      if ( encodedByteBuf.readableBytes() >= BitcoinMessageEnvelopeCodec.MIN_ENVELOPE_BYTES) {
         decode(encodedByteBuf, messages )
       }
     }
