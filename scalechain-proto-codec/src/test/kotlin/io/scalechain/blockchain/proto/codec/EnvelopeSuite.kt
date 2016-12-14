@@ -107,7 +107,7 @@ abstract class EnvelopeTestSuite<T> : PayloadTestSuite<T>() {
   init {
     "envelope" should "be correctly encoded" {
 //    println(s"encoded111 : ${HexUtil.hex(envelopeCodec.encode(envelope).require.toByteArray)}")
-      envelopeCodec.encode(envelope) shouldBe envelopeBytes()
+      envelopeCodec.encode(envelope).toList() shouldBe envelopeBytes().toList()
     }
 
     "envelope" should "be correctly decoded" {

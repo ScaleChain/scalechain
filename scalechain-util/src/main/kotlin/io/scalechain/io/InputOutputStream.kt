@@ -1,6 +1,7 @@
 package io.scalechain.io
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 
 
 /** A stream that has either input or output stream.

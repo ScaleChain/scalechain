@@ -177,7 +177,7 @@ class CoinMiner(private val db : RocksDatabase, private val minerAccount : Strin
     val MINING_TRIAL_WINDOW_MILLIS = 10000
 
     fun coinbaseData(height : Long) : CoinbaseData {
-      return CoinbaseData(ByteBufExt.from("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
+      return CoinbaseData("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())
     }
   }
 }

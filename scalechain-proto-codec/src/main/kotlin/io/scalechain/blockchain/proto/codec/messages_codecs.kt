@@ -563,11 +563,13 @@ internal val BlockHeaderListCodec : Codec<List<BlockHeader>> =
 object HeadersCodec : ProtocolMessageCodec<Headers> {
   override val command = "headers"
   override val clazz = Headers::class.java
-
+  val TransactionCountCodec = VariableIntCodec()
   override fun transcode(io : CodecInputOutputStream, obj : Headers? ) : Headers? {
     val headers = BlockHeaderListCodec.transcode(io, obj?.headers)
+    val transactionCount = TransactionCountCodec.transcode(io, 0)
 
     if (io.isInput) {
+      // BUGBUG : Check if transactionCount is zero.
       return Headers(
           headers!!
       )
@@ -767,7 +769,7 @@ object RejectCodec : ProtocolMessageCodec<Reject> {
   override val command = "reject"
   override val clazz = Reject::class.java
 
-  private val DataCodec = Codecs.fixedByteBuf(32)
+  private val DataCodec = Codecs.fixedByteArray(32)
 
   override fun transcode(io : CodecInputOutputStream, obj : Reject? ) : Reject? {
     val message = Codecs.VariableString.transcode(io, obj?.message)

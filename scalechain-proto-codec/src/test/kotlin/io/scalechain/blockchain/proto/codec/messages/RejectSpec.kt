@@ -50,5 +50,5 @@ class RejectSpec : EnvelopeTestSuite<Reject>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Reject("tx", RejectType.REJECT_INSUFFICIENTFEE, "mempool min fee not met", Unpooled.wrappedBuffer(bytes("6e532ae33433cae18190ea2fe3e19a9a2181698f2daae215888567bfe4e0029a")))
+  override val message = Reject("tx", RejectType.REJECT_INSUFFICIENTFEE, "mempool min fee not met", bytes("6e532ae33433cae18190ea2fe3e19a9a2181698f2daae215888567bfe4e0029a"))
 }

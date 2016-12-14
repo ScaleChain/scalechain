@@ -3,6 +3,7 @@ package io.scalechain.blockchain.proto
 import io.netty.buffer.ByteBuf
 import io.scalechain.util.*
 import java.math.BigInteger
+import java.util.*
 
 /** protocols.scala ; Define protocol data classes that are aware of serialization and deserialization about the message.
  * Each data class itself consists of protocol fields.
@@ -176,8 +177,27 @@ enum class RejectType {
 data class Reject(val message:String,
                   val rejectType:RejectType,
                   val reason : String,
-                  val data : ByteBuf) : ProtocolMessage {
+                  val data : ByteArray) : ProtocolMessage {
   override fun toString() = """Reject(\"${message}\", $rejectType, \"${reason}\", $data)"""
+
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is Reject -> return this.message == other.message &&
+                                this.rejectType == other.rejectType &&
+                                this.reason == other.reason &&
+                                Arrays.equals(this.data, other.data)
+      else -> return false
+    }
+  }
+
+  override fun hashCode() : Int {
+    return this.message.hashCode() +
+           this.rejectType.hashCode() +
+           this.reason.hashCode() +
+           Arrays.hashCode(this.data)
+  }
+
 }
 
 

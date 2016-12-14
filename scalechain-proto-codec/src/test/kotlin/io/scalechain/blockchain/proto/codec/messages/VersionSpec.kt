@@ -58,5 +58,4 @@ class VersionSpec : EnvelopeTestSuite<Version>()  {
   )
 
   override val message = Version(70002, BigInteger("1"), 1454059080L, NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInteger("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
-
 }

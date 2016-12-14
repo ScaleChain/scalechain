@@ -142,7 +142,7 @@ object TransactionFormatter {
         }
         input is GenerationTransactionInput -> {
           RawGenerationTransactionInput(
-            coinbase  = HexUtil.hex(input.coinbaseData.data.toByteArray()),
+            coinbase  = HexUtil.hex(input.coinbaseData.data),
             sequence  = input.sequenceNumber
           )
         }

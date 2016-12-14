@@ -110,8 +110,19 @@ data class BlockHeader(val version : Int, val hashPrevBlock : Hash, val hashMerk
     }
 }
 
-data class CoinbaseData(val data: ByteBuf) : Transcodable {
+data class CoinbaseData(val data: ByteArray) : Transcodable {
     override fun toString() : String = "CoinbaseData($data)"
+    override fun equals(other : Any?) : Boolean {
+        when {
+            other == null -> return false
+            other is CoinbaseData -> return Arrays.equals(this.data, other.data)
+            else -> return false
+        }
+    }
+
+    override fun hashCode() : Int {
+        return Arrays.hashCode(data)
+    }
 }
 
 interface TransactionInput : Transcodable {
@@ -200,6 +211,8 @@ data class LockingScript(override val data : ByteArray) : Script {
     }
 }
 
+
+
 interface UnlockingScriptPrinter {
     fun toString(unlockingScript:UnlockingScript) : String
 
@@ -215,11 +228,26 @@ data class UnlockingScript(override val data : ByteArray) : Script {
     }
 
     override fun toString(): String {
-    if (UnlockingScriptPrinter.printer != null)
-        return UnlockingScriptPrinter.printer!!.toString(this)
-    else
-        return "UnlockingScript(${HexUtil.kotlinHex(data)})"
-  }
+        if (UnlockingScriptPrinter.printer != null)
+            return UnlockingScriptPrinter.printer!!.toString(this)
+        else
+            return "UnlockingScript(${HexUtil.kotlinHex(data)})"
+    }
+
+    // BUGBUG : Add test code
+    override fun equals(other : Any?) : Boolean {
+        when {
+            other == null -> return false
+            other is UnlockingScript -> return Arrays.equals(this.data, other.data)
+            else -> return false
+        }
+    }
+
+    // BUGBUG : Add test code
+    override fun hashCode() : Int {
+        return Arrays.hashCode(data)
+    }
+
 }
 
 data class TransactionOutput(val value : Long, val lockingScript : LockingScript) : Transcodable {
@@ -270,11 +298,25 @@ data class Block(val header:BlockHeader,
   * The original client only supported IPv4 and only read the last 4 bytes to get the IPv4 address.
   * However, the IPv4 address is written into the message as a 16 byte IPv4-mapped IPv6 address
   */
-data class IPv6Address(val address : ByteBuf) : Transcodable {
-  constructor(addressArray:ByteArray) : this(ByteBufExt.from(addressArray))
+data class IPv6Address(val address : ByteArray) : Transcodable {
+  constructor(addressByteBuf : ByteBuf) : this(addressByteBuf.toByteArray())
   override fun toString() : String = "IPv6Address($address)"
 
-  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.toByteArray().reversed().toByteArray())
+  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.reversed().toByteArray())
+
+  // TODO : Add test cases
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is IPv6Address -> return Arrays.equals(this.address, other.address)
+      else -> return false
+    }
+  }
+
+  override fun hashCode() : Int {
+    return Arrays.hashCode(address)
+  }
+
 }
 
 // TODO : Add a comment

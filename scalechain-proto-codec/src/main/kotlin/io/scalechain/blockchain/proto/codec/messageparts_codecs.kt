@@ -7,88 +7,8 @@ import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.io.InputOutputStream
 import io.netty.buffer.Unpooled
 
-/*
-trait SerializeParseUtil<T> {
-  val codec : Codec<T>
-
-  fun serialize(obj : T) : ByteArray {
-
-    val bitVector = codec.encode(obj).require
-
-    val len : Int = bitVector.length.toInt
-    // Make sure we have bit length aligned to bytes.
-    assert((len & 0x00000007) == 0)
-    val byteLen = len >> 3
-    //
-    val serializedBytes = ByteArray(byteLen)
-
-    var i = 0
-    while (i < byteLen) {
-      serializedBytes(i) = bitVector.getByte(i)
-      i += 1
-    }
-    serializedBytes
-
-    //    codec.encode(obj).require.toByteArray
-    /*
-    codec.encode(obj) match {
-      case Attempt.Successful(bitVector) => {
-        bitVector.toByteArray
-      }
-      case Attempt.Failure(err) => {
-        //println(s"error : ${err.toString}")
-        throw ProtocolCodecException(ErrorCode.EncodeFailure, err.toString)
-      }
-    }*/
-  }
-
-  fun parse(data: ByteArray) : T {
-    val bitVector: BitVector = Unpooled.wrappedBuffer(data)
-
-    codec.decode(bitVector) match {
-      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
-        if ( remainder.isEmpty ) {
-          decoded
-        } else {
-          throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
-        }
-      }
-      case Attempt.Failure(err) => {
-        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
-      }
-    }
-  }
-
-  @tailrec
-  final fun parseManyInternal(bitVector:BitVector, decodedItems : ListBuffer<T>) : Unit {
-    codec.decode(bitVector) match {
-      case Attempt.Successful(DecodeResult(decoded, remainder)) => {
-        decodedItems.append(decoded)
-        if ( !remainder.isEmpty ) {
-          parseManyInternal(remainder, decodedItems)
-          // throw ProtocolCodecException(ErrorCode.RemainingNotEmptyAfterDecoding)
-        }
-      }
-      case Attempt.Failure(err) => {
-        throw ProtocolCodecException(ErrorCode.DecodeFailure, err.toString)
-      }
-    }
-  }
-
-  fun parseMany(data: ByteArray) : List<T> {
-    val decodedItems = ListBuffer<T>()
-    val bitVector: BitVector = Unpooled.wrappedBuffer(data)
-    parseManyInternal(bitVector, decodedItems)
-    decodedItems.toList
-  }
-}
-
-trait MessagePartCodec<T <: ProtocolMessage> : SerializeParseUtil<T> {
-}
-*/
-
 object HashCodec : Codec<Hash> {
-  private val HashValueCodec = Codecs.fixedByteArray(32)
+  private val HashValueCodec = Codecs.fixedReversedByteArray(32)
   override fun transcode( io : CodecInputOutputStream, obj : Hash? ) : Hash? {
     val value = io.transcode( HashValueCodec, obj?.value )
 
@@ -226,7 +146,7 @@ object TransactionInputCodec : Codec<TransactionInput> {
       return GenerationTransactionInput(
         normalTxInput.outputTransactionHash,
         normalTxInput.outputIndex,
-        CoinbaseData(Unpooled.wrappedBuffer(normalTxInput.unlockingScript.data)),
+        CoinbaseData(normalTxInput.unlockingScript.data),
         normalTxInput.sequenceNumber
       )
     } else {
@@ -320,7 +240,7 @@ object BlockHeaderCodec : Codec<BlockHeader>{
 
 // TODO : Add a test case
 object IPv6AddressCodec : Codec<IPv6Address>{
-  val byteArrayLength16 = Codecs.fixedByteBuf(16)
+  val byteArrayLength16 = Codecs.fixedByteArray(16)
   override fun transcode(io : CodecInputOutputStream, obj : IPv6Address? ) : IPv6Address? {
     val address = byteArrayLength16.transcode(io, obj?.address)
 

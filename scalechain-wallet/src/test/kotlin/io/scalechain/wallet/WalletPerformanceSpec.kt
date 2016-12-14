@@ -290,7 +290,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       val MaxBlockSize = 128 * 1024
       val minedBlockOption = measure<Block?>(1, "mine block", {
         w.start("COINBASE_MESSAGE")
-        val COINBASE_MESSAGE = CoinbaseData(ByteBufExt.from("height:${chain.getBestBlockHeight()}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
+        val COINBASE_MESSAGE = CoinbaseData("height:${chain.getBestBlockHeight()}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())
         w.stop("COINBASE_MESSAGE")
         // Step 2 : Create the block template
         w.start("getBestBlockHash")

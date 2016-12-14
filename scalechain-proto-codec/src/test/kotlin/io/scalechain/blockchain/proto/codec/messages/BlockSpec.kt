@@ -7,6 +7,7 @@ import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.io.HexFileLoader
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
+import java.io.File
 
 /**
 <Bitcoin Core Packets Captured>
@@ -34,7 +35,7 @@ class BlockSpec : EnvelopeTestSuite<Block>()  {
       29 89 03 00 bc f4 2c 81
     """)
 
-  override val payload = HexFileLoader.load("data/unittest/codec/block-size231721.hex")
+  override val payload = HexFileLoader.load("../data/unittest/codec/block-size231721.hex")
 
   override val envelope = BitcoinMessageEnvelope(
     Magic.MAIN,

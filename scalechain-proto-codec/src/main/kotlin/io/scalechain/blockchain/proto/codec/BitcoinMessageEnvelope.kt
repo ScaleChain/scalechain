@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ProtocolCodecException
+import io.scalechain.blockchain.proto.Hash
 import java.nio.charset.StandardCharsets
 
 import io.scalechain.crypto.HashFunctions
@@ -15,6 +16,7 @@ import io.scalechain.util.ArrayUtil
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
 import io.scalechain.util.toByteArray
+import java.util.*
 
 /** The envelope message that wraps actual payload.
  * Field Size,  Description,  Data type,  Comments
@@ -33,6 +35,19 @@ data class Checksum(val value : ByteArray) {
     }
 
   override fun toString() = "Checksum(${HexUtil.kotlinHex(value)})"
+
+  // TODO : Add test cases
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is Checksum -> return Arrays.equals(this.value, other.value)
+      else -> return false
+    }
+  }
+
+  override fun hashCode() : Int {
+    return Arrays.hashCode(value)
+  }
 
   companion object {
       val VALUE_SIZE = 4
@@ -54,12 +69,25 @@ object ChecksumCodec : Codec<Checksum> {
 
 
 data class Magic(val value : ByteArray) {
-    init {
-        assert(value.size == Magic.VALUE_SIZE )
-    }
-    override fun toString() = "Magic(${HexUtil.kotlinHex(value)})"
+  init {
+    assert(value.size == Magic.VALUE_SIZE )
+  }
+  override fun toString() = "Magic(${HexUtil.kotlinHex(value)})"
 
-    companion object {
+  // TODO : Add test cases
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is Magic -> return Arrays.equals(this.value, other.value)
+      else -> return false
+    }
+  }
+
+  override fun hashCode() : Int {
+    return Arrays.hashCode(value)
+  }
+
+  companion object {
         val VALUE_SIZE = 4
 
         val MAIN     = fromHex("D9B4BEF9")
@@ -174,7 +202,11 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
         val command  = Codecs.fixedByteArray(COMMAND_LENGTH).transcode(io, if (obj==null) null else encodeCommand(obj.command))
         val length   = PayloadLengthCodec.transcode(io, obj?.length?.toLong())
         val checksum = ChecksumCodec.transcode(io, obj?.checksum)
-        val payload  = io.fixedBytes(obj?.length ?: length!!.toInt() , obj?.payload)
+
+        // To avoid read index from being changed for the bytes ByteBuf, wrap it before passing to writeBytes
+        val wrappedPayload = if (obj == null) null else Unpooled.wrappedBuffer(obj.payload)
+
+        val payload  = io.fixedBytes(obj?.length ?: length!!.toInt() , wrappedPayload)
 
         if (io.isInput) {
             return BitcoinMessageEnvelope(
