@@ -8,9 +8,13 @@ class CByteArrayCodec() : Codec<ByteArray> {
         if (io.isInput) {
             val bytes = arrayListOf<Byte>()
             var b : Byte
-            do {
+            while(true) {
                 b = io.byteBuf.readByte()
-            } while( b != 0.toByte() )
+                if (b == 0.toByte()) {
+                    break
+                }
+                bytes.add(b)
+            }
 
             return bytes.toByteArray()
         } else {

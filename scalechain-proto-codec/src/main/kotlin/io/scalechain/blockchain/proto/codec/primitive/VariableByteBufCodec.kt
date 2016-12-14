@@ -14,14 +14,14 @@ import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
  */
 class VariableByteBufCodec(val lengthCodec : Codec<Long>) : Codec<ByteBuf>{
   override fun transcode(io : CodecInputOutputStream, obj : ByteBuf? ) : ByteBuf? {
-    val valueLength = obj?.capacity()
-    val length : Long? = io.transcode(lengthCodec, valueLength!!.toLong())
+    val valueLength = obj?.readableBytes()
+    val length : Long? = io.transcode(lengthCodec, valueLength?.toLong())
     if (io.isInput) {
-      return io.fixedBytes(valueLength!!, null)
-    } else {
-      assert(length != null)
       assert(length!! <= Int.MAX_VALUE )
-      io.fixedBytes(length!!.toInt(), obj)
+      return io.fixedBytes(length!!.toInt(), null)
+    } else {
+      assert(valueLength!! <= Int.MAX_VALUE )
+      io.fixedBytes(valueLength!!.toInt(), obj)
       return null
     }
   }

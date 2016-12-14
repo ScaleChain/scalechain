@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 
 
 class CStringCodec(val charset : Charset) : Codec<String> {
-    val Codec = Codecs.CByteArray
+    val Codec = CByteArrayCodec()
     override fun transcode(io : CodecInputOutputStream, obj : String? ) : String? {
         if (io.isInput) {
             val bytes = Codec.transcode(io, null)
