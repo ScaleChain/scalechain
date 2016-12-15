@@ -12,6 +12,7 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.apache.commons.io.FileUtils
 
 
@@ -26,6 +27,7 @@ abstract class BlockchainTestTrait : FlatSpec() {
   lateinit var chain : Blockchain
 
   lateinit var db : KeyValueDatabase
+  lateinit var SampleData : ChainSampleData
 
   init {
     Storage.initialize()
@@ -39,6 +41,9 @@ abstract class BlockchainTestTrait : FlatSpec() {
 
     val rocksDB = RocksDatabase(testPath)
     db = rocksDB
+
+    SampleData = ChainSampleData(db, null)
+
     storage = DiskBlockStorage(db, testPath, TEST_RECORD_FILE_SIZE)
     chain = Blockchain(rocksDB, storage)
     BlockProcessor.theBlockProcessor = null
@@ -60,9 +65,6 @@ abstract class BlockchainTestTrait : FlatSpec() {
 
     FileUtils.deleteDirectory(testPath)
   }
-
-
-  val SampleData = ChainSampleData(db, null)
 
   fun createBlock(height : Long ) : Block {
     assert(height > 0)

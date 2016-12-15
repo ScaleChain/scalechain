@@ -1,14 +1,17 @@
 package io.scalechain.blockchain.cli.control
 
 import com.google.gson.JsonPrimitive
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.api.Services
 import io.scalechain.blockchain.api.command.help.Help
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.cli.APITestSuite
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class HelpSpec : APITestSuite() {
 
   override fun beforeEach() {

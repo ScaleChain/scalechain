@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
 
 data class ScriptOpList(val operations : List<ScriptOp>) {
   override fun toString(): String {
-    return "ScriptOpList(operations=Array(${operations.joinToString(",")}))"
+    return "ScriptOpList(operations=List(${operations.joinToString(",")}))"
   }
 }
 

@@ -110,7 +110,7 @@ class OpInvalidOpCode() : InternalScriptOp {
  */
 data class OpCond(private val invert : Boolean,
                   private val thenStatementList : ScriptOpList,
-                  private val elseStatementList : ScriptOpList?) : InternalScriptOp {
+                  private val elseStatementList : ScriptOpList?) : InternalScriptOp, ScriptOpWithoutCode {
 
   override fun opCode() : OpCode {
     // We should never try to serialize OpCond, which is a temporary operation stays in memory.

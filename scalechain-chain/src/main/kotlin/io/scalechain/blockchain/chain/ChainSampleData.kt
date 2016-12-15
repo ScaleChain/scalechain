@@ -62,6 +62,8 @@ class TestBlockIndex : BlockIndex {
   */
 open class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : BlockBuildingTestTrait() {
 
+  // create an environment before creating account addresses
+  private val __env = env()
   private val blockIndex = TestBlockIndex()
 
   inner class AliceClass {

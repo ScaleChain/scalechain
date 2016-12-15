@@ -15,10 +15,10 @@ import org.junit.runner.RunWith
 class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
 
   override fun beforeEach() {
-    // set-up code
-    //
-
     super.beforeEach()
+
+    // Create environment
+    env()
   }
 
   override fun afterEach() {

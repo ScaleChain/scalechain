@@ -43,7 +43,7 @@ class TransactionBuilder() {
     // TODO : Need to move to a singleton to avoid writing the same code over and over.
     val allZeroHash = Hash.ALL_ZERO
     // TODO : Need to make sure that the output index is serialized correctly for the generation transaction
-    val outputIndex : Long = 0xFFFFFF
+    val outputIndex : Long = 0xFFFFFFFFL
 
     inputs.add( GenerationTransactionInput(allZeroHash, outputIndex, coinbaseData, sequenceNumber) )
     return this

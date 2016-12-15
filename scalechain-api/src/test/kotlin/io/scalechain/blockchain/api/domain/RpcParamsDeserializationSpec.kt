@@ -4,6 +4,7 @@ import com.google.gson.*
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.blockchain.api.Json
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
@@ -26,7 +27,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
     "RpcParams" should "be able to leave list of JsValues as is, if we want" {
 
       val jsonrpcValue = "1.0"
-      val id = 1
+      val id = 1L
       val method = "mymethod"
       val arrayParam = JsonArray()
       arrayParam.add( JsonPrimitive("2") )
@@ -66,7 +67,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       jsObject.add("method", JsonPrimitive(method))
       jsObject.add("params", params )
 
-      val request = Gson().fromJson(jsObject, RpcRequest::class.java)
+      val request = Json.get().fromJson(jsObject, RpcRequest::class.java)
 
       request.jsonrpc shouldBe jsonrpcValue
       request.id shouldBe id
@@ -82,7 +83,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       params.add(JsonPrimitive("arg1"))
       jsObject.add("params", params)
 
-      Gson().fromJson(jsObject, RpcRequest::class.java)
+      Json.get().fromJson(jsObject, RpcRequest::class.java)
     }
 
     "RpcParams" should "throw DeserializationException if id field is missing " {
@@ -96,7 +97,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       jsObject.add("params", params)
 
       val thrown = shouldThrow <JsonSyntaxException> {
-        Gson().fromJson(jsObject, RpcRequest::class.java)
+        Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
       thrown.message shouldBe "Object is missing required member 'id'"
     }
@@ -111,7 +112,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       jsObject.add("params", params)
 
       val thrown = shouldThrow <JsonSyntaxException> {
-        Gson().fromJson(jsObject, RpcRequest::class.java)
+        Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
       thrown.message shouldBe "Object is missing required member 'method'"
     }
@@ -123,7 +124,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       jsObject.add("method", JsonPrimitive("myMethod"))
 
       val thrown = shouldThrow <JsonSyntaxException> {
-        Gson().fromJson(jsObject, RpcRequest::class.java)
+        Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
       thrown.message shouldBe "Object is missing required member 'params'"
     }
@@ -136,7 +137,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       jsObject.add("params", JsonPrimitive("arg1"))
 
       val thrown = shouldThrow <JsonSyntaxException> {
-        Gson().fromJson(jsObject, RpcRequest::class.java)
+        Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
       thrown.message shouldBe "JsArray expected for the params field."
     }

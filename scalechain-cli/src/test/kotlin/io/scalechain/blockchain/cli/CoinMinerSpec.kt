@@ -4,15 +4,18 @@ package io.scalechain.blockchain.cli
   * Created by kangmo on 5/22/16.
   */
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.HexUtil.bytes
+import org.junit.runner.RunWith
 
 /**
   * Source code copied from : https://github.com/ACINQ/bitcoin-lib/blob/master/src/test/scala/fr/acinq/bitcoin/Base58Spec.scala
   * License : Apache v2.
   */
+@RunWith(KTestJUnitRunner::class)
 class CoinMinerSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {

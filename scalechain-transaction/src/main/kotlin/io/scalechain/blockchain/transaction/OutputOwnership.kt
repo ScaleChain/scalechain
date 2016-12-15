@@ -2,6 +2,7 @@ package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
+import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.ScriptParser
@@ -13,6 +14,7 @@ import io.scalechain.crypto.ECKey
 import io.scalechain.crypto.Hash160
 import io.scalechain.crypto.HashFunctions
 import io.scalechain.util.HexUtil
+import java.util.*
 
 /** An entity that describes the ownership of a coin.
   * For example, a coin address can be a description of ownership of a coin.
@@ -139,6 +141,18 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
       // Step 3 : Create an address.
       return CoinAddress.from(publicKey.getHash().value)
     }
+  }
+
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is CoinAddress -> return this.version == other.version && Arrays.equals(this.publicKeyHash, other.publicKeyHash)
+      else -> return false
+    }
+  }
+
+  override fun hashCode() : Int {
+    return this.version.hashCode() + Arrays.hashCode(this.publicKeyHash)
   }
 }
 

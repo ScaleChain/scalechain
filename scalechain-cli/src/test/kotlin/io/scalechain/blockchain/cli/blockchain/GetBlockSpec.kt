@@ -1,16 +1,19 @@
 package io.scalechain.blockchain.cli.blockchain
 
 import com.google.gson.JsonPrimitive
+import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.api.command.blockchain.GetBlockResult
 import io.scalechain.blockchain.api.command.blockchain.GetBlock
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.cli.APITestSuite
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
 // The test does not pass yet. Will make it pass soon.
+@RunWith(KTestJUnitRunner::class)
 class GetBlockSpec : APITestSuite()  {
 
   override fun beforeEach() {

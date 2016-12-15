@@ -142,7 +142,6 @@ interface TransactionInput : Transcodable {
      * @return true if the give transaction input is the generation transaction. false otherwise.
      */
     fun isCoinBaseInput() : Boolean {
-        // BUGBUG : Need to check if outputIndex is 0xFFFFFFFF.
         //println(s"${txInput.outputIndex}")
         return outputTransactionHash.isAllZero() && ( outputIndex == 0xFFFFFFFFL )
     }

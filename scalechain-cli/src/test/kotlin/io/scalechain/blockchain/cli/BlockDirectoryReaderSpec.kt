@@ -1,14 +1,17 @@
 package io.scalechain.blockchain.cli
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ProtocolCodecException
 import io.scalechain.blockchain.proto.Block
+import org.junit.runner.RunWith
 
 /**
  * Created by kangmo on 11/2/15.
  */
+@RunWith(KTestJUnitRunner::class)
 class BlockDirectoryReaderSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {
