@@ -10,7 +10,7 @@ import io.scalechain.blockchain.script.ops.*
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
+class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTestTrait {
 
   init {
     "extractAddress(ScriptOpList)" should "extract an address from a pay to public key script list (p2pk)" {

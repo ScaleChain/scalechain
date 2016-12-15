@@ -4,14 +4,15 @@ import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestData
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import io.scalechain.crypto.HashFunctions
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class MerkleRootHashSpec : FlatSpec(), TransactionTestDataTrait, Matchers {
+class MerkleRootHashSpec : FlatSpec(), TransactionTestInterface, Matchers {
   init {
-    val D = TransactionTestDataTrait
+    val D = TransactionTestData
     "mergeHash" should "merge two hash values" {
       val expectedHash = Hash(HashFunctions.hash256(D.TXHASH1.value + D.TXHASH2.value).value)
       MerkleRootCalculator.mergeHash(D.TXHASH1, D.TXHASH2) shouldBe expectedHash

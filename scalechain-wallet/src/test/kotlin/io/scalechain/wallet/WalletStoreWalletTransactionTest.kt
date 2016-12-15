@@ -3,18 +3,20 @@ package io.scalechain.wallet
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+
+import io.scalechain.blockchain.transaction.TransactionTestData
+import io.scalechain.wallet.WalletStoreTestData
 
 /**
   * Created by kangmo on 5/18/16.
   */
-interface WalletStoreWalletTransactionTestTrait  : WalletStoreTestDataTrait, Matchers {
+interface WalletStoreWalletTransactionTest : WalletStoreTestInterface, Matchers {
 
   fun testWalletStoreWalletTransaction(store: WalletStore, db : KeyValueDatabase) : FlatSpec {
     return object : FlatSpec() {
       init {
-        val W = WalletStoreTestDataTrait
-        val T = TransactionTestDataTrait
+        val W = WalletStoreTestData
+        val T = TransactionTestData
 
         "putWalletTransaction" should "put a wallet transaction." {
           store.putWalletTransaction(db, T.TXHASH1, W.WALLET_TX1)

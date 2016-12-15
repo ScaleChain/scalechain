@@ -10,7 +10,7 @@ class WalletBasedBlockSampleData(override val db : KeyValueDatabase, private val
     *
     * @param account The name of the account to generate a address.
     */
-  override fun generateAccountAddress(account:String) : TransactionTestDataTrait.AddressData {
+  override fun generateAccountAddress(account:String) : AddressData {
     val address = wallet.newAddress(db, account)
     val privateKeys : List<PrivateKey> = wallet.getPrivateKeys(db, address)
     assert( privateKeys.size == 1 )
@@ -20,7 +20,7 @@ class WalletBasedBlockSampleData(override val db : KeyValueDatabase, private val
     val publicKeyScript = ParsedPubKeyScript.from(privateKey)
     assert( address == CoinAddress.from(privateKey) )
 
-    return TransactionTestDataTrait.AddressData(
+    return AddressData(
       privateKey,
       publicKey,
       publicKeyScript,

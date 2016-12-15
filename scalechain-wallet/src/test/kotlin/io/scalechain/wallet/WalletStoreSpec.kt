@@ -12,11 +12,11 @@ import scala.util.Random
 
 @RunWith(KTestJUnitRunner::class)
 class WalletStoreSpec : WalletTestTrait(),
-  WalletStoreAccountTestTrait,
-  WalletStoreOutPointTestTrait,
-  WalletStoreTransactionHashTestTrait,
-  WalletStoreWalletOutputTestTrait, // Need to fix the protocol codec exception.
-  WalletStoreWalletTransactionTestTrait {
+  WalletStoreAccountTest,
+  WalletStoreOutPointTest,
+  WalletStoreTransactionHashTest,
+  WalletStoreWalletOutputTest, // Need to fix the protocol codec exception.
+  WalletStoreWalletTransactionTest {
 
   override val testPath = File("./target/unittests-WalletStoreSpec-${Random().nextLong()}")
 

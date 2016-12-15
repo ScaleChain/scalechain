@@ -61,7 +61,7 @@ open class BlockBuilder {
     return block
   }
 
-  companion object : BlockBuilder() {
-    fun newBuilder() : BlockBuilder = Companion
+  companion object {
+    fun newBuilder() = BlockBuilder()
   }
 }

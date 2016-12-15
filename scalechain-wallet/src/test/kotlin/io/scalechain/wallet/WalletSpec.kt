@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
   */
 //@Ignore
 @RunWith(KTestJUnitRunner::class)
-class WalletSpec : WalletTestTrait(), TransactionTestDataTrait, Matchers {
+class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-WalletSpec-storage/")
 

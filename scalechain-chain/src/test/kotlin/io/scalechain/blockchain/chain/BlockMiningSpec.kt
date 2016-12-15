@@ -21,7 +21,7 @@ class BlockMiningSpec : BlockchainTestTrait(), Matchers {
   override fun beforeEach() {
     super.beforeEach()
 
-    val data = TransactionSampleData(db)
+    data = TransactionSampleData(db)
     val B = data.Block
 
     // put the genesis block

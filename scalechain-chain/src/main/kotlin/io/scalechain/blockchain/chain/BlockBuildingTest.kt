@@ -22,13 +22,10 @@ data class TransactionWithName(val name:String, val transaction:Transaction)
 
 data class NewOutput(val amount : CoinAmount, val outputOwnership : OutputOwnership)
 
-/**
-  * Created by kangmo on 6/14/16.
-  */
-abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
+abstract class AbstractBlockBuildingTest : TransactionTestInterface {
   abstract val db : KeyValueDatabase
 
-  open fun generateAccountAddress(account:String) : TransactionTestDataTrait.AddressData {
+  open fun generateAccountAddress(account:String) : AddressData {
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     return addressData
@@ -42,10 +39,10 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   fun getBlockHash(block : Block) = block.header.hash()
 
   /** Add all outputs in a transaction into an output set.
-    *
-    * @param outputSet The output set where each output of the given transaction is added.
-    * @param transactionWithName The transaction that has outputs to be added to the set.
-    */
+   *
+   * @param outputSet The output set where each output of the given transaction is added.
+   * @param transactionWithName The transaction that has outputs to be added to the set.
+   */
   open fun addTransaction(outputSet : TransactionOutputSet, transactionWithName : TransactionWithName ) : Unit {
     val transactionHash = getTxHash(transactionWithName)
     var outputIndex = -1
@@ -59,15 +56,15 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   val availableOutputs = TransactionOutputSet()
 
   /** Create a generation transaction
-    *
-    * @param amount The amount of coins to generate
-    * @param generatedBy The OutputOwnership that owns the newly generated coin. Ex> a coin address.
-    * @return The newly generated transaction
-    */
+   *
+   * @param amount The amount of coins to generate
+   * @param generatedBy The OutputOwnership that owns the newly generated coin. Ex> a coin address.
+   * @return The newly generated transaction
+   */
   fun generationTransaction( name : String,
                              amount : CoinAmount,
                              generatedBy : OutputOwnership
-                           ) : TransactionWithName {
+  ) : TransactionWithName {
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
       .addGenerationInput(CoinbaseData("Random:${Random().nextLong()}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
@@ -79,11 +76,11 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   }
 
   /** Get an output of a given transaction.
-    *
-    * @param transactionWithName The transaction where we get an output.
-    * @param outputIndex The index of the output. Zero-based index.
-    * @return The transaction output with an out point.
-    */
+   *
+   * @param transactionWithName The transaction where we get an output.
+   * @param outputIndex The index of the output. Zero-based index.
+   * @return The transaction output with an out point.
+   */
   fun getOutput(transactionWithName : TransactionWithName, outputIndex : Int) : OutputWithOutPoint {
     val transactionHash = transactionWithName.transaction.hash()
     return OutputWithOutPoint( transactionWithName.transaction.outputs[outputIndex], OutPoint(transactionHash, outputIndex))
@@ -91,11 +88,11 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
 
 
   /** Create a normal transaction
-    *
-    * @param spendingOutputs The list of spending outputs. These are spent by inputs.
-    * @param newOutputs The list of newly created outputs.
-    * @return
-    */
+   *
+   * @param spendingOutputs The list of spending outputs. These are spent by inputs.
+   * @param newOutputs The list of newly created outputs.
+   * @return
+   */
   fun normalTransaction( name : String, spendingOutputs : List<OutputWithOutPoint>, newOutputs : List<NewOutput>) : TransactionWithName {
     val builder = TransactionBuilder.newBuilder()
 
@@ -119,8 +116,8 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   fun newBlock(prevBlockHash : Hash, transactionsWithName : List<TransactionWithName>) : Block {
     val builder = BlockBuilder.newBuilder()
 
-    transactionsWithName.map{ it.transaction }.forEach { transaction ->
-      builder.addTransaction(transaction)
+    transactionsWithName.forEach {
+      builder.addTransaction(it.transaction)
     }
 
     val block = builder.build(prevBlockHash, System.currentTimeMillis() / 1000)
@@ -129,13 +126,13 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
   }
 
   /**
-    * Mine a block whose estimated hash calculation is the given one.
- *
-    * @param block The block to mine. We will change nonce of the block for each iteration.
-    * @param requiredHashCalulcations The estimated hash calculations of the block should be this value.
-    * @param nonce The nonce value.
-    * @return The mined block.
-    */
+   * Mine a block whose estimated hash calculation is the given one.
+   *
+   * @param block The block to mine. We will change nonce of the block for each iteration.
+   * @param requiredHashCalulcations The estimated hash calculations of the block should be this value.
+   * @param nonce The nonce value.
+   * @return The mined block.
+   */
 
   tailrec fun doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block {
     val newBlockHeader = block.header.copy(nonce = nonce.toLong())
@@ -143,6 +140,7 @@ abstract class BlockBuildingTestTrait : TransactionTestDataTrait {
 
     if (HashEstimation.getHashCalculations(newBlockHash.value) == requiredHashCalulcations.toLong()) {
       val newBlock = block.copy( header = newBlockHeader )
+
       return newBlock
     } else {
       return doMining(block, requiredHashCalulcations, nonce + 1)

@@ -7,7 +7,6 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
-import org.apache.commons.io.FileUtils
 import io.scalechain.blockchain.storage.test.TestData.block1
 import org.junit.runner.RunWith
 
@@ -24,7 +23,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
   val testPath = File("./target/unittests-DiskBlockStorageSpec/")
   override fun beforeEach() {
 
-    FileUtils.deleteDirectory(testPath)
+    testPath.deleteRecursively()
     testPath.mkdir()
 
     db = RocksDatabase( testPath )
@@ -41,8 +40,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
     db.close()
     storage.close()
 
-    FileUtils.deleteDirectory(testPath)
-
+    testPath.deleteRecursively()
   }
 
   init {

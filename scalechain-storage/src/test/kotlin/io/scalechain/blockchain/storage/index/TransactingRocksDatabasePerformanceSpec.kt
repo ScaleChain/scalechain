@@ -6,8 +6,6 @@ import io.kotlintest.specs.FlatSpec
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.test.BeforeAfterEach
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
@@ -18,7 +16,8 @@ class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDa
   lateinit override var db : KeyValueDatabase
 
   override fun beforeEach() {
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
+    testPath.mkdir()
 
     transactingDB = TransactingRocksDatabase( RocksDatabase( testPath ) )
     transactingDB.beginTransaction()

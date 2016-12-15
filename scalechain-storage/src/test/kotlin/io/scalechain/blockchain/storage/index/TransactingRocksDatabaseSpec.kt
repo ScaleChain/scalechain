@@ -6,12 +6,10 @@ import io.kotlintest.specs.FlatSpec
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.test.BeforeAfterEach
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, KeyValueDatabaseTestTrait, KeyValueSeekTestTrait, KeyValuePrefixedSeekTestTrait {
+class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
 
   lateinit var rocksDB : RocksDatabase
@@ -20,12 +18,14 @@ class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, KeyValueDatab
 
   override fun beforeEach() {
     testPath.deleteRecursively()
+    testPath.mkdir()
 
     rocksDB = RocksDatabase(testPath)
-    db = rocksDB
     txDb = TransactingRocksDatabase( rocksDB )
-
     txDb.beginTransaction()
+
+    db = txDb
+
     super.beforeEach()
   }
 
@@ -33,12 +33,6 @@ class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, KeyValueDatab
     super.afterEach()
     txDb.commitTransaction()
     txDb.close()
-  }
-
-  override fun addTests() {
-    super<KeyValueDatabaseTestTrait>.addTests()
-    super<KeyValueSeekTestTrait>.addTests()
-    super<KeyValuePrefixedSeekTestTrait>.addTests()
   }
 
   init {

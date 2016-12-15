@@ -5,10 +5,7 @@ import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.RecordLocatorCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
 import io.scalechain.crypto.HashFunctions
-import io.scalechain.test.BeforeAfterEach
-import io.scalechain.test.ChildFlatSpec
 import io.scalechain.test.ShouldSpec
-import java.io.File
 
 /**
   * Created by kangmo on 3/23/16.

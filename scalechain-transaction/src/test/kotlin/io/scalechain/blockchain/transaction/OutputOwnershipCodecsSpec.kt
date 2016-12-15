@@ -9,11 +9,11 @@ import io.scalechain.blockchain.proto.codec.CodecTestUtil
 import io.scalechain.blockchain.proto.codec.WalletTransactionCodec
 import io.scalechain.blockchain.proto.test.ProtoTestData
 import io.scalechain.blockchain.script.ScriptParser
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait.Companion.ADDR1
+import io.scalechain.blockchain.transaction.TransactionTestData.ADDR1
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class OutputOwnershipCodecsSpec : FlatSpec(), Matchers, CodecTestUtil, TransactionTestDataTrait  {
+class OutputOwnershipCodecsSpec : FlatSpec(), Matchers, CodecTestUtil, TransactionTestInterface {
 
   init {
     "OutputOwnershipCodecsSpec" should {

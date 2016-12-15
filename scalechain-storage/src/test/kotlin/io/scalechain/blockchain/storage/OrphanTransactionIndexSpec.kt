@@ -10,7 +10,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import io.scalechain.util.HexUtil.bytes
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 /**
@@ -34,7 +33,9 @@ class OrphanTransactionIndexSpec  : FlatSpec(), Matchers {
   val testPath = File("./target/unittests-OrphanTransactionIndexSpec")
   override fun beforeEach() {
 
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
+    testPath.mkdir()
+
     index = object : OrphanTransactionIndex {}
     db = RocksDatabase(testPath)
 
@@ -46,7 +47,8 @@ class OrphanTransactionIndexSpec  : FlatSpec(), Matchers {
     super.afterEach()
 
     db.close()
-    FileUtils.deleteDirectory( testPath )
+
+    testPath.deleteRecursively()
   }
 
   init {

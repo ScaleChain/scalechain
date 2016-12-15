@@ -11,11 +11,11 @@ import io.scalechain.blockchain.proto.InvVector
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class TransactionProcessorSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+class TransactionProcessorSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-TransactionProcessorSpec/")
   lateinit var t : TransactionProcessor

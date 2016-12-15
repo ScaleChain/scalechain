@@ -16,7 +16,6 @@ import io.scalechain.blockchain.storage.test.TestData.block1
 import io.scalechain.blockchain.storage.test.TestData.block2
 import io.scalechain.blockchain.storage.test.TestData.transaction1
 import io.scalechain.blockchain.storage.test.TestData.transaction2
-import org.apache.commons.io.FileUtils
 
 /**
   * Created by kangmo on 11/2/15.
@@ -29,7 +28,7 @@ class BlockRecordStorageSpec : FlatSpec(), Matchers {
   override fun beforeEach() {
 
     val testPath = File("./target/unittests-BlockRecordStorageSpec/")
-    FileUtils.deleteDirectory(testPath)
+    testPath.deleteRecursively()
     testPath.mkdir()
     rs = RecordStorage(
       testPath,

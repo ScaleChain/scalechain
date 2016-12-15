@@ -7,17 +7,18 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.WalletException
 import io.scalechain.blockchain.transaction.OutputOwnership
 import io.scalechain.blockchain.transaction.PrivateKey
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestData
+import io.scalechain.wallet.WalletStoreTestData
 
 /**
   * Created by kangmo on 5/18/16.
   */
-interface WalletStoreAccountTestTrait : WalletStoreTestDataTrait, Matchers {
+interface WalletStoreAccountTest : WalletStoreTestInterface, Matchers {
   fun testWalletStoreAccount(store: WalletStore, db : KeyValueDatabase) : FlatSpec {
     return object : FlatSpec() {
       init {
-        val W = WalletStoreTestDataTrait
-        val T = TransactionTestDataTrait
+        val W = WalletStoreTestData
+        val T = TransactionTestData
         "putOutputOwnership" should "be able to put an output ownership." {
           store.putOutputOwnership(db, W.ACCOUNT1, T.ADDR1.address)
           scrubScript( store.getOutputOwnerships(db, W.ACCOUNT1) ).toSet() shouldBe setOf(T.ADDR1.address)

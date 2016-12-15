@@ -4,7 +4,8 @@ import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestData
+import io.scalechain.wallet.WalletStoreTestData
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.WalletException
@@ -13,13 +14,13 @@ import io.scalechain.blockchain.proto.Hash
 /**
   * Created by kangmo on 5/18/16.
   */
-interface WalletStoreTransactionHashTestTrait : WalletStoreTestDataTrait, Matchers {
+interface WalletStoreTransactionHashTest : WalletStoreTestInterface, Matchers {
 
   fun testWalletStoreTransactionHash(store: WalletStore, db : KeyValueDatabase) : FlatSpec {
     return object : FlatSpec() {
       init {
-        val W = WalletStoreTestDataTrait
-        val T = TransactionTestDataTrait
+        val W = WalletStoreTestData
+        val T = TransactionTestData
 
 
         fun prepareTxHashTest() {

@@ -3,7 +3,6 @@ package io.scalechain.blockchain.storage.index
 import io.kotlintest.KTestJUnitRunner
 import java.io.File
 import io.scalechain.blockchain.storage.Storage
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 /**
@@ -23,7 +22,8 @@ class BlockDatabaseWithRocks : BlockDatabaseTestTrait() {
   lateinit override var blockDb : BlockDatabase
 
   override fun beforeEach() {
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
+    testPath.mkdir()
 
     db = RocksDatabase(testPath)
     blockDb = object : BlockDatabase {}

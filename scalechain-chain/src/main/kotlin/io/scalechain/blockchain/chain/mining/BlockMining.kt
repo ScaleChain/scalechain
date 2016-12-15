@@ -5,6 +5,7 @@ import io.scalechain.blockchain.chain.TransactionBuilder
 import io.scalechain.blockchain.chain.TransactionPool
 import io.scalechain.blockchain.storage.index.DB
 import io.scalechain.blockchain.ChainException
+import io.scalechain.blockchain.chain.TransactionPriorityQueue
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
@@ -200,8 +201,8 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
     */
   fun selectTransactions(generationTransaction:Transaction, transactions : List<Transaction>, maxBlockSize : Int) : Pair<Int, List<Transaction>> {
 
-//    val candidateTransactions = ListBuffer<Transaction>()
-//    candidateTransactions ++= transactions
+    val candidateTransactions = mutableListOf<Transaction>()
+    candidateTransactions.addAll( transactions )
     val selectedTransactions = arrayListOf<Transaction>()
 
     val BLOCK_HEADER_SIZE = 80
@@ -231,36 +232,38 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
       // The TemporaryCoinsView with additional transactions in the temporary transaction pool.
       // TemporaryCoinsView returns coins in the transaction pool of the coinsView, which may not be included in tempTranasctionPoolIndex,
       // But this should be fine, because we are checking if a transaction can be attached without including the transaction pool of the coinsView.
-      //val txQueue = TransactionPriorityQueue(tempCoinsView)
+      val txQueue = TransactionPriorityQueue(tempCoinsView)
 
       val txMagnet = TransactionMagnet(txDescIndex, tempCoinsView.tempTranasctionPoolIndex, tempCoinsView.tempTranasctionTimeIndex )
 
-      /*
-      var newlySelectedTransaction : Option<Transaction> = None
+      var txCount = 0
+      var newlySelectedTransaction : Transaction? = null
       do {
-        val iter = candidateTransactions.iterator
+        val iter = candidateTransactions.listIterator()
         var consequentNonAttachableTx = 0
         // If only some of transaction is attachable, (ex> 1 out of 4000), the loop takes too long.
         // So get out of the loop if N consecutive transactions are not attachable.
-        // BUGBUG : Need to Use a random value instead of 8
-        while( consequentNonAttachableTx < 3 && iter.hasNext) {
-          val tx: Transaction = iter.next
-          val txHash = tx.hash
-          // Test if it can be atached.
+        // BUGBUG : Need to Use a random value instead of 16
+        while( consequentNonAttachableTx < 16 && iter.hasNext()) {
+          val tx: Transaction = iter.next()
+          val txHash = tx.hash()
+          println("candidate : ${txHash}")
+
+          // Test if it can be attached.
           val isTxAttachable = try {
-            txMagnet.attachTransaction(txHash, tx, checkOnly = true)
+            txMagnet.attachTransaction(tempDB, txHash, tx, checkOnly = true)
             true
-          } catch {
-            case e: ChainException => {
-              false
-            } // The transaction can't be attached.
+          } catch(e: ChainException) {
+            // The transaction can't be attached.
+            false
           }
 
           if (isTxAttachable) {
-            //println(s"attachable : ${txHash}")
+            println("attachable : ${txHash}")
             // move the the transaction queue
-            candidateTransactions -= tx
-            txQueue.enqueue(tx)
+            iter.remove()
+            txQueue.enqueue(tempDB, tx)
+
             consequentNonAttachableTx = 0
           } else {
             consequentNonAttachableTx += 1
@@ -268,28 +271,38 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
         }
 
         newlySelectedTransaction = txQueue.dequeue()
+        println("fromQueue : ${newlySelectedTransaction?.hash()}")
 
         //        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
 
-        if (newlySelectedTransaction.isDefined) {
-          val newTx = newlySelectedTransaction.get
-          serializedBlockSize += TransactionCodec.serialize(newTx).length
+        if (newlySelectedTransaction != null) {
+println("1")
+          val newTx = newlySelectedTransaction
+          println("2")
+          serializedBlockSize += TransactionCodec.encode(newTx).size
+          println("3")
           if (serializedBlockSize <= maxBlockSize) {
+            println("4")
             // Attach the transaction
-            txMagnet.attachTransaction(newTx.hash, newTx, checkOnly = false)
+            txMagnet.attachTransaction(tempDB, newTx.hash(), newTx, checkOnly = false)
             selectedTransactions += newTx
           }
         }
 
-      } while(newlySelectedTransaction.isDefined && (serializedBlockSize <= maxBlockSize) )
+      } while(newlySelectedTransaction != null && (serializedBlockSize <= maxBlockSize) )
       // Caution : serializedBlockSize is greater than the actual block size
-      */
 
+
+// Test code is only for debugging purpose. never uncomment this code block
+/*
       var txCount = 0
+
       val iter = transactions.iterator()
 
+      println("all txs ${transactions}")
       while( iter.hasNext() && (serializedBlockSize <= maxBlockSize) ) {
         val tx: Transaction = iter.next()
+//        println("selected tx : ${tx}, ${serializedBlockSize}, ${maxBlockSize}, ${iter.hasNext()}")
         val txHash = tx.hash()
 
         // Test if it can be atached.
@@ -300,15 +313,19 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
           if (serializedBlockSize <= maxBlockSize) {
             // Attach the transaction
             txMagnet.attachTransaction(tempDB, txHash, tx, checkOnly = false)
+
             selectedTransactions += tx
             txCount += 1
+
           }
 
         } catch(e: ChainException) {
           // The transaction can't be attached.
         }
-
       }
+*/
+
+
 /*
       if (selectedTransactions.size != selectedTransactions.toSet.size) {
         logger.error(s"Duplicate transactions found while creating a block : ${selectedTransactions.map(_.hash).mkString("\n")}")

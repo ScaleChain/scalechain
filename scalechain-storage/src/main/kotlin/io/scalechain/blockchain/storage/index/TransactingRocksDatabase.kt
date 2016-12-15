@@ -7,6 +7,7 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
 import io.scalechain.util.HexUtil
 import io.scalechain.util.ArrayUtil
+import io.scalechain.util.Bytes
 //import io.scalechain.util.Using.
 import org.rocksdb.RocksDB
 import org.rocksdb.WriteOptions
@@ -19,8 +20,8 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
 
   var writeBatch : WriteBatchWithIndex? = null
 
-  var putCache : MutableMap<ByteArray, ByteArray>? = null // key, value
-  var delCache : MutableMap<ByteArray, Unit>? = null // key, dummy
+  var putCache : MutableMap<Bytes, ByteArray>? = null // key, value
+  var delCache : MutableMap<Bytes, Unit>? = null // key, dummy
 
   /**
     * Begin a database transaction.
@@ -28,8 +29,8 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
   fun beginTransaction() : Unit {
     assert(writeBatch == null)
     writeBatch = WriteBatchWithIndex(true)
-    putCache = mutableMapOf<ByteArray, ByteArray>()
-    delCache = mutableMapOf<ByteArray, Unit>()
+    putCache = mutableMapOf<Bytes, ByteArray>()
+    delCache = mutableMapOf<Bytes, Unit>()
   }
 
   /**
@@ -84,10 +85,10 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
     if (delCache == null || putCache == null) {
       return db.get(key)
     } else {
-      if (delCache!!.contains(key)) {
+      if (delCache!!.contains(Bytes(key))) {
         return null
       } else {
-        val value = putCache!!.get(key)
+        val value = putCache!!.get(Bytes(key))
         if (value != null) {
           return value
         } else {
@@ -129,8 +130,8 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
     assert(writeBatch != null)
     writeBatch!!.put(key, value)
 
-    putCache!!.put(key, value)
-    delCache!!.remove(key)
+    putCache!!.put(Bytes(key), value)
+    delCache!!.remove(Bytes(key))
   }
 
   override fun del(key : ByteArray) : Unit {
@@ -138,8 +139,8 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
     assert(writeBatch != null)
     writeBatch!!.remove(key)
 
-    delCache!!.put(key, Unit)
-    putCache!!.remove(key)
+    delCache!!.put(Bytes(key), Unit)
+    putCache!!.remove(Bytes(key))
   }
 
   override fun close() : Unit {

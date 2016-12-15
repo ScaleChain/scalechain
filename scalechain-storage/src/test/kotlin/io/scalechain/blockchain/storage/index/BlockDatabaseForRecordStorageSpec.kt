@@ -7,7 +7,6 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.storage.Storage
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 
@@ -26,7 +25,7 @@ class BlockDatabaseForRecordStorageSpec : FlatSpec(), Matchers {
   val testPath = File("./target/unittests-BlockDatabaseSpec")
 
   override fun beforeEach() {
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
     testPath.mkdir()
 
     db = RocksDatabase( testPath )
@@ -39,7 +38,7 @@ class BlockDatabaseForRecordStorageSpec : FlatSpec(), Matchers {
     super.afterEach()
 
     db.close()
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
   }
 
 

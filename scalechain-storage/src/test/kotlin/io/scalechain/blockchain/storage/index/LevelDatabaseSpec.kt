@@ -6,9 +6,6 @@ import io.kotlintest.specs.FlatSpec
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.test.BeforeAfterEach
-import org.apache.commons.io.FileUtils
-import org.junit.Ignore
 import org.junit.runner.RunWith
 
 /**
@@ -17,14 +14,15 @@ import org.junit.runner.RunWith
 // This test fails if it runs with sbt.
 // https://github.com/eligosource/eventsourced/wiki/Installation#native
 @RunWith(KTestJUnitRunner::class)
-class LevelDatabaseKeyValueSpec : FlatSpec(), Matchers, BeforeAfterEach, KeyValueDatabaseHolder, KeyValueDatabaseTestTrait, KeyValueSeekTestTrait, KeyValuePrefixedSeekTestTrait {
+class LevelDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
   val testPath = File("./target/unittests-LevelDatabaseSpec")
 
   override lateinit var db : KeyValueDatabase
 
   override fun beforeEach() {
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
+    testPath.mkdir()
 
     db = LevelDatabase( testPath )
 
@@ -35,12 +33,6 @@ class LevelDatabaseKeyValueSpec : FlatSpec(), Matchers, BeforeAfterEach, KeyValu
     super.afterEach()
 
     db.close()
-  }
-
-  override fun addTests() {
-    super<KeyValueDatabaseTestTrait>.addTests()
-    super<KeyValueSeekTestTrait>.addTests()
-    super<KeyValuePrefixedSeekTestTrait>.addTests()
   }
 
   init {

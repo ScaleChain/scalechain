@@ -10,7 +10,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import io.scalechain.util.HexUtil.bytes
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 /**
@@ -47,7 +46,9 @@ class OrphanBlockIndexSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {
 
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
+    testPath.mkdir()
+
     index = object : OrphanBlockIndex {}
     db = RocksDatabase( testPath )
 
@@ -59,7 +60,7 @@ class OrphanBlockIndexSpec : FlatSpec(), Matchers {
 
     db.close()
 
-    FileUtils.deleteDirectory( testPath )
+    testPath.deleteRecursively()
   }
 
   init {

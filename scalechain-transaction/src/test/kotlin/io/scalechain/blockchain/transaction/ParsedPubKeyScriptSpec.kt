@@ -9,7 +9,7 @@ import io.scalechain.blockchain.script.ScriptSerializer
 import io.scalechain.blockchain.script.ops.OpCheckSig
 import io.scalechain.blockchain.script.ops.OpPushData
 import io.scalechain.blockchain.script.ops.OpEqual
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait.Companion.SIMPLE_SCRIPT_OPS_A
+import io.scalechain.blockchain.transaction.TransactionTestData.SIMPLE_SCRIPT_OPS_A
 import io.scalechain.util.HexUtil
 import org.junit.runner.RunWith
 
@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
   * Created by kangmo on 5/18/16.
   */
 @RunWith(KTestJUnitRunner::class)
-class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
+class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTestTrait {
 
   override fun beforeEach() {
     // set-up code

@@ -6,23 +6,23 @@ import java.io.File
 
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestData
+import io.scalechain.wallet.WalletStoreTestData
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.WalletException
 import io.scalechain.blockchain.proto.OutPoint
-import org.apache.commons.io.FileUtils
 
 /**
   * Created by kangmo on 5/18/16.
   */
-interface WalletStoreOutPointTestTrait : WalletStoreTestDataTrait, Matchers {
+interface WalletStoreOutPointTest : WalletStoreTestInterface, Matchers {
 
   fun testWalletStoreOutPoint(store: WalletStore, db : KeyValueDatabase) : FlatSpec {
     return object : FlatSpec() {
       init {
-        val W = WalletStoreTestDataTrait
-        val T = TransactionTestDataTrait
+        val W = WalletStoreTestData
+        val T = TransactionTestData
 
         fun prepareOutPointTest() {
           store.putOutputOwnership(db, W.ACCOUNT1, T.ADDR1.address)

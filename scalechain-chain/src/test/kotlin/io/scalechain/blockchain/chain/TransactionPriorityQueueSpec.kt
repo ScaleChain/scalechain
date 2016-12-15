@@ -6,14 +6,14 @@ import java.io.File
 
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 6/30/16.
   */
 @RunWith(KTestJUnitRunner::class)
-class TransactionPriorityQueueSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+class TransactionPriorityQueueSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-TransactionPriorityQueueSpec/")
 

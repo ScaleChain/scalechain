@@ -15,7 +15,6 @@ import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.wallet.Wallet
-import org.apache.commons.io.FileUtils
 import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import scala.util.Random
@@ -118,7 +117,7 @@ class TransactionGenerator(private val db : KeyValueDatabase, private val wallet
     init {
       Storage.initialize()
       val walletDbPath = File("./target/transaction-generator-${Random().nextLong()}")
-      FileUtils.deleteDirectory(walletDbPath)
+      walletDbPath.deleteRecursively()
       walletDbPath.mkdir()
 
       db = RocksDatabase(walletDbPath)

@@ -11,7 +11,6 @@ import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.OneByteCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
 import io.scalechain.blockchain.storage.Storage
-import org.apache.commons.io.FileUtils
 
 /**
   * Created by kangmo on 11/2/15.
@@ -25,7 +24,8 @@ class RecordStorageSpec : FlatSpec(), Matchers {
   fun openRecordStorage() = RecordStorage(testPath, filePrefix = "blk", maxFileSize = 12)
 
   override fun beforeEach() {
-    FileUtils.deleteDirectory(testPath)
+
+    testPath.deleteRecursively()
     testPath.mkdir()
 
     // Test with maximum file size, 12 bytes.

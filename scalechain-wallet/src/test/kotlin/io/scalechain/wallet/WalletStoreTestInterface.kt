@@ -2,7 +2,7 @@ package io.scalechain.wallet
 
 import io.kotlintest.matchers.Matchers
 
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.Transaction
@@ -15,7 +15,7 @@ import io.scalechain.util.HexUtil.bytes
 /**
   * Created by kangmo on 5/18/16.
   */
-interface WalletStoreTestDataTrait : TransactionTestDataTrait, Matchers {
+interface WalletStoreTestInterface : TransactionTestInterface, Matchers {
 
   fun generateWalletOutput(transaction : Transaction) : WalletOutput {
     return WalletOutput(
@@ -42,21 +42,22 @@ interface WalletStoreTestDataTrait : TransactionTestDataTrait, Matchers {
 //    scrubScript( actualOwnerships.toList.sortBy(_.stringKey()) ) shouldBe expectedOwnerships.sortBy(_.stringKey())
       scrubScript( actualOwnerships ).toSet()  shouldBe expectedOwnerships
   }
+}
 
-  companion object {
-    private val W = object : WalletStoreTestDataTrait {}
 
-    val WALLET_OUTPUT1 = W.generateWalletOutput(W.transaction1())
-    val WALLET_OUTPUT2 = W.generateWalletOutput(W.transaction2())
-    val WALLET_OUTPUT3 = W.generateWalletOutput(W.transaction3())
+object WalletStoreTestData {
+  private val W = object : WalletStoreTestInterface {}
 
-    val WALLET_TX1 = W.generateWalletTransaction(W.transaction1())
-    val WALLET_TX2 = W.generateWalletTransaction(W.transaction2())
-    val WALLET_TX3 = W.generateWalletTransaction(W.transaction3())
+  val WALLET_OUTPUT1 = W.generateWalletOutput(W.transaction1())
+  val WALLET_OUTPUT2 = W.generateWalletOutput(W.transaction2())
+  val WALLET_OUTPUT3 = W.generateWalletOutput(W.transaction3())
 
-    val ACCOUNT1 = "acc1"
-    val ACCOUNT2 = "acc2"
-    val ACCOUNT3 = "acc3"
+  val WALLET_TX1 = W.generateWalletTransaction(W.transaction1())
+  val WALLET_TX2 = W.generateWalletTransaction(W.transaction2())
+  val WALLET_TX3 = W.generateWalletTransaction(W.transaction3())
 
-  }
+  val ACCOUNT1 = "acc1"
+  val ACCOUNT2 = "acc2"
+  val ACCOUNT3 = "acc3"
+
 }

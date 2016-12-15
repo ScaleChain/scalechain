@@ -12,8 +12,8 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
-import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.apache.commons.io.FileUtils
+import java.util.concurrent.atomic.AtomicInteger
 
 
 abstract class BlockchainTestTrait : FlatSpec() {
@@ -34,7 +34,8 @@ abstract class BlockchainTestTrait : FlatSpec() {
   }
 
   override fun beforeEach() {
-    // initialize a test.
+    super.beforeEach()
+    println("beforeEach init++++++++++++")
 
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
@@ -51,19 +52,22 @@ abstract class BlockchainTestTrait : FlatSpec() {
 
     Blockchain.theBlockchain = chain
 
-    super.beforeEach()
+    println("beforeEach done++++++++++++")
   }
 
   override fun afterEach() {
+    println("afterEach init------------")
     super.afterEach()
 
     // finalize a test.
-    db.close()
     storage.close()
+    db.close()
 
     Blockchain.theBlockchain = null
 
     FileUtils.deleteDirectory(testPath)
+
+    println("afterEach done------------")
   }
 
   fun createBlock(height : Long ) : Block {

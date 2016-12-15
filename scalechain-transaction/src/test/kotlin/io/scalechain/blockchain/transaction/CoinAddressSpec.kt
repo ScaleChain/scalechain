@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
   * Created by kangmo on 5/18/16.
   */
 @RunWith(KTestJUnitRunner::class)
-class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestDataTrait, ChainTestTrait {
+class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTestTrait {
 
   override fun beforeEach() {
     super.beforeEach()

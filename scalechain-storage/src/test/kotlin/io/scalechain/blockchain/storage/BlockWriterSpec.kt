@@ -11,11 +11,8 @@ import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.record.BlockRecordStorage
-import io.scalechain.blockchain.storage.record.RecordStorage
-import io.scalechain.blockchain.storage.test.TestData
 import io.scalechain.blockchain.storage.test.TestData.block1
 import io.scalechain.blockchain.storage.test.TestData.block2
-import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 /**
@@ -30,7 +27,7 @@ class BlockWriterSpec : FlatSpec(), Matchers {
   override fun beforeEach() {
 
     val testPath = File("./target/unittests-BlockWriterSpec/")
-    FileUtils.deleteDirectory(testPath)
+    testPath.deleteRecursively()
     testPath.mkdir()
 
     storage = BlockRecordStorage(testPath, TEST_RECORD_FILE_SIZE)

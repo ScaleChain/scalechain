@@ -5,13 +5,13 @@ import io.kotlintest.matchers.Matchers
 import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
 
 
 // Remove the ignore annotation after creating the "by block height" index
 @RunWith(KTestJUnitRunner::class)
-class BlockchainSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+class BlockchainSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-BlockchainSpec/")
 
@@ -31,7 +31,7 @@ class BlockchainSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers
     "putBlock" should "put the genesis block" {
       chain.putBlock(db, Hash( env().GenesisBlockHash.value) , env().GenesisBlock)
       val (blockInfo, block) = chain.getBlock(db, env().GenesisBlockHash)!!
-      blockInfo.height shouldBe 0
+      blockInfo.height shouldBe 0L
       blockInfo.blockHeader shouldBe env().GenesisBlock.header
       blockInfo.transactionCount shouldBe env().GenesisBlock.transactions.size
 

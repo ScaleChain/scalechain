@@ -5,7 +5,7 @@ import io.kotlintest.matchers.Matchers
 import java.io.File
 
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
 
 /**
@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
   */
 // Remove the ignore annotation after creating the "by block height" index
 @RunWith(KTestJUnitRunner::class)
-class BlockLocatorSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+class BlockLocatorSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-BlockLocatorSpec/")
   lateinit var locator : BlockLocator

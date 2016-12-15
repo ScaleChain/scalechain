@@ -24,7 +24,7 @@ import java.util.*
   * Created by kangmo on 7/4/16.
   */
 @RunWith(KTestJUnitRunner::class)
-class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestDataTrait, Matchers {
+class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")
 

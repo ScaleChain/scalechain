@@ -60,7 +60,7 @@ class TestBlockIndex : BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-open class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : BlockBuildingTestTrait() {
+open class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : AbstractBlockBuildingTest() {
 
   // create an environment before creating account addresses
   private val __env = env()

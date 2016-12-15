@@ -12,13 +12,13 @@ import io.scalechain.blockchain.proto.InvType
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction.TransactionTestDataTrait
+import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
 
 import scala.util.Random
 
 @RunWith(KTestJUnitRunner::class)
-class InventoryProcessorSpec : BlockchainTestTrait(), TransactionTestDataTrait, Matchers {
+class InventoryProcessorSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
   override val testPath = File("./target/unittests-InventoryProcessorSpec/")
 

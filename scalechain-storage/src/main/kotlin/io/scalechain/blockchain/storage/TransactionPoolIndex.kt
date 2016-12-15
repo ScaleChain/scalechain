@@ -31,8 +31,12 @@ interface TransactionPoolIndex {
     */
   fun putTransactionToPool(db : KeyValueDatabase, txHash : Hash, transactionPoolEntry : TransactionPoolEntry) : Unit {
     //logger.trace(s"putTransactionDescriptor : ${txHash}")
+    println("putTransactionToPool ${txHash}")
 
     db.putPrefixedObject(HashCodec, TransactionPoolEntryCodec, getTxPoolPrefix(), DUMMY_PREFIX_KEY, txHash, transactionPoolEntry )
+
+    // BUGBUG : Remove to improve performance
+    assert( getTransactionFromPool(db, txHash) != null)
   }
 
   /** Get a transaction from the transaction pool.
@@ -70,9 +74,13 @@ interface TransactionPoolIndex {
     * @param txHash The hash of the transaction to remove.
     */
   fun delTransactionFromPool(db : KeyValueDatabase, txHash : Hash) : Unit {
+    println("delTransactionToPool ${txHash}")
     //logger.trace(s"delTransactionFromPool : ${txHash}")
 
     db.delPrefixedObject(HashCodec, getTxPoolPrefix(), DUMMY_PREFIX_KEY, txHash )
+
+    // BUGBUG : Remove to improve performance
+    assert( getTransactionFromPool(db, txHash) == null)
   }
 
   companion object {
