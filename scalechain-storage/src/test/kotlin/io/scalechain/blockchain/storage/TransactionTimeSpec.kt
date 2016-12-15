@@ -45,9 +45,14 @@ class TransactionTimeSpec  : FlatSpec(), Matchers {
 
       time.putTransactionTime(db, 1, dummyHash(1))
 
-      time.getOldestTransactionHashes(db, 1) shouldBe listOf(
+      val oldestTxHashes = time.getOldestTransactionHashes(db, 1)
+      println("time.getOldestTransactionHashes(db, 1): ${oldestTxHashes.first().prefix}, ${oldestTxHashes.first().data}")
+
+      oldestTxHashes shouldBe listOf(
           CStringPrefixed(TransactionTimeIndex.timeToString(1), dummyHash(1))
       )
+
+
 
       time.putTransactionTime(db, 2, dummyHash(2))
 

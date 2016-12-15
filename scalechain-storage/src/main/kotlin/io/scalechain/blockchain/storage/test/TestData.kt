@@ -9,6 +9,7 @@ import io.scalechain.blockchain.script.hash
 //import io.scalechain.blockchain.proto.codec.CodecTestUtil
 //import io.scalechain.blockchain.script.HashSupported.*
 import io.scalechain.io.HexFileLoader
+import io.scalechain.test.TestMethods.filledString
 import io.scalechain.util.HexUtil
 import io.scalechain.util.ListExt
 
@@ -20,7 +21,7 @@ object TestData : ProtoTestData, CodecTestUtil {
   val txHash1 = transaction1().hash()
   val txHash2 = transaction2().hash()
 
-  val rawBlockData = HexFileLoader.load("data/unittest/codec/block-size231721.hex")
+  val rawBlockData = HexFileLoader.load("../data/unittest/codec/block-size231721.hex")
   val block = decodeFully(BlockCodec, rawBlockData)
   val blockHash = block.header.hash()
 
@@ -52,6 +53,6 @@ object TestData : ProtoTestData, CodecTestUtil {
    */
   fun dummyHash(num: Int) : Hash {
     assert(num >= 0 && num <= 9)
-    return Hash(HexUtil.bytes(String(ListExt.fill(64, ('0' + num)).toCharArray())))
+    return Hash(HexUtil.bytes(filledString(64, ('0'+num).toByte() )))
   }
 }

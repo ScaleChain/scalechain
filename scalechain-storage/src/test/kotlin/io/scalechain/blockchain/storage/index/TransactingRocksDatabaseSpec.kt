@@ -1,35 +1,29 @@
 package io.scalechain.blockchain.storage.index
 
 import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 import java.io.File
 
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.test.BeforeAfterEach
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class TransactingRocksDatabaseKeyValueSpec : KeyValueDatabaseTestTrait()  {
-  init {
-    Storage.initialize()
-    prepare()
-    runTests()
-  }
+class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, KeyValueDatabaseTestTrait, KeyValueSeekTestTrait, KeyValuePrefixedSeekTestTrait {
   val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
 
-  fun prepare() {
-    FileUtils.deleteDirectory( testPath )
-  }
-  fun createDb() = RocksDatabase(testPath)
-  fun createTxDb(rocksDB: RocksDatabase) = TransactingRocksDatabase( rocksDB )
-
-  var rocksDB = createDb()
-  override var db : KeyValueDatabase = rocksDB
-  var txDb : TransactingRocksDatabase = createTxDb(rocksDB)
+  lateinit var rocksDB : RocksDatabase
+  lateinit override var db : KeyValueDatabase
+  lateinit var txDb : TransactingRocksDatabase
 
   override fun beforeEach() {
-    rocksDB = createDb()
+    testPath.deleteRecursively()
+
+    rocksDB = RocksDatabase(testPath)
     db = rocksDB
-    txDb = createTxDb(rocksDB)
+    txDb = TransactingRocksDatabase( rocksDB )
 
     txDb.beginTransaction()
     super.beforeEach()
@@ -40,72 +34,15 @@ class TransactingRocksDatabaseKeyValueSpec : KeyValueDatabaseTestTrait()  {
     txDb.commitTransaction()
     txDb.close()
   }
-}
 
-class TransactingRocksDatabaseKeyValueSeekSpec : KeyValueSeekTestTrait()  {
+  override fun addTests() {
+    super<KeyValueDatabaseTestTrait>.addTests()
+    super<KeyValueSeekTestTrait>.addTests()
+    super<KeyValuePrefixedSeekTestTrait>.addTests()
+  }
+
   init {
     Storage.initialize()
-    prepare()
-    runTests()
-  }
-  val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
-
-  fun prepare() {
-    FileUtils.deleteDirectory( testPath )
-  }
-  fun createDb() = RocksDatabase(testPath)
-  fun createTxDb(rocksDB: RocksDatabase) = TransactingRocksDatabase( rocksDB )
-
-  var rocksDB = createDb()
-  override var db : KeyValueDatabase = rocksDB
-  var txDb : TransactingRocksDatabase = createTxDb(rocksDB)
-
-  override fun beforeEach() {
-    rocksDB = createDb()
-    db = rocksDB
-    txDb = createTxDb(rocksDB)
-
-    txDb.beginTransaction()
-    super.beforeEach()
-  }
-
-  override fun afterEach() {
-    super.afterEach()
-    txDb.commitTransaction()
-    txDb.close()
-  }
-}
-
-class TransactingRocksDatabaseKeyValuePrefixedSeekSpec : KeyValuePrefixedSeekTestTrait()  {
-  init {
-    Storage.initialize()
-    prepare()
-    runTests()
-  }
-  val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
-
-  fun prepare() {
-    FileUtils.deleteDirectory( testPath )
-  }
-  fun createDb() = RocksDatabase(testPath)
-  fun createTxDb(rocksDB: RocksDatabase) = TransactingRocksDatabase( rocksDB )
-
-  var rocksDB = createDb()
-  override var db : KeyValueDatabase = rocksDB
-  var txDb : TransactingRocksDatabase = createTxDb(rocksDB)
-
-  override fun beforeEach() {
-    rocksDB = createDb()
-    db = rocksDB
-    txDb = createTxDb(rocksDB)
-
-    txDb.beginTransaction()
-    super.beforeEach()
-  }
-
-  override fun afterEach() {
-    super.afterEach()
-    txDb.commitTransaction()
-    txDb.close()
+    addTests()
   }
 }

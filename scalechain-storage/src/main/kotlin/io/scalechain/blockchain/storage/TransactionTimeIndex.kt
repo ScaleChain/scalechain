@@ -90,7 +90,7 @@ interface TransactionTimeIndex {
       } else {
         // Prefix the base58 encoded string with "1", to make the encoded string take the MaxBase58EncodedLength bytes.
         // This is necessary to sort transactions by transaction time.
-        val prefix = ByteArray(MaxBase58EncodedLength - encodedString.length, {'1'.toByte()}).toString()
+        val prefix = String(ByteArray(MaxBase58EncodedLength - encodedString.length, {'1'.toByte()}))
         return prefix + encodedString
       }
     }

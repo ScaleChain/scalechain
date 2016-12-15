@@ -1,20 +1,22 @@
 package io.scalechain.blockchain.storage.index
 
-import io.kotlintest.matchers.Matchers
-import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.RecordLocator
 import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.RecordLocatorCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
 import io.scalechain.crypto.HashFunctions
+import io.scalechain.test.BeforeAfterEach
+import io.scalechain.test.ChildFlatSpec
+import io.scalechain.test.ShouldSpec
+import java.io.File
 
 /**
   * Created by kangmo on 3/23/16.
   */
-abstract class KeyValueDatabaseTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers {
-  abstract var db : KeyValueDatabase
+interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
+  var db : KeyValueDatabase
 
-  fun runTests() {
+  fun addTests() {
     "getObject(rawKey)" should "return a value which was put" {
       val C = FileNumberCodec
 

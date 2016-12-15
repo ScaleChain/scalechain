@@ -17,7 +17,6 @@ class BlockIndexSpec : FlatSpec(), Matchers {
 
   override fun afterEach() {
     super.afterEach()
-
   }
 
   // BlockIndex is a trait. No need to create test cases for a trait.

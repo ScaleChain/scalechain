@@ -78,7 +78,7 @@ interface BlockDatabase {
     */
   fun updateNextBlockHash(db : KeyValueDatabase, hash : Hash, nextBlockHash : Hash?) {
     val blockInfoOption : BlockInfo? = getBlockInfo(db, hash)
-
+    assert(blockInfoOption != null)
     putBlockInfo(db, hash, blockInfoOption!!.copy(
       nextBlockHash = nextBlockHash
     ))

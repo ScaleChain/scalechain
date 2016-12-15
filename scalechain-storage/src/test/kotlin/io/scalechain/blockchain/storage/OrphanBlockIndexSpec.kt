@@ -10,7 +10,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import io.scalechain.util.HexUtil.bytes
-import io.scalechain.util.ListExt
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 

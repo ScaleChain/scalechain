@@ -1,21 +1,24 @@
 package io.scalechain.blockchain.storage.index
 
-import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.RecordLocator
 import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.RecordLocatorCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
+import io.scalechain.test.BeforeAfterEach
+import io.scalechain.test.ChildFlatSpec
+import io.scalechain.test.ShouldSpec
+import java.io.File
 
 /**
   * Test seek, seekObject(rawKey), seekObject(prefix, key) method of KeyValueDatabase.
   */
-abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers {
-  abstract var db: KeyValueDatabase
+interface KeyValueSeekTestTrait : ShouldSpec, KeyValueCommonTrait {
+  var db : KeyValueDatabase
 
-  fun runTests() {
+  fun addTests() {
     "seek(None)" should "iterate nothing if not key exists" {
-      db.seek(null).use { 
+      db.seek(null).use {
         it.asSequence().toList().isEmpty() shouldBe true
       }
     }
@@ -27,13 +30,13 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
 
       db.seek(null).use {
         it.asSequence().map { pair ->
-          Pair(pair.first.toList(), pair.second.toList()) 
+          Pair(pair.first.toList(), pair.second.toList())
         }.toList() shouldBe
           listOf(
-              Pair(B("k1"), B("v1")), 
-              Pair(B("k2"), B("v2")), 
-              Pair(B("k3"), B("v3"))).map { pair -> 
-            Pair(pair.first.toList(), pair.second.toList()) 
+            Pair(B("k1"), B("v1")),
+            Pair(B("k2"), B("v2")),
+            Pair(B("k3"), B("v3"))).map { pair ->
+            Pair(pair.first.toList(), pair.second.toList())
           }
       }
     }
@@ -54,13 +57,13 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
 
       db.seekObject(C, null).use {
         it.asSequence().map { pair ->
-          Pair(pair.first.toList(), pair.second) 
+          Pair(pair.first.toList(), pair.second)
         }.toList() shouldBe
           listOf(
-              Pair(B("k1"), FileNumber(1)), 
-              Pair(B("k2"), FileNumber(2)), 
-              Pair(B("k3"), FileNumber(3))).map { pair ->
-            Pair(pair.first.toList(), pair.second) 
+            Pair(B("k1"), FileNumber(1)),
+            Pair(B("k2"), FileNumber(2)),
+            Pair(B("k3"), FileNumber(3))).map { pair ->
+            Pair(pair.first.toList(), pair.second)
           }
       }
     }
@@ -72,12 +75,12 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(C, B("k3"), FileNumber(3))
       db.seekObject(C, B("k2")).use {
         it.asSequence().map { pair ->
-          Pair(pair.first.toList(), pair.second) 
+          Pair(pair.first.toList(), pair.second)
         }.toList() shouldBe
           listOf(
-              Pair(B("k2"), FileNumber(2)), 
-              Pair(B("k3"), FileNumber(3))).map { pair ->
-            Pair(pair.first.toList(), pair.second) 
+            Pair(B("k2"), FileNumber(2)),
+            Pair(B("k3"), FileNumber(3))).map { pair ->
+            Pair(pair.first.toList(), pair.second)
           }
       }
     }
@@ -89,11 +92,11 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(C, B("k3"), FileNumber(3))
       db.seekObject(C, B("k20")).use {
         it.asSequence().map { pair ->
-          Pair(pair.first.toList(), pair.second) 
+          Pair(pair.first.toList(), pair.second)
         }.toList() shouldBe
-            listOf(Pair(B("k3"), FileNumber(3))).map { pair -> 
-              Pair(pair.first.toList(), pair.second) 
-            }
+          listOf(Pair(B("k3"), FileNumber(3))).map { pair ->
+            Pair(pair.first.toList(), pair.second)
+          }
       }
     }
 
@@ -135,7 +138,7 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
 
       db.seekObject(F, R, PREFIX1(), FileNumber(4)).use {
         it.asSequence().toList() shouldBe listOf(
-            Pair(FileNumber(5), RecordLocator(5, 6))
+          Pair(FileNumber(5), RecordLocator(5, 6))
         )
       }
     }
@@ -175,8 +178,8 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
 
       db.seekObject(F, R, PREFIX2(), FileNumber(3)).use {
         it.asSequence().toList() shouldBe listOf(
-            Pair(FileNumber(4), RecordLocator(4, 3)),
-            Pair(FileNumber(6), RecordLocator(6, 5))
+          Pair(FileNumber(4), RecordLocator(4, 3)),
+          Pair(FileNumber(6), RecordLocator(6, 5))
         )
       }
     }
@@ -189,17 +192,18 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(F, R, PREFIX1(), FileNumber(3), RecordLocator(3, 4))
       db.putObject(F, R, PREFIX1(), FileNumber(5), RecordLocator(5, 6))
 
-      for (i in 1 .. 10) {
+      for (i in 1..10) {
         db.seekObject(F, R, PREFIX1(), FileNumber(3)).use {
           it.asSequence().toList() shouldBe listOf(
-              Pair(FileNumber(3), RecordLocator(3, 4))
+            Pair(FileNumber(3), RecordLocator(3, 4)),
+            Pair(FileNumber(5), RecordLocator(5, 6))
           )
         }
       }
     }
 
     "seekObject(prefix, key)" should "seek objects multiple times converting the type of elements." {
-      data class ConvertedData(val string : String, val num : Int, val fileNum : FileNumber, val recordLocator : RecordLocator)
+      data class ConvertedData(val string: String, val num: Int, val fileNum: FileNumber, val recordLocator: RecordLocator)
 
       val F = FileNumberCodec
       val R = RecordLocatorCodec
@@ -208,15 +212,16 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(F, R, PREFIX1(), FileNumber(3), RecordLocator(3, 4))
       db.putObject(F, R, PREFIX1(), FileNumber(5), RecordLocator(5, 6))
 
-      (1 .. 10).map { i ->
-        db.seekObject(F,R, PREFIX1(), FileNumber(3)).use {
+      (1..10).map { i ->
+        db.seekObject(F, R, PREFIX1(), FileNumber(3)).use {
           it.asSequence().map { pair ->
             val fileNumber2 = pair.first
             val recordLocator2 = pair.second
             ConvertedData("A", i, fileNumber2, recordLocator2)
           }.toList()
         } shouldBe listOf(
-          ConvertedData("A", i, FileNumber(3), RecordLocator(3, 4))
+          ConvertedData("A", i, FileNumber(3), RecordLocator(3, 4)),
+          ConvertedData("A", i, FileNumber(5), RecordLocator(5, 6))
         )
       }
     }
@@ -250,7 +255,7 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       }
     }
 
-    data class ConvertedData(val fnum1 : FileNumber, val rloc1 : RecordLocator, val fnum2 : FileNumber, val rloc2 : RecordLocator )
+    data class ConvertedData(val fnum1: FileNumber, val rloc1: RecordLocator, val fnum2: FileNumber, val rloc2: RecordLocator)
 
     // This case calls RocksIterator.close and then calls RocksIterator.hasNext.
     "seekObject(prefix, key)" should "support nested invocation with toList materialization " {
@@ -297,29 +302,36 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(F, R, PREFIX2(), FileNumber(3), RecordLocator(3, 4))
       db.putObject(F, R, PREFIX2(), FileNumber(5), RecordLocator(5, 6))
 
-      db.seekObject(F, R, PREFIX1(), FileNumber(1)).use {
-        val nestedIterationResult = it.asSequence().flatMap { pair ->
+      println("starting test")
+
+      val nestedIterationResult = db.seekObject(F, R, PREFIX1(), FileNumber(1)).use {
+        it.asSequence().flatMap { pair ->
           val fileNumber1 = pair.first
           val recordLocator1 = pair.second
 
-          db.seekObject(F, R, PREFIX2(), FileNumber(3)).use {
+          println("test1 : ${fileNumber1}, ${recordLocator1}")
+
+          db.seekObject(F, R, PREFIX2(), FileNumber(3)).use { it ->
             it.asSequence().map { pair ->
               val fileNumber2 = pair.first
               val recordLocator2 = pair.second
+
+              println("test2 : ${fileNumber2}, ${recordLocator2}")
+
               ConvertedData(fileNumber1, recordLocator1, fileNumber2, recordLocator2)
-            }
+            }.toList().asSequence() // If we don't call toList(), the iterator is closed by .use, and we have no items in the sequence.
           }
         }.toList()
-
-        nestedIterationResult shouldBe listOf(
-           ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
-           ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(5), RecordLocator(5, 6)),
-           ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(3), RecordLocator(3, 4)),
-           ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(5), RecordLocator(5, 6)),
-           ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(3), RecordLocator(3, 4)),
-           ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(5), RecordLocator(5, 6))
-        )
       }
+
+      nestedIterationResult shouldBe listOf(
+        ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(5), RecordLocator(5, 6)),
+        ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(5), RecordLocator(5, 6)),
+        ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(5), RecordLocator(5, 6))
+      )
     }
 
     // This test results in JVM crash. The crash was caused by the leveldbjni, rocksdbjni native library.
@@ -331,8 +343,8 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
       db.putObject(F, R, PREFIX1(), FileNumber(3), RecordLocator(3, 4))
       db.putObject(F, R, PREFIX1(), FileNumber(5), RecordLocator(5, 6))
 
-      db.seekObject(F, R, PREFIX1(), FileNumber(1)).use {
-        val nestedIterationResult = it.asSequence().flatMap { pair ->
+      val nestedIterationResult = db.seekObject(F, R, PREFIX1(), FileNumber(1)).use {
+        it.asSequence().flatMap { pair ->
           val fileNumber1 = pair.first
           val recordLocator1 = pair.second
 
@@ -343,19 +355,19 @@ abstract class KeyValueSeekTestTrait : FlatSpec(), KeyValueCommonTrait, Matchers
 
               println("lst : $fileNumber1, $recordLocator1, $fileNumber2, $recordLocator2")
               ConvertedData(fileNumber1, recordLocator1, fileNumber2, recordLocator2)
-            }
+            }.toList().asSequence() // If we don't call toList(), the iterator is closed by .use, and we have no items in the sequence.
           }
         }.toList()
-
-        nestedIterationResult shouldBe listOf(
-            ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
-            ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(5), RecordLocator(5, 6)),
-            ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(3), RecordLocator(3, 4)),
-            ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(5), RecordLocator(5, 6)),
-            ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(3), RecordLocator(3, 4)),
-            ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(5), RecordLocator(5, 6))
-        )
       }
+
+      nestedIterationResult shouldBe listOf(
+        ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(1), RecordLocator(1, 2), FileNumber(5), RecordLocator(5, 6)),
+        ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(3), RecordLocator(3, 4), FileNumber(5), RecordLocator(5, 6)),
+        ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(3), RecordLocator(3, 4)),
+        ConvertedData(FileNumber(5), RecordLocator(5, 6), FileNumber(5), RecordLocator(5, 6))
+      )
     }
   }
 }
