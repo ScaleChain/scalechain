@@ -5,6 +5,7 @@ import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.blockchain.script.ScriptOpList
+import io.scalechain.blockchain.script.ScriptSerializer
 import io.scalechain.blockchain.script.ops.OpCheckSig
 import io.scalechain.blockchain.script.ops.OpPushData
 import io.scalechain.blockchain.script.ops.OpEqual
@@ -39,7 +40,8 @@ class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestDataTrait, C
 
       val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
 
-      checksigScriptScrubbed shouldBe expectedPubKeyScript
+      ScriptSerializer.serialize( checksigScriptScrubbed.scriptOps.operations ).toList() shouldBe
+      ScriptSerializer.serialize( expectedPubKeyScript.scriptOps.operations ).toList()
     }
 
     "ParsedPubKeyScript.from(pubKeyHash)" should "create a ParsedPubKeyScript from the public key hash" {
@@ -51,7 +53,9 @@ class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestDataTrait, C
 
       val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
 
-      checksigScriptScrubbed shouldBe expectedPubKeyScript
+      ScriptSerializer.serialize( checksigScriptScrubbed.scriptOps.operations ).toList() shouldBe
+      ScriptSerializer.serialize( expectedPubKeyScript.scriptOps.operations ).toList()
+
     }
 
     /*

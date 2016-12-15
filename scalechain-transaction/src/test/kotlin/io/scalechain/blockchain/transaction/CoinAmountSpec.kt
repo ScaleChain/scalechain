@@ -13,12 +13,12 @@ import org.junit.runner.RunWith
 class CoinAmountSpec : FlatSpec(), Matchers {
   init {
     "CoinAmount.from" should "create a CoinAmount with correct value" {
-      CoinAmount.from(100000000) shouldBe CoinAmount( java.math.BigDecimal(1))
-      CoinAmount.from(1) shouldBe CoinAmount( java.math.BigDecimal(0.00000001))
+      CoinAmount.from(100000000L) shouldBe CoinAmount( java.math.BigDecimal("1"))
+      CoinAmount.from(1L) shouldBe CoinAmount( java.math.BigDecimal("0.00000001"))
     }
     "coinUnits" should "return a correct units of coins" {
-      CoinAmount( java.math.BigDecimal(1)).coinUnits() shouldBe 100000000
-      CoinAmount( java.math.BigDecimal(0.00000001)).coinUnits() shouldBe 1
+      CoinAmount( java.math.BigDecimal("1")).coinUnits() shouldBe 100000000L
+      CoinAmount( java.math.BigDecimal("0.00000001")).coinUnits() shouldBe 1L
     }
   }
 }

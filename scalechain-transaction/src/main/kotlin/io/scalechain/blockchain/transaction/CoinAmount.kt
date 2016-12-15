@@ -12,7 +12,7 @@ data class CoinAmount(val value : java.math.BigDecimal) {
     */
   fun coinUnits() : Long {
     // BUGBUG : Change from toLongExact to toLong. is it ok?
-    return (value * CoinAmount.ONE_COIN_IN_UNITS).toLong()
+    return (value.multiply( CoinAmount.ONE_COIN_IN_UNITS ) ).toLong()
   }
 
   companion object {
@@ -26,7 +26,7 @@ data class CoinAmount(val value : java.math.BigDecimal) {
      * @return
      */
     fun from(coinUnits : Long) : CoinAmount {
-      return CoinAmount( java.math.BigDecimal.valueOf(coinUnits) / ONE_COIN_IN_UNITS )
+      return CoinAmount( java.math.BigDecimal.valueOf(coinUnits).divide( ONE_COIN_IN_UNITS ) )
     }
   }
 }

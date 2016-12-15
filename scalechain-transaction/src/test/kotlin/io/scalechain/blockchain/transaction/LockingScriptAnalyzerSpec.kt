@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.script.ScriptOpList
+import io.scalechain.blockchain.script.ScriptSerializer
 import io.scalechain.blockchain.script.ScriptValue
 import io.scalechain.blockchain.script.ops.*
 import org.junit.runner.RunWith
@@ -92,9 +93,10 @@ class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestDataTrait
 
       val expectedOwnership = ParsedPubKeyScript(scriptOps)
 
-      val extractedOwnership = LockingScriptAnalyzer.extractOutputOwnership(expectedOwnership.lockingScript())
+      val extractedOwnership = LockingScriptAnalyzer.extractOutputOwnership(expectedOwnership.lockingScript()) as ParsedPubKeyScript
 
-      extractedOwnership shouldBe expectedOwnership
+      ScriptSerializer.serialize( extractedOwnership.scriptOps.operations ).toList() shouldBe
+      ScriptSerializer.serialize( expectedOwnership.scriptOps.operations ).toList()
     }
   }
 }
