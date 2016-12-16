@@ -4,6 +4,8 @@ import com.google.gson.*
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.api.Json
 import org.junit.runner.RunWith
 
@@ -75,7 +77,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       request.params.paramValues shouldBe params.toList()
     }
 
-    "RpcParams" should "not throw a DeserializationException even though jsonrpc field is missing " {
+    "RpcParams" should "not throw a RpcException even though jsonrpc field is missing " {
       val jsObject = JsonObject()
       jsObject.add("id", JsonPrimitive(1))
       jsObject.add("method", JsonPrimitive("myMethod"))
@@ -86,9 +88,7 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       Json.get().fromJson(jsObject, RpcRequest::class.java)
     }
 
-// BUGBUG : Write custom deserializer for RpcRequest to check if there is any missing fields.
-/*
-    "RpcParams" should "throw IllegalArgumentException if id field is missing " {
+    "RpcParams" should "throw RpcException if id field is missing " {
 
 
       val jsObject = JsonObject()
@@ -98,14 +98,14 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       params.add(JsonPrimitive("arg1"))
       jsObject.add("params", params)
 
-      val req = Json.get().fromJson(jsObject, RpcRequest::class.java)
-
-      shouldThrow <IllegalArgumentException> {
+      val thrown = shouldThrow <RpcException> {
         Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
+      thrown.code shouldBe ErrorCode.RpcRequestParseFailure
+      thrown.message shouldBe "id field is missing."
     }
 
-    "RpcParams" should "throw IllegalArgumentException if method field is missing " {
+    "RpcParams" should "throw RpcException if method field is missing " {
 
       val jsObject = JsonObject()
       jsObject.add("jsonrpc", JsonPrimitive("1.0") )
@@ -114,33 +114,38 @@ class RpcParamsDeserializationSpec : FlatSpec(), Matchers {
       params.add(JsonPrimitive("arg1"))
       jsObject.add("params", params)
 
-      shouldThrow <IllegalArgumentException> {
+      val thrown = shouldThrow <RpcException> {
         Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
+      thrown.code shouldBe ErrorCode.RpcRequestParseFailure
+      thrown.message shouldBe "method field is missing."
     }
 
-    "RpcParams" should "throw IllegalArgumentException if params field is missing " {
+    "RpcParams" should "throw RpcException if params field is missing " {
       val jsObject = JsonObject()
       jsObject.add("jsonrpc", JsonPrimitive("1.0") )
       jsObject.add("id", JsonPrimitive(1))
       jsObject.add("method", JsonPrimitive("myMethod"))
 
-      shouldThrow <IllegalArgumentException> {
+      val thrown = shouldThrow <RpcException> {
         Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
+      thrown.code shouldBe ErrorCode.RpcRequestParseFailure
+      thrown.message shouldBe "params field is missing."
     }
-*/
 
-    "RpcParams" should "throw IllegalArgumentException if params field is not an array " {
+    "RpcParams" should "throw RpcException if params field is not an array " {
       val jsObject = JsonObject()
       jsObject.add("jsonrpc", JsonPrimitive("1.0") )
       jsObject.add("id", JsonPrimitive(1))
       jsObject.add("method", JsonPrimitive("myMethod"))
       jsObject.add("params", JsonPrimitive("arg1"))
 
-      shouldThrow <IllegalArgumentException> {
+      val thrown = shouldThrow <RpcException> {
         Json.get().fromJson(jsObject, RpcRequest::class.java)
       }
+      thrown.code shouldBe ErrorCode.RpcRequestParseFailure
+      thrown.message shouldBe "params field should be an array."
     }
   }
 }

@@ -1,6 +1,8 @@
 package io.scalechain.blockchain.api
 
 import com.google.gson.*
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.api.command.network.GetPeerInfoResult
 import io.scalechain.blockchain.api.command.wallet.ListTransactionsResult
 import io.scalechain.blockchain.api.command.wallet.ListUnspentResult
@@ -33,6 +35,64 @@ class RpcResultSerializer : JsonSerializer<RpcResult> {
       else -> {
         Json.get().toJsonTree(src, typeOfSrc)
       }
+    }
+  }
+}
+
+class RpcRequestDeserializer : JsonDeserializer<RpcRequest> {
+  open class JsonParser( val fieldName : String ) {
+    fun optional(json : JsonObject) : JsonElement? {
+      if (json.has(fieldName)) return json.get(fieldName)
+      else return null
+    }
+    fun required(json : JsonObject) : JsonElement {
+      if (json.has(fieldName)) {
+        return json.get(fieldName)
+      } else throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field is missing.")
+    }
+
+    fun JsonElement.getLongValue() : Long {
+      val value = try { this.asJsonPrimitive } catch(e:Exception) {
+        throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be a number.")
+      }
+      if (value.isNumber()) {
+        return value.asNumber.toLong()
+      }
+      else if (value.isString()) {
+        try {
+          return value.asString.toLong()
+        } catch (e : NumberFormatException ) {
+          throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be a number.")
+        }
+      } else throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be a number.")
+    }
+
+    fun JsonElement.getStringValue() : String {
+      val value = try { this.asJsonPrimitive } catch(e:Exception) {
+        throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be a number.")
+      }
+      if (value.isString) return value.asString
+      else throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be a string.")
+    }
+
+    fun JsonElement.getArray() : List<JsonElement> {
+      val value = try { this.asJsonArray } catch(e:Exception) {
+        throw RpcException(ErrorCode.RpcRequestParseFailure, "${fieldName} field should be an array.")
+      }
+      return value.toList()
+    }
+  }
+
+
+  override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): RpcRequest {
+    if (json is JsonObject) {
+      val jsonrpc : String?           = object : JsonParser("jsonrpc") { operator fun invoke() = optional(json)?.getStringValue() }()
+      val id      : Long              = object : JsonParser("id")      { operator fun invoke() = required(json).getLongValue()    }()
+      val method  : String            = object : JsonParser("method")  { operator fun invoke() = required(json).getStringValue()  }()
+      val params  : List<JsonElement> = object : JsonParser("params")  { operator fun invoke() = required(json).getArray()        }()
+      return RpcRequest(jsonrpc, id, method, RpcParams(params))
+    } else {
+      throw RpcException(ErrorCode.RpcRequestParseFailure, "Expected Json object for the rpc request.")
     }
   }
 }
@@ -89,6 +149,7 @@ object Json {
     if (gson == null) {
       gson = GsonBuilder()
                 .registerTypeAdapter(RpcParams::class.java, RpcParamsDeserializer())
+                .registerTypeAdapter(RpcRequest::class.java, RpcRequestDeserializer())
                 .registerTypeAdapter(RpcResponse::class.java, RpcResponseSerializer())
                 .registerTypeAdapter(StringResult::class.java, RpcResultSerializer())
                 .registerTypeAdapter(StringListResult::class.java, RpcResultSerializer())

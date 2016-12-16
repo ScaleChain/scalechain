@@ -259,8 +259,6 @@ class RpcParamsSpec : FlatSpec(), Matchers {
       (shouldThrow<RpcException> {params.get<BigDecimal>("param2", 1, bigDecimalValidators )}).code shouldBe ErrorCode.RpcArgumentGreaterThanMaxValue
     }
 
-
-
     "getList" should "return a list if the parameter exists" {
       val arrayParam = JsonArray()
       arrayParam.add("foo")
@@ -287,6 +285,7 @@ class RpcParamsSpec : FlatSpec(), Matchers {
 
       val thrown = shouldThrow <RpcException> { params.getList<String>("param2", 1) }
       thrown.code shouldBe ErrorCode.RpcMissingRequiredParameter
+      thrown.message shouldBe "A mandatory parameter param2 at index 1 is missing."
     }
 
     "getList" should "throw an exception if the parameter type mismatches" {
@@ -301,9 +300,12 @@ class RpcParamsSpec : FlatSpec(), Matchers {
 
       val thrown = shouldThrow <RpcException> { params.getList<Long>("param1", 0) }
       thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
+
+      // BUGBUG : Polish error message
+      thrown.message shouldBe """java.lang.NumberFormatException: For input string: "foo""""
     }
 
-    "getList" should "throw an RpcException with RpcMissingRequiredParameter if the parameter is not an JsArray" {
+    "getList" should "throw an exception if the parameter is not an JsArray" {
       val arguments = listOf( // array of parameters
         JsonPrimitive("foo") // the first parameter is NOT an array
       )
@@ -312,6 +314,7 @@ class RpcParamsSpec : FlatSpec(), Matchers {
 
       val thrown = shouldThrow <RpcException> { params.getList<String>("param1", 0) }
       thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
+      thrown.message shouldBe "Expected an array on the parameter param1"
     }
   }
 }
