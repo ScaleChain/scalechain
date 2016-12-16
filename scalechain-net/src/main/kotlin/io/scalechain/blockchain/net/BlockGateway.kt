@@ -99,7 +99,7 @@ open class BlockGateway {
 
   val ReceivedBlockCache = TimeBasedCache<Block>(5, TimeUnit.MINUTES)
 
-  fun putConsensualHeader(header : BlockHeader) = {
+  fun putConsensualHeader(header : BlockHeader) {
     synchronized(this) {
       val chain = Blockchain.get()
 
