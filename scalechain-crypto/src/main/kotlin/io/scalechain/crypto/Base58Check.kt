@@ -24,7 +24,7 @@ import java.util.*
   *
   */
 object Base58Check {
-  fun checksum(data: ByteArray) : ByteArray = HashFunctions.hash256(data).value.take(4).toByteArray()
+  fun checksum(data: ByteArray) : ByteArray = HashFunctions.hash256(data).value.array.take(4).toByteArray()
 
   /**
     * Encode data in Base58Check format.

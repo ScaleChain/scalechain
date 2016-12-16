@@ -5,6 +5,7 @@ import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.proto.TransactionOutput
 import io.scalechain.test.TestMethods.filledString
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -39,7 +40,7 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
     "CoinAddress.from(address)" should "parse an encoded address using CoinAddress.from(publicKeyHash)" {
       val privateKey = PrivateKey.generate()
       val publicKey = PublicKey.from(privateKey)
-      val expectedAddress = CoinAddress.from(publicKey.getHash().value)
+      val expectedAddress = CoinAddress.from(publicKey.getHash().value.array)
       val actualAddress = CoinAddress.from(expectedAddress.base58())
 
       actualAddress shouldBe expectedAddress
@@ -47,18 +48,18 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
 
 
     "isValid" should "return true if it is valid" {
-      CoinAddress(env().PubkeyAddressVersion, bytes(filledString(40, '0'.toByte()))).isValid() shouldBe true
-      CoinAddress(env().ScriptAddressVersion, bytes(filledString(40, '0'.toByte()))).isValid() shouldBe true
+      CoinAddress(env().PubkeyAddressVersion, Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe true
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe true
 
     }
 
     "isValid" should "return false if it is invalid" {
       // invalid version
-      CoinAddress('X'.toByte(), bytes(filledString(40, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress('X'.toByte(), Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe false
       // invalid length
-      CoinAddress(env().ScriptAddressVersion, bytes(filledString(38, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.toByte()))).isValid() shouldBe false
       // invalid length
-      CoinAddress(env().ScriptAddressVersion, bytes(filledString(42, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(42, '0'.toByte()))).isValid() shouldBe false
     }
 
     "base58" should "return base58 representation of the address" {
@@ -77,7 +78,7 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
       val privateKey = PrivateKey.generate()
       val address = CoinAddress.from(privateKey)
 
-      val expectedLockingScript = ParsedPubKeyScript.from(PublicKey.from(privateKey).getHash().value).lockingScript()
+      val expectedLockingScript = ParsedPubKeyScript.from(PublicKey.from(privateKey).getHash().value.array).lockingScript()
 
       address.lockingScript() shouldBe expectedLockingScript
 
@@ -91,7 +92,7 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
 
     "base58" should "hit an assertion if it is not valid" {
       // invalid length
-      val invalidAddress = CoinAddress(env().ScriptAddressVersion, bytes(filledString(38, '0'.toByte())))
+      val invalidAddress = CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.toByte())))
 
       shouldThrow <AssertionError> {
         invalidAddress.base58()

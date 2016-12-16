@@ -9,7 +9,7 @@ import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.ScriptParseException
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.script.ops.ScriptOp
-
+import io.scalechain.util.Bytes
 /**
  * Created by kangmo on 11/10/15.
  */
@@ -114,7 +114,7 @@ abstract class OperationTestTrait : FlatSpec(), Matchers {
           // Serialze and parse the serialized byte array to get the pseudo operations such as OpCond,
           // which is generated from OP_IF/OP_NOTIF, OP_ELSE, OP_ENDIF during parsing.
           val serializedOperations = ScriptSerializer.serialize(operations)
-          ScriptParser.parse(object : Script { override val data = serializedOperations } ).operations
+          ScriptParser.parse(object : Script { override val data = Bytes(serializedOperations) } ).operations
         } else {
           operations
         }

@@ -13,6 +13,7 @@ import io.scalechain.crypto.Base58Check
 import io.scalechain.crypto.ECKey
 import io.scalechain.crypto.Hash160
 import io.scalechain.crypto.HashFunctions
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import java.util.*
 
@@ -47,8 +48,9 @@ interface OutputOwnership /*: ProtocolMessage*/ {
   * @param version The version of the address.
   * @param publicKeyHash The hash value of the public key.
   */
-data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : OutputOwnership
+data class CoinAddress(val version:Byte, val publicKeyHash : Bytes) : OutputOwnership
 {
+
   /** See if an address has valid version prefix and length.
     *
     * @return true if the address is valid. false otherwise.
@@ -57,7 +59,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
     val env = ChainEnvironment.get()
 
     // The public key hash uses RIPEMD160, so it should be 20 bytes.
-    if (publicKeyHash.size != 20 ) {
+    if (publicKeyHash.array.size != 20 ) {
       return false
     } else if (version != env.PubkeyAddressVersion && version != env.ScriptAddressVersion ) {
       return false
@@ -72,7 +74,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
     */
   fun base58() : String {
     assert(isValid())
-    return Base58Check.encode(version, publicKeyHash)
+    return Base58Check.encode(version, publicKeyHash.array)
   }
 
   /** Convert the address to string. The converted value is used for a prefixed string key in the wallet database.
@@ -90,7 +92,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
     * @return The locking script of this coin address.
     */
   override fun lockingScript() : LockingScript {
-    return ParsedPubKeyScript.from(publicKeyHash).lockingScript()
+    return ParsedPubKeyScript.from(publicKeyHash.array).lockingScript()
   }
 
 
@@ -105,7 +107,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
      */
     fun from(address : String) : CoinAddress {
       val (versionPrefix, publicKeyHash) = Base58Check.decode(address)
-      val coinAddress = CoinAddress(versionPrefix, publicKeyHash)
+      val coinAddress = CoinAddress(versionPrefix, Bytes(publicKeyHash))
       if (coinAddress.isValid()) {
         return coinAddress
       } else {
@@ -123,7 +125,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
       val chainEnv = ChainEnvironment.get()
 
       // Step 2 : Create the CoinAddress
-      return CoinAddress(chainEnv.PubkeyAddressVersion, publicKeyHash)
+      return CoinAddress(chainEnv.PubkeyAddressVersion, Bytes(publicKeyHash))
     }
 
 
@@ -139,20 +141,8 @@ data class CoinAddress(val version:Byte, val publicKeyHash : ByteArray) : Output
       // Step 2 : Hash the public key.
 
       // Step 3 : Create an address.
-      return CoinAddress.from(publicKey.getHash().value)
+      return CoinAddress.from(publicKey.getHash().value.array)
     }
-  }
-
-  override fun equals(other : Any?) : Boolean {
-    when {
-      other == null -> return false
-      other is CoinAddress -> return this.version == other.version && Arrays.equals(this.publicKeyHash, other.publicKeyHash)
-      else -> return false
-    }
-  }
-
-  override fun hashCode() : Int {
-    return this.version.hashCode() + Arrays.hashCode(this.publicKeyHash)
   }
 }
 
@@ -174,11 +164,11 @@ data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
     */
   override fun lockingScript() : LockingScript {
     val serializedScript = ScriptSerializer.serialize(scriptOps.operations)
-    return LockingScript(serializedScript)
+    return LockingScript(Bytes(serializedScript))
   }
 
   override fun stringKey() : String {
-    return HexUtil.hex(lockingScript().data)
+    return HexUtil.hex(lockingScript().data.array)
   }
 
   companion object {
@@ -203,7 +193,7 @@ data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
       // Step 2 : Hash the public key.
       val publicKeyHash : Hash160 = HashFunctions.hash160(publicKey)
 
-      return from(publicKeyHash.value)
+      return from(publicKeyHash.value.array)
     }
 
     /** Create a ParsedPubKeyScript from a public key hash.

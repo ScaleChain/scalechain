@@ -24,4 +24,8 @@ class Bytes(val array : ByteArray) {
   override fun hashCode() : Int {
     return Arrays.hashCode(this.array)
   }
+
+  companion object {
+    fun from(hexString : String ) = Bytes(HexUtil.bytes(hexString))
+  }
 }

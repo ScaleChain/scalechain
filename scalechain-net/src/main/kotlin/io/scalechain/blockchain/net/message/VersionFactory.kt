@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net.message
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import java.math.BigInteger
 
@@ -18,6 +19,6 @@ object VersionFactory {
     val bestBlockHeight = Blockchain.get().getBestBlockHeight()
     assert(bestBlockHeight <= Int.MAX_VALUE)
 
-    return Version(70002, BigInteger("1"), 1454059080L, NetworkAddress(BigInteger("1"), IPv6Address(HexUtil.bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInteger("1"), IPv6Address(HexUtil.bytes("00000000000000000000ffff00000000")), 8333), BigInteger("5306546289391447548"), "/Satoshi:0.11.2/", bestBlockHeight.toInt(), true)
+    return Version(70002, BigInteger("1"), 1454059080L, NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff00000000")), 8333), BigInteger("5306546289391447548"), "/Satoshi:0.11.2/", bestBlockHeight.toInt(), true)
   }
 }

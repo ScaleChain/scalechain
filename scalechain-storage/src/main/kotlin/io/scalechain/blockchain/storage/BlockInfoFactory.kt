@@ -24,7 +24,7 @@ internal object BlockInfoFactory {
     return BlockInfo(
       height = prevBlockHeight + 1L,
       transactionCount = transactionCount,
-      chainWork = prevBlockChainWork + HashEstimation.getHashCalculations(blockHash.value),
+      chainWork = prevBlockChainWork + HashEstimation.getHashCalculations(blockHash.value.array),
       nextBlockHash = null,
       // BUGBUG : Need to use enumeration
       status = 0,

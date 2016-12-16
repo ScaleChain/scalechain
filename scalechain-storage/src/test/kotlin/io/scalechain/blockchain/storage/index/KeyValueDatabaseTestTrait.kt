@@ -167,13 +167,13 @@ interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
       for (i in 1.. keyCount ) {
         val key = HashFunctions.sha256(i.toString().toByteArray())
         val value = HashFunctions.sha256((i*10).toString().toByteArray())
-        db.put(key.value, value.value)
+        db.put(key.value.array, value.value.array)
       }
 
       for (i in 1.. keyCount ) {
         val key = HashFunctions.sha256(i.toString().toByteArray())
         val value = HashFunctions.sha256((i*10).toString().toByteArray())
-        L(db.get(key.value)) shouldBe L(value.value)
+        L(db.get(key.value.array)) shouldBe L(value.value.array)
       }
     }
 
@@ -181,14 +181,14 @@ interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
       for (i in 1 .. keyCount ) {
         val key = HashFunctions.sha256(i.toString().toByteArray())
         val value = HashFunctions.sha256((i*10).toString().toByteArray())
-        db.put(key.value, value.value)
+        db.put(key.value.array, value.value.array)
       }
 
       // Delete all keys genereted from the even numbers.
       for (i in 1 .. keyCount ) {
         if ( i % 2 == 0) {
           val key = HashFunctions.sha256(i.toString().toByteArray())
-          db.del(key.value)
+          db.del(key.value.array)
         }
       }
 
@@ -198,9 +198,9 @@ interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
 
         // Should get None for all keys genereted from the even numbers.
         if ( i % 2 == 0 ) {
-          db.get(key.value) shouldBe null
+          db.get(key.value.array) shouldBe null
         } else {
-          L(db.get(key.value)) shouldBe L(value.value)
+          L(db.get(key.value.array)) shouldBe L(value.value.array)
         }
       }
     }

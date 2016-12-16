@@ -247,7 +247,6 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
         while( consequentNonAttachableTx < 16 && iter.hasNext()) {
           val tx: Transaction = iter.next()
           val txHash = tx.hash()
-          println("candidate : ${txHash}")
 
           // Test if it can be attached.
           val isTxAttachable = try {
@@ -259,7 +258,7 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
           }
 
           if (isTxAttachable) {
-            println("attachable : ${txHash}")
+            //println("attachable : ${txHash}")
             // move the the transaction queue
             iter.remove()
             txQueue.enqueue(tempDB, tx)
@@ -271,18 +270,14 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
         }
 
         newlySelectedTransaction = txQueue.dequeue()
-        println("fromQueue : ${newlySelectedTransaction?.hash()}")
+        //println("fromQueue : ${newlySelectedTransaction?.hash()}")
 
         //        println(s"newlySelectedTransaction ${newlySelectedTransaction}")
 
         if (newlySelectedTransaction != null) {
-println("1")
           val newTx = newlySelectedTransaction
-          println("2")
           serializedBlockSize += TransactionCodec.encode(newTx).size
-          println("3")
           if (serializedBlockSize <= maxBlockSize) {
-            println("4")
             // Attach the transaction
             txMagnet.attachTransaction(tempDB, newTx.hash(), newTx, checkOnly = false)
             selectedTransactions += newTx

@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.blockchain.proto.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -56,5 +57,5 @@ class GetDataSpec : EnvelopeTestSuite<GetData>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = GetData(listOf(InvVector(InvType.MSG_TX, Hash(bytes("411308b9451727b84fcb359998078722cf9ec84c2c44299a87a68939f82f9010"))),InvVector(InvType.MSG_TX, Hash(bytes("af742cdab40bebb681541e61e140ded4981c56ed3bdb642ee89df67053ca82ce"))),InvVector(InvType.MSG_TX, Hash(bytes("3a39148e82d642e7091ac0283be1a8af3e76ec66b29af6168cfecffe5dfbec99")))))
+  override val message = GetData(listOf(InvVector(InvType.MSG_TX, Hash(Bytes.from("411308b9451727b84fcb359998078722cf9ec84c2c44299a87a68939f82f9010"))),InvVector(InvType.MSG_TX, Hash(Bytes.from("af742cdab40bebb681541e61e140ded4981c56ed3bdb642ee89df67053ca82ce"))),InvVector(InvType.MSG_TX, Hash(Bytes.from("3a39148e82d642e7091ac0283be1a8af3e76ec66b29af6168cfecffe5dfbec99")))))
 }

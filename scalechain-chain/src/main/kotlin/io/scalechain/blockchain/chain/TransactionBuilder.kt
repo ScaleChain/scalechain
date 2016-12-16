@@ -8,6 +8,7 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.transaction.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 
 import scala.collection.mutable.ListBuffer
@@ -67,7 +68,7 @@ class TransactionBuilder() {
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),
       outPoint.outputIndex.toLong(),
-      unlockingScriptOption ?: UnlockingScript(byteArrayOf()),
+      unlockingScriptOption ?: UnlockingScript(Bytes(byteArrayOf())),
       sequenceNumberOption ?: 0L )
 
     inputs.add( input )
@@ -84,7 +85,7 @@ class TransactionBuilder() {
     * @param publicKeyHash The public key hash to put into the locking script.
     */
   fun addOutput(amount : CoinAmount, publicKeyHash : Hash) : TransactionBuilder {
-    val pubKeyScript = ParsedPubKeyScript.from(publicKeyHash.value)
+    val pubKeyScript = ParsedPubKeyScript.from(publicKeyHash.value.array)
     val output = TransactionOutput( amount.coinUnits(), pubKeyScript.lockingScript() )
     newOutputs.add( output )
     return this
@@ -112,7 +113,7 @@ class TransactionBuilder() {
   fun addOutput(data : ByteArray) : TransactionBuilder {
     val lockingScriptOps = listOf( OpReturn(), OpPush.from(data) )
     val lockingScriptData = ScriptSerializer.serialize(lockingScriptOps)
-    val output = TransactionOutput( 0L, LockingScript(lockingScriptData))
+    val output = TransactionOutput( 0L, LockingScript(Bytes(lockingScriptData)))
     newOutputs.add(output)
     return this
   }

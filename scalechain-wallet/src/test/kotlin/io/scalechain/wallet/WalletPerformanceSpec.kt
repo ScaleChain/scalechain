@@ -38,124 +38,72 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
     super.afterEach()
   }
 
+  fun prepareTestTransactions(txCount: Int, data: BlockSampleData = BlockSampleData(db), genTxOption: Transaction? = null): MutableList<Pair<Hash, Transaction>> {
+    val generationAddress = wallet.newAddress(db, "generation")
+    val generationTx =
+      if (genTxOption != null) {
+        TransactionWithName("generation transaction", genTxOption)
+      } else {
+        data.generationTransaction("GenTx.B.BLK01", CoinAmount(50), generationAddress)
+      }
+
+    // Prepare test data.
+    val transactions = mutableListOf< Pair<Hash, Transaction>>()
+
+    var mergedCoin = data.getOutput(generationTx, 0)
+
+    var testLoopCount = txCount
+
+    transactions.add(Pair(generationTx.transaction.hash(), generationTx.transaction))
+
+    while (testLoopCount > 0) {
+      val accountName = "${Random().nextInt()}"
+      val newAddress1 = wallet.newAddress(db, accountName)
+      val newAddress2 = wallet.newAddress(db, accountName)
+      val newAddress3 = wallet.newAddress(db, accountName)
+
+      val coin1Amount = Random().nextInt(10).toLong()
+      val coin2Amount = Random().nextInt(18).toLong()
+      val splitTxOrg = data.normalTransaction(
+        "splitTx-${testLoopCount}",
+        spendingOutputs = listOf(mergedCoin),
+        newOutputs = listOf(
+          NewOutput(CoinAmount(coin1Amount), newAddress1),
+          NewOutput(CoinAmount(coin2Amount), newAddress2),
+          NewOutput(CoinAmount(50 - coin1Amount - coin2Amount), newAddress3)
+        )
+      )
+      //      val splitTx = splitTxOrg.copy(transaction = splitTxOrg.transaction.copy(version=coin1Amount))
+
+      val splitTx = splitTxOrg
+
+      transactions.add(Pair(splitTx.transaction.hash(), splitTx.transaction))
+
+      val mergeTx = data.normalTransaction(
+        "mergeTx-${testLoopCount}",
+        spendingOutputs = listOf(data.getOutput(splitTx, 0), data.getOutput(splitTx, 1), data.getOutput(splitTx, 2)),
+        newOutputs = listOf(
+          NewOutput(CoinAmount(50), newAddress3)
+        )
+      )
+
+      transactions.add(Pair(mergeTx.transaction.hash(), mergeTx.transaction))
+
+      mergedCoin = data.getOutput(mergeTx, 0)
+
+      testLoopCount -= 2
+
+      if (testLoopCount == (testLoopCount shr 10 shl 10)) {
+        println("${testLoopCount} transactions remaining")
+      }
+    }
+
+    return transactions
+  }
+
   init {
-
-    "perftest".config(ignored=true) should "measure performance on register transaction"  {
-      val data = BlockSampleData(db)
-      
-      val T = data.Tx
-      
-      val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as Logger
-      root.setLevel(ch.qos.logback.classic.Level.WARN);
-
-
-      val transactions = listOf(
-        T.GEN01,
-        T.GEN02, T.TX02,
-        T.GEN03a, T.TX03, T.TX03a,
-        T.GEN04a, T.TX04, T.TX04a,
-        T.GEN05a, T.TX05a)
-
-      val reverseTransactions = transactions.reversed()
-
-      wallet.importOutputOwnership(db, chain, "test account", data.Addr1.address, rescanBlockchain = false)
-      wallet.importOutputOwnership(db, chain, "test account", data.Addr2.address, rescanBlockchain = false)
-      wallet.importOutputOwnership(db, chain, "test account", data.Addr3.address, rescanBlockchain = false)
-
-
-      //    val TEST_LOOP_COUNT = 100000
-      val TEST_LOOP_COUNT = 1000
-      var testLoop = TEST_LOOP_COUNT
-
-      println("Performance test started.")
-      measure(TEST_LOOP_COUNT, "register transaction") {
-        while (testLoop > 0) {
-          // register all
-          var txIndex: Int = -1
-          transactions.map{ it.transaction }.forEach { tx : Transaction ->
-
-            val txHash = tx.hash()
-            txIndex += 1
-
-            // registerTransaction is called in addTransactionToPool
-            //wallet.registerTransaction(tx, Some(ChainBlock(10, B.BLK05a)), Some(txIndex))
-            chain.txPool.addTransactionToPool(db, txHash, tx)
-          }
-
-          // unregister all
-          reverseTransactions.map{ it.transaction }.forEach { tx : Transaction ->
-            val txHash = tx.hash()
-            chain.txPool.removeTransactionFromPool(db, txHash)
-            wallet.unregisterTransaction(db, txHash, tx)
-          }
-          testLoop -= 1
-        }
-      }
-    }
-
-    fun prepareTestTransactions(txCount: Int, data: BlockSampleData = BlockSampleData(db), genTxOption: Transaction? = null): MutableList<Pair<Hash, Transaction>> {
-      val generationAddress = wallet.newAddress(db, "generation")
-      val generationTx =
-        if (genTxOption != null) {
-          TransactionWithName("generation transaction", genTxOption)
-        } else {
-          data.generationTransaction("GenTx.B.BLK01", CoinAmount(50), generationAddress)
-        }
-
-      // Prepare test data.
-      val transactions = mutableListOf< Pair<Hash, Transaction>>()
-
-      var mergedCoin = data.getOutput(generationTx, 0)
-
-      var testLoopCount = txCount
-
-      transactions.add(Pair(generationTx.transaction.hash(), generationTx.transaction))
-
-      while (testLoopCount > 0) {
-        val accountName = "${Random().nextInt()}"
-        val newAddress1 = wallet.newAddress(db, accountName)
-        val newAddress2 = wallet.newAddress(db, accountName)
-        val newAddress3 = wallet.newAddress(db, accountName)
-
-        val coin1Amount = Random().nextInt(10).toLong()
-        val coin2Amount = Random().nextInt(18).toLong()
-        val splitTxOrg = data.normalTransaction(
-          "splitTx-${testLoopCount}",
-          spendingOutputs = listOf(mergedCoin),
-          newOutputs = listOf(
-            NewOutput(CoinAmount(coin1Amount), newAddress1),
-            NewOutput(CoinAmount(coin2Amount), newAddress2),
-            NewOutput(CoinAmount(50 - coin1Amount - coin2Amount), newAddress3)
-          )
-        )
-        //      val splitTx = splitTxOrg.copy(transaction = splitTxOrg.transaction.copy(version=coin1Amount))
-
-        val splitTx = splitTxOrg
-
-        transactions.add(Pair(splitTx.transaction.hash(), splitTx.transaction))
-
-        val mergeTx = data.normalTransaction(
-          "mergeTx-${testLoopCount}",
-          spendingOutputs = listOf(data.getOutput(splitTx, 0), data.getOutput(splitTx, 1), data.getOutput(splitTx, 2)),
-          newOutputs = listOf(
-            NewOutput(CoinAmount(50), newAddress3)
-          )
-        )
-
-        transactions.add(Pair(mergeTx.transaction.hash(), mergeTx.transaction))
-
-        mergedCoin = data.getOutput(mergeTx, 0)
-
-        testLoopCount -= 2
-
-        if (testLoopCount == (testLoopCount shr 10 shl 10)) {
-          println("${testLoopCount} transactions remaining")
-        }
-      }
-
-      return transactions
-    }
-
+    val TEST_LOOP_COUNT = 1000
+/*
     "encoding/decoding key/value".config(ignored=true) should "measure performance" {
       val data = BlockSampleData(db)
 
@@ -168,7 +116,6 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
 
       println("Preparing Performance test data.")
 
-      val TEST_LOOP_COUNT = 1000
       val transactions = prepareTestTransactions(TEST_LOOP_COUNT)
 
       val hashes = mutableListOf<ByteArray>()
@@ -181,7 +128,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
 
           val rawHash: ByteArray = HashCodec.encode(txHash)
           val prefixedRawHash = byteArrayOf('A'.toByte()) + rawHash
-            hashes.add(prefixedRawHash)
+          hashes.add(prefixedRawHash)
           totalSize += rawHash.size
         }
 
@@ -212,7 +159,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
         transactions.forEach { pair ->
           //val txHash = pair.first
           val tx = pair.second
-          
+
           //val rawTx: ByteArray = TransactionCodec.serialize(tx)
           val rawTx = TransactionCodec.encode(tx)
           rawTransactions.add(rawTx)
@@ -251,9 +198,6 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       chain.putBlock(db, B.BLK01.header.hash(), B.BLK01)
       chain.putBlock(db, B.BLK02.header.hash(), B.BLK02)
       chain.putBlock(db, B.BLK03a.header.hash(), B.BLK03a)
-
-      //    val TEST_LOOP_COUNT = 2
-      val TEST_LOOP_COUNT = 1000
 
       println("Preparing Performance test data.")
 
@@ -347,7 +291,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       println("result : ${w.toString()}")
       println("transactions in the block : ${minedBlockOption!!.transactions.size}")
     }
-
+*/
     "single thread perf test".config(ignored=true) should "measure performance by adding transactions to the pool" {
       val data = BlockSampleData(db)
 
@@ -357,9 +301,6 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       wallet.importOutputOwnership(db, chain, "test account", data.Addr1.address, rescanBlockchain = false)
       wallet.importOutputOwnership(db, chain, "test account", data.Addr2.address, rescanBlockchain = false)
       wallet.importOutputOwnership(db, chain, "test account", data.Addr3.address, rescanBlockchain = false)
-
-      //    val TEST_LOOP_COUNT = 2
-      val TEST_LOOP_COUNT = 1000
 
       println("Preparing Performance test data.")
 
@@ -388,6 +329,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       }
     }
 
+/*
     "multi thread perf test".config(ignored=true) should "measure performance by adding transactions to the pool"  {
       val data = BlockSampleData(db)
 
@@ -401,8 +343,6 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       //    val TEST_LOOP_COUNT = 100000
 
       println("Preparing Performance test data.")
-
-      val TEST_LOOP_COUNT = 1000
 
       var transactionsMap = mutableMapOf < Int, MutableList<Pair<Hash, Transaction>>>()
 
@@ -440,5 +380,58 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
         threads.forEach { it.join() }  //
       }
     }
+*/
+/*
+    "perftest".config(ignored=true) should "measure performance on register transaction"  {
+      val data = BlockSampleData(db)
+
+      val T = data.Tx
+
+      val root: Logger = org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as Logger
+      root.setLevel(ch.qos.logback.classic.Level.WARN);
+
+
+      val transactions = listOf(
+        T.GEN01,
+        T.GEN02, T.TX02,
+        T.GEN03a, T.TX03, T.TX03a,
+        T.GEN04a, T.TX04, T.TX04a,
+        T.GEN05a, T.TX05a)
+
+      val reverseTransactions = transactions.reversed()
+
+      wallet.importOutputOwnership(db, chain, "test account", data.Addr1.address, rescanBlockchain = false)
+      wallet.importOutputOwnership(db, chain, "test account", data.Addr2.address, rescanBlockchain = false)
+      wallet.importOutputOwnership(db, chain, "test account", data.Addr3.address, rescanBlockchain = false)
+
+
+      var testLoop = TEST_LOOP_COUNT
+
+      println("Performance test started.")
+      measure(TEST_LOOP_COUNT, "register/unregister transaction") {
+        while (testLoop > 0) {
+          // register all
+          var txIndex: Int = -1
+          transactions.map{ it.transaction }.forEach { tx : Transaction ->
+
+            val txHash = tx.hash()
+            txIndex += 1
+
+            // registerTransaction is called in addTransactionToPool
+            //wallet.registerTransaction(tx, Some(ChainBlock(10, B.BLK05a)), Some(txIndex))
+            chain.txPool.addTransactionToPool(db, txHash, tx)
+          }
+
+          // unregister all
+          reverseTransactions.map{ it.transaction }.forEach { tx : Transaction ->
+            val txHash = tx.hash()
+            chain.txPool.removeTransactionFromPool(db, txHash)
+            wallet.unregisterTransaction(db, txHash, tx)
+          }
+          testLoop -= 1
+        }
+      }
+    }
+*/
   }
 }

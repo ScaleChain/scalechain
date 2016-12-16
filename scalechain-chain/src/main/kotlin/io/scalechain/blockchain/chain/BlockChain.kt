@@ -192,7 +192,7 @@ class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : B
           val blockInfo = storage.getBlockInfo(db, blockHash)!!
 
           // Case 2.A : The previous block of the block is the current best block.
-          if (Arrays.equals( prevBlockHash.value, theBestBlock!!.blockHeader.hash().value) ) {
+          if (prevBlockHash == theBestBlock!!.blockHeader.hash() ) {
             // Step 2.A.1 : Attach the block. ChainEventListener is invoked in this method.
             blockMagnet.attachBlock(db, blockInfo, block)
 

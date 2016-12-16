@@ -8,6 +8,7 @@ import io.scalechain.blockchain.transaction.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.crypto.HashEstimation
 import io.scalechain.util.ByteBufExt
+import io.scalechain.util.Bytes
 import java.util.*
 
 /** A transaction output with an outpoint of it.
@@ -67,7 +68,7 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
   ) : TransactionWithName {
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
-      .addGenerationInput(CoinbaseData("Random:${Random().nextLong()}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
+      .addGenerationInput( CoinbaseData(Bytes("Random:${Random().nextLong()}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())))
       .addOutput(CoinAmount(50L), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
@@ -138,7 +139,7 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
     val newBlockHeader = block.header.copy(nonce = nonce.toLong())
     val newBlockHash = newBlockHeader.hash()
 
-    if (HashEstimation.getHashCalculations(newBlockHash.value) == requiredHashCalulcations.toLong()) {
+    if (HashEstimation.getHashCalculations(newBlockHash.value.array) == requiredHashCalulcations.toLong()) {
       val newBlock = block.copy( header = newBlockHeader )
 
       return newBlock
@@ -156,7 +157,7 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
     val rocksDB = db as RocksDatabase
 
     val blockMining = BlockMining(rocksDB, chain.txDescIndex(), chain.txPool, chain)
-    val COINBASE_MESSAGE = CoinbaseData("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())
+    val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)
     val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash(db)!! ), nonce = 0 )

@@ -177,27 +177,8 @@ enum class RejectType {
 data class Reject(val message:String,
                   val rejectType:RejectType,
                   val reason : String,
-                  val data : ByteArray) : ProtocolMessage {
+                  val data : Bytes) : ProtocolMessage {
   override fun toString() = """Reject(\"${message}\", $rejectType, \"${reason}\", $data)"""
-
-  override fun equals(other : Any?) : Boolean {
-    when {
-      other == null -> return false
-      other is Reject -> return this.message == other.message &&
-                                this.rejectType == other.rejectType &&
-                                this.reason == other.reason &&
-                                Arrays.equals(this.data, other.data)
-      else -> return false
-    }
-  }
-
-  override fun hashCode() : Int {
-    return this.message.hashCode() +
-           this.rejectType.hashCode() +
-           this.reason.hashCode() +
-           Arrays.hashCode(this.data)
-  }
-
 }
 
 

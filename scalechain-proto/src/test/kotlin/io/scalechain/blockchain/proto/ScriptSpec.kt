@@ -3,6 +3,7 @@ package io.scalechain.blockchain.proto
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.util.Bytes
 import org.junit.runner.RunWith
 
 
@@ -20,7 +21,7 @@ class ScriptSpec : FlatSpec(), Matchers {
 
     }
 
-    fun script(byteArray : ByteArray) = object : Script { override val data = byteArray}
+    fun script(byteArray : ByteArray) = object : Script { override val data = Bytes(byteArray) }
 
     init {
         "size" should "return the size of the array in the script" {

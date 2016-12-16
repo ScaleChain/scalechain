@@ -12,6 +12,7 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.ops.OpPush
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -38,9 +39,9 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
               inputs=
                 listOf(
                   NormalTransactionInput(
-                    outputTransactionHash=Hash(bytes("406b2b06bcd34d3c8733e6b79f7a394c8a431fbf4ff5ac705c93f4076bb77602")),
+                    outputTransactionHash=Hash(Bytes.from("406b2b06bcd34d3c8733e6b79f7a394c8a431fbf4ff5ac705c93f4076bb77602")),
                     outputIndex=0L,
-                    unlockingScript=UnlockingScript(bytes("493046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd004104b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5")),
+                    unlockingScript=UnlockingScript(Bytes.from("493046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd004104b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5")),
                     /* ops:ScriptOpList(operations=Array(
                         OpPush(73,ScriptBytes(bytes("3046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd00"))),
                         OpPush(65,ScriptBytes(bytes("04b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5"))))),
@@ -50,7 +51,7 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
                 listOf(
                   TransactionOutput(
                     value=4000000L,
-                    lockingScript=LockingScript(bytes("76a9149a7b0f3b80c6baaeedce0a0842553800f832ba1f88ac"))
+                    lockingScript=LockingScript(Bytes.from("76a9149a7b0f3b80c6baaeedce0a0842553800f832ba1f88ac"))
                     /* ops:ScriptOpList(operations=Array(
                         OpDup(),
                         OpHash160(),
@@ -59,12 +60,12 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
                         OpCheckSig(Script(bytes("76a9149a7b0f3b80c6baaeedce0a0842553800f832ba1f88ac"))))) */ )),
                     lockTime=0L /* hash:bytes("c99c49da4c38af669dea436d3e73780dfdb6c1ecf9958baa52960e8baee30e73") */),
           inputIndex=0,
-          unlockingScript=UnlockingScript(bytes("493046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd004104b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5"))
+          unlockingScript=UnlockingScript(Bytes.from("493046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd004104b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5"))
           /* ops:ScriptOpList(operations=Array(
             OpPush(73,ScriptBytes(bytes("3046022100d23459d03ed7e9511a47d13292d3430a04627de6235b6e51a40f9cd386f2abe3022100e7d25b080f0bb8d8d5f878bba7d54ad2fda650ea8d158a33ee3cbd11768191fd00"))),
             OpPush(65,ScriptBytes(bytes("04b0e2c879e4daf7b9ab68350228c159766676a14f5815084ba166432aab46198d4cca98fa3e9981d0a90b2effc514b76279476550ba3663fdcaff94c38420e9d5"))))),
             hashType:Some(0) */,
-          lockingScript=LockingScript(bytes("76a914dc44b1164188067c3a32d4780f5996fa14a4f2d988ac"))
+          lockingScript=LockingScript(Bytes.from("76a914dc44b1164188067c3a32d4780f5996fa14a4f2d988ac"))
           /* ops:ScriptOpList(operations=Array(
             OpDup(),
             OpHash160(),
@@ -82,9 +83,9 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
               inputs=
                 listOf(
                   NormalTransactionInput(
-                    outputTransactionHash=Hash(bytes("60a20bd93aa49ab4b28d514ec10b06e1829ce6818ec06cd3aabd013ebcdc4bb1")),
+                    outputTransactionHash=Hash(Bytes.from("60a20bd93aa49ab4b28d514ec10b06e1829ce6818ec06cd3aabd013ebcdc4bb1")),
                     outputIndex=0L,
-                    unlockingScript=UnlockingScript(bytes("0047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01")),
+                    unlockingScript=UnlockingScript(Bytes.from("0047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01")),
                     /* ops:ScriptOpList(operations=Array(
                           Op0(),
                           OpPush(71,ScriptBytes(bytes("304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01"))))),
@@ -96,7 +97,7 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
                   listOf(
                     TransactionOutput(
                       value=1000000L,
-                      lockingScript=LockingScript(bytes("76a914660d4ef3a743e3e696ad990364e555c271ad504b88ac"))
+                      lockingScript=LockingScript(Bytes.from("76a914660d4ef3a743e3e696ad990364e555c271ad504b88ac"))
                       /* ops:ScriptOpList(operations=Array(
                             OpDup(),
                             OpHash160(),
@@ -109,12 +110,12 @@ class OddTransactionVerificationSpec : FlatSpec(), Matchers, ChainTestTrait, Sig
               /* hash:bytes("23b397edccd3740a74adb603c9756370fafcde9bcc4483eb271ecad09a94dd63") */
             ),
           inputIndex=0,
-          unlockingScript=UnlockingScript(bytes("0047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01"))
+          unlockingScript=UnlockingScript(Bytes.from("0047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01"))
           /* ops:ScriptOpList(operations=Array(
                   Op0(),
                   OpPush(71,ScriptBytes(bytes("304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01"))))),
                   hashType:None */,
-          lockingScript=LockingScript(bytes("514104cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4410461cbdcc5409fb4b4d42b51d33381354d80e550078cb532a34bfa2fcfdeb7d76519aecc62770f5b0e4ef8551946d8a540911abe3e7854a26f39f58b25c15342af52ae"))
+          lockingScript=LockingScript(Bytes.from("514104cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4410461cbdcc5409fb4b4d42b51d33381354d80e550078cb532a34bfa2fcfdeb7d76519aecc62770f5b0e4ef8551946d8a540911abe3e7854a26f39f58b25c15342af52ae"))
           /* ops:ScriptOpList(operations=Array(
                   Op1(),
                   OpPush(65,ScriptBytes(bytes("04cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4"))),

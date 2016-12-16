@@ -99,11 +99,11 @@ object SendRawTransaction : RpcCommand() {
           // To keep the response compatible with bitcoind,
           // return as a single StringResult if only one transaction was provided.
           val txHash : Hash = txHashes.map{ it.right()!! }.first()
-          Right(StringResult(HexUtil.hex(txHash.value)))
+          Right(StringResult(HexUtil.hex(txHash.value.array)))
         } else {
           // return as a StringListResult if more than one transaction was privided.
           val txHashStringList = txHashes.map{ it.right()!! }.map{ txHash ->
-            HexUtil.hex(txHash.value)
+            HexUtil.hex(txHash.value.array)
           }
           Right(StringListResult(txHashStringList))
         }

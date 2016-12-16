@@ -298,21 +298,15 @@ interface KeyValueSeekTestTrait : ShouldSpec, KeyValueCommonTrait {
       db.putObject(F, R, PREFIX2(), FileNumber(3), RecordLocator(3, 4))
       db.putObject(F, R, PREFIX2(), FileNumber(5), RecordLocator(5, 6))
 
-      println("starting test")
-
       val nestedIterationResult = db.seekObject(F, R, PREFIX1(), FileNumber(1)).use {
         it.asSequence().flatMap { pair ->
           val fileNumber1 = pair.first
           val recordLocator1 = pair.second
 
-          println("test1 : ${fileNumber1}, ${recordLocator1}")
-
           db.seekObject(F, R, PREFIX2(), FileNumber(3)).use { it ->
             it.asSequence().map { pair ->
               val fileNumber2 = pair.first
               val recordLocator2 = pair.second
-
-              println("test2 : ${fileNumber2}, ${recordLocator2}")
 
               ConvertedData(fileNumber1, recordLocator1, fileNumber2, recordLocator2)
             }.toList().asSequence() // If we don't call toList(), the iterator is closed by .use, and we have no items in the sequence.
@@ -349,7 +343,6 @@ interface KeyValueSeekTestTrait : ShouldSpec, KeyValueCommonTrait {
               val fileNumber2 = pair.first
               val recordLocator2 = pair.second
 
-              println("lst : $fileNumber1, $recordLocator1, $fileNumber2, $recordLocator2")
               ConvertedData(fileNumber1, recordLocator1, fileNumber2, recordLocator2)
             }.toList().asSequence() // If we don't call toList(), the iterator is closed by .use, and we have no items in the sequence.
           }

@@ -8,6 +8,7 @@ import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Right
@@ -171,7 +172,7 @@ object GetRawTransaction : RpcCommand() {
           val txHashString: String = request.params.get<String>("TXID", 0)
           val verbose: java.math.BigDecimal = request.params.getOption<java.math.BigDecimal>("Verbose", 1) ?: java.math.BigDecimal(0)
 
-          val txHash = Hash(HexUtil.bytes(txHashString))
+          val txHash = Hash(Bytes.from(txHashString))
 
           val transactionOption = RpcSubSystem.get().getTransaction(txHash)
           val bestBlockHeight: Long = RpcSubSystem.get().getBestBlockHeight()

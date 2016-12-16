@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 import java.math.BigInteger
@@ -51,6 +52,6 @@ class AddrSpec : EnvelopeTestSuite<Addr>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Addr(listOf(NetworkAddressWithTimestamp(1454060630L, NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff3dae7ef8")), 8333)),NetworkAddressWithTimestamp(1454061141L, NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff2d21553a")), 8333))))
+  override val message = Addr(listOf(NetworkAddressWithTimestamp(1454060630L, NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff3dae7ef8")), 8333)),NetworkAddressWithTimestamp(1454061141L, NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff2d21553a")), 8333))))
 
 }

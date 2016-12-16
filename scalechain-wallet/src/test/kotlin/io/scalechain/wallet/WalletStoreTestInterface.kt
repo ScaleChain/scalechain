@@ -10,6 +10,7 @@ import io.scalechain.blockchain.proto.WalletTransaction
 import io.scalechain.blockchain.proto.WalletOutput
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.transaction.OutputOwnership
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 
 /**
@@ -28,7 +29,7 @@ interface WalletStoreTestInterface : TransactionTestInterface, Matchers {
 
   fun generateWalletTransaction(transaction : Transaction) : WalletTransaction {
     return WalletTransaction(
-      blockHash        = Hash(bytes("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
+      blockHash        = Hash(Bytes.from("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
       blockIndex       = 11,
       blockTime        = 1411051649,
       transactionId    = transaction.hash(),

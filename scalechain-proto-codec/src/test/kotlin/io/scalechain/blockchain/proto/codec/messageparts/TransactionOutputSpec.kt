@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.TransactionOutputCodec
 import io.scalechain.blockchain.proto.codec.PayloadTestSuite
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -41,6 +42,6 @@ class TransactionOutputSpec : PayloadTestSuite<TransactionOutput>()  {
         ac                                 
     """)
 
-  override val message = TransactionOutput(value=4999990000L, lockingScript=LockingScript(bytes("76a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac")))
+  override val message = TransactionOutput(value=4999990000L, lockingScript=LockingScript(Bytes.from("76a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac")))
 
 }

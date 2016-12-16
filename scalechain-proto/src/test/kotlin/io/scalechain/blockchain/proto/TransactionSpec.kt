@@ -3,6 +3,7 @@ package io.scalechain.blockchain.proto
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import org.junit.runner.RunWith
 
@@ -26,8 +27,8 @@ class TransactionSpec : FlatSpec(), Matchers {
 
     val transaction = Transaction(
         version = 1,
-        inputs = listOf( NormalTransactionInput(TestData.ALL_ONE_HASH, 1, UnlockingScript(HexUtil.bytes("0001")), 1000) ),
-        outputs = listOf( TransactionOutput(10, LockingScript(HexUtil.bytes("0203")))),
+        inputs = listOf( NormalTransactionInput(TestData.ALL_ONE_HASH, 1, UnlockingScript(Bytes.from("0001")), 1000) ),
+        outputs = listOf( TransactionOutput(10, LockingScript(Bytes.from("0203")))),
         lockTime = 2000L
     )
 

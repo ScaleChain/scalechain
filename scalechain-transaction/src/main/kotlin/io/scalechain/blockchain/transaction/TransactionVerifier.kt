@@ -10,6 +10,7 @@ import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.*
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.util.Bytes
 import io.scalechain.util.Utils
 
 /** Check if inputs of a transaction successfully unlocks the locking script attached to the UTXO, which the input references.
@@ -237,7 +238,7 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase?, private val 
 
       if (redeemScript != null) {
         val redeemScriptOps : ScriptOpList =
-            ScriptParser.parse(LockingScript(redeemScript.value))
+            ScriptParser.parse(LockingScript(Bytes(redeemScript.value)))
         ScriptInterpreter.eval_internal(env, redeemScriptOps)
 
         // Step 6.1 : See if the result of the redeem script execution is true.

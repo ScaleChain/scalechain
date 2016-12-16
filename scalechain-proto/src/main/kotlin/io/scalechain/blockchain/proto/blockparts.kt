@@ -3,6 +3,7 @@ package io.scalechain.blockchain.proto
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.scalechain.util.*
+import io.scalechain.util.HexUtil.bytes
 import java.util.*
 
 /** A hash data class that can represent transaction hash or block hash.
@@ -10,17 +11,16 @@ import java.util.*
   *
   * @param value
   */
-data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
-    constructor(value : ByteBuf) : this(value.toByteArray())
+data class Hash(val value : Bytes) : Transcodable, Comparable<Hash> {
     init {
-        assert(value.size > 0)
+        assert(value.array.size > 0)
     }
 
     fun isAllZero() : Boolean {
 
         var i = 0
-        val valueLength = value.size
-        while (i < valueLength && value.get(i) == 0.toByte()) {
+        val valueLength = value.array.size
+        while (i < valueLength && value.array.get(i) == 0.toByte()) {
             i += 1
         }
         return i == valueLength
@@ -28,7 +28,7 @@ data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
 
 //  fun toHex() : String = value.toString
 
-    override fun toString() = """Hash("${HexUtil.hex(value)}")"""
+    override fun toString() = """Hash("${HexUtil.hex(value.array)}")"""
 
     override fun equals(other : Any?) : Boolean {
         when {
@@ -38,24 +38,20 @@ data class Hash(val value : ByteArray) : Transcodable, Comparable<Hash> {
         }
     }
 
-    override fun hashCode() : Int {
-        return Arrays.hashCode(value)
-    }
-
     override operator fun compareTo(other : Hash): Int {
-        val value1 = Utils.bytesToBigInteger(this.value)
-        val value2 = Utils.bytesToBigInteger(other.value)
+        val value1 = Utils.bytesToBigInteger(this.value.array)
+        val value2 = Utils.bytesToBigInteger(other.value.array)
 
         return value1.compareTo(value2)
     }
 
     companion object {
 
-        //                                   0123456789012345678901234567890123456789012345678901234567890123
-        val ALL_ZERO = Hash(ByteBufExt.from("0000000000000000000000000000000000000000000000000000000000000000"))
+        //                   0123456789012345678901234567890123456789012345678901234567890123
+        val ALL_ZERO = from("0000000000000000000000000000000000000000000000000000000000000000")
 
         // BUGBUG : Add test case.
-        fun from(hexString : String ) : Hash = Hash( ByteBufExt.from(hexString) )
+        fun from(hexString : String ) : Hash = Hash(Bytes(bytes(hexString)))
     }
 }
 
@@ -110,19 +106,8 @@ data class BlockHeader(val version : Int, val hashPrevBlock : Hash, val hashMerk
     }
 }
 
-data class CoinbaseData(val data: ByteArray) : Transcodable {
+data class CoinbaseData(val data: Bytes) : Transcodable {
     override fun toString() : String = "CoinbaseData($data)"
-    override fun equals(other : Any?) : Boolean {
-        when {
-            other == null -> return false
-            other is CoinbaseData -> return Arrays.equals(this.data, other.data)
-            else -> return false
-        }
-    }
-
-    override fun hashCode() : Int {
-        return Arrays.hashCode(data)
-    }
 }
 
 interface TransactionInput : Transcodable {
@@ -167,11 +152,11 @@ data class GenerationTransactionInput(override val outputTransactionHash : Hash,
 
 interface Script : Transcodable
 {
-    val data : ByteArray
+    val data : Bytes
 
     // BUGBUG : Changed Interface, name : from length to size
-    fun size() = data.size
-    operator fun get(i:Int) = data.get(i)
+    fun size() = data.array.size
+    operator fun get(i:Int) = data.array.get(i)
 }
 
 interface LockingScriptPrinter {
@@ -182,31 +167,13 @@ interface LockingScriptPrinter {
     }
 }
 
-data class LockingScript(override val data : ByteArray) : Script {
-    //var byteBuf : ByteBuf = null
-    constructor(byteBuf : ByteBuf) : this(byteBuf.toByteArray()) {
-        //this.byteBuf = byteBuf
-    }
+data class LockingScript(override val data : Bytes) : Script {
 
     override fun toString() : String {
         if (LockingScriptPrinter.printer != null)
             return LockingScriptPrinter.printer!!.toString(this)
         else
-            return "LockingScript(${HexUtil.kotlinHex(data)})"
-    }
-
-    // BUGBUG : Add test code
-    override fun equals(other : Any?) : Boolean {
-        when {
-            other == null -> return false
-            other is LockingScript -> return Arrays.equals(this.data, other.data)
-            else -> return false
-        }
-    }
-
-    // BUGBUG : Add test code
-    override fun hashCode() : Int {
-        return Arrays.hashCode(data)
+            return "LockingScript(${HexUtil.kotlinHex(data.array)})"
     }
 }
 
@@ -220,33 +187,13 @@ interface UnlockingScriptPrinter {
     }
 }
 
-data class UnlockingScript(override val data : ByteArray) : Script {
-    //lateinit var byteBuf : ByteBuf
-    constructor(byteBuf : ByteBuf) : this(byteBuf.toByteArray()) {
-        //this.byteBuf = byteBuf
-    }
-
+data class UnlockingScript(override val data : Bytes) : Script {
     override fun toString(): String {
         if (UnlockingScriptPrinter.printer != null)
             return UnlockingScriptPrinter.printer!!.toString(this)
         else
-            return "UnlockingScript(${HexUtil.kotlinHex(data)})"
+            return "UnlockingScript(${HexUtil.kotlinHex(data.array)})"
     }
-
-    // BUGBUG : Add test code
-    override fun equals(other : Any?) : Boolean {
-        when {
-            other == null -> return false
-            other is UnlockingScript -> return Arrays.equals(this.data, other.data)
-            else -> return false
-        }
-    }
-
-    // BUGBUG : Add test code
-    override fun hashCode() : Int {
-        return Arrays.hashCode(data)
-    }
-
 }
 
 data class TransactionOutput(val value : Long, val lockingScript : LockingScript) : Transcodable {
@@ -297,25 +244,10 @@ data class Block(val header:BlockHeader,
   * The original client only supported IPv4 and only read the last 4 bytes to get the IPv4 address.
   * However, the IPv4 address is written into the message as a 16 byte IPv4-mapped IPv6 address
   */
-data class IPv6Address(val address : ByteArray) : Transcodable {
-  constructor(addressByteBuf : ByteBuf) : this(addressByteBuf.toByteArray())
+data class IPv6Address(val address : Bytes) : Transcodable {
   override fun toString() : String = "IPv6Address($address)"
 
-  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.reversed().toByteArray())
-
-  // TODO : Add test cases
-  override fun equals(other : Any?) : Boolean {
-    when {
-      other == null -> return false
-      other is IPv6Address -> return Arrays.equals(this.address, other.address)
-      else -> return false
-    }
-  }
-
-  override fun hashCode() : Int {
-    return Arrays.hashCode(address)
-  }
-
+  fun inetAddress() = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reversed().toByteArray())
 }
 
 // TODO : Add a comment

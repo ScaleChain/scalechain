@@ -64,7 +64,7 @@ class BlockDirectoryReaderSpec : FlatSpec(), Matchers {
           count += 1
         }
       }
-      println("Total Blocks : " + count)
+
       assert(blocksRead == READ_BLOCKS_UP_TO)
     }
   }

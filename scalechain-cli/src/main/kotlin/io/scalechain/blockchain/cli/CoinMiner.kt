@@ -73,12 +73,12 @@ class CoinMiner(private val db : RocksDatabase, private val minerAccount : Strin
             if (bestBlockHeight < Config.InitialSetupBlocks) {
               val receivingAddress = wallet.getReceivingAddress(db, minerAccount)
               if (Config.hasPath("scalechain.mining.address") ) {
-                println("TEST : has path : scalechain.mining.address")
+                //println("TEST : has path : scalechain.mining.address")
                 val miningAddressString = Config.getString("scalechain.mining.address")
-                println("TEST : mining address string : miningAddressString")
+                //println("TEST : mining address string : miningAddressString")
                 if (receivingAddress.base58() != miningAddressString) {
                   val miningAddress = CoinAddress.from(miningAddressString)
-                  println("TEST : loading mining address : ${miningAddress.base58()}")
+                  //println("TEST : loading mining address : ${miningAddress.base58()}")
                   // Import the given address, and set it as the receiving address of the mining account
                   wallet.importOutputOwnership(db, chain, minerAccount, miningAddress, false)
 
@@ -88,7 +88,7 @@ class CoinMiner(private val db : RocksDatabase, private val minerAccount : Strin
                   // To generate raw transactions deterministically for performance tests, we need to have the same generation transaction hash for the block with height 1.
                   miningAddress
                 } else {
-                  println("TEST : mining address loaded")
+                  //println("TEST : mining address loaded")
 
                   // After the first block, sleep like other nodes.
                   Thread.sleep( (params.HashDelayMS + random.nextInt(params.HashDelayMS)).toLong() )
@@ -177,7 +177,7 @@ class CoinMiner(private val db : RocksDatabase, private val minerAccount : Strin
     val MINING_TRIAL_WINDOW_MILLIS = 10000
 
     fun coinbaseData(height : Long) : CoinbaseData {
-      return CoinbaseData("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())
+      return CoinbaseData(Bytes("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
     }
   }
 }

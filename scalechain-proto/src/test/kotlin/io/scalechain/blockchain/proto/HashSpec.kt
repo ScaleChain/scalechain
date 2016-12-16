@@ -4,12 +4,13 @@ import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.util.ByteBufExt
+import io.scalechain.util.Bytes
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
 class HashSpec : FlatSpec(), Matchers {
 
-    fun B(hexString : String) = ByteBufExt.from(hexString)
+    fun B(hexString : String) = Bytes.from(hexString)
 
     init {
         "constructor" should "hit an assertion if the input hash array is empty" {
@@ -66,7 +67,7 @@ class HashSpec : FlatSpec(), Matchers {
         }
 
         "Hash.ALL_ZERO.size" should "be 32" {
-            Hash.ALL_ZERO.value.size shouldBe 32
+            Hash.ALL_ZERO.value.array.size shouldBe 32
         }
 
         "Hash.ALL_ZERO.size" should "have only zeros" {

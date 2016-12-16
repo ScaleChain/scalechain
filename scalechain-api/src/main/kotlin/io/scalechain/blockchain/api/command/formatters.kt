@@ -136,13 +136,13 @@ object TransactionFormatter {
           RawNormalTransactionInput(
             txid      = Hash( input.outputTransactionHash.value ),
             vout      = input.outputIndex.toInt(),
-            scriptSig = RawScriptSig( HexUtil.hex(input.unlockingScript.data) ),
+            scriptSig = RawScriptSig( HexUtil.hex(input.unlockingScript.data.array) ),
             sequence  = input.sequenceNumber
           )
         }
         input is GenerationTransactionInput -> {
           RawGenerationTransactionInput(
-            coinbase  = HexUtil.hex(input.coinbaseData.data),
+            coinbase  = HexUtil.hex(input.coinbaseData.data.array),
             sequence  = input.sequenceNumber
           )
         }
@@ -159,7 +159,7 @@ object TransactionFormatter {
           value        = java.math.BigDecimal( output.value ),
           n            = outputIndex,
           scriptPubKey = RawScriptPubKey(
-            HexUtil.hex(output.lockingScript.data)
+            HexUtil.hex(output.lockingScript.data.array)
           )
         )
       }

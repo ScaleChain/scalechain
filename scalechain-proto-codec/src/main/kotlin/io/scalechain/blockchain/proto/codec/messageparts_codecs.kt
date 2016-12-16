@@ -6,15 +6,17 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.io.InputOutputStream
 import io.netty.buffer.Unpooled
+import io.scalechain.util.Bytes
+import io.scalechain.util.toByteArray
 
 object HashCodec : Codec<Hash> {
   private val HashValueCodec = Codecs.fixedReversedByteArray(32)
   override fun transcode( io : CodecInputOutputStream, obj : Hash? ) : Hash? {
-    val value = io.transcode( HashValueCodec, obj?.value )
+    val value = io.transcode( HashValueCodec, obj?.value?.array )
 
     if (io.isInput) {
       return Hash(
-          value!!
+        Bytes(value!!)
       )
     } else {
       return null
@@ -24,11 +26,12 @@ object HashCodec : Codec<Hash> {
 
 object LockingScriptCodec : Codec<LockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : LockingScript? ) : LockingScript? {
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data))
+    // BUGBUG : Create VariableByteArray instead of using VariableByteBuf
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data?.array))
 
     if (io.isInput) {
       return LockingScript(
-          byteBuf!!
+          Bytes(byteBuf!!.toByteArray())
       )
     }
     return null
@@ -37,11 +40,11 @@ object LockingScriptCodec : Codec<LockingScript> {
 
 object UnlockingScriptCodec : Codec<UnlockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : UnlockingScript? ) : UnlockingScript? {
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data))
+    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data?.array))
 
     if (io.isInput) {
       return UnlockingScript(
-          byteBuf!!
+        Bytes(byteBuf!!.toByteArray())
       )
     }
     return null
@@ -242,11 +245,11 @@ object BlockHeaderCodec : Codec<BlockHeader>{
 object IPv6AddressCodec : Codec<IPv6Address>{
   val byteArrayLength16 = Codecs.fixedByteArray(16)
   override fun transcode(io : CodecInputOutputStream, obj : IPv6Address? ) : IPv6Address? {
-    val address = byteArrayLength16.transcode(io, obj?.address)
+    val address = byteArrayLength16.transcode(io, obj?.address?.array)
 
     if (io.isInput) {
       return IPv6Address(
-        address!!
+        Bytes(address!!)
       )
     }
     return null

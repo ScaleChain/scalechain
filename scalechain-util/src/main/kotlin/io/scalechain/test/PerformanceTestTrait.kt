@@ -27,7 +27,7 @@ interface PerformanceTestTrait {
     val elapsedMilliSecond = (System.currentTimeMillis() - startTimestamp)
     println("Elapsed millisecond : ${elapsedMilliSecond}")
     println("Total loops : ${loopCount}")
-    println("Loops per second : ${loopCount / elapsedMilliSecond * 1000} /s ")
+    println("Loops per second : ${loopCount.toDouble() / elapsedMilliSecond * 1000} /s ")
 
     return returnValue
   }
@@ -41,8 +41,8 @@ interface PerformanceTestTrait {
     val elapsedMilliSecond = (System.currentTimeMillis() - startTimestamp)
     println("Elapsed millisecond : ${elapsedMilliSecond}")
     println("Total loops : ${loopCount}")
-    println("Loops per second : ${loopCount / elapsedMilliSecond * 1000} /s ")
-    println("Size per second : ${totalSizeProcessed / elapsedMilliSecond * 1000} /s ")
+    println("Loops per second : ${loopCount.toDouble() / elapsedMilliSecond * 1000} /s ")
+    println("Size per second : ${totalSizeProcessed.toDouble() / elapsedMilliSecond * 1000} /s ")
   }
 
   fun prepareKeyValue(count: Int): List<Pair<ByteArray, ByteArray>> {

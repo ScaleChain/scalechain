@@ -32,7 +32,7 @@ class OpRIPEMD160() : Crypto {
 
     val topItem = env.stack.pop()
     val hash = HashFunctions.ripemd160(topItem.value)
-    env.stack.push(ScriptValue.valueOf(hash.value))
+    env.stack.push(ScriptValue.valueOf(hash.value.array))
   }
 }
 
@@ -49,7 +49,7 @@ class OpSHA1() : Crypto {
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.sha1(topItem.value)
-    env.stack.push(ScriptValue.valueOf(hash.value))
+    env.stack.push(ScriptValue.valueOf(hash.value.array))
   }
 }
 
@@ -66,7 +66,7 @@ class OpSHA256() : Crypto {
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.sha256(topItem.value)
-    env.stack.push(ScriptValue.valueOf(hash.value))
+    env.stack.push(ScriptValue.valueOf(hash.value.array))
   }
 }
 
@@ -83,7 +83,7 @@ class OpHash160() : Crypto {
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.hash160(topItem.value)
-    env.stack.push(ScriptValue.valueOf(hash.value))
+    env.stack.push(ScriptValue.valueOf(hash.value.array))
   }
 }
 
@@ -100,7 +100,7 @@ class OpHash256() : Crypto {
     }
     val topItem = env.stack.pop()
     val hash = HashFunctions.hash256(topItem.value)
-    env.stack.push(ScriptValue.valueOf(hash.value))
+    env.stack.push(ScriptValue.valueOf(hash.value.array))
   }
 }
 
@@ -151,7 +151,7 @@ abstract class CheckSig() : Crypto {
 
     val signature : ECKey.ECDSASignature = ECKey.ECDSASignature.decodeFromDER(rawSignature.value)
 
-    val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(script.data, env.getSigCheckOffset(), arrayOf(rawSignature) )
+    val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(script.data.array, env.getSigCheckOffset(), arrayOf(rawSignature) )
 
     // use only the low 5 bits from the last byte of the signature to get the hash mode.
     // TODO : The 0x1f constant is from TransactionSignature.sigHashMode of BitcoinJ. Investigate if it is necessary.
@@ -160,7 +160,7 @@ abstract class CheckSig() : Crypto {
 
     val hashOfInput : Hash256 = TransactionSignature.calculateHash(env.transaction!!, env.transactionInputIndex!!, scriptData, howToHash)
 
-    if (ECKey.verify(hashOfInput.value, signature, publicKey.value)) {
+    if (ECKey.verify(hashOfInput.value.array, signature, publicKey.value)) {
       super.pushTrue(env)
     } else {
       super.pushFalse(env)
@@ -226,7 +226,7 @@ abstract class CheckSig() : Crypto {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Step 5 : Scrub scriptData to get rid of signatures from it.
-    val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(script.data, env.getSigCheckOffset(), signatures )
+    val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(script.data.array, env.getSigCheckOffset(), signatures )
 
     var isValid = true
     var consumedPublicKeyCount = 0
@@ -260,7 +260,7 @@ abstract class CheckSig() : Crypto {
       while(consumedPublicKeyCount < publicKeyCount &&
             !signatureVerified) {
         val publicKey = publicKeys[consumedPublicKeyCount]
-        if (ECKey.verify(hashOfInput.value, signature, publicKey.value)) {
+        if (ECKey.verify(hashOfInput.value.array, signature, publicKey.value)) {
           signatureVerified = true
           consumedSignatureCount +=1
         }
@@ -315,7 +315,7 @@ class OpCheckSig(val script : Script? = null) : CheckSig() {
   // Note : When we create the script from scala program like OpCheckSig(), not by ScriptParser.parse,
   // We may have script set to null. Need to check if it is null first.
   override fun toString() : String {
-    val scriptData = if (script == null) ByteArray(0) else script.data
+    val scriptData = if (script == null) byteArrayOf() else script.data.array
     return "OpCheckSig(Script(${HexUtil.kotlinHex(scriptData)}))"
   }
 }
@@ -338,7 +338,7 @@ class OpCheckSigVerify(val script : Script? = null) : CheckSig() {
 
   // toString of LockingScript/UnlockingScript tries to parse the script to list all operations in it.
   // This causes stack overflow, so do not parse the script which is attached to operations while calling toString.
-  override fun toString() = "OpCheckSigVerify(Script(${HexUtil.kotlinHex(script!!.data)}))"
+  override fun toString() = "OpCheckSigVerify(Script(${HexUtil.kotlinHex(script!!.data.array)}))"
 }
 
 /** OP_CHECKMULTISIG(0xae) : Run CHECKSIG for each pair of signature and public key provided. All must match. Bug in implementation pops an extra value, prefix with OP_NOP as workaround
@@ -399,7 +399,7 @@ class OpCheckMultiSig(val script : Script? = null) : CheckSig() {
 
   // toString of LockingScript/UnlockingScript tries to parse the script to list all operations in it.
   // This causes stack overflow, so do not parse the script which is attached to operations while calling toString.
-  override fun toString() = "OpCheckMultiSig(Script(${HexUtil.kotlinHex(script!!.data)}))"
+  override fun toString() = "OpCheckMultiSig(Script(${HexUtil.kotlinHex(script!!.data.array)}))"
 }
 
 /** OP_CHECKMULTISIGVERIFY(0xaf) : Same as CHECKMULTISIG, then OP_VERIFY to halt if not TRUE
@@ -419,5 +419,5 @@ class OpCheckMultiSigVerify(val script : Script? = null) : CheckSig() {
 
   // toString of LockingScript/UnlockingScript tries to parse the script to list all operations in it.
   // This causes stack overflow, so do not parse the script which is attached to operations while calling toString.
-  override fun toString() = "OpCheckMultiSigVerify(Script(${HexUtil.kotlinHex(script!!.data)}))"
+  override fun toString() = "OpCheckMultiSigVerify(Script(${HexUtil.kotlinHex(script!!.data.array)}))"
 }

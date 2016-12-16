@@ -15,6 +15,7 @@ import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.GenesisBlock
 import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.transaction.BlockVerifier
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import java.util.*
 
@@ -64,7 +65,7 @@ object DumpChain {
         val serializedBlock = BlockCodec.encode(block)
         val blockHeaderHash = block.header.hash()
 
-        println("${HexUtil.hex(blockHeaderHash.value)} ${HexUtil.hex(serializedBlock)}")
+        println("${HexUtil.hex(blockHeaderHash.value.array)} ${HexUtil.hex(serializedBlock)}")
       }
     }
 
@@ -81,11 +82,11 @@ object DumpChain {
   fun dumpHashes(blocksPath : String) : Unit {
     class BlockListener : BlockReadListener {
       override fun onBlock(block: Block): Unit {
-        println( "bk:"+ HexUtil.hex(block.header.hashPrevBlock.value) );
-        println( "mk:"+ HexUtil.hex(block.header.hashMerkleRoot.value) );
+        println( "bk:"+ HexUtil.hex(block.header.hashPrevBlock.value.array) );
+        println( "mk:"+ HexUtil.hex(block.header.hashMerkleRoot.value.array) );
         for (tx : Transaction in block.transactions ) {
           for (input : TransactionInput in tx.inputs ) {
-            println( "tx:"+ HexUtil.hex(input.outputTransactionHash.value));
+            println( "tx:"+ HexUtil.hex(input.outputTransactionHash.value.array));
           }
         }
       }
@@ -268,7 +269,7 @@ object DumpChain {
   fun mergeScripts(blocksPath : String, filter : ScriptFilter) : Unit {
     // Step 1) Create a map from transaction hash to Transaction object.
     // c.f. Need List here instead of Array, which implements reference equality.
-    val txMap = mutableMapOf<ByteArray, Transaction>()
+    val txMap = mutableMapOf<Bytes, Transaction>()
 
     class BlockListener : BlockReadListener {
       override fun onBlock(block: Block): Unit {

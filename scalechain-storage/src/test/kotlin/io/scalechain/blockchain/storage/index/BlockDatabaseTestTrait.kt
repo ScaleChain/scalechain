@@ -8,6 +8,7 @@ import io.scalechain.blockchain.proto.codec.CodecTestUtil
 import org.junit.runner.RunWith
 
 import io.scalechain.blockchain.storage.test.TestData
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import io.scalechain.util.ListExt
 
@@ -37,8 +38,8 @@ abstract class BlockDatabaseTestTrait : FlatSpec(), Matchers, CodecTestUtil {
     blockHeader = TestData.block.header,
     blockLocatorOption = null
   )
-  val DUMMY_HASH1 = Hash(bytes(String(ListExt.fill(64,'1').toCharArray())))
-  val DUMMY_HASH2 = Hash(bytes(String(ListExt.fill(64,'2').toCharArray())))
+  val DUMMY_HASH1 = Hash(Bytes.from(String(ListExt.fill(64,'1').toCharArray())))
+  val DUMMY_HASH2 = Hash(Bytes.from(String(ListExt.fill(64,'2').toCharArray())))
 
   fun runTests() {
     "putBlockInfo/getBlockInfo" should "successfully put/get data" {

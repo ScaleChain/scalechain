@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -50,5 +51,5 @@ class RejectSpec : EnvelopeTestSuite<Reject>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Reject("tx", RejectType.REJECT_INSUFFICIENTFEE, "mempool min fee not met", bytes("6e532ae33433cae18190ea2fe3e19a9a2181698f2daae215888567bfe4e0029a"))
+  override val message = Reject("tx", RejectType.REJECT_INSUFFICIENTFEE, "mempool min fee not met", Bytes.from("6e532ae33433cae18190ea2fe3e19a9a2181698f2daae215888567bfe4e0029a"))
 }

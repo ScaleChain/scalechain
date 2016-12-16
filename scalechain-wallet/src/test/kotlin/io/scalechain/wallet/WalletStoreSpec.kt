@@ -11,28 +11,18 @@ import java.util.*
 import scala.util.Random
 
 @RunWith(KTestJUnitRunner::class)
-class WalletStoreSpec : WalletTestTrait(),
-  WalletStoreAccountTest,
-  WalletStoreOutPointTest,
-  WalletStoreTransactionHashTest,
-  WalletStoreWalletOutputTest, // Need to fix the protocol codec exception.
-  WalletStoreWalletTransactionTest {
+class WalletStoreSpec : WalletTestTrait(), WalletTests {
 
   override val testPath = File("./target/unittests-WalletStoreSpec-${Random().nextLong()}")
 
-  lateinit var store : WalletStore
+  lateinit override var store : WalletStore
 
   init {
     if (!Storage.isInitialized)
       Storage.initialize()
 
-    testWalletStoreAccount(store, db)
-    testWalletStoreOutPoint(store, db)
-    testWalletStoreTransactionHash(store, db)
-    testWalletStoreWalletOutput(store, db)
-    testWalletStoreWalletTransaction(store, db)
+    addTests()
   }
-
 
   override fun beforeEach() {
     super.beforeEach()

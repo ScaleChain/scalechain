@@ -43,8 +43,11 @@ subprojects {
         testCompile "junit:junit:4.12"
         testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     }
-}
 
+    test {
+        maxHeapSize = "4096m"
+    }
+}
 
 // Multiproject example from 
 // https://github.com/pkainulainen/gradle-examples/tree/master/multi-project-build 

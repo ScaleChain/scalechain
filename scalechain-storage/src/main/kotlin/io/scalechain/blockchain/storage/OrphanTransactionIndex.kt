@@ -55,7 +55,7 @@ interface OrphanTransactionIndex {
     */
   fun addOrphanTransactionByParent(db : KeyValueDatabase, missingTransactionHash : Hash, orphanTransactionHash : Hash) : Unit {
     // TODO : Optimize : Reduce the length of the prefix string by using base64 encoding?
-    db.putPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value), orphanTransactionHash, OneByte(1) )
+    db.putPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value.array), orphanTransactionHash, OneByte(1) )
   }
 
   /** Get all orphan transactions that depend on the given transaction.
@@ -64,7 +64,7 @@ interface OrphanTransactionIndex {
     * @return Hash of all orphan transactions that depend on the given missing transaction.
     */
   fun getOrphanTransactionsByParent(db : KeyValueDatabase, missingTransactionHash : Hash) : List<Hash> {
-    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value))
+    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value.array))
     try {
       // BUGBUG : Change the code not to use Pair, but a data class. This is code so hard to read.
       return iterator.asSequence().toList().map { prefixedObject ->
@@ -83,7 +83,7 @@ interface OrphanTransactionIndex {
     */
   fun delOrphanTransactionsByParent(db : KeyValueDatabase, missingTransactionHash : Hash) : Unit {
     for (transactionHash : Hash in getOrphanTransactionsByParent(db, missingTransactionHash)) {
-      db.delPrefixedObject(HashCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value), transactionHash)
+      db.delPrefixedObject(HashCodec, DB.ORPHAN_TRANSACTIONS_BY_DEPENDENCY, HexUtil.hex(missingTransactionHash.value.array), transactionHash)
     }
   }
 }

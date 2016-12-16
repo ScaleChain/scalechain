@@ -31,7 +31,7 @@ object LockingScriptAnalyzer {
         val publicKey : PublicKey = PublicKey.from(encodedPublicKey.value)
         val uncompressedPublicKey = publicKey.encode()
         val publicKeyHash = HashFunctions.hash160(uncompressedPublicKey)
-        return listOf( CoinAddress.from(publicKeyHash.value) )
+        return listOf( CoinAddress.from(publicKeyHash.value.array) )
       } else {
         return listOf()
       }

@@ -40,8 +40,7 @@ class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestInterface, C
 
       val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
 
-      ScriptSerializer.serialize( checksigScriptScrubbed.scriptOps.operations ).toList() shouldBe
-      ScriptSerializer.serialize( expectedPubKeyScript.scriptOps.operations ).toList()
+      checksigScriptScrubbed shouldBe expectedPubKeyScript
     }
 
     "ParsedPubKeyScript.from(pubKeyHash)" should "create a ParsedPubKeyScript from the public key hash" {
@@ -49,13 +48,11 @@ class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestInterface, C
       val expectedPubKeyScript = ParsedPubKeyScript.from(privateKey)
       val publicKey = PublicKey.from(privateKey)
 
-      val actualPubKeyScript = ParsedPubKeyScript.from(publicKey.getHash().value)
+      val actualPubKeyScript = ParsedPubKeyScript.from(publicKey.getHash().value.array)
 
       val checksigScriptScrubbed = scrubScript(actualPubKeyScript)
 
-      ScriptSerializer.serialize( checksigScriptScrubbed.scriptOps.operations ).toList() shouldBe
-      ScriptSerializer.serialize( expectedPubKeyScript.scriptOps.operations ).toList()
-
+      checksigScriptScrubbed shouldBe expectedPubKeyScript
     }
 
     /*
@@ -78,7 +75,7 @@ class ParsedPubKeyScriptSpec : FlatSpec(), Matchers, TransactionTestInterface, C
 
     "stringKey" should "return hex representation of the locking script" {
       val pubKeyScript = ParsedPubKeyScript(SIMPLE_SCRIPT_OPS_A)
-      pubKeyScript.stringKey() shouldBe HexUtil.hex(pubKeyScript.lockingScript().data)
+      pubKeyScript.stringKey() shouldBe HexUtil.hex(pubKeyScript.lockingScript().data.array)
     }
 
     /*

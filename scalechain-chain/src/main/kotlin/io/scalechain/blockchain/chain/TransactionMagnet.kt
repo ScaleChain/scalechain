@@ -45,8 +45,8 @@ class TransactionMagnet(private val txDescIndex : TransactionDescriptorIndex, pr
     * @return The list of in-points that are spending the outputs of the transaction
     */
   protected fun getOutputsSpentBy(db : KeyValueDatabase, txHash : Hash) : List<InPoint?>? {
-    println("desc (${txHash})${txDescIndex.getTransactionDescriptor(db, txHash)}")
-    println("pool (${txHash})${txPoolIndex.getTransactionFromPool(db, txHash)}")
+    //println("desc (${txHash})${txDescIndex.getTransactionDescriptor(db, txHash)}")
+    //println("pool (${txHash})${txPoolIndex.getTransactionFromPool(db, txHash)}")
 
     return txDescIndex.getTransactionDescriptor(db, txHash)?.outputsSpentBy ?:
               txPoolIndex.getTransactionFromPool(db, txHash)?.outputsSpentBy
@@ -320,7 +320,7 @@ class TransactionMagnet(private val txDescIndex : TransactionDescriptorIndex, pr
         // Use fine grained lock for the concurrency control of adding a transaction.
         // To fix Issue : #105 Remove duplicate transactions in blocks
         // https://github.com/ScaleChain/scalechain/issues/105
-        val txLockName = HexUtil.hex(transactionHash.value)
+        val txLockName = HexUtil.hex(transactionHash.value.array)
 
         val txLock = TransactionMagnet.txLock.get(txLockName)
 

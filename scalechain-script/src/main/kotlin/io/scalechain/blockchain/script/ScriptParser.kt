@@ -12,11 +12,31 @@ import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
+import java.util.*
 
 
 data class ScriptOpList(val operations : List<ScriptOp>) {
   override fun toString(): String {
     return "ScriptOpList(operations=List(${operations.joinToString(",")}))"
+  }
+
+  override fun hashCode() = Arrays.hashCode( ScriptSerializer.serialize( operations ) )
+
+  override fun equals(other : Any?) : Boolean {
+    when {
+      other == null -> return false
+      other is ScriptOpList -> {
+        if (this.operations.size == other.operations.size) {
+          return (this.operations.asSequence() zip other.operations.asSequence()).all { pair ->
+            // BUGBUG : Should not call opCode for internal Ops such as OpCond.
+            pair.first.opCode() == pair.second.opCode()
+          }
+        } else {
+          return false
+        }
+      }
+      else -> return false
+    }
   }
 }
 

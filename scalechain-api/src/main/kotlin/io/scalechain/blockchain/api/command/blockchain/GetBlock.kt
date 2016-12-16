@@ -10,6 +10,7 @@ import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.proto.BlockInfo
 import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Right
@@ -113,7 +114,7 @@ object GetBlock : RpcCommand() {
       val headerHashString  : String  = request.params.get<String>("Header Hash", 0)
       val format            : Boolean = request.params.getOption<Boolean>("Format", 1) ?: true
 
-      val headerHash = Hash( HexUtil.bytes(headerHashString) )
+      val headerHash = Hash( Bytes.from(headerHashString) )
 
       val blockOption : Pair<BlockInfo, Block>? = RpcSubSystem.get().getBlock(headerHash)
       val resultOption =

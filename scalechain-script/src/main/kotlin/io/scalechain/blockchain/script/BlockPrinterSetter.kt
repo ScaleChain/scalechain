@@ -14,7 +14,7 @@ object BlockPrinterSetter {
         override fun toString(lockingScript:LockingScript): String {
           val scriptOps = ScriptParser.parse(lockingScript)
 
-          return "LockingScript(HexUtil.bytes(${HexUtil.kotlinHex(lockingScript.data)})) /* ops:$scriptOps */ "
+          return "LockingScript(Bytes.bytes(${HexUtil.kotlinHex(lockingScript.data.array)})) /* ops:$scriptOps */ "
         }
       }
 
@@ -40,7 +40,7 @@ object BlockPrinterSetter {
               null
             }
 
-          return "UnlockingScript(HexUtil.bytes(${HexUtil.kotlinHex(unlockingScript.data)})) /* ops:$scriptOps, hashType:$hashType */ "
+          return "UnlockingScript(Bytes.from(${HexUtil.kotlinHex(unlockingScript.data.array)})) /* ops:$scriptOps, hashType:$hashType */ "
         }
       }
 

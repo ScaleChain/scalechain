@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.script.ops.*
 import io.scalechain.test.TestMethods.filledString
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import org.junit.runner.RunWith
 import java.util.*
@@ -48,7 +49,7 @@ class ScriptSerializerSpec : OperationTestTrait() {
       val expectedOperations = listOf( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(expectedPublicKeyHash)), OpEqualVerify(), OpCheckSig() )
       val serializedBytes = ScriptSerializer.serialize(expectedOperations)
 
-      val actualOperations = ScriptParser.parse(LockingScript(serializedBytes)).operations
+      val actualOperations = ScriptParser.parse(LockingScript(Bytes(serializedBytes))).operations
 
       // The expected operations should match the original one.
       if (expectedOperations.size == 5) {

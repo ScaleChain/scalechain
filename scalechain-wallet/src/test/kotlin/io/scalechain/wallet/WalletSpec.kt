@@ -13,6 +13,7 @@ import io.scalechain.blockchain.chain.ChainSampleData
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.transaction.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
@@ -268,10 +269,10 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
 
     fun tx(blockIndexOption : Long?, txIndexOption : Int?, addedTime : Long) : WalletTransaction {
       return WalletTransaction(
-        blockHash        = Hash(bytes("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
+        blockHash        = Hash(Bytes.from("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
         blockIndex       = blockIndexOption,
         blockTime        = 1411051649,
-        transactionId    = Hash(bytes("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
+        transactionId    = Hash(Bytes.from("99845fd840ad2cc4d6f93fafb8b072d188821f55d9298772415175c456f3077d")),
         addedTime        = addedTime,
         transactionIndex = txIndexOption,
         transaction = transaction1()
@@ -318,7 +319,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         Either.Left(NormalTransactionInput(
           S.S1_AliceGenCoin_A50.outPoint.transactionHash,
           S.S1_AliceGenCoin_A50.outPoint.outputIndex.toLong(),
-          UnlockingScript(byteArrayOf()),
+          UnlockingScript(Bytes(byteArrayOf())),
           0L
         )),
         0,
@@ -349,7 +350,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         Left(NormalTransactionInput(
           S.S1_AliceGenCoin_A50.outPoint.transactionHash,
           S.S1_AliceGenCoin_A50.outPoint.outputIndex.toLong(),
-          UnlockingScript(byteArrayOf()),
+          UnlockingScript(Bytes(byteArrayOf())),
           0L
         )),
         0,
@@ -655,7 +656,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       utxoDesc.vout shouldBe S.S3_CarrayGenCoin_A50.outPoint.outputIndex
       utxoDesc.address shouldBe S.Carry.Addr1.address.base58()
       utxoDesc.account shouldBe "Carry"
-      utxoDesc.scriptPubKey shouldBe hex(S.S3_CarrayGenCoin_A50.output.lockingScript.data)
+      utxoDesc.scriptPubKey shouldBe hex(S.S3_CarrayGenCoin_A50.output.lockingScript.data.array)
       utxoDesc.redeemScript shouldBe null
       utxoDesc.amount shouldBe java.math.BigDecimal(50L)
       utxoDesc.confirmations shouldBe 1
@@ -687,7 +688,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       utxoDesc.vout shouldBe S.S2_AliceChangeCoin1_A39.outPoint.outputIndex
       utxoDesc.address shouldBe S.Alice.Addr2.address.base58()
       utxoDesc.account shouldBe "Alice"
-      utxoDesc.scriptPubKey shouldBe hex(S.S2_AliceChangeCoin1_A39.output.lockingScript.data)
+      utxoDesc.scriptPubKey shouldBe hex(S.S2_AliceChangeCoin1_A39.output.lockingScript.data.array)
       utxoDesc.redeemScript shouldBe null
       utxoDesc.amount shouldBe java.math.BigDecimal(39L)
       utxoDesc.confirmations shouldBe 2
@@ -748,7 +749,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         vout          = output.outPoint.outputIndex,
         address       = LockingScriptAnalyzer.extractAddresses(output.output.lockingScript).first().base58(),
         account       = account,
-        scriptPubKey  = hex(output.output.lockingScript.data),
+        scriptPubKey  = hex(output.output.lockingScript.data.array),
         redeemScript  = null,
         amount        = CoinAmount.from(output.output.value).value,
         confirmations = confirmations.toLong(),

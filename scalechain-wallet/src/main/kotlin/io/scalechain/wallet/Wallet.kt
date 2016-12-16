@@ -458,7 +458,7 @@ class Wallet() : ChainEventListener {
         vout          = walletOutput.outPoint.outputIndex,
         address       = addressOption?.base58(),
         account       = if (addressOption != null) store.getAccount( db, addressOption ) else null,
-        scriptPubKey  = HexUtil.hex(walletOutput.walletOutput.transactionOutput.lockingScript.data),
+        scriptPubKey  = HexUtil.hex(walletOutput.walletOutput.transactionOutput.lockingScript.data.array),
         redeemScript  = redeemScriptOption,
         amount        = CoinAmount.from(walletOutput.walletOutput.transactionOutput.value ).value,
         confirmations = confirmations,

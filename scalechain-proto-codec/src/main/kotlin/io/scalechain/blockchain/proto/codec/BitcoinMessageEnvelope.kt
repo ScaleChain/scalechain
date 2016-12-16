@@ -136,7 +136,7 @@ data class BitcoinMessageEnvelope(
         // OPTIMIZE : Directly calculate hash from the BitVector
         val hash = HashFunctions.hash256(buffer, offset, length)
 
-        return Checksum(hash.value.copyOfRange(0,Checksum.VALUE_SIZE))
+        return Checksum(hash.value.array.copyOfRange(0,Checksum.VALUE_SIZE))
       }
 
       fun build(protocol:NetworkProtocol, message:ProtocolMessage) : BitcoinMessageEnvelope {

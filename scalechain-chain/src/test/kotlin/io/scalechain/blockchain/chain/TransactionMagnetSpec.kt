@@ -75,7 +75,7 @@ class TransactionMagnetSpec : BlockchainTestTrait(), TransactionTestInterface, M
       chain.putBlock(db, B.BLK03.header.hash(), B.BLK03)
 
       listOf(T.TX04_01, T.TX04_02, T.TX04_03, T.TX04_04).forEach { tx ->
-        println("hash : ${tx.transaction.hash()}")
+        //println("hash : ${tx.transaction.hash()}")
         tm.attachTransaction(db, tx.transaction.hash(), tx.transaction, false)
       }
     }

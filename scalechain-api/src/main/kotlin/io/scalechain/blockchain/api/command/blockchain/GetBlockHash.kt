@@ -50,7 +50,7 @@ object GetBlockHash : RpcCommand() {
 
       val blockHash = RpcSubSystem.get().getBlockHash(blockHeight)
 
-      Right(StringResult(HexUtil.hex(blockHash.value)))
+      Right(StringResult(HexUtil.hex(blockHash.value.array)))
     }
   }
   override fun help() : String =

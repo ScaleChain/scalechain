@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 import java.math.BigInteger
@@ -57,5 +58,5 @@ class VersionSpec : EnvelopeTestSuite<Version>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Version(70002, BigInteger("1"), 1454059080L, NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInteger("1"), IPv6Address(bytes("00000000000000000000ffff00000000")), 8333), BigInteger("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
+  override val message = Version(70002, BigInteger("1"), 1454059080L, NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff00000000")), 0), NetworkAddress(BigInteger("1"), IPv6Address(Bytes.from("00000000000000000000ffff00000000")), 8333), BigInteger("5306546289391447548"), "/Satoshi:0.11.2/", 395585, true)
 }

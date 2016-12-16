@@ -35,7 +35,6 @@ abstract class BlockchainTestTrait : FlatSpec() {
 
   override fun beforeEach() {
     super.beforeEach()
-    println("beforeEach init++++++++++++")
 
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
@@ -52,11 +51,9 @@ abstract class BlockchainTestTrait : FlatSpec() {
 
     Blockchain.theBlockchain = chain
 
-    println("beforeEach done++++++++++++")
   }
 
   override fun afterEach() {
-    println("afterEach init------------")
     super.afterEach()
 
     // finalize a test.
@@ -66,8 +63,6 @@ abstract class BlockchainTestTrait : FlatSpec() {
     Blockchain.theBlockchain = null
 
     FileUtils.deleteDirectory(testPath)
-
-    println("afterEach done------------")
   }
 
   fun createBlock(height : Long ) : Block {

@@ -23,7 +23,7 @@ object GenerateAddress : Command {
     println(
       """
         |private key : ${privateKey.base58()}
-        |public key hash : ${HexUtil.hex(publicKey.getHash().value)}
+        |public key hash : ${HexUtil.hex(publicKey.getHash().value.array)}
         |address : ${address.base58()}
       """.trimMargin()
     )

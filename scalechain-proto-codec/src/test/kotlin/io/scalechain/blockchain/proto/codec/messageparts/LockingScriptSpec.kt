@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.LockingScript
 import io.scalechain.blockchain.proto.codec.LockingScriptCodec
 import io.scalechain.blockchain.proto.codec.PayloadTestSuite
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -37,6 +38,6 @@ class LockingScriptSpec : PayloadTestSuite<LockingScript>()  {
         ac                                
     """)
 
-  override val message = LockingScript(bytes("76a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac"))
+  override val message = LockingScript(Bytes.from("76a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac"))
 
 }

@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.blockchain.*
+import io.scalechain.util.Bytes
 
 internal val HashListCodec = Codecs.variablelistOf( HashCodec )
 
@@ -775,14 +776,14 @@ object RejectCodec : ProtocolMessageCodec<Reject> {
     val message = Codecs.VariableString.transcode(io, obj?.message)
     val rejectType = RejectTypeCodec.transcode(io, obj?.rejectType)
     val reason = Codecs.VariableString.transcode(io, obj?.reason)
-    val data = DataCodec.transcode(io, obj?.data)
+    val data = DataCodec.transcode(io, obj?.data?.array)
 
     if (io.isInput) {
       return Reject(
         message!!,
         rejectType!!,
         reason!!,
-        data!!
+        Bytes(data!!)
       )
     }
     return null

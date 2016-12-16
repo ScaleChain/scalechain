@@ -15,6 +15,7 @@ import io.scalechain.crypto.ECKey.ECDSASignature
 import io.scalechain.crypto.ECKey
 import io.scalechain.crypto.Hash256
 import io.scalechain.util.ByteArrayExt
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 
 import scala.annotation.tailrec
@@ -53,7 +54,7 @@ class TransactionSigner(private val db : KeyValueDatabase) {
     val keyToUse = privateKeys.first()
 
     val scriptData : ByteArray = TransactionSignature.getScriptForCheckSig(
-      lockingScript.data,  // The locking script data.
+      lockingScript.data.array,  // The locking script data.
       0, // The data to sign starts from offset 0
       arrayOf() ) // We have no signatures to scrub from the locking script.
 
@@ -68,7 +69,7 @@ class TransactionSigner(private val db : KeyValueDatabase) {
 
     val hashOfInput : Hash256 = TransactionSignature.calculateHash(transaction, inputIndex, scriptData, howToHash)
 
-    val signature : ECDSASignature =  ECKey.doSign(hashOfInput.value, keyToUse.value)
+    val signature : ECDSASignature =  ECKey.doSign(hashOfInput.value.array, keyToUse.value)
 
     // Encode the signature to DER format, and append the hash type.
     val encodedSignature = signature.encodeToDER() + ByteArrayExt.from(howToHash.toByte())
@@ -82,7 +83,7 @@ class TransactionSigner(private val db : KeyValueDatabase) {
       OpPush.from(encodedPublicKey)  // Public Key.
     )
 
-    val unlockingScriptWithSignature = UnlockingScript( ScriptSerializer.serialize(unlockingScriptOps) )
+    val unlockingScriptWithSignature = UnlockingScript( Bytes(ScriptSerializer.serialize(unlockingScriptOps)) )
 
     return normalTxInput.copy(
       unlockingScript = unlockingScriptWithSignature
@@ -119,7 +120,7 @@ class TransactionSigner(private val db : KeyValueDatabase) {
         val keysToUse = privateKeys.filter { key ->
           val publicKey = PublicKey.from(key)
 
-          if ( Arrays.equals( publicKey.getHash().value, address.publicKeyHash) ) { // If a public key hash matches, we can sign the transaction.
+          if ( Arrays.equals( publicKey.getHash().value.array, address.publicKeyHash.array) ) { // If a public key hash matches, we can sign the transaction.
             true
           } else {
             false
@@ -196,10 +197,10 @@ class TransactionSigner(private val db : KeyValueDatabase) {
       val newInput = pair.second
 
       if (orgInput is NormalTransactionInput && newInput is NormalTransactionInput) {
-        if ( orgInput.unlockingScript.data.isNotEmpty() ) {
+        if ( orgInput.unlockingScript.data.array.isNotEmpty() ) {
           orgInput
         } else {
-          if (newInput.unlockingScript.data.isEmpty()) {
+          if (newInput.unlockingScript.data.array.isEmpty()) {
             allInputsSigned = false
           }
           newInput

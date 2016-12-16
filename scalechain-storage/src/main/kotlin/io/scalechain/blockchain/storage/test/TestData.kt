@@ -10,6 +10,7 @@ import io.scalechain.blockchain.script.hash
 //import io.scalechain.blockchain.script.HashSupported.*
 import io.scalechain.io.HexFileLoader
 import io.scalechain.test.TestMethods.filledString
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import io.scalechain.util.ListExt
 
@@ -53,6 +54,6 @@ object TestData : ProtoTestData, CodecTestUtil {
    */
   fun dummyHash(num: Int) : Hash {
     assert(num >= 0 && num <= 9)
-    return Hash(HexUtil.bytes(filledString(64, ('0'+num).toByte() )))
+    return Hash(Bytes.from(filledString(64, ('0'+num).toByte() )))
   }
 }

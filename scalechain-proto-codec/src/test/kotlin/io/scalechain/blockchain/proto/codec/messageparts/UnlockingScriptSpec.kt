@@ -5,6 +5,7 @@ import io.scalechain.blockchain.proto.UnlockingScript
 import io.scalechain.blockchain.proto.codec.UnlockingScriptCodec
 import io.scalechain.blockchain.proto.codec.PayloadTestSuite
 import io.scalechain.util.HexUtil.bytes
+import io.scalechain.util.Bytes
 import org.junit.runner.RunWith
 
 /**
@@ -35,7 +36,7 @@ class UnlockingScriptSpec : PayloadTestSuite<UnlockingScript>()  {
           73fb12ff866a5f01                  
     """)
 
-  override val message = UnlockingScript(bytes("4830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01"))
+  override val message = UnlockingScript(Bytes.from("4830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01"))
 
 
 }

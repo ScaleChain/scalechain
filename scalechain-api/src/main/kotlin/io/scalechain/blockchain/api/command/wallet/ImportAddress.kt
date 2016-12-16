@@ -13,6 +13,7 @@ import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
 import io.scalechain.util.Either
@@ -63,7 +64,7 @@ object ImportAddress : RpcCommand() {
           // Step 2 : Check if it is a public key hash script.
           val scriptBytes = HexUtil.bytes(scriptOrAddress)
           try {
-            ParsedPubKeyScript( ScriptParser.parse(LockingScript(scriptBytes)) )
+            ParsedPubKeyScript( ScriptParser.parse(LockingScript(Bytes(scriptBytes))) )
           } catch(e : ScriptParseException) {
             // Step 3 : If it is neither an address nor an script, throw an exception.
             // The RpcInvalidAddress is converted to an RPC error, RPC_INVALID_ADDRESS_OR_KEY by handlingException.

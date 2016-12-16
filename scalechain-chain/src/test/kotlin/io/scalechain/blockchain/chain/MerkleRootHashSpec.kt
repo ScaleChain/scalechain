@@ -14,7 +14,7 @@ class MerkleRootHashSpec : FlatSpec(), TransactionTestInterface, Matchers {
   init {
     val D = TransactionTestData
     "mergeHash" should "merge two hash values" {
-      val expectedHash = Hash(HashFunctions.hash256(D.TXHASH1.value + D.TXHASH2.value).value)
+      val expectedHash = Hash(HashFunctions.hash256(D.TXHASH1.value.array + D.TXHASH2.value.array).value)
       MerkleRootCalculator.mergeHash(D.TXHASH1, D.TXHASH2) shouldBe expectedHash
     }
 
@@ -78,15 +78,15 @@ class MerkleRootHashSpec : FlatSpec(), TransactionTestInterface, Matchers {
     }
 
     "calculate" should "produce the merkle root hash with a transaction" {
-      MerkleRootCalculator.calculate(listOf(transaction1())).value.size shouldBe 32
+      MerkleRootCalculator.calculate(listOf(transaction1())).value.array.size shouldBe 32
     }
 
     "calculate" should "produce the merkle root hash with two transactions" {
-      MerkleRootCalculator.calculate(listOf(transaction1(), transaction2())).value.size shouldBe 32
+      MerkleRootCalculator.calculate(listOf(transaction1(), transaction2())).value.array.size shouldBe 32
     }
 
     "calculate" should "produce the merkle root hash with three transactions" {
-      MerkleRootCalculator.calculate(listOf(transaction1(), transaction2(), transaction3())).value.size shouldBe 32
+      MerkleRootCalculator.calculate(listOf(transaction1(), transaction2(), transaction3())).value.array.size shouldBe 32
     }
   }
 }

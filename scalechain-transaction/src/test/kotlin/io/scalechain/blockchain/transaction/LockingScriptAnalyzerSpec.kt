@@ -35,7 +35,7 @@ class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestInterface
       val p2pkScript = ScriptOpList(listOf(
           OpDup(),
           OpHash160(),
-          OpPush(publicKeyHash.value.size, ScriptValue.valueOf(publicKeyHash.value)),
+          OpPush(publicKeyHash.value.array.size, ScriptValue.valueOf(publicKeyHash.value.array)),
           OpEqualVerify(),
           OpCheckSig()
       ))
@@ -95,8 +95,7 @@ class LockingScriptAnalyzerSpec : FlatSpec(), Matchers, TransactionTestInterface
 
       val extractedOwnership = LockingScriptAnalyzer.extractOutputOwnership(expectedOwnership.lockingScript()) as ParsedPubKeyScript
 
-      ScriptSerializer.serialize( extractedOwnership.scriptOps.operations ).toList() shouldBe
-      ScriptSerializer.serialize( expectedOwnership.scriptOps.operations ).toList()
+      extractedOwnership shouldBe expectedOwnership
     }
   }
 }

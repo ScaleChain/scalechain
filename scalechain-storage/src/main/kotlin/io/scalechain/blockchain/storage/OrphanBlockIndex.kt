@@ -50,7 +50,7 @@ interface OrphanBlockIndex {
     */
   fun addOrphanBlockByParent(db : KeyValueDatabase, parentBlockHash : Hash, orphanBlockHash : Hash) : Unit {
     // TODO : Optimize : Reduce the length of the prefix string by using base64 encoding?
-    db.putPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value), orphanBlockHash, OneByte(1) )
+    db.putPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value.array), orphanBlockHash, OneByte(1) )
   }
 
   /** Get all orphan blocks that depend on the given parent block.
@@ -59,7 +59,7 @@ interface OrphanBlockIndex {
     * @return Hash of all orphan blocks that depend on the parent.
     */
   fun getOrphanBlocksByParent(db : KeyValueDatabase, parentBlockHash : Hash) : List<Hash> {
-    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value))
+    val iterator = db.seekPrefixedObject(HashCodec, OneByteCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value.array))
     try {
       // BUGBUG : Change the code not to use Pair, but a data class. This is code so hard to read.
       return iterator.asSequence().toList().map { prefixedObject ->
@@ -78,7 +78,7 @@ interface OrphanBlockIndex {
     */
   fun delOrphanBlocksByParent(db : KeyValueDatabase, parentBlockHash : Hash) : Unit {
     for (blockHash : Hash in getOrphanBlocksByParent(db, parentBlockHash)) {
-      db.delPrefixedObject(HashCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value), blockHash)
+      db.delPrefixedObject(HashCodec, DB.ORPHAN_BLOCKS_BY_PARENT, HexUtil.hex(parentBlockHash.value.array), blockHash)
     }
   }
 }

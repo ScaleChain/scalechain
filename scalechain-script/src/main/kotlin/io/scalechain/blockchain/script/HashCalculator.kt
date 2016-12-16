@@ -12,6 +12,7 @@ import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 import io.scalechain.crypto.HashFunctions
 import io.scalechain.util.toByteArray
+import io.scalechain.util.Bytes
 
 fun Transaction.hash() : Hash {
   val io = CodecInputOutputStream(Unpooled.buffer(), isInput = false)
@@ -22,7 +23,7 @@ fun Transaction.hash() : Hash {
   val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
 
   // BUGBUG : Rethink if using ByteBuf in Hash is a correct apporach.
-  return Hash( Unpooled.wrappedBuffer( hash.value.reversed().toByteArray() ) )
+  return Hash(Bytes(hash.value.array.reversed().toByteArray()))
 }
 
 fun BlockHeader.hash() : Hash {
@@ -33,7 +34,7 @@ fun BlockHeader.hash() : Hash {
   assert(io.byteBuf.hasArray())
   val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
 
-  return Hash( Unpooled.wrappedBuffer( hash.value.reversed().toByteArray() ) )
+  return Hash(Bytes(hash.value.array.reversed().toByteArray()))
 }
 
 /*

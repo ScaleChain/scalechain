@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -62,6 +63,6 @@ class InvSpec : EnvelopeTestSuite<Inv>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Inv(listOf(InvVector(InvType.MSG_TX, Hash(bytes("b2e4bdfeffb04a8df3ddf0abe9ba45150663bb41a4bd6f9d4767a0119e0141f9"))),InvVector(InvType.MSG_TX, Hash(bytes("80fe53bd8f81cd296b4ff3bd48e46b221538eba8065de1c660ad7afc98720177"))),InvVector(InvType.MSG_TX, Hash(bytes("f75845650176135011a4fca6d41fe6e342f273b032124f37e9bf65aa06cd985d"))),InvVector(InvType.MSG_TX, Hash(bytes("7c6315ab536b5d0a4e2304bd8d6c01eb0ee25ef4ca28f8cf4e623c91e5b6cc47")))))
+  override val message = Inv(listOf(InvVector(InvType.MSG_TX, Hash(Bytes.from("b2e4bdfeffb04a8df3ddf0abe9ba45150663bb41a4bd6f9d4767a0119e0141f9"))),InvVector(InvType.MSG_TX, Hash(Bytes.from("80fe53bd8f81cd296b4ff3bd48e46b221538eba8065de1c660ad7afc98720177"))),InvVector(InvType.MSG_TX, Hash(Bytes.from("f75845650176135011a4fca6d41fe6e342f273b032124f37e9bf65aa06cd985d"))),InvVector(InvType.MSG_TX, Hash(Bytes.from("7c6315ab536b5d0a4e2304bd8d6c01eb0ee25ef4ca28f8cf4e623c91e5b6cc47")))))
 
 }

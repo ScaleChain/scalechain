@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -45,5 +46,5 @@ class NotFoundSpec : EnvelopeTestSuite<NotFound>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = NotFound(listOf(InvVector(InvType.MSG_TX, Hash(bytes("351d0662f8f88d4e1297c10aee4c226ea301141a9260103711b1793fdcc84673")))))
+  override val message = NotFound(listOf(InvVector(InvType.MSG_TX, Hash(Bytes.from("351d0662f8f88d4e1297c10aee4c226ea301141a9260103711b1793fdcc84673")))))
 }

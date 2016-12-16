@@ -44,7 +44,7 @@ class ECKeySpec : FlatSpec(), Matchers {
       val signature : ECKey.ECDSASignature = ECKey.doSign(ZERO_HASH, privkey)
       ECKey.verify(ZERO_HASH, signature, publicKey) shouldBe true
 
-      println( "encoded signature :" + HexUtil.hex(signature.encodeToDER()) )
+      //println( "encoded signature :" + HexUtil.hex(signature.encodeToDER()) )
 
       // Test interop with a signature from elsewhere.
       val sig : ByteArray = HexUtil.bytes(

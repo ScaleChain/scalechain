@@ -4,6 +4,7 @@ import io.kotlintest.KTestJUnitRunner
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -53,6 +54,6 @@ class HeadersSpec : EnvelopeTestSuite<Headers>()  {
     Unpooled.wrappedBuffer(payload)
   )
 
-  override val message = Headers(listOf(BlockHeader(version=4, hashPrevBlock=Hash(bytes("000000000000000006004783a6ad104f7c522a9db14859d4c2384bcc3f175463")), hashMerkleRoot=Hash(bytes("dbc8bd5112be871061e444c4179c38f6a3cc60b555ab386bde7862f892dc1e66")), timestamp=1454058586L, target=403253488L, nonce=3500476912L)))
+  override val message = Headers(listOf(BlockHeader(version=4, hashPrevBlock=Hash(Bytes.from("000000000000000006004783a6ad104f7c522a9db14859d4c2384bcc3f175463")), hashMerkleRoot=Hash(Bytes.from("dbc8bd5112be871061e444c4179c38f6a3cc60b555ab386bde7862f892dc1e66")), timestamp=1454058586L, target=403253488L, nonce=3500476912L)))
 
 }

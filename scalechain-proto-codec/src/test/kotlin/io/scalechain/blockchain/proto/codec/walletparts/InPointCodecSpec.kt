@@ -7,6 +7,7 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.CodecTestUtil
 
 import io.scalechain.blockchain.proto.codec.InPointCodec
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import org.junit.runner.RunWith
 
@@ -14,7 +15,7 @@ import org.junit.runner.RunWith
 class InPointCodecSpec : FlatSpec(), Matchers, CodecTestUtil {
 
   val inPoint1 = InPoint(
-    transactionHash  = Hash(bytes("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
+    transactionHash  = Hash(Bytes.from("00000000bd0ed80435fc9fe3269da69bb0730ebb454d0a29128a870ea1a37929")),
     inputIndex       = 1
   )
 

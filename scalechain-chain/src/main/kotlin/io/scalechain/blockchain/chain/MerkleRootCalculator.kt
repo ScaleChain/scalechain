@@ -16,7 +16,7 @@ object MerkleRootCalculator {
     * @return The hash value calcuated from the concatenated hash values.
     */
   internal fun mergeHash(hash1 : Hash, hash2 : Hash) : Hash {
-    val concatenated = hash1.value + hash2.value
+    val concatenated = hash1.value.array + hash2.value.array
 
     return Hash( HashFunctions.hash256(concatenated).value )
   }

@@ -50,7 +50,7 @@ object GetBestBlockHash : RpcCommand() {
       val hashOption : Hash? = RpcSubSystem.get().getBestBlockHash()
       Right(
         if (hashOption == null) null
-        else StringResult(HexUtil.hex(hashOption.value))
+        else StringResult(HexUtil.hex(hashOption.value.array))
       )
     }
   }

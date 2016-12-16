@@ -43,7 +43,7 @@ class OpPush(val byteCount : Int, val inputValue : ScriptValue? = null) : Consta
    */
   override fun create(script : Script, offset : Int) : Pair<ScriptOp, Int> {
     //println(s"Script.length : ${script.data.length}, offset : $offset, byteCount : $byteCount")
-    val value = ScriptValue.valueOf(script.data, offset, byteCount)
+    val value = ScriptValue.valueOf(script.data.array, offset, byteCount)
 
     return Pair( OpPush(byteCount, value), byteCount)
   }
@@ -92,8 +92,8 @@ class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue? = null) : 
     * @return The number of bytes consumed to copy the input value.
     */
   override fun create(script : Script, offset : Int) : Pair<ScriptOp, Int> {
-    val byteCount = getByteCount(script.data, offset, lengthBytes)
-    val value = ScriptValue.valueOf(script.data, offset + lengthBytes, byteCount)
+    val byteCount = getByteCount(script.data.array, offset, lengthBytes)
+    val value = ScriptValue.valueOf(script.data.array, offset + lengthBytes, byteCount)
 
     return Pair( OpPushData(lengthBytes, value), lengthBytes + byteCount)
   }

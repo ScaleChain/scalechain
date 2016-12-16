@@ -14,6 +14,7 @@ import io.scalechain.blockchain.api.domain.RpcParams
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.cli.command.RpcInvoker
+import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 
 /** Start the peer and connect to the local bitcoind node.
@@ -41,7 +42,7 @@ object RunnablePeer : Runnable {
 abstract class APITestSuite : FlatSpec(), Matchers {
   val GENESIS_BLOCK_HEIGHT = 0
   val GENESIS_BLOCK_HASH = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-  val ALL_ZERO_HASH = Hash(bytes(filledString(64, '0'.toByte())))
+  val ALL_ZERO_HASH = Hash(Bytes.from(filledString(64, '0'.toByte())))
 
   val RPC_USER = "user"
   val RPC_PASSWORD = "pleasechangethispassword123@.@"
