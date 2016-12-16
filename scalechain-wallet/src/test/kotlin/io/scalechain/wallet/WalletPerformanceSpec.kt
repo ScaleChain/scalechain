@@ -25,6 +25,7 @@ import java.util.*
   */
 @RunWith(KTestJUnitRunner::class)
 class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestInterface, Matchers {
+  val TEST_LOOP_COUNT = 1000
 
   override val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")
 
@@ -102,8 +103,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
   }
 
   init {
-    val TEST_LOOP_COUNT = 1000
-/*
+
     "encoding/decoding key/value".config(ignored=true) should "measure performance" {
       val data = BlockSampleData(db)
 
@@ -135,7 +135,6 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
         totalSize
       }
 
-
       var prefixSum = 0
       measureWithSize(TEST_LOOP_COUNT, "decode hash") {
         var totalSize = 0
@@ -144,7 +143,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
 
           //val rawPrefix = prefixedRawHash.take(1)
           val rawHash = prefixedRawHash.drop(1).toByteArray()
-          prefixSum += HashCodec.decode(rawHash)!!.value[0].toInt()
+          prefixSum += HashCodec.decode(rawHash)!!.value.array[0].toInt()
           totalSize += prefixedRawHash.size
         }
 
@@ -183,6 +182,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
 
     }
 
+/*
     "single thread perf test" should "measure performance for mining blocks" {
       val data = BlockSampleData(db)
 
@@ -292,6 +292,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
       println("transactions in the block : ${minedBlockOption!!.transactions.size}")
     }
 */
+      /*
     "single thread perf test".config(ignored=true) should "measure performance by adding transactions to the pool" {
       val data = BlockSampleData(db)
 
@@ -328,7 +329,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
         }
       }
     }
-
+*/
 /*
     "multi thread perf test".config(ignored=true) should "measure performance by adding transactions to the pool"  {
       val data = BlockSampleData(db)

@@ -98,8 +98,8 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
 
      */
 
-    "signTransaction".config(ignored = true) should "sign successfully with the private keys argument if the wallet has required private keys" {
-      WalletSampleData(db, wallet)
+    "signTransaction" should "sign successfully with the private keys argument if the wallet has required private keys" {
+      // val S = WalletSampleData(db, wallet)
 
       // TODO : Implement
     }
@@ -207,7 +207,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
     "getTransactionHashes(Some(account))" should "return transaction hashes for an account" {
       val S = WalletSampleData(db, wallet)
 
-      wallet.getTransactionHashes(db, "Alice") shouldBe setOf(
+      wallet.getTransactionHashes(db, "Alice").toSet() shouldBe setOf(
         S.S1_AliceGenTxHash,
         S.S2_AliceToBobTxHash,
         S.S3_BobToAliceAndCarrayTxHash,
@@ -215,13 +215,13 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         S.S5_CarryMergeToAliceTxHash
       )
 
-      wallet.getTransactionHashes(db, "Bob") shouldBe setOf(
+      wallet.getTransactionHashes(db, "Bob").toSet() shouldBe setOf(
         S.S2_BobGenTxHash,
         S.S2_AliceToBobTxHash,
         S.S3_BobToAliceAndCarrayTxHash
       )
 
-      wallet.getTransactionHashes(db, "Carry") shouldBe setOf(
+      wallet.getTransactionHashes(db, "Carry").toSet() shouldBe setOf(
         S.S3_CarryGenTxHash,
         S.S3_BobToAliceAndCarrayTxHash,
         S.S4_AliceToCarryTxHash,
@@ -229,8 +229,8 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       )
     }
 
-
-    "getWalletTransactions(null)".config(ignored=true) should "return all wallet transactions for all accounts" {
+/*
+    "getWalletTransactions(null)" should "return all wallet transactions for all accounts" {
       // TODO : Implement
       object : WalletSampleData(db, wallet) {
         override fun onStepFinish(stepNumber : Int): Unit {
@@ -254,8 +254,10 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         }
       }
     }
+*/
 
-    "getWalletTransactions(Some(account))".config(ignored=true) should "return wallet transactions for an account" {
+/*
+    "getWalletTransactions(Some(account))" should "return wallet transactions for an account" {
 
       // TODO : Implement
 
@@ -265,7 +267,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       wallet.getWalletTransactions(db, "Bob") shouldBe setOf(1)
       wallet.getWalletTransactions(db, "Carry") shouldBe setOf(1)
     }
-
+*/
 
     fun tx(blockIndexOption : Long?, txIndexOption : Int?, addedTime : Long) : WalletTransaction {
       return WalletTransaction(
@@ -335,7 +337,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       txDesc.amount shouldBe java.math.BigDecimal(50)
       txDesc.vout shouldBe S.S1_AliceGenCoin_A50.outPoint.outputIndex
       txDesc.fee shouldBe java.math.BigDecimal(-1)
-      txDesc.confirmations shouldBe 2
+      txDesc.confirmations shouldBe 2L
       txDesc.generated shouldBe null
       txDesc.blockhash shouldBe S.S2_BlockHash
       txDesc.txid shouldBe S.S2_AliceToBobTxHash
@@ -380,7 +382,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       txDesc.amount shouldBe java.math.BigDecimal(10)
       txDesc.vout shouldBe S.S2_BobCoin1_A10.outPoint.outputIndex
       txDesc.fee shouldBe java.math.BigDecimal(-1)
-      txDesc.confirmations shouldBe 2
+      txDesc.confirmations shouldBe 2L
       txDesc.generated shouldBe null
       txDesc.blockhash shouldBe S.S2_BlockHash
       txDesc.blockindex shouldBe S.S2_BlockHeight
@@ -401,7 +403,8 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       ) shouldBe null // need to update
     }
 
-    "listTransactions(null, includeWatchOnly=false)".config(ignored=true) should "return no transaction" {
+/*
+    "listTransactions(null, includeWatchOnly=false)" should "return no transaction" {
       // TODO : Implement
 
       val S = WalletSampleData(db, wallet)
@@ -417,8 +420,10 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         false//includeWatchOnly
       ) shouldBe listOf(1) // TODO : Update with actual result.
     }
+*/
 
-    "listTransactions(null, includeWatchOnly=true)".config(ignored=true) should "return all transactions" {
+/*
+    "listTransactions(null, includeWatchOnly=true)" should "return all transactions" {
       // TODO : Implement
 
       object : WalletSampleData(db, wallet) {
@@ -478,8 +483,10 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         }
       }
     }
+*/
 
-    "listTransactions(Some(account), includeWatchOnly=true)".config(ignored = true) should "return all transactions for an account" {
+/*
+    "listTransactions(Some(account), includeWatchOnly=true)" should "return all transactions for an account" {
       // TODO : Implement
 
       val S = WalletSampleData(db, wallet)
@@ -512,6 +519,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       ) shouldBe listOf(1) // TODO : Update with actual result.
 
     }
+*/
 
     fun walletOutputWithInfo(output : OutputWithOutPoint, blockHeightOption : Long?, coinbase : Boolean, spent : Boolean) : WalletOutputWithInfo {
       return WalletOutputWithInfo(
@@ -524,7 +532,6 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         )
       )
     }
-
     ////////////////////////////////////////////////////////////////////////////////
     // Methods for listunspent RPC
     ////////////////////////////////////////////////////////////////////////////////
@@ -659,11 +666,11 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       utxoDesc.scriptPubKey shouldBe hex(S.S3_CarrayGenCoin_A50.output.lockingScript.data.array)
       utxoDesc.redeemScript shouldBe null
       utxoDesc.amount shouldBe java.math.BigDecimal(50L)
-      utxoDesc.confirmations shouldBe 1
+      utxoDesc.confirmations shouldBe 1L
       utxoDesc.spendable shouldBe false // because of coinbase maturity
     }
 
-    "getUnspentCoinDescription".config(ignored=true) should "return the description of the UTXO for generation transaction(spendable=true)" {
+    "getUnspentCoinDescription" should "return the description of the UTXO for generation transaction(spendable=true)" {
       // TODO : Implement
     }
 
@@ -691,7 +698,7 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
       utxoDesc.scriptPubKey shouldBe hex(S.S2_AliceChangeCoin1_A39.output.lockingScript.data.array)
       utxoDesc.redeemScript shouldBe null
       utxoDesc.amount shouldBe java.math.BigDecimal(39L)
-      utxoDesc.confirmations shouldBe 2
+      utxoDesc.confirmations shouldBe 2L
       utxoDesc.spendable shouldBe true
     }
 
@@ -718,24 +725,24 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         override fun onStepFinish(stepNumber : Int): Unit {
           when(stepNumber) {
             1 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 2
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 1
+              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 2L
+              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 1L
             }
             2 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 3
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 2
+              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 3L
+              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 2L
             }
             3 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3
+              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
             }
             4 -> { // no block is created for step 4
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3
+              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
             }
             5 -> { // no block is created for step 4
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3
+              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
             }
           }
         }
@@ -836,12 +843,12 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
     // Methods for importaddress RPC
     ////////////////////////////////////////////////////////////////////////////////
 
-    "importOutputOwnership(rescan=true)".config(ignored=true) should "rescan current blockchain"  {
+    "importOutputOwnership(rescan=true)" should "rescan current blockchain"  {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
 
-    "importOutputOwnership(rescan=false)".config(ignored=true) should "should not rescan the current blockchain" {
+    "importOutputOwnership(rescan=false)" should "should not rescan the current blockchain" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
@@ -921,38 +928,38 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
     // Handlers called by Chain layer.
     ////////////////////////////////////////////////////////////////////////////////
 
-    "registerTransaction".config(ignored=true) should "ignore transactions that are not related to addresses of an account"  {
+    "registerTransaction" should "ignore transactions that are not related to addresses of an account"  {
       //val S = ChainSampleData(db, null)
       // wallet.registerTransaction(listOf(), S.S1_AliceGenTx, null, null)
       // TODO : Implement
     }
 
-    "registerTransaction".config(ignored=true) should "" {
+    "registerTransaction" should "" {
       //val S = ChainSampleData(db, null)
       // TODO : Implement
     }
 
-    "unregisterTransaction".config(ignored=true) should "" {
+    "unregisterTransaction" should "" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
 
-    "onNewTransaction".config(ignored=true) should "" {
+    "onNewTransaction" should "" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
 
-    "onRemoveTransaction".config(ignored=true) should "" {
+    "onRemoveTransaction" should "" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
 
-    "onNewBlock".config(ignored=true) should "" {
+    "onNewBlock" should "" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }
 
-    "onRemoveBlock".config(ignored=true) should "" {
+    "onRemoveBlock" should "" {
       //val S = WalletSampleData(db, wallet)
       // TODO : Implement test case
     }

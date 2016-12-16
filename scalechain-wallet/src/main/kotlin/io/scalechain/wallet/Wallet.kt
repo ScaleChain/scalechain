@@ -108,11 +108,11 @@ class Wallet() : ChainEventListener {
     *
     * @param accountOption The account to get transactions related to an account
     */
-  // BUGBUG : Use list instead of Set? To eliminate duplicate transaction hashes, are we using Set? Need investigation.
   internal fun getTransactionHashes(db : KeyValueDatabase, accountOption : String?) : List<Hash> {
     return store.getOutputOwnerships(db, accountOption).flatMap { ownership : OutputOwnership ->
       store.getTransactionHashes(db, ownership)
-    }
+    }.toSet().toList() // Need to eliminate duplicate transaction hashes.
+    // Ex> When a transaction is related to two output ownerships in an account, it is listed twice after the flatMap.
   }
 
 
@@ -321,7 +321,9 @@ class Wallet() : ChainEventListener {
     // TODO : Use RocksDB Snapshot to see consistent data.
     // 1. Get transactions
     val transactions: List<WalletTransaction> = getWalletTransactions(db, accountOption)
-
+    transactions.forEach { tx ->
+      println("tx.hash : ${tx.transaction.hash()} blockIndex : ${tx.blockIndex}, transactionIndex : ${tx.transactionIndex}")
+    }
     // 2. Sort transactions by recency in descending order. Recent transactions come first. (newest to oldest)
     val recentTransactions: List<WalletTransaction> = transactions.sortedWith(WalletTransactionComparatorInDescendingOrder)
 

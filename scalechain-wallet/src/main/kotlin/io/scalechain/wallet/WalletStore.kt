@@ -186,17 +186,19 @@ class WalletStore {
   fun getOutputOwnerships(db : KeyValueDatabase, accountOption : String?) : List<OutputOwnership>{
     return (
       if (accountOption == null) {
-        db.seekPrefixedObject(OutputOwnershipCodec, OneByteCodec, OWNERSHIPS).use { iterator -> iterator.asSequence() }
+        db.seekPrefixedObject(OutputOwnershipCodec, OneByteCodec, OWNERSHIPS)
       } else {
-        db.seekPrefixedObject(OutputOwnershipCodec, OneByteCodec, OWNERSHIPS, accountOption).use { iterator -> iterator.asSequence() }
+        db.seekPrefixedObject(OutputOwnershipCodec, OneByteCodec, OWNERSHIPS, accountOption)
       }
       // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-    ).map{ pair ->
-      //case (CStringPrefixed(_, ownership : OutputOwnership), _) => ownership
-      val cstringPrefixedKey = pair.first
-      val ownership = cstringPrefixedKey.data
-      ownership
-    }.toList()
+    ).use { iterator ->
+      iterator.asSequence().map{ pair ->
+        //case (CStringPrefixed(_, ownership : OutputOwnership), _) => ownership
+        val cstringPrefixedKey = pair.first
+        val ownership = cstringPrefixedKey.data
+        ownership
+      }.toList()
+    }
   }
 
   /** Get an iterator private keys for an address or all accounts.
@@ -302,16 +304,18 @@ class WalletStore {
     return (
       if (outputOwnershipOption == null) {
         // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-        db.seekPrefixedObject(HashCodec, OneByteCodec, TXHASHES).use { it.asSequence().toList() }
+        db.seekPrefixedObject(HashCodec, OneByteCodec, TXHASHES)
       } else {
-        db.seekPrefixedObject(HashCodec, OneByteCodec, TXHASHES, outputOwnershipOption.stringKey()).use { it.asSequence().toList() }
+        db.seekPrefixedObject(HashCodec, OneByteCodec, TXHASHES, outputOwnershipOption.stringKey())
       }
-    ).map{ pair ->
-      //case (CStringPrefixed(_, hash : Hash), _) => hash
-      val cstringPrefixedKey = pair.first
-      val hash = cstringPrefixedKey.data
-      hash
-    }.toList()
+    ).use { iterator ->
+      iterator.asSequence().map{ pair ->
+        //case (CStringPrefixed(_, hash : Hash), _) => hash
+        val cstringPrefixedKey = pair.first
+        val hash = cstringPrefixedKey.data
+        hash
+      }.toList()
+    }
   }
 
   /*******************************************************************************************************
@@ -350,16 +354,18 @@ class WalletStore {
     return (
       if (outputOwnershipOption == null) {
         // seekPrefixedObject returns (key, value) pairs, whereas we need the value only. map the pair to the value(2nd).
-        db.seekPrefixedObject(OutPointCodec, OneByteCodec, OUTPOINTS).use { it.asSequence() }
+        db.seekPrefixedObject(OutPointCodec, OneByteCodec, OUTPOINTS)
       } else {
-        db.seekPrefixedObject(OutPointCodec, OneByteCodec, OUTPOINTS, outputOwnershipOption.stringKey()).use { it.asSequence() }
+        db.seekPrefixedObject(OutPointCodec, OneByteCodec, OUTPOINTS, outputOwnershipOption.stringKey())
       }
-    ).map{ pair ->
-      // case (CStringPrefixed(_, outPoint : OutPoint), _) => outPoint
-      val cstringPrefixedKey = pair.first
-      val outPoint = cstringPrefixedKey.data
-      outPoint
-    }.toList()
+    ).use {
+      it.asSequence().map { pair ->
+        // case (CStringPrefixed(_, outPoint : OutPoint), _) => outPoint
+        val cstringPrefixedKey = pair.first
+        val outPoint = cstringPrefixedKey.data
+        outPoint
+      }.toList()
+    }
   }
 
   /*******************************************************************************************************

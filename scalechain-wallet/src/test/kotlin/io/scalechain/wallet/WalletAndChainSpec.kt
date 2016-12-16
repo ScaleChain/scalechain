@@ -76,26 +76,25 @@ class WalletAndChainSpec : WalletTestTrait(), Matchers {
 
 
       chain.putBlock(db, B.BLK01.header.hash(), B.BLK01) // chain work = 4
-      listTransactionHashes().toSet() shouldBe setOf(
-        T.GEN01
-      ).map{ it.transaction.hash() }
+      listTransactionHashes().toSet() shouldBe setOf( T.GEN01.transaction.hash() )
 
       listPoolTransactionHashes().toSet() shouldBe setOf<Hash>()
 
       chain.putBlock(db, B.BLK02.header.hash(), B.BLK02) // chain work = 4 + 4
-      listTransactionHashes().toSet() shouldBe setOf(
+      listTransactionHashes().toSet() shouldBe listOf(
         T.GEN01,
         T.GEN02, T.TX02
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
       listPoolTransactionHashes().toSet() shouldBe setOf<Hash>()
 
 
       chain.putBlock(db, B.BLK03a.header.hash(), B.BLK03a) // chain work = 4 + 4 + 4
-      listTransactionHashes().toSet() shouldBe setOf(
+      listTransactionHashes().toSet() shouldBe listOf(
         T.GEN01,
         T.GEN02, T.TX02,
         T.GEN03a, T.TX03, T.TX03a
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
+
       listPoolTransactionHashes().toSet() shouldBe setOf<Hash>()
 
 
@@ -105,7 +104,8 @@ class WalletAndChainSpec : WalletTestTrait(), Matchers {
         T.GEN01,
         T.GEN02, T.TX02,
         T.GEN03a, T.TX03, T.TX03a
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
+
       listPoolTransactionHashes().toSet() shouldBe setOf<Hash>()
 
 
@@ -115,7 +115,8 @@ class WalletAndChainSpec : WalletTestTrait(), Matchers {
         T.GEN02, T.TX02,
         T.GEN03a, T.TX03, T.TX03a,
         T.GEN04a, T.TX04, T.TX04a
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
+
       listPoolTransactionHashes().toSet() shouldBe setOf<Hash>()
 
 
@@ -126,7 +127,8 @@ class WalletAndChainSpec : WalletTestTrait(), Matchers {
         T.GEN03b, T.TX03, T.TX03b,
         T.GEN04b, T.TX04, T.TX04b, T.TX04b2,
         T.TX04a // T.TX04a does not conflict with T.TX04b
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
+
       listPoolTransactionHashes().toSet() shouldBe setOf(T.TX04a.transaction.hash())
 
       chain.putBlock(db, B.BLK05a.header.hash(), B.BLK05a) // chain work = 4 + 4 + 4 + 4 + 8, block reorg should happen again.
@@ -140,7 +142,8 @@ class WalletAndChainSpec : WalletTestTrait(), Matchers {
         // T.TX04b can't go into the transaction pool when the B.BLK04a becomes the best block,
         // as it depends on the output T.GEN03b created on the branch b.
         T.TX04b2 // T.TX04b2 do not conflict with other transactions.
-      ).map{ it.transaction.hash() }
+      ).map{ it.transaction.hash() }.toSet()
+
       // T.TX04b2 goes to the transaction pool, as it depends on the unpent output, (T.TX02,2)
       listPoolTransactionHashes().toSet() shouldBe setOf(T.TX04b2.transaction.hash())
     }

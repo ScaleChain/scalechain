@@ -27,6 +27,7 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
   abstract val db : KeyValueDatabase
 
   open fun generateAccountAddress(account:String) : AddressData {
+    assert( db != null )
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     return addressData

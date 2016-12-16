@@ -31,7 +31,8 @@ import io.scalechain.blockchain.script.hash
   *     ↘       ↘
   *       ↘ → → → → TX04
   */
-open class BlockSampleData(override val db : KeyValueDatabase) : AbstractBlockBuildingTest() {
+open class BlockSampleData(val keyValueDB : KeyValueDatabase) : AbstractBlockBuildingTest() {
+  override val db : KeyValueDatabase = keyValueDB
 
   val Addr1 = generateAccountAddress("Address1") // address 1
   val Addr2 = generateAccountAddress("Address2") // address 2
@@ -161,6 +162,7 @@ open class BlockSampleData(override val db : KeyValueDatabase) : AbstractBlockBu
     val BLK01  = doMining( newBlock(env().GenesisBlockHash,  listOf(Tx.GEN01)), 4)
     // BUGBUG : Need to spend the outputs of GEN01 after the coinbase maturity (=two confirmations in the testnet) is met.
     val BLK02  = doMining( newBlock(BLK01.header.hash(),     listOf(Tx.GEN02, Tx.TX02)), 4)
+
     val BLK03a = doMining( newBlock(BLK02.header.hash(),     listOf(Tx.GEN03a, Tx.TX03, Tx.TX03a)), 4)
     val BLK04a = doMining( newBlock(BLK03a.header.hash(),    listOf(Tx.GEN04a, Tx.TX04, Tx.TX04a)), 4)
     val BLK05a = doMining( newBlock(BLK04a.header.hash(),    listOf(Tx.GEN05a, Tx.TX05a)), 8)

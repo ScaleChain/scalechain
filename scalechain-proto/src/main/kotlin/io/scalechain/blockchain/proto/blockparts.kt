@@ -30,14 +30,6 @@ data class Hash(val value : Bytes) : Transcodable, Comparable<Hash> {
 
     override fun toString() = """Hash("${HexUtil.hex(value.array)}")"""
 
-    override fun equals(other : Any?) : Boolean {
-        when {
-            other == null -> return false
-            other is Hash -> return this.compareTo(other) == 0
-            else -> return false
-        }
-    }
-
     override operator fun compareTo(other : Hash): Int {
         val value1 = Utils.bytesToBigInteger(this.value.array)
         val value2 = Utils.bytesToBigInteger(other.value.array)

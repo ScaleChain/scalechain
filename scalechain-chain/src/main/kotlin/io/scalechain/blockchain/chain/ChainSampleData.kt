@@ -60,10 +60,29 @@ class TestBlockIndex : BlockIndex {
 /**
   * A blockchain sample data for testing purpose only.
   */
-open class ChainSampleData(override val db : KeyValueDatabase, private val chainEventListener: ChainEventListener?) : AbstractBlockBuildingTest() {
-
+open class ChainSampleData(override val db : KeyValueDatabase, protected val chainEventListener: ChainEventListener?) : AbstractBlockBuildingTest() {
   // create an environment before creating account addresses
   private val __env = env()
+
+  inner class TestBlockchainViewClass : BlockchainView {
+    override fun getTransactionOutput(db : KeyValueDatabase, outPoint : OutPoint) : TransactionOutput {
+      return availableOutputs.getTransactionOutput(db, outPoint)
+    }
+    override fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock> {
+      // unused.
+      throw UnsupportedOperationException()
+    }
+    override fun getBestBlockHeight() : Long {
+      return blockIndex.bestBlockHeight
+    }
+
+    override fun getTransaction(db : KeyValueDatabase, transactionHash : Hash) : Transaction? {
+      return blockIndex.getTransaction( db, transactionHash )
+    }
+  }
+
+  val TestBlockchainView = TestBlockchainViewClass()
+
   private val blockIndex = TestBlockIndex()
 
   inner class AliceClass {
@@ -83,25 +102,6 @@ open class ChainSampleData(override val db : KeyValueDatabase, private val chain
     val Addr2 = generateAccountAddress("Carry") // for receiving changes
   }
   val Carry = CarryClass()
-
-
-  inner class TestBlockchainViewClass : BlockchainView {
-    override fun getTransactionOutput(db : KeyValueDatabase, outPoint : OutPoint) : TransactionOutput {
-      return availableOutputs.getTransactionOutput(db, outPoint)
-    }
-    override fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock> {
-      // unused.
-      throw UnsupportedOperationException()
-    }
-    override fun getBestBlockHeight() : Long {
-      return blockIndex.bestBlockHeight
-    }
-
-    override fun getTransaction(db : KeyValueDatabase, transactionHash : Hash) : Transaction? {
-      return blockIndex.getTransaction( db, transactionHash )
-    }
-  }
-  val TestBlockchainView = TestBlockchainViewClass()
 
 
   /** Add all outputs in a transaction into an output set.

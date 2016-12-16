@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ProtocolCodecException
-import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.Bytes
 import java.nio.charset.StandardCharsets
 
 import io.scalechain.crypto.HashFunctions
@@ -29,38 +29,25 @@ import java.util.*
  */
 
 
-data class Checksum(val value : ByteArray) {
+data class Checksum(val value : Bytes) {
     init {
-        assert(value.size == Checksum.VALUE_SIZE)
+        assert(value.array.size == Checksum.VALUE_SIZE)
     }
 
-  override fun toString() = "Checksum(${HexUtil.kotlinHex(value)})"
-
-  // TODO : Add test cases
-  override fun equals(other : Any?) : Boolean {
-    when {
-      other == null -> return false
-      other is Checksum -> return Arrays.equals(this.value, other.value)
-      else -> return false
-    }
-  }
-
-  override fun hashCode() : Int {
-    return Arrays.hashCode(value)
-  }
+  override fun toString() = "Checksum(${HexUtil.kotlinHex(value.array)})"
 
   companion object {
       val VALUE_SIZE = 4
 
-      fun fromHex(hexString : String) = Checksum(HexUtil.bytes(hexString))
+      fun fromHex(hexString : String) = Checksum(Bytes.from(hexString))
   }
 }
 
 object ChecksumCodec : Codec<Checksum> {
     override fun transcode(io: CodecInputOutputStream, obj: Checksum?): Checksum? {
-        val value = Codecs.fixedByteArray(Checksum.VALUE_SIZE).transcode(io, obj?.value)
+        val value = Codecs.fixedByteArray(Checksum.VALUE_SIZE).transcode(io, obj?.value?.array)
         if (io.isInput) {
-            return Checksum(value!!)
+            return Checksum(Bytes(value!!))
         }
 
         return null
@@ -68,24 +55,11 @@ object ChecksumCodec : Codec<Checksum> {
 }
 
 
-data class Magic(val value : ByteArray) {
+data class Magic(val value : Bytes) {
   init {
-    assert(value.size == Magic.VALUE_SIZE )
+    assert(value.array.size == Magic.VALUE_SIZE )
   }
-  override fun toString() = "Magic(${HexUtil.kotlinHex(value)})"
-
-  // TODO : Add test cases
-  override fun equals(other : Any?) : Boolean {
-    when {
-      other == null -> return false
-      other is Magic -> return Arrays.equals(this.value, other.value)
-      else -> return false
-    }
-  }
-
-  override fun hashCode() : Int {
-    return Arrays.hashCode(value)
-  }
+  override fun toString() = "Magic(${HexUtil.kotlinHex(value.array)})"
 
   companion object {
         val VALUE_SIZE = 4
@@ -95,7 +69,7 @@ data class Magic(val value : ByteArray) {
         val TESTNET3 = fromHex("0709110B")
         val NAMECOIN = fromHex("FEB4BEF9")
 
-        fun fromHex(hexString : String) = Magic(HexUtil.bytes(hexString))
+        fun fromHex(hexString : String) = Magic(Bytes.from(hexString))
 /*
         val codec: Codec<Magic> = bytes(VALUE_SIZE).xmap(
             b => Magic.apply(b.reverse.toArray),
@@ -106,9 +80,9 @@ data class Magic(val value : ByteArray) {
 
 object MagicCodec : Codec<Magic> {
     override fun transcode(io: CodecInputOutputStream, obj: Magic?): Magic? {
-        val value = Codecs.fixedReversedByteArray(Magic.VALUE_SIZE).transcode(io, obj?.value)
+        val value = Codecs.fixedReversedByteArray(Magic.VALUE_SIZE).transcode(io, obj?.value?.array)
         if (io.isInput) {
-            return Magic(value!!)
+            return Magic(Bytes(value!!))
         }
 
         return null
@@ -136,7 +110,7 @@ data class BitcoinMessageEnvelope(
         // OPTIMIZE : Directly calculate hash from the BitVector
         val hash = HashFunctions.hash256(buffer, offset, length)
 
-        return Checksum(hash.value.array.copyOfRange(0,Checksum.VALUE_SIZE))
+        return Checksum(Bytes(hash.value.array.copyOfRange(0,Checksum.VALUE_SIZE)))
       }
 
       fun build(protocol:NetworkProtocol, message:ProtocolMessage) : BitcoinMessageEnvelope {
