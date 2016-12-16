@@ -74,7 +74,7 @@ data class RpcParams(val paramValues:List<JsonElement>) {
             throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.message!!)
           }
         } else {
-          return null
+          throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, "Expected an array on the parameter ${name}")
         }
 // throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, e.getMessage)
       }

@@ -303,7 +303,7 @@ class RpcParamsSpec : FlatSpec(), Matchers {
       thrown.code shouldBe ErrorCode.RpcParameterTypeConversionFailure
     }
 
-    "getList" should "throw an exception if the parameter is not an JsArray" {
+    "getList" should "throw an RpcException with RpcMissingRequiredParameter if the parameter is not an JsArray" {
       val arguments = listOf( // array of parameters
         JsonPrimitive("foo") // the first parameter is NOT an array
       )
