@@ -7,8 +7,6 @@ import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.net.*
 import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.storage.*
-import io.scalechain.blockchain.storage.index.CachedRocksDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.PeerAddress
@@ -19,6 +17,7 @@ import org.apache.log4j.PropertyConfigurator
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
 import io.scalechain.blockchain.cli.command.CommandExecutor
+import io.scalechain.blockchain.storage.index.DatabaseFactory
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
@@ -189,6 +188,8 @@ object ScaleChainPeer {
     return peerCommunicator
   }
 
+  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./target/blockstorage-${p2pInboundPort}")
+
   /** Initialize sub-moudles from the lower layer to the upper layer.
     *
     * @param params The command line parameter of ScaleChain.
@@ -208,10 +209,10 @@ object ScaleChainPeer {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = File("./target/blockstorage-${params.p2pInboundPort}")
+    val blockStoragePath = blockStoragePath(params.p2pInboundPort)
     Storage.initialize()
 
-    val db : RocksDatabase = CachedRocksDatabase(blockStoragePath)
+    val db : KeyValueDatabase = DatabaseFactory.create(blockStoragePath)
 
 
     val storage: BlockStorage =

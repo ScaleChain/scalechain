@@ -48,22 +48,11 @@ class KeyValueIterator(private val rocksIterator : RocksIterator) : ClosableIter
 open class RocksDatabase(path : File) : KeyValueDatabase {
   private val logger = LoggerFactory.getLogger(RocksDatabase::class.java)
 
-
-  fun beginTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
-  fun commitTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
-  fun abortTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
-
   val dbAbsolutePath = path.getAbsolutePath()
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  protected var options =
+  private var options =
     Options()
       .setCreateIfMissing(true)
       .setCreateMissingColumnFamilies(true)
@@ -112,8 +101,9 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
   // This is necessary to use the same database for block/transaction storage and wallet storage.
 
 
-  var db : RocksDB? = RocksDB.open(options, dbAbsolutePath)
+  private var db : RocksDB? = RocksDB.open(options, dbAbsolutePath)
 
+  fun getDb() = db!!
 
   /** Seek a key greater than or equal to the given key.
     * Return an iterator which iterates each (key, value) pair from the seek position.
@@ -158,6 +148,13 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
     db!!.remove(key)
   }
 
+  /**
+   * Create a new transacting db that supports transaction commit/abort operations.
+   */
+  override fun transacting() : TransactingKeyValueDatabase {
+    return TransactingRocksDatabase(this)
+  }
+
   override fun close() : Unit {
 //    logger.info("Closing RocksDB.")
     fun getHistogram(histogramType : HistogramType) : String {
@@ -165,18 +162,18 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
       return "Average: ${histo.getAverage()}, Median: ${histo.getMedian()}, 95%: ${histo.getPercentile95()}, 99%: ${histo.getPercentile99()}, Standard Deviation: ${histo.getStandardDeviation()}"
     }
 
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, WRITE_STALL : ${getHistogram(HistogramType.WRITE_STALL)}")
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, DB_WRITE : ${getHistogram(HistogramType.DB_WRITE)}")
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, WAL_FILE_SYNC_MICROS : ${getHistogram(HistogramType.WAL_FILE_SYNC_MICROS)}")
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_SLOWDOWN_COUNT : ${getHistogram(HistogramType.STALL_L0_SLOWDOWN_COUNT)}")
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_MEMTABLE_COMPACTION_COUNT : ${getHistogram(HistogramType.STALL_MEMTABLE_COMPACTION_COUNT)}")
-    logger.warn("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_NUM_FILES_COUNT : ${getHistogram(HistogramType.STALL_L0_NUM_FILES_COUNT)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, WRITE_STALL : ${getHistogram(HistogramType.WRITE_STALL)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, DB_WRITE : ${getHistogram(HistogramType.DB_WRITE)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, WAL_FILE_SYNC_MICROS : ${getHistogram(HistogramType.WAL_FILE_SYNC_MICROS)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_SLOWDOWN_COUNT : ${getHistogram(HistogramType.STALL_L0_SLOWDOWN_COUNT)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_MEMTABLE_COMPACTION_COUNT : ${getHistogram(HistogramType.STALL_MEMTABLE_COMPACTION_COUNT)}")
+    logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_NUM_FILES_COUNT : ${getHistogram(HistogramType.STALL_L0_NUM_FILES_COUNT)}")
 
     if (db != null) {
 
       db!!.close()
       options.close()
-  //      bloomFilter.close
+      //      bloomFilter.close
     }
 
     db = null

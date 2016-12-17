@@ -11,10 +11,9 @@ import org.junit.runner.RunWith
 /**
   * Created by kangmo on 11/2/15.
   */
-// This test fails if it runs with sbt.
-// https://github.com/eligosource/eventsourced/wiki/Installation#native
+/*
 @RunWith(KTestJUnitRunner::class)
-class LevelDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
+class LevelDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
   val testPath = File("./target/unittests-LevelDatabaseSpec")
 
@@ -41,5 +40,5 @@ class LevelDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   }
 
 }
-
+*/
 

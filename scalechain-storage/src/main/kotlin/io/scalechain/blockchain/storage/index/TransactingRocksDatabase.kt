@@ -1,22 +1,13 @@
 package io.scalechain.blockchain.storage.index
 
-import java.io.File
-import java.nio.ByteBuffer
-
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.GeneralException
-import io.scalechain.util.HexUtil
-import io.scalechain.util.ArrayUtil
 import io.scalechain.util.Bytes
-//import io.scalechain.util.Using.
-import org.rocksdb.RocksDB
 import org.rocksdb.WriteOptions
 import org.rocksdb.WriteBatchWithIndex
 
 /**
   * RocksDB with transaction support. This class is not thread-safe.
   */
-class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabase {
+class TransactingRocksDatabase(private val db : RocksDatabase) : TransactingKeyValueDatabase {
 
   var writeBatch : WriteBatchWithIndex? = null
 
@@ -26,7 +17,7 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
   /**
     * Begin a database transaction.
     */
-  fun beginTransaction() : Unit {
+  override fun beginTransaction() : Unit {
     assert(writeBatch == null)
     writeBatch = WriteBatchWithIndex(true)
     putCache = mutableMapOf<Bytes, ByteArray>()
@@ -36,7 +27,7 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
   /**
     * Commit the database transaction began.
     */
-  fun commitTransaction() : Unit {
+  override fun commitTransaction() : Unit {
     assert(writeBatch != null)
 /*
     putCache foreach { case (key, value) =>
@@ -48,11 +39,10 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
 */
     //    println(s"Committing a transaction. Write count : ${writeBatch.count}")
     val writeOptions = WriteOptions()
-    // BUGBUG : Need to set to true?
-    writeOptions.setSync(false)
+    writeOptions.setSync(true)
     //writeOptions.setDisableWAL(true)
 
-    db.db!!.write(writeOptions, writeBatch)
+    db.getDb().write(writeOptions, writeBatch)
 
     writeBatch = null
     putCache = null
@@ -62,7 +52,7 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
   /**
     * Abort the database transaction began.
     */
-  fun abortTransaction() : Unit {
+  override fun abortTransaction() : Unit {
     assert(writeBatch != null)
 //    println(s"Aborting a transaction. Write count : ${writeBatch.count}")
     writeBatch = null
@@ -74,9 +64,9 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : KeyValueDatabas
   override fun seek(keyOption : ByteArray? ) : ClosableIterator<Pair<ByteArray, ByteArray>> {
     val rocksIterator =
       if (writeBatch!= null)
-        writeBatch!!.newIteratorWithBase( db.db!!.newIterator() )
+        writeBatch!!.newIteratorWithBase( db.getDb().newIterator() )
       else
-        db.db!!.newIterator()
+        db.getDb().newIterator()
 
     return db.seek(rocksIterator, keyOption)
   }

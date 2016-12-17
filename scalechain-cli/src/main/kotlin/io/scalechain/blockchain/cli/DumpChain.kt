@@ -10,10 +10,10 @@ import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.script.ops.*
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.GenesisBlock
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil
@@ -119,7 +119,7 @@ object DumpChain {
     val blockStoragePath = File("./target/tempblockstorage/")
     blockStoragePath.mkdir()
 
-    val db = RocksDatabase(blockStoragePath)
+    val db = DatabaseFactory.create(blockStoragePath)
     val storage = DiskBlockStorage(db, blockStoragePath, DISK_BLOCK_FILE_SIZE)
     val chain = Blockchain.create(db, storage)
     BlockProcessor.create(chain)

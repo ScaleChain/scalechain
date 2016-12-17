@@ -1,10 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import java.io.File
-
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.ChainException
@@ -15,7 +11,6 @@ import io.scalechain.blockchain.storage.*
 
 import io.scalechain.blockchain.transaction.*
 import org.slf4j.LoggerFactory
-import java.util.*
 
 
 class BlockchainLoader(private val db : KeyValueDatabase, private val chain:Blockchain, private val storage : BlockStorage) {
@@ -83,7 +78,7 @@ class BlockchainLoader(private val db : KeyValueDatabase, private val chain:Bloc
   * the block chain later when a block is created.
   *
   */
-class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : BlockchainView {
+class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) : BlockchainView {
   private val logger = LoggerFactory.getLogger(Blockchain::class.java)
 
   val txMagnet = TransactionMagnet(storage, txPoolIndex = storage, txTimeIndex = storage)
@@ -96,7 +91,7 @@ class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : B
   fun txDescIndex() : TransactionDescriptorIndex = storage
 
   fun<T> withTransaction( block : (KeyValueDatabase) -> T ) : T {
-    val transactingRocksDB = TransactingRocksDatabase(db)
+    val transactingRocksDB = db.transacting()
 
     transactingRocksDB.beginTransaction()
 
@@ -454,7 +449,7 @@ class Blockchain(val db : RocksDatabase, private val storage : BlockStorage) : B
 
   companion object {
     var theBlockchain : Blockchain? = null
-    fun create(db : RocksDatabase, storage : BlockStorage) : Blockchain {
+    fun create(db : KeyValueDatabase, storage : BlockStorage) : Blockchain {
       theBlockchain = Blockchain(db, storage)
 
       // Load any in memory structur required by the Blockchain class from the on-disk storage.

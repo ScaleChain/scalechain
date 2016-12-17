@@ -9,22 +9,19 @@ import io.scalechain.blockchain.storage.Storage
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class TransactingRocksDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
+class TransactingRocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
 
-  lateinit var rocksDB : RocksDatabase
   lateinit override var db : KeyValueDatabase
-  lateinit var txDb : TransactingRocksDatabase
+  lateinit var txDb : TransactingKeyValueDatabase
 
   override fun beforeEach() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    rocksDB = RocksDatabase(testPath)
-    txDb = TransactingRocksDatabase( rocksDB )
+    db = RocksDatabase(testPath)
+    txDb = db.transacting()
     txDb.beginTransaction()
-
-    db = txDb
 
     super.beforeEach()
   }

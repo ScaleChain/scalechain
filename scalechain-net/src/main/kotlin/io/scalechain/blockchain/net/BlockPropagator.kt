@@ -17,8 +17,8 @@ object BlockPropagator {
     // Put consensual header immediately in this case, as we have no peer nodes to have consensus on the mined block.
     if (Config.peerAddresses().size == 1) {
       BlockGateway.putConsensualHeader(block.header)
+    } else { // We have at least two nodes in the blockchain.
+      BlockBroadcaster.get().broadcastHeader(block.header)
     }
-
-    BlockBroadcaster.get().broadcastHeader(block.header)
   }
 }

@@ -6,8 +6,8 @@ import io.kotlintest.specs.FlatSpec
 import java.io.File
 
 import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.test.TestData.dummyHash
 import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
@@ -51,7 +51,7 @@ class OrphanBlockIndexSpec : FlatSpec(), Matchers {
     testPath.mkdir()
 
     index = object : OrphanBlockIndex {}
-    db = RocksDatabase( testPath )
+    db = DatabaseFactory.create( testPath )
 
     super.beforeEach()
   }

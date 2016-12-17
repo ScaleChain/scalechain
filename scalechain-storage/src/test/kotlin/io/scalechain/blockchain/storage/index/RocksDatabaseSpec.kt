@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
   */
 // Currently RocksDB crashes while seeking a key and iterating (key,value) pairs.
 @RunWith(KTestJUnitRunner::class)
-class RocksDatabaseKeyValueSpec : FlatSpec(), Matchers, DatabaseTestTraits {
+class RocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
   val testPath = File("./target/unittests-RocksDatabaseSpec")
 

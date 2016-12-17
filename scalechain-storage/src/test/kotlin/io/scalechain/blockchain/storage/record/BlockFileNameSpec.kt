@@ -1,21 +1,24 @@
 package io.scalechain.blockchain.storage.record
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import io.scalechain.blockchain.storage.Storage
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockFileNameSpec : FlatSpec(), Matchers {
   init {
     Storage.initialize()
 
     "apply" should "return formatted file names" {
-      BlockFileName("blk", 0) shouldBe "blk00000.dat"
-      BlockFileName("blk", 1) shouldBe "blk00001.dat"
-      BlockFileName("blk", 99999) shouldBe "blk99999.dat"
-      BlockFileName("blk", 100000) shouldBe "blk100000.dat"
+      BlockFileName("blk", 0).toString() shouldBe "blk00000.dat"
+      BlockFileName("blk", 1).toString() shouldBe "blk00001.dat"
+      BlockFileName("blk", 99999).toString() shouldBe "blk99999.dat"
+      BlockFileName("blk", 100000).toString() shouldBe "blk100000.dat"
     }
 
     "apply" should "hit an assertion if file number is less than 0" {

@@ -1,10 +1,14 @@
 package io.scalechain.blockchain.cli.mining
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.api.command.mining.SubmitBlock
 import io.scalechain.blockchain.api.command.rawtx.SendRawTransaction
+import io.scalechain.blockchain.api.command.rawtx.SignRawTransaction
+import io.scalechain.blockchain.api.command.rawtx.SignRawTransactionResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.StringListResult
 import io.scalechain.blockchain.api.domain.StringResult
@@ -12,11 +16,14 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.TransactionSampleData
 import io.scalechain.blockchain.cli.APITestSuite
 import io.scalechain.blockchain.net.handler.TxMessageHandler
+import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.script.hash
 import org.junit.runner.RunWith
 import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.blockchain.transaction.SignedTransaction
 import io.scalechain.util.HexUtil
+import io.scalechain.util.HexUtil.bytes
 import io.scalechain.util.HexUtil.hex
 
 /**
@@ -89,44 +96,47 @@ class SubmitBlockSpec : APITestSuite() {
 
     "SendRawTransaction" should "send a serialized transaction. (Without allowHighFees argument)" {
       val T = Data.Tx
-      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_01.transaction)))
+      val tx = T.TX04_01.transaction
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode( tx )))
       val response = invoke(SendRawTransaction, listOf( serializedTx ))
       val result = response.right()!! as StringResult
 
       // The result should have the transaction hash.
-      result.value shouldBe hex(T.TX04_01.transaction.hash().value.array)
+      result.value shouldBe hex(tx.hash().value.array)
     }
 
     "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument true)" {
       val T = Data.Tx
-      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_02.transaction)))
+      val tx = T.TX04_02.transaction
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(tx)))
       val response = invoke(SendRawTransaction, listOf( serializedTx, JsonPrimitive(true)))
       val result = response.right()!! as StringResult
 
       // The result should have the transaction hash.
-      result.value shouldBe hex(T.TX04_02.transaction.hash().value.array)
+      result.value shouldBe hex(tx.hash().value.array)
     }
 
     "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument false)" {
       val T = Data.Tx
-      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_03.transaction)))
+      val tx = T.TX04_03.transaction
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(tx)))
       val response = invoke(SendRawTransaction, listOf( serializedTx, JsonPrimitive(false)))
       val result = response.right()!! as StringResult
 
       // The result should have the transaction hash.
-      result.value shouldBe hex(T.TX04_03.transaction.hash().value.array)
+      result.value shouldBe hex(tx.hash().value.array)
     }
 
     "SendRawTransaction" should "send two serialized transactions. " {
       val T = Data.Tx
-      val serializedTxs = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_04.transaction) + TransactionCodec.encode(T.TX04_05_01.transaction)))
+      val tx1 = T.TX04_04.transaction
+      val tx2 = T.TX04_05_01.transaction
+      val serializedTxs = JsonPrimitive( hex(TransactionCodec.encode(tx1) + TransactionCodec.encode(tx2)))
       val response = invoke(SendRawTransaction, listOf( serializedTxs ))
       val result = response.right()!! as StringListResult
 
       // The result should have the transaction hash.
-      result.value shouldBe StringListResult(
-        listOf( hex(T.TX04_04.transaction.hash().value.array), hex(T.TX04_05_01.transaction.hash().value.array) )
-      )
+      result.value shouldBe listOf( hex(tx1.hash().value.array), hex(tx2.hash().value.array) )
     }
 
 

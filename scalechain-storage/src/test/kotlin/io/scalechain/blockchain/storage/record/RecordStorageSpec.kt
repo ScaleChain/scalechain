@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage.record
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import java.io.File
@@ -11,10 +12,12 @@ import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.OneByteCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
 import io.scalechain.blockchain.storage.Storage
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class RecordStorageSpec : FlatSpec(), Matchers {
 
 
@@ -45,7 +48,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
     val fileIndex = count - 1
     rs.files.size shouldBe count
     rs.lastFileIndex() shouldBe (fileIndex)
-    rs.lastFile().path.getName() shouldBe BlockFileName("blk", fileIndex)
+    rs.lastFile().path.getName() shouldBe BlockFileName("blk", fileIndex).toString()
   }
 
   init {
@@ -184,11 +187,11 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
       expectFileCount(1)
 
-      newFile.path.getName() shouldBe BlockFileName("blk", 1)
+      newFile.path.getName() shouldBe BlockFileName("blk", 1).toString()
     }
 
     "newFile(blockFile)" should "should create a new record file." {
-      val fileName = BlockFileName("abc", 1)
+      val fileName = BlockFileName("abc", 1).toString()
       val filePath = "./target/" + fileName
 
       val f = File(filePath)

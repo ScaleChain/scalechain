@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.storage.record
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import java.io.File
@@ -7,10 +8,12 @@ import java.io.File
 import io.scalechain.blockchain.proto.FileNumber
 import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.blockchain.storage.Storage
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class RecordFileSpec : FlatSpec(), Matchers, CodecTestUtil {
 
   lateinit var file : RecordFile

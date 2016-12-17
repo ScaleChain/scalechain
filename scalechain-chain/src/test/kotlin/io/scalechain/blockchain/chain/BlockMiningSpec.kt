@@ -6,7 +6,6 @@ import java.io.File
 
 import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import org.junit.runner.RunWith
 
 // Need to rewrite test case
@@ -30,8 +29,7 @@ class BlockMiningSpec : BlockchainTestTrait(), Matchers {
     chain.putBlock(db, B.BLK02.header.hash(), B.BLK02)
     chain.putBlock(db, B.BLK03.header.hash(), B.BLK03)
 
-    assert(db is RocksDatabase)
-    bm = BlockMining(db as RocksDatabase, chain.txDescIndex(), chain.txPool, chain)
+    bm = BlockMining(db, chain.txDescIndex(), chain.txPool, chain)
 
   }
 

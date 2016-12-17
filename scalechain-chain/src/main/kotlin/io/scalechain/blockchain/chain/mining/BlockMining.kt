@@ -11,9 +11,7 @@ import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.TransactionTimeIndex
 import io.scalechain.blockchain.storage.TransactionPoolIndex
-import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.transaction.CoinsView
 import io.scalechain.blockchain.transaction.CoinAddress
@@ -51,7 +49,7 @@ class TemporaryCoinsView(private val coinsView : CoinsView) : CoinsView {
 /**
   * Created by kangmo on 6/9/16.
   */
-class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex : TransactionDescriptorIndex, private val transactionPool : TransactionPool, private val coinsView : CoinsView) {
+class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : TransactionDescriptorIndex, private val transactionPool : TransactionPool, private val coinsView : CoinsView) {
   private val logger = LoggerFactory.getLogger(BlockMining::class.java)
 
   val watch = StopWatch()
@@ -93,11 +91,11 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
 
     watch.start("candidateTransactions")
 
-    val candidateTransactions : List<Pair<Hash, Transaction>> = transactionPool.getOldestTransactions(rocksDB, estimatedTransactionCount)
+    val candidateTransactions : List<Pair<Hash, Transaction>> = transactionPool.getOldestTransactions(db, estimatedTransactionCount)
 
     watch.stop("candidateTransactions")
 
-//    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+//    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(db)
 //    val newFirstCandidateHash0 = if (newCandidates0.isEmpty) None else Some(newCandidates0.head)
 
 
@@ -110,11 +108,11 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
       //val transaction = pair.second
 
       candidateTxCount += 1
-      if ( txDescIndex.getTransactionDescriptor(rocksDB, txHash) == null ) {
+      if ( txDescIndex.getTransactionDescriptor(db, txHash) == null ) {
         true
       } else {
         // Remove transactions from the pool if it is in a block as well.
-        //transactionPool.removeTransactionFromPool(txHash)(rocksDB)
+        //transactionPool.removeTransactionFromPool(txHash)(db)
         false
       }
     }.map { pair ->
@@ -136,16 +134,16 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
       // Skip all transactions that has the transaction descriptor.
 
         // If the transaction descriptor exists, it means the transaction is in a block.
-      txDescIndex.getTransactionDescriptor(rocksDB, txHash) != null
+      txDescIndex.getTransactionDescriptor(db, txHash) != null
     }.forEach { pair ->
       val txHash = pair.first
       //val transaction = pair.second
 
 //        logger.info(s"A Transaction in a block removed from pool. Hash : ${txHash} ")
-      transactionPool.removeTransactionFromPool(rocksDB, txHash)
+      transactionPool.removeTransactionFromPool(db, txHash)
     }
 
-//    val newCandidates1 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+//    val newCandidates1 = transactionPool.storage.getOldestTransactionHashes(1)(db)
 //    val newFirstCandidateHash1 = if (newCandidates1.isEmpty) None else Some(newCandidates1.head)
 
 
@@ -160,7 +158,7 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
     watch.stop("selectTx")
 
 //    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head.*1)
-//    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(rocksDB)
+//    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(db)
  //   val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
 
     logger.info("Coin Miner stats : ${watch.toString()}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
@@ -216,7 +214,7 @@ class BlockMining(private val rocksDB : RocksDatabase, private val txDescIndex :
 
     // Create a temporary database just for checking if transactions can be attached.
     // We should never commit the tempDB.
-    val tempDB = TransactingRocksDatabase(rocksDB)
+    val tempDB = db.transacting()
     tempDB.beginTransaction()
 
 

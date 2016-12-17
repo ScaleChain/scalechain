@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.cli
 
 import io.scalechain.blockchain.chain.mining.BlockMining
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.transaction.CoinAddress
 import io.scalechain.util.*
 import io.scalechain.blockchain.chain.Blockchain
@@ -10,6 +9,7 @@ import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
@@ -25,7 +25,7 @@ interface CoinMinerListener {
   fun onCoinMined(block : Block, minerAddress : CoinAddress)
 }
 
-class CoinMiner(private val db : RocksDatabase, private val minerAccount : String, private val wallet : Wallet, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator, private val params : CoinMinerParams, private val listener : CoinMinerListener?) {
+class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : String, private val wallet : Wallet, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator, private val params : CoinMinerParams, private val listener : CoinMinerListener?) {
 
   private val logger = LoggerFactory.getLogger(CoinMiner::class.java)
 
@@ -170,7 +170,7 @@ class CoinMiner(private val db : RocksDatabase, private val minerAccount : Strin
   companion object {
     var theCoinMiner : CoinMiner? = null
 
-    fun create(indexDb : RocksDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) : CoinMiner {
+    fun create(indexDb : KeyValueDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) : CoinMiner {
       theCoinMiner = CoinMiner(indexDb, minerAccount, wallet, chain, peerCommunicator, params, null)
       return theCoinMiner!!
     }

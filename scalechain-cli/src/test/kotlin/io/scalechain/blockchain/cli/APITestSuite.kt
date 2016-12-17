@@ -17,11 +17,13 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.TransactionSampleData
 import io.scalechain.blockchain.cli.command.RpcInvoker
 import io.scalechain.blockchain.transaction.ChainTestTrait
+import io.scalechain.blockchain.transaction.TransactionGeneratorBlockchainView
 import io.scalechain.util.Bytes
 import io.scalechain.util.GlobalEnvironemnt
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil.bytes
 import jdk.nashorn.internal.objects.Global
+import java.io.File
 
 /** Start the peer and connect to the local bitcoind node.
   */
@@ -61,21 +63,29 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
   override fun beforeAll() {
     super.beforeAll()
 
-//    RunnablePeer.startPeer()
 
     // This class is used by many test suites in cli layer.
     // Not to start scalechain node more than twice, check if it was already started.
     if (CoinMiner.theCoinMiner == null) { // If the coin miner is not null, it is already started.
       val BITCOIND_PORT = 8333
 
-      // Unit test runs under scalechain/scalechain-cli, and the configuration files are in scalechain/scalechain-cli/unittest/config
+      /*
+      // Unit test runs under scalechain/scalechain-cli/, and the configuration files are in scalechain/scalechain-cli/unittest/config
       // So we need to set the ScaleChainHome variable to ./unittest/ to make sure config/scalechain.conf and configuration files for bftsmart in config folder are loaded correctly.
+      */
+      //println("ABSPATH:${File("").getAbsoluteFile().absolutePath}")
       GlobalEnvironemnt.ScaleChainHome = "./unittest/"
+      // Remove previous files
+      ScaleChainPeer.blockStoragePath().deleteRecursively()
+      ScaleChainPeer.blockStoragePath().mkdir()
+
       // Disable miner, to make the test result deterministic. Miner mines blocks randomly resulting in different test results whenever we run test cases.
       ScaleChainPeer.main( arrayOf("-a", "localhost", "-x", "$BITCOIND_PORT", "-disableMiner") )
 
       // Create test data.
-      Data = TransactionSampleData(Blockchain.get().db)
+      // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.
+      // ( Transactions should be signed to test sendrawtransaction, which verifies the sent transaction by executing the unlocking script and the locking script. )
+      Data = TransactionSampleData(Blockchain.get().db, TransactionGeneratorBlockchainView())
     }
   }
   override fun afterAll() {

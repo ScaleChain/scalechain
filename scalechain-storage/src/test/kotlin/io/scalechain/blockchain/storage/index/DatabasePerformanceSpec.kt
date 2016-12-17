@@ -8,9 +8,9 @@ import io.scalechain.blockchain.storage.Storage
 import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
-class RocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDatabasePerformanceTrait {
+class DatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDatabasePerformanceTrait {
 
-  val testPath = File("./target/unittests-RocksDatabasePerformanceSpec")
+  val testPath = File("./target/unittests-DatabasePerformanceSpec")
 
   lateinit override var db : KeyValueDatabase
 
@@ -18,7 +18,7 @@ class RocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDatabasePerfo
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = RocksDatabase( testPath )
+    db = DatabaseFactory.create( testPath )
 
     super.beforeEach()
   }

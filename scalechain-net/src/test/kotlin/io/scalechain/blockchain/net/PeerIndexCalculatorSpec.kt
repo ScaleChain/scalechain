@@ -3,6 +3,7 @@ package io.scalechain.blockchain.net
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.util.GlobalEnvironemnt
 import io.scalechain.util.PeerAddress
 import org.junit.runner.RunWith
 
@@ -67,6 +68,9 @@ class PeerIndexCalculatorSpec : FlatSpec(), Matchers {
       * @return The peer index from [0, peer count-1]
       */
     "getPeerIndex" should "return None if port does not match" {
+      // The unit test runs in scalechain/scalechain-net folder, but scalechain.conf file is in scalechain/config.
+      // Need to override scalechain home where config folder exists.
+      GlobalEnvironemnt.ScaleChainHome = "../"
       PeerIndexCalculator.getPeerIndex(7642) shouldBe null
       PeerIndexCalculator.getPeerIndex(7643) shouldBe 0
       PeerIndexCalculator.getPeerIndex(7644) shouldBe null

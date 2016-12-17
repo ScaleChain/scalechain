@@ -25,7 +25,7 @@ class BlockDatabaseWithRocks : BlockDatabaseTestTrait() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = RocksDatabase(testPath)
+    db = DatabaseFactory.create(testPath)
     blockDb = object : BlockDatabase {}
 
 

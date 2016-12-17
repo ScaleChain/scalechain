@@ -1,5 +1,6 @@
 package io.scalechain.util
 
+// BUGBUG : Add test cases.
 sealed class Either<out A, out B> {
     abstract fun isLeft() : Boolean
     abstract fun isRight() : Boolean
@@ -14,8 +15,8 @@ sealed class Either<out A, out B> {
         override fun right() = null
     }
     class Right<B>(val value: B): Either<Nothing, B>() {
-        override fun isLeft() : Boolean = true
-        override fun isRight() : Boolean = false
+        override fun isLeft() : Boolean = false
+        override fun isRight() : Boolean = true
         override fun left()  = null
         override fun right() = value
     }

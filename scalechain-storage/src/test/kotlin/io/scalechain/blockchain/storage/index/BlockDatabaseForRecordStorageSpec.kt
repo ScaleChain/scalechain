@@ -19,7 +19,7 @@ class BlockDatabaseForRecordStorageSpec : FlatSpec(), Matchers {
     Storage.initialize()
   }
 
-  lateinit var db : RocksDatabase
+  lateinit var db : KeyValueDatabase
   lateinit var blockDb : BlockDatabaseForRecordStorage
 
   val testPath = File("./target/unittests-BlockDatabaseSpec")
@@ -28,7 +28,7 @@ class BlockDatabaseForRecordStorageSpec : FlatSpec(), Matchers {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = RocksDatabase( testPath )
+    db = DatabaseFactory.create( testPath )
     blockDb  = object : BlockDatabaseForRecordStorage {}
 
     super.beforeEach()

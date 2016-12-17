@@ -1,14 +1,17 @@
 package io.scalechain.blockchain.storage.record
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import java.io.File
 import java.nio.ByteBuffer
 import io.scalechain.blockchain.storage.Storage
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockAccessFileSpec : FlatSpec(), Matchers {
   val underlyingFile = File("./target/unittests-BlockAccessFileSpec")
 
@@ -45,8 +48,8 @@ class BlockAccessFileSpec : FlatSpec(), Matchers {
     * @param buffer The byte buffer to convert.
     * @return The converted array of byte.
     */
-  fun L(buffer : ByteBuffer) : ByteArray {
-    return buffer.array()
+  fun L(buffer : ByteBuffer) : List<Byte> {
+    return buffer.array().toList()
   }
 
 

@@ -4,6 +4,7 @@ package io.scalechain.blockchain.storage.record
   * Created by kangmo on 3/12/16.
   */
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 import java.io.File
@@ -16,10 +17,12 @@ import io.scalechain.blockchain.storage.test.TestData.block1
 import io.scalechain.blockchain.storage.test.TestData.block2
 import io.scalechain.blockchain.storage.test.TestData.transaction1
 import io.scalechain.blockchain.storage.test.TestData.transaction2
+import org.junit.runner.RunWith
 
 /**
   * Created by kangmo on 11/2/15.
   */
+@RunWith(KTestJUnitRunner::class)
 class BlockRecordStorageSpec : FlatSpec(), Matchers {
 
   // Use record storage with maxFileSize 1M, instead of using BlockRecordStorage, which uses 100M file size limit.

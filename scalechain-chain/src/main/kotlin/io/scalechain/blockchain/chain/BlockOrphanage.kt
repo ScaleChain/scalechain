@@ -6,7 +6,6 @@ import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.BlockStorage
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
 /**

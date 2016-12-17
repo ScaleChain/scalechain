@@ -13,27 +13,20 @@ import io.scalechain.blockchain.storage.Storage
 /**
   * A KeyValueDatabase implementation using LevelDB.
   */
+@Deprecated("LevelDatabase does not support transaction feature", ReplaceWith("RocksDatabase"), DeprecationLevel.ERROR)
 class LevelDatabase(path : File) : KeyValueDatabase {
-
-  fun beginTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
-  fun commitTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
-  fun abortTransaction() : Unit {
-    // No transaction supported. do nothing.
-  }
 
   // the Options class contains a set of configurable DB options
   // that determines the behavior of a database.
-  private val options = Options()
+  private var options : Options? = Options()
 
-  private val db = factory.open(path, options )
+  private var db = factory.open(path, options )
+
+  fun getDb() = db
 
   init {
     assert( Storage.initialized() )
-    options.createIfMissing(true)
+    options!!.createIfMissing(true)
   }
 
   /** Seek a key greater than or equal to the given key.
@@ -82,7 +75,25 @@ class LevelDatabase(path : File) : KeyValueDatabase {
     db.delete(key)
   }
 
+  /**
+   * Create a new transacting db that supports transaction commit/abort operations.
+   */
+  override fun transacting() : TransactingKeyValueDatabase {
+    // transacting leveldb is not supported, because it lacks Transactions and WriteBatchWithIndex
+    // See : https://github.com/facebook/rocksdb/wiki/Features-Not-in-LevelDB
+
+    // If we can implement it, we have a pure-java version of KeyValueDatabase and TransactingKeyValueDatabase.
+    // It measn that we can quickly run our program without building rocksdb for a specific platform.
+    throw AssertionError()
+  }
+
+
   override fun close() : Unit {
-    db.close()
+    if (db != null) {
+      db!!.close()
+    }
+
+    db = null
+    options = null
   }
 }

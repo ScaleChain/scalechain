@@ -30,6 +30,11 @@ interface KeyValueDatabase {
   fun del(key : ByteArray) : Unit
   fun close() : Unit
 
+  /**
+   * Return a new key/value database that supports transaction commit/abort.
+   */
+  fun transacting() : TransactingKeyValueDatabase
+
   private fun prefixedKey(prefix: Byte, key:ByteArray) = ByteArray(1, {prefix}) + key
   private fun prefixedKey(prefix: ByteArray, key:ByteArray) = prefix + key
 

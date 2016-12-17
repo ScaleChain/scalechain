@@ -7,6 +7,10 @@ package io.scalechain.blockchain.storage.record
   */
 data class BlockFileName(val prefix : String, val fileNumber : Int)
 {
+  init {
+    assert(fileNumber >= 0)
+    assert(prefix.length == PREFIX_LENGTH)
+  }
   /** Create a block file name from a prefix and a number.
    * Format of the file name :
    *  {PREFIX}00001.dat
@@ -16,8 +20,6 @@ data class BlockFileName(val prefix : String, val fileNumber : Int)
    * @return The file name with the prefix and the file number.
    */
   override fun toString() : String {
-    assert(fileNumber >= 0)
-    assert(prefix.length == PREFIX_LENGTH)
     return "${prefix}${"%05d".format(fileNumber)}.dat"
   }
 

@@ -1,11 +1,6 @@
 package io.scalechain.wallet
 
-import java.io.File
-
-import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.codec.*
-import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.WalletException
 import io.scalechain.blockchain.ErrorCode

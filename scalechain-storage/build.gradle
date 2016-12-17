@@ -1,6 +1,11 @@
 dependencies {
     compile "org.rocksdb:rocksdbjni:4.11.2"
-    compile "org.fusesource.leveldbjni:leveldbjni-osx:1.8"
+    // By using the leveldbjni-all then the Java driver of leveldb is being used.
+    compile "org.fusesource.leveldbjni:leveldbjni-all:1.8"
+
+    // If you want to use the native drivers, then uncomment the following line instead of the above line to use the os specific dependency
+    //compile "org.fusesource.leveldbjni:leveldbjni-osx:1.8"
+
     compile "org.fusesource:sigar:1.6.4"
 
     compile project(':scalechain-script')

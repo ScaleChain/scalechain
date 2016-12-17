@@ -3,7 +3,6 @@ package io.scalechain.blockchain.chain
 import io.scalechain.blockchain.chain.mining.BlockMining
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.crypto.HashEstimation
@@ -23,7 +22,11 @@ data class TransactionWithName(val name:String, val transaction:Transaction)
 
 data class NewOutput(val amount : CoinAmount, val outputOwnership : OutputOwnership)
 
-abstract class AbstractBlockBuildingTest : TransactionTestInterface {
+/**
+ * An abstract block building test that has necessary methods for building test data.
+ * @params chainView ; if this is not null, transactions are signed in the generated test data.
+ */
+abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView? = null) : TransactionTestInterface {
   abstract val db : KeyValueDatabase
 
   open fun generateAccountAddress(account:String) : AddressData {
@@ -95,7 +98,7 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
    * @param newOutputs The list of newly created outputs.
    * @return
    */
-  fun normalTransaction( name : String, spendingOutputs : List<OutputWithOutPoint>, newOutputs : List<NewOutput>) : TransactionWithName {
+  fun normalTransaction( name : String, spendingOutputs : List<OutputWithOutPoint>, newOutputs : List<NewOutput>, privateKeys : List<PrivateKey> = listOf()) : TransactionWithName {
     val builder = TransactionBuilder.newBuilder()
 
     spendingOutputs.forEach { output ->
@@ -108,11 +111,24 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
 
     val transaction = builder.build()
 
-    val transactionWithName = TransactionWithName(name, transaction)
+    val finalTransaction = if (chainView != null) {
+      sign(chainView, transaction, privateKeys)
+    } else {
+      transaction
+    }
+
+    val transactionWithName = TransactionWithName(name, finalTransaction)
 
     addTransaction( availableOutputs, transactionWithName)
 
     return transactionWithName
+  }
+
+  fun sign( chainView : BlockchainView, tx : Transaction, privateKeys : List<PrivateKey>) : Transaction {
+    // Sign the transaction if we can.
+    val signedTransaction = TransactionSigner(db).sign(tx, chainView, listOf(), privateKeys, SigHash.ALL)
+    assert( signedTransaction.complete == true )
+    return signedTransaction.transaction
   }
 
   fun newBlock(prevBlockHash : Hash, transactionsWithName : List<TransactionWithName>) : Block {
@@ -154,10 +170,8 @@ abstract class AbstractBlockBuildingTest : TransactionTestInterface {
   }
 
   fun mineBlock(db : KeyValueDatabase, chain : Blockchain) : Block {
-    assert(db is RocksDatabase)
-    val rocksDB = db as RocksDatabase
 
-    val blockMining = BlockMining(rocksDB, chain.txDescIndex(), chain.txPool, chain)
+    val blockMining = BlockMining(db, chain.txDescIndex(), chain.txPool, chain)
     val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)

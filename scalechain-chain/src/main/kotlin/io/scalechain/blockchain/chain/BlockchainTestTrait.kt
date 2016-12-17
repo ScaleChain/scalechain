@@ -2,7 +2,6 @@ package io.scalechain.blockchain.chain
 
 import io.kotlintest.specs.FlatSpec
 import java.io.File
-import java.lang.ref.WeakReference
 
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.Block
@@ -12,8 +11,8 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
+import io.scalechain.blockchain.storage.index.DatabaseFactory
 import org.apache.commons.io.FileUtils
-import java.util.concurrent.atomic.AtomicInteger
 
 
 abstract class BlockchainTestTrait : FlatSpec() {
@@ -39,13 +38,12 @@ abstract class BlockchainTestTrait : FlatSpec() {
     FileUtils.deleteDirectory(testPath)
     testPath.mkdir()
 
-    val rocksDB = RocksDatabase(testPath)
-    db = rocksDB
+    db = DatabaseFactory.create(testPath)
 
     SampleData = ChainSampleData(db, null)
 
     storage = DiskBlockStorage(db, testPath, TEST_RECORD_FILE_SIZE)
-    chain = Blockchain(rocksDB, storage)
+    chain = Blockchain(db, storage)
     BlockProcessor.theBlockProcessor = null
     BlockProcessor.create(chain)
 
