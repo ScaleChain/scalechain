@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.api.command.blockchain
 
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.BlockFormatter
 import io.scalechain.blockchain.api.command.RpcCommand
@@ -114,7 +116,7 @@ object GetBlock : RpcCommand() {
       val headerHashString  : String  = request.params.get<String>("Header Hash", 0)
       val format            : Boolean = request.params.getOption<Boolean>("Format", 1) ?: true
 
-      val headerHash = Hash( Bytes.from(headerHashString) )
+      val headerHash = getHash( headerHashString, 32 )
 
       val blockOption : Pair<BlockInfo, Block>? = RpcSubSystem.get().getBlock(headerHash)
       val resultOption =

@@ -39,7 +39,8 @@ object ScaleChainPeer {
                          val network: String = io.scalechain.util.Config.getString("scalechain.network.name"),
                          val maxBlockSize: Int = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
                          val minerInitialDelayMS: Int = 20000,
-                         val minerHashDelayMS : Int = 200
+                         val minerHashDelayMS : Int = 200,
+                         val disableMiner : Boolean = false
                        )
 
 
@@ -114,10 +115,17 @@ object ScaleChainPeer {
             .desc("Maximum seconds to sleep for each hash calculation.")
             .build())
 
+        options.addOption(Option.builder()
+          .longOpt("disableMiner")
+          .desc("Disable coin miner.")
+          .build())
+
     }
 
   fun main(args: Array<String>) {
-      val line = CommandExecutor.parser.parse(CommandExecutor.options, args)
+    val parser = DefaultParser()
+
+    val line = parser.parse(options, args)
 
       val params = Parameters(
           peerAddress = line.getOptionValue("peerAddress", null), // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
@@ -130,7 +138,8 @@ object ScaleChainPeer {
           network = line.getOptionValue("network", null) ?: io.scalechain.util.Config.getString("scalechain.network.name"),
           maxBlockSize = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
           minerInitialDelayMS = CommandArgumentConverter.toInt( "minerInitialDelayMS", line.getOptionValue("minerInitialDelayMS", null), minValue = 0 ) ?: 20000,
-          minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200
+          minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200,
+          disableMiner = line.getOptionValue("disableMiner", "false").toBoolean()
       )
 
       initializeSystem(params)
@@ -167,7 +176,7 @@ object ScaleChainPeer {
         Config.peerAddresses()
       }
 
-    val peerCommunicator = PeerToPeerNetworking.getPeerCommunicator(
+    val peerCommunicator = PeerToPeerNetworking.createPeerCommunicator(
       params.p2pInboundPort,
       peerAddresses.filterNot{ isMyself( it) })
 
@@ -247,6 +256,10 @@ object ScaleChainPeer {
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
 
-    CoinMiner.create(db, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
+    val miner = CoinMiner.create(db, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
+    if (!params.disableMiner) {
+      miner.start()
+    }
   }
+
 }

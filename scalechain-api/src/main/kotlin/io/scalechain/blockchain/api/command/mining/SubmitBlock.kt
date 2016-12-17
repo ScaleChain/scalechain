@@ -4,10 +4,16 @@ import com.google.gson.JsonObject
 import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
+import io.scalechain.blockchain.api.RpcSubSystem
+import io.scalechain.blockchain.api.SubmitBlockResult
+import io.scalechain.blockchain.api.command.BlockDecoder
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.api.domain.StringResult
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
@@ -73,31 +79,28 @@ object SubmitBlock : RpcCommand() {
         is JsonObject -> request.params.paramValues[1].asJsonObject
         else -> throw RpcException(ErrorCode.RpcParameterTypeConversionFailure, "The Parameters should be JsObject, but it is not" )
       }
-/*
+
       // Step 1 : decode the block
       val block = BlockDecoder.decodeBlock(serializedBlock)
 
       // Step 2 : verify the block, including all transactions in it.
-      BlockVerifier(block).verify()
+      BlockVerifier(Blockchain.get().db, block).verify(Blockchain.get())
 
       // Step 3 : try to save block
-      val isNewBlock = SubSystem.blockDatabaseService.putBlock(block)
+      val submitResult : SubmitBlockResult? = RpcSubSystem.get().submitBlock(block, parameters)
 
-      val response =
-        if (isNewBlock) {
-          SubSystem.peerService.submitBlock(block, parameters)
-          NullResult..
-        } else {
-          None
-        }
-*/
-/*
-      // TODO : Implement
-      val errorMessageOption = Some("duplicate")
-      val resultOption = errorMessageOption.map(StringResult(_))
-      Right(resultOption)
-*/
-      throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
+
+      val submitResultMap = mapOf(
+        SubmitBlockResult.DUPLICATE to "duplicate",
+        SubmitBlockResult.DUPLICATE_INVALID to "duplicate-invalid",
+        SubmitBlockResult.INCONCLUSIVE to "inconclusive",
+        SubmitBlockResult.REJECTED to "rejected"
+      )
+
+      if (submitResult == null)
+        Right( null )
+      else
+        Right( StringResult(submitResultMap[submitResult]!!))
     }
   }
   override fun help() : String =

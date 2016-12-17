@@ -60,20 +60,17 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     * @return Some(Block) if we successfully read a block. None otherwise.
     */
   fun parseBlock(stream : CodecInputOutputStream) : Block? {
-    val magic = try {
-      Codecs.UInt32L.transcode(stream, null)
-    } catch(e : EOFException) {
-      -1
-    }
-    if (magic == -1) {
-      return null // End of file.
-    } else {
+    try {
+      val magic = Codecs.UInt32L.transcode(stream, null)
+
       // BUGBUG : Does this work even though the integer we read is a signed int?
       if (magic != 0xD9B4BEF9)
         throw FatalException(ErrorCode.InvalidBlockMagic)
 
       Codecs.UInt32L.transcode(stream, null)!!
       return BlockCodec.transcode(stream, null)
+    } catch(e : IndexOutOfBoundsException) {
+      return null
     }
   }
 

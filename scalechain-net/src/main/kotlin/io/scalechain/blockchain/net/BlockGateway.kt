@@ -14,8 +14,8 @@ import io.scalechain.blockchain.script.hash
 import io.scalechain.util.*
 import org.slf4j.LoggerFactory
 
-class BlockBroadcaster( nodeIndex : Int) {
-  val bftProxy : ServiceProxy = ServiceProxy(nodeIndex)
+class BlockBroadcaster( nodeIndex : Int, configHome : String ) {
+  val bftProxy : ServiceProxy = ServiceProxy(nodeIndex, configHome)
 
   /**
     * Try to make a header a consensual header that agrees other nodes as well.
@@ -33,9 +33,10 @@ class BlockBroadcaster( nodeIndex : Int) {
 
     fun create(nodeIndex : Int) : BlockBroadcaster {
       if (theBlockBroadcaster == null) {
-        theBlockBroadcaster = BlockBroadcaster(nodeIndex)
+        val configHome = GlobalEnvironemnt.ScaleChainHome + "config"
+        theBlockBroadcaster = BlockBroadcaster(nodeIndex, configHome)
         assert( theBlockConsensusServer == null )
-        theBlockConsensusServer = BlockConsensusServer(nodeIndex)
+        theBlockConsensusServer = BlockConsensusServer(nodeIndex, configHome)
       }
       return theBlockBroadcaster!!
     }

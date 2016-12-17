@@ -5,7 +5,11 @@ import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.api.command.rawtx.*
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.cli.APITestSuite
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.TransactionInput
+import io.scalechain.util.Bytes
 import org.junit.runner.RunWith
+import java.math.BigDecimal
 
 /**
   * Created by kangmo on 11/2/15.
@@ -35,44 +39,40 @@ class DecodeRawTransactionSpec : APITestSuite() {
 
       val result = response.right()!! as DecodedRawTransaction
 
+      // BUGBUG The expected output is copied from the test result. Need to make sure that it is correct.
       result shouldBe
-        // BUGBUG : Copy paste data from the error message after running the test.
-        null
-      /*
         DecodedRawTransaction(
-          Hash("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e"),
-          1,
-          0L,
-          listOf(
-            RawGenerationTransactionInput(
-              "Kangmo's transaction",
-              4294967295L
-            ),
+          txid=Hash(Bytes.from("ef7c0cbf6ba5af68d2ea239bba709b26ff7b0b669839a63bb01c2cb8e8de481e")),
+          version=1,
+          locktime=0,
+          vin=listOf<RawTransactionInput>(
             RawNormalTransactionInput(
-              Hash("d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26"),
-              0,
+              txid=Hash(Bytes.from("d7c7557e5ca87d439e9ab6eb69a04a9664a0738ff20f6f083c1db2bfd79a8a26")),
+              vout=0,
+              scriptSig=
               RawScriptSig(
-                "3045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc001 03a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326",
-                "483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
+                hex="483045022100ee69171016b7dd218491faf6e13f53d40d64f4b40123a2de52560feb95de63b902206f23a0919471eaa1e45a0982ed288d374397d30dff541b2dd45a4c3d0041acc0012103a7c1fd1fdec50e1cf3f0cc8cb4378cd8e9a2cee8ca9b3118f3db16cbbcf8f326"
               ),
-              4294967295L
-            )
+              sequence=4294967295)
           ),
-          listOf(
+          vout=listOf<RawTransactionOutput>(
             RawTransactionOutput(
-              0.39890000,
-              0,
-              RawScriptPubKey(
-                "OP_DUP OP_HASH160 56847befbd2360df0e35b4e3b77bae48585ae068 OP_EQUALVERIFY OP_CHECKSIG",
-                "76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac",
-                Some(1),
-                Some("pubkeyhash"),
-                listOf("moQR7i8XM4rSGoNwEsw3h4YEuduuP6mxw7")
-              )
+              value= BigDecimal(39890000),
+              n=0,
+              scriptPubKey=RawScriptPubKey(hex="76a91456847befbd2360df0e35b4e3b77bae48585ae06888ac")
+            ),
+            RawTransactionOutput(
+              value=BigDecimal(10000000),
+              n=1,
+              scriptPubKey=RawScriptPubKey(hex="76a9142b14950b8d31620c6cc923c5408a701b1ec0a02088ac")),
+            RawTransactionOutput(
+              value=BigDecimal(20000000),
+              n=2,
+              scriptPubKey=RawScriptPubKey(hex="76a9140dfc8bafc8419853b34d5e072ad37d1a5159f58488ac")
             )
           )
         )
-  */
+
     }
 
     "DecodeRawTransaction" should "return an error if no parameter was specified." {

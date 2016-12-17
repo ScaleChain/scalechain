@@ -14,7 +14,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 object PeerToPeerNetworking {
-  fun getPeerCommunicator(inboundPort : Int, peerAddresses : List<PeerAddress> ) : PeerCommunicator {
+  lateinit private var thePeerCommunicator : PeerCommunicator
+  fun createPeerCommunicator(inboundPort : Int, peerAddresses : List<PeerAddress> ) : PeerCommunicator {
 
     // The peer set that keeps multiple PeerNode(s).
     val peerSet = PeerSet.create()
@@ -29,6 +30,9 @@ object PeerToPeerNetworking {
       RetryingConnector(peerSet, retryIntervalSeconds=1).connect(peer.address, peer.port)
     }
 
-    return PeerCommunicator(peerSet)
+    thePeerCommunicator = PeerCommunicator(peerSet)
+    return thePeerCommunicator
   }
+
+  fun getPeerCommunicator() : PeerCommunicator = thePeerCommunicator
 }

@@ -83,4 +83,6 @@ class PeerCommunicator(private val peerSet : PeerSet) {
       return peers.reduce(::betterPeer)
     }
   }
+
+  companion object
 }

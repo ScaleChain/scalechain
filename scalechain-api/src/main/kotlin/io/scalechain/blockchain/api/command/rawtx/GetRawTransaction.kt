@@ -3,6 +3,7 @@ package io.scalechain.blockchain.api.command.rawtx
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.command.TransactionFormatter
 import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.command.blockchain.GetBlock
 import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
@@ -172,7 +173,7 @@ object GetRawTransaction : RpcCommand() {
           val txHashString: String = request.params.get<String>("TXID", 0)
           val verbose: java.math.BigDecimal = request.params.getOption<java.math.BigDecimal>("Verbose", 1) ?: java.math.BigDecimal(0)
 
-          val txHash = Hash(Bytes.from(txHashString))
+          val txHash = getHash(txHashString, 32)
 
           val transactionOption = RpcSubSystem.get().getTransaction(txHash)
           val bestBlockHeight: Long = RpcSubSystem.get().getBestBlockHeight()

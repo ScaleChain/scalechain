@@ -62,6 +62,7 @@ data class ErrorCode(val code:String) {
     val RpcArgumentGreaterThanMaxValue = ErrorCode("rpc_argument_greater_than_max_value")
     val RpcInvalidAddress = ErrorCode("invalid_address")
     val RpcInvalidKey = ErrorCode("invalid_key")
+    val RpcInvalidParameter = ErrorCode("rpc_invalid_parameter")
 
     // Base58 encoding errors
     val InvalidChecksum = ErrorCode("invalid_checksum")

@@ -34,10 +34,13 @@ object BlockMessageHandler {
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 
     val blockHash = block.header.hash()
+    processNewBlock(blockHash, block)
 
     logger.trace("<P2P> Received a block. Hash : ${blockHash}, Header : ${block.header}")
-    val node = Node.get()
+  }
 
+  fun processNewBlock(blockHash : Hash, block:Block) : Unit {
+    val node = Node.get()
     val processedByIBD = synchronized(node) {
       if ( node.isInitialBlockDownload() ) {
         val peerBestHeight = node.bestPeerStartHeight()
@@ -117,5 +120,6 @@ object BlockMessageHandler {
       }
     }
 */
+
   }
 }

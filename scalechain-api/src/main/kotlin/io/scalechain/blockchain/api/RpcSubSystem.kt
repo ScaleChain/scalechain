@@ -4,16 +4,22 @@ import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
-import io.scalechain.blockchain.net.Node
-import io.scalechain.blockchain.net.PeerInfo
-import io.scalechain.blockchain.net.PeerCommunicator
-import io.scalechain.blockchain.net.PeerSet
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionVerifier
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import io.scalechain.blockchain.net.*
+import io.scalechain.blockchain.net.handler.BlockMessageHandler
+
+/** List of responses for submitblock RPC.
+ */
+enum class SubmitBlockResult {
+  DUPLICATE, DUPLICATE_INVALID, INCONCLUSIVE, REJECTED
+}
+
 
 class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator) {
 
@@ -82,19 +88,6 @@ class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockc
     return chain.getTransaction(db, txHash)
   }
 
-
-  /** List of responses for submitblock RPC.
-    */
-  enum class SubmitBlockResult {
-    DUPLICATE, DUPLICATE_INVALID, INCONCLUSIVE, REJECTED
-/*
-    val DUPLICATE         = Val(nextId, "duplicate")
-    val DUPLICATE_INVALID = Val(nextId, "duplicate-invalid")
-    val INCONCLUSIVE      = Val(nextId, "inconclusive")
-    val REJECTED          = Val(nextId, "rejected")
-*/
-  }
-/*
   /** Accepts a block, verifies it is a valid addition to the block chain, and broadcasts it to the network.
     *
     * Used by : submitblock RPC.
@@ -103,20 +96,18 @@ class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockc
     * @param parameters The JsObject we got from the second parameter of submitblock RPC. A common parameter is a workid string.
     * @return Some(SubmitBlockResult) if any error happend; None otherwise.
     */
-  fun submitBlock(block : Block, parameters : Any?) : SubmitBlockResult? {
+  fun submitBlock(block : Block, parameters : JsonObject) : SubmitBlockResult? {
     // TODO : BUGBUG : parameters is not used.
     val blockHash = block.header.hash()
     if (chain.hasBlock(db, blockHash)) {
       return SubmitBlockResult.DUPLICATE
     } else {
-      peerCommunicator.propagateBlock(block)
-      chain.withTransaction { transactingDB ->
-        chain.putBlock(transactingDB, Hash(blockHash.value), block)
-      }
+      BlockPropagator.propagate(blockHash, block)
+
       return null
     }
   }
-*/
+
   /** Validates a transaction and broadcasts it to the peer-to-peer network.
     *
     * Used by : sendrawtransaction RPC.

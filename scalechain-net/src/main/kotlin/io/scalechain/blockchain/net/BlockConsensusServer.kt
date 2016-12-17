@@ -7,6 +7,7 @@ import bftsmart.tom.MessageContext
 import bftsmart.tom.ServiceReplica
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable
 import bftsmart.tom.server.defaultservices.DefaultRecoverable
+import bftsmart.tom.server.defaultservices.DefaultReplier
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
@@ -14,10 +15,10 @@ import io.scalechain.blockchain.proto.codec.HashCodec
 import io.scalechain.blockchain.script.*
 import org.slf4j.LoggerFactory
 
-class BlockConsensusServer(id: Int) : DefaultRecoverable() {
+class BlockConsensusServer(id: Int, configHome : String) : DefaultRecoverable() {
   private val logger = LoggerFactory.getLogger(BlockConsensusServer::class.java)
 
-  private var replica: ServiceReplica = ServiceReplica(id, this, this)
+  private var replica: ServiceReplica = ServiceReplica(id, configHome, this, this, null, DefaultReplier())
 
   override fun appExecuteUnordered(command: ByteArray?, msgCtx: MessageContext?): ByteArray {
     // No support for the unordered command.

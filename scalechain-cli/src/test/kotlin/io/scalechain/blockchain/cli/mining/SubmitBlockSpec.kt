@@ -4,10 +4,20 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.api.command.mining.SubmitBlock
+import io.scalechain.blockchain.api.command.rawtx.SendRawTransaction
 import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.StringListResult
 import io.scalechain.blockchain.api.domain.StringResult
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.TransactionSampleData
 import io.scalechain.blockchain.cli.APITestSuite
+import io.scalechain.blockchain.net.handler.TxMessageHandler
+import io.scalechain.blockchain.script.hash
 import org.junit.runner.RunWith
+import io.scalechain.blockchain.proto.codec.BlockCodec
+import io.scalechain.blockchain.proto.codec.TransactionCodec
+import io.scalechain.util.HexUtil
+import io.scalechain.util.HexUtil.hex
 
 /**
   * Created by kangmo on 11/2/15.
@@ -33,11 +43,39 @@ class SubmitBlockSpec : APITestSuite() {
 
   init {
 
-    // The test does not pass yet. Will make it pass soon.
-    "SubmitBlock" should "get 'duplicate' for the duplicate block." {
-      val rawBlockData = JsonPrimitive("02000000df11c014a8d798395b5059c722ebdf3171a4217ead71bf6e0e99f4c7000000004a6f6a2db225c81e77773f6f0457bcb05865a94900ed11356d0b75228efb38c7785d6053ffff001d005d43700101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0d03b477030164062f503253482fffffffff0100f9029500000000232103adb7d8ef6b63de74313e0cd4e07670d09a169b13e4eda2d650f529332c47646dac00000000")
+    "SubmitBlock" should "put the first block" {
+      val B = Data.Block
+
+      val rawBlockData = JsonPrimitive(hex(BlockCodec.encode(B.BLK01)))
       val parameters = JsonObject()
-      parameters.add("workid", JsonPrimitive("test"))
+      val response = invoke(SubmitBlock, listOf(rawBlockData, parameters))
+      response.right() shouldBe null
+    }
+
+    "SubmitBlock" should "put the second block" {
+      val B = Data.Block
+
+      val rawBlockData = JsonPrimitive(hex(BlockCodec.encode(B.BLK02)))
+      val parameters = JsonObject()
+      val response = invoke(SubmitBlock, listOf(rawBlockData, parameters))
+      response.right() shouldBe null
+    }
+
+    "SubmitBlock" should "put the third block" {
+      val B = Data.Block
+
+      val rawBlockData = JsonPrimitive(hex(BlockCodec.encode(B.BLK03)))
+      val parameters = JsonObject()
+      val response = invoke(SubmitBlock, listOf(rawBlockData, parameters))
+      response.right() shouldBe null
+    }
+
+    "SubmitBlock" should "get 'duplicate' for the duplicate block." {
+      val B = Data.Block
+
+      // Send BLK03 once more.
+      val rawBlockData = JsonPrimitive(hex(BlockCodec.encode(B.BLK03)))
+      val parameters = JsonObject()
       val response = invoke(SubmitBlock, listOf(rawBlockData, parameters))
       val result = response.right()!! as StringResult
       result shouldBe StringResult("duplicate")
@@ -48,5 +86,55 @@ class SubmitBlockSpec : APITestSuite() {
       val result = response.left()!!
       result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
     }
+
+    "SendRawTransaction" should "send a serialized transaction. (Without allowHighFees argument)" {
+      val T = Data.Tx
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_01.transaction)))
+      val response = invoke(SendRawTransaction, listOf( serializedTx ))
+      val result = response.right()!! as StringResult
+
+      // The result should have the transaction hash.
+      result.value shouldBe hex(T.TX04_01.transaction.hash().value.array)
+    }
+
+    "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument true)" {
+      val T = Data.Tx
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_02.transaction)))
+      val response = invoke(SendRawTransaction, listOf( serializedTx, JsonPrimitive(true)))
+      val result = response.right()!! as StringResult
+
+      // The result should have the transaction hash.
+      result.value shouldBe hex(T.TX04_02.transaction.hash().value.array)
+    }
+
+    "SendRawTransaction" should "send a serialized transaction. (with allowHighFees argument false)" {
+      val T = Data.Tx
+      val serializedTx = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_03.transaction)))
+      val response = invoke(SendRawTransaction, listOf( serializedTx, JsonPrimitive(false)))
+      val result = response.right()!! as StringResult
+
+      // The result should have the transaction hash.
+      result.value shouldBe hex(T.TX04_03.transaction.hash().value.array)
+    }
+
+    "SendRawTransaction" should "send two serialized transactions. " {
+      val T = Data.Tx
+      val serializedTxs = JsonPrimitive( hex(TransactionCodec.encode(T.TX04_04.transaction) + TransactionCodec.encode(T.TX04_05_01.transaction)))
+      val response = invoke(SendRawTransaction, listOf( serializedTxs ))
+      val result = response.right()!! as StringListResult
+
+      // The result should have the transaction hash.
+      result.value shouldBe StringListResult(
+        listOf( hex(T.TX04_04.transaction.hash().value.array), hex(T.TX04_05_01.transaction.hash().value.array) )
+      )
+    }
+
+
+    "SendRawTransaction" should "return an error if no parameter was specified." {
+      val response = invoke(SendRawTransaction)
+      val result = response.left()!!
+      result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
+    }
+
   }
 }

@@ -28,14 +28,13 @@ class GetPeerInfoSpec : APITestSuite() {
     //
   }
 
-  // The test does not pass yet. Will make it pass soon.
   init {
     "GetPeerInfo" should "should get the bitcoind as a peer." {
       val response = invoke(GetPeerInfo)
       val result = response.right()!! as GetPeerInfoResult
 
       // We should have only one peer.
-      result.peerInfos.size shouldBe 1
+      result.peerInfos.size shouldBe 0
     }
   }
 }

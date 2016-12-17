@@ -21,7 +21,7 @@ object Services {
     GetBlock,
     GetBlockHash,
     Help,
-//    SubmitBlock,
+    SubmitBlock,
     GetPeerInfo,
     DecodeRawTransaction,
     GetRawTransaction,

@@ -48,7 +48,7 @@ class BlockDirectoryReaderSpec : FlatSpec(), Matchers {
       val reader = BlockDirectoryReader(blockListener)
 
       try {
-        reader.readFrom("scalechain-script/src/test/resources/blocks")
+        reader.readFrom("../scalechain-script/src/test/resources/blocks")
       } catch(e : ProtocolCodecException) {
         if (e.code == ErrorCode.RemainingNotEmptyAfterDecoding) {
           // Because the data file in the path is created by cutting blk00000.dat to 128K, this error can happen.

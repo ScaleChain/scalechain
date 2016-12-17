@@ -39,23 +39,23 @@ class CoinMinerSpec : FlatSpec(), Matchers {
   init {
 
     "isLessThan" should "return true only if the left hash is less than the right hash." {
-      isLessThan(Hash(Bytes.from("00000")), Hash(Bytes.from("00000"))) shouldBe false
-      isLessThan(Hash(Bytes.from("00001")), Hash(Bytes.from("00000"))) shouldBe false
-      isLessThan(Hash(Bytes.from("00000")), Hash(Bytes.from("00001"))) shouldBe true
-      isLessThan(Hash(Bytes.from("0000F")), Hash(Bytes.from("0000E"))) shouldBe false
-      isLessThan(Hash(Bytes.from("0000E")), Hash(Bytes.from("0000F"))) shouldBe true
+      isLessThan(Hash(Bytes.from("0000")), Hash(Bytes.from("0000"))) shouldBe false
+      isLessThan(Hash(Bytes.from("0001")), Hash(Bytes.from("0000"))) shouldBe false
+      isLessThan(Hash(Bytes.from("0000")), Hash(Bytes.from("0001"))) shouldBe true
+      isLessThan(Hash(Bytes.from("000F")), Hash(Bytes.from("000E"))) shouldBe false
+      isLessThan(Hash(Bytes.from("000E")), Hash(Bytes.from("000F"))) shouldBe true
 
-      isLessThan(Hash(Bytes.from("10000")), Hash(Bytes.from("00000"))) shouldBe false
-      isLessThan(Hash(Bytes.from("00000")), Hash(Bytes.from("10000"))) shouldBe true
-      isLessThan(Hash(Bytes.from("F0000")), Hash(Bytes.from("E0000"))) shouldBe false
-      isLessThan(Hash(Bytes.from("E0000")), Hash(Bytes.from("F0000"))) shouldBe true
+      isLessThan(Hash(Bytes.from("1000")), Hash(Bytes.from("0000"))) shouldBe false
+      isLessThan(Hash(Bytes.from("0000")), Hash(Bytes.from("1000"))) shouldBe true
+      isLessThan(Hash(Bytes.from("F000")), Hash(Bytes.from("E000"))) shouldBe false
+      isLessThan(Hash(Bytes.from("E000")), Hash(Bytes.from("F000"))) shouldBe true
 
 
-      isLessThan(Hash(Bytes.from("FFFFF")), Hash(Bytes.from("FFFFF"))) shouldBe false
-      isLessThan(Hash(Bytes.from("FFFFF")), Hash(Bytes.from("FFFFE"))) shouldBe false
-      isLessThan(Hash(Bytes.from("FFFFE")), Hash(Bytes.from("FFFFF"))) shouldBe true
-      isLessThan(Hash(Bytes.from("FFFFF")), Hash(Bytes.from("EFFFF"))) shouldBe false
-      isLessThan(Hash(Bytes.from("EFFFF")), Hash(Bytes.from("FFFFF"))) shouldBe true
+      isLessThan(Hash(Bytes.from("FFFF")), Hash(Bytes.from("FFFF"))) shouldBe false
+      isLessThan(Hash(Bytes.from("FFFF")), Hash(Bytes.from("FFFE"))) shouldBe false
+      isLessThan(Hash(Bytes.from("FFFE")), Hash(Bytes.from("FFFF"))) shouldBe true
+      isLessThan(Hash(Bytes.from("FFFF")), Hash(Bytes.from("EFFF"))) shouldBe false
+      isLessThan(Hash(Bytes.from("EFFF")), Hash(Bytes.from("FFFF"))) shouldBe true
     }
 
   }

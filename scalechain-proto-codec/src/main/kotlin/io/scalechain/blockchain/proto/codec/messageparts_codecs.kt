@@ -8,6 +8,7 @@ import io.scalechain.io.InputOutputStream
 import io.netty.buffer.Unpooled
 import io.scalechain.util.Bytes
 import io.scalechain.util.toByteArray
+import io.scalechain.util.HexUtil
 
 object HashCodec : Codec<Hash> {
   private val HashValueCodec = Codecs.fixedReversedByteArray(32)
@@ -30,6 +31,7 @@ object LockingScriptCodec : Codec<LockingScript> {
     val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data?.array))
 
     if (io.isInput) {
+      //println("${HexUtil.hex(byteBuf!!.toByteArray())}")
       return LockingScript(
           Bytes(byteBuf!!.toByteArray())
       )
