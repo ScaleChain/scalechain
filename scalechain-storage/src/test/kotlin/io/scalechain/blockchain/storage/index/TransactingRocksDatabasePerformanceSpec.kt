@@ -19,9 +19,9 @@ class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDa
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    transactingDB = RocksDatabase( testPath ).transacting()
+    db = RocksDatabase( testPath )
+    transactingDB = db.transacting()
     transactingDB.beginTransaction()
-    db = transactingDB
 
     super.beforeEach()
   }

@@ -3,14 +3,13 @@ package io.scalechain.blockchain.storage.index
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
-import java.io.File
-
 import io.scalechain.blockchain.storage.Storage
 import org.junit.runner.RunWith
+import java.io.File
 
 @RunWith(KTestJUnitRunner::class)
-class TransactingRocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
-  val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
+class TransactingMapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
+  val testPath = File("./target/unittests-TransactingMapDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
   lateinit var txDb : TransactingKeyValueDatabase
@@ -19,7 +18,7 @@ class TransactingRocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = RocksDatabase(testPath)
+    db = MapDatabase(testPath)
     txDb = db.transacting()
     txDb.beginTransaction()
 

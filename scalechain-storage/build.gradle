@@ -6,6 +6,7 @@ dependencies {
     // If you want to use the native drivers, then uncomment the following line instead of the above line to use the os specific dependency
     //compile "org.fusesource.leveldbjni:leveldbjni-osx:1.8"
 
+    compile "org.mapdb:mapdb:3.0.2"
     compile "org.fusesource:sigar:1.6.4"
 
     compile project(':scalechain-script')

@@ -133,7 +133,13 @@ class TransactingRocksDatabase(private val db : RocksDatabase) : TransactingKeyV
     putCache!!.remove(Bytes(key))
   }
 
+  @Deprecated("TransactingRocksDatabase.transacting should never be called. transacting method can be called from a non-transactional RocksDatabase only.", ReplaceWith(""), DeprecationLevel.ERROR)
+  override fun transacting(): TransactingKeyValueDatabase {
+    throw AssertionError()
+  }
+
+  @Deprecated("TransactingRocksDatabase.close should never be called. close method can bel called from a non-transactional RocksDatabase only.", ReplaceWith(""), DeprecationLevel.ERROR)
   override fun close() : Unit {
-    db.close()
+    throw AssertionError()
   }
 }

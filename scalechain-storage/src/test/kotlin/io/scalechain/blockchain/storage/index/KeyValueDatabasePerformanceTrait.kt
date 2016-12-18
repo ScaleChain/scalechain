@@ -30,6 +30,6 @@ interface KeyValueDatabasePerformanceTrait : ShouldSpec, PerformanceTestTrait {
   }
 
   companion object {
-    val TEST_COUNT : Int = 100000
+    val TEST_COUNT : Int = 1000
   }
 }

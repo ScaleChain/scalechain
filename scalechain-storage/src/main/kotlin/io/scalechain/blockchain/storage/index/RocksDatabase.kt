@@ -11,8 +11,8 @@ import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 
-class KeyValueIterator(private val rocksIterator : RocksIterator) : ClosableIterator<Pair<ByteArray,ByteArray>> {
-  var isClosed = false
+class RocksDatabaseIterator(private val rocksIterator : RocksIterator) : ClosableIterator<Pair<ByteArray,ByteArray>> {
+  private var isClosed = false
   override fun next() : Pair<ByteArray,ByteArray> {
     assert( !isClosed )
 
@@ -119,7 +119,7 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
       rocksIterator.seekToFirst()
     }
 
-    return KeyValueIterator(rocksIterator)
+    return RocksDatabaseIterator(rocksIterator)
   }
 
   /** Seek a key greater than or equal to the given key.

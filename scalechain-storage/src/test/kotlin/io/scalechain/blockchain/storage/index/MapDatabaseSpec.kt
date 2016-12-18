@@ -3,32 +3,32 @@ package io.scalechain.blockchain.storage.index
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
-import java.io.File
-
 import io.scalechain.blockchain.storage.Storage
 import org.junit.runner.RunWith
+import java.io.File
 
+/**
+ * Created by kangmo on 18/12/2016.
+ */
 @RunWith(KTestJUnitRunner::class)
-class TransactingRocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
-  val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
+class MapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
+
+  val testPath = File("./target/unittests-MapDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
-  lateinit var txDb : TransactingKeyValueDatabase
 
   override fun beforeEach() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = RocksDatabase(testPath)
-    txDb = db.transacting()
-    txDb.beginTransaction()
+    db = MapDatabase( testPath )
 
     super.beforeEach()
   }
 
   override fun afterEach() {
     super.afterEach()
-    txDb.commitTransaction()
+
     db.close()
   }
 

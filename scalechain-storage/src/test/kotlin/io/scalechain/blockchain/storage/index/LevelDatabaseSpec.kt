@@ -20,12 +20,12 @@ class LevelDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   override lateinit var db : KeyValueDatabase
 
   override fun beforeEach() {
+    super.beforeEach()
+
     testPath.deleteRecursively()
     testPath.mkdir()
 
     db = LevelDatabase( testPath )
-
-    super.beforeEach()
   }
 
   override fun afterEach() {
