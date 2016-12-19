@@ -18,6 +18,8 @@ object NodeThrottle {
     var directMemoryUsed : Long = sun.misc.SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed()
     logger.trace("Checking Direct Memory Usage. Max memory : ${maxDiectMemory}, Used memory : ${directMemoryUsed}")
     // http://stackoverflow.com/questions/20058489/is-there-a-way-to-measure-direct-memory-usage-in-java
+
+    /*
     while(directMemoryUsed >= maxDiectMemory - 256000000) {
       Thread.sleep(1000)
 
@@ -26,6 +28,6 @@ object NodeThrottle {
       maxDiectMemory = sun.misc.VM.maxDirectMemory()
 
       directMemoryUsed = sun.misc.SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed()
-    }
+    }*/
   }
 }
