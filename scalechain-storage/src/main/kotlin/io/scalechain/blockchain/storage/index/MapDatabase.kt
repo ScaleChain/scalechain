@@ -48,6 +48,7 @@ class MapDatabase(path : File) : KeyValueDatabase {
   fun getDb() = db
   fun getTreeMap() = treeMap
   init {
+    if (!path.exists()) path.mkdir()
     val dbFilePath = File(path, "scalechain.mapdb")
 
     db = DBMaker
