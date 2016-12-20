@@ -38,8 +38,8 @@ class NodeServer(private val peerSet : PeerSet) {
       .childHandler(NodeServerInitializer(sslCtx, peerSet))
 
     //b.bind(port).sync().channel().closeFuture().sync()
-    return b.bind(port).addListener(ChannelFutureListener() {
-      fun operationComplete(future:ChannelFuture) {
+    return b.bind(port).addListener(object : ChannelFutureListener {
+      override fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.info("Successfully bound port : ${port}")

@@ -8,6 +8,8 @@ import io.scalechain.blockchain.api.command.wallet.ListTransactionsResult
 import io.scalechain.blockchain.api.command.wallet.ListUnspentResult
 import io.scalechain.blockchain.api.domain.*
 import io.scalechain.blockchain.api.http.ApiServer
+import io.scalechain.blockchain.proto.Hash
+import io.scalechain.util.HexUtil
 import java.lang.reflect.Type
 
 //import scala.io.StdIn
@@ -35,6 +37,17 @@ class RpcResultSerializer : JsonSerializer<RpcResult> {
       else -> {
         Json.get().toJsonTree(src, typeOfSrc)
       }
+    }
+  }
+}
+
+class HashSerialzier : JsonSerializer<Hash> {
+  override fun serialize(src: Hash?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+    if (src == null) {
+      return JsonNull.INSTANCE
+    }
+    else {
+      return JsonPrimitive(HexUtil.hex(src.value.array) )
     }
   }
 }
@@ -148,6 +161,7 @@ object Json {
   fun get() : Gson {
     if (gson == null) {
       gson = GsonBuilder()
+                .registerTypeAdapter(Hash::class.java, HashSerialzier())
                 .registerTypeAdapter(RpcParams::class.java, RpcParamsDeserializer())
                 .registerTypeAdapter(RpcRequest::class.java, RpcRequestDeserializer())
                 .registerTypeAdapter(RpcResponse::class.java, RpcResponseSerializer())

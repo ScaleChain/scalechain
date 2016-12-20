@@ -23,8 +23,8 @@ class RetryingConnector(private val peerSet : PeerSet, private val retryInterval
     val nodeClient = NodeClient(peerSet)
     val channelFuture : ChannelFuture = nodeClient.connect(address, port)
 
-    channelFuture.addListener( ChannelFutureListener() {
-      fun operationComplete(future : ChannelFuture) : Unit {
+    channelFuture.addListener( object : ChannelFutureListener {
+      override fun operationComplete(future : ChannelFuture) : Unit {
         val channel : Channel = future.channel()
         if ( future.isSuccess() ) {
           logger.info("Sending version message to ${channel.remoteAddress()}")
@@ -33,8 +33,8 @@ class RetryingConnector(private val peerSet : PeerSet, private val retryInterval
           channel.writeAndFlush( VersionFactory.create() )
 
 
-          future.channel().closeFuture().addListener( ChannelFutureListener() {
-            fun operationComplete(future:ChannelFuture) {
+          future.channel().closeFuture().addListener( object : ChannelFutureListener {
+            override fun operationComplete(future:ChannelFuture) {
               assert( future.isDone )
 
               if (future.isSuccess) { // completed successfully
@@ -50,15 +50,6 @@ class RetryingConnector(private val peerSet : PeerSet, private val retryInterval
                 logger.warn("Canceled to close connection. Remote address : ${channel.remoteAddress()}")
               }
 
-              logger.info("Connection to ${address}:${port} closed. Will reconnect in a second.")
-
-              val timer = Timer(true);
-              timer.schedule( object : TimerTask() {
-                override fun run() : Unit  {
-                  connect(address, port)
-                }
-              }, 1000);
-
               peerSet.remove(channel.remoteAddress())
             }
           })
@@ -73,7 +64,7 @@ class RetryingConnector(private val peerSet : PeerSet, private val retryInterval
             override fun run(): Unit  {
               connect(address, port)
             }
-          }, 1000);
+          }, (retryIntervalSeconds * 1000).toLong());
         }
       }
     })

@@ -8,6 +8,7 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.*
+import io.scalechain.blockchain.storage.index.ClosableIterator
 
 import io.scalechain.blockchain.transaction.*
 import org.slf4j.LoggerFactory
@@ -289,9 +290,16 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  override fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock> {
-    // TODO : Implement
-    throw UnsupportedOperationException()
+  override fun getIterator(db : KeyValueDatabase, fromHeight : Long) : Iterator<ChainBlock> {
+    val bestBlockHash = storage.getBestBlockHash(db)!!
+    val bestBlockHeight = storage.getBlockHeight(db, bestBlockHash)!!
+
+    val chainBlockSequence = (fromHeight .. bestBlockHeight).asSequence().map { height ->
+      val blockHash = storage.getBlockHashByHeight(db, height)!!
+      val (unused, block) = storage.getBlock(db, blockHash)!!
+      ChainBlock(height, block)
+    }
+    return chainBlockSequence.iterator()
   }
 
   /** Return the block height of the best block.

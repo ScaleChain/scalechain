@@ -51,6 +51,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
         // Did we catch up the best peer, which has the highest block height by the time we connected ?
         return bestBlockHeight >= bestPeer.versionOption?.startHeight ?: 0
       } else {
+
         return false
       }
     }
@@ -157,6 +158,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
           }
           //}
         } else {
+
           Thread.sleep(10)
         }
       }

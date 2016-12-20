@@ -35,8 +35,8 @@ class ApiServer {
      .handler(LoggingHandler(LogLevel.INFO))
      .childHandler(ApiServerInitializer(sslCtx))
 
-    b.bind(port).addListener(ChannelFutureListener() {
-      fun operationComplete(future:ChannelFuture) {
+    b.bind(port).addListener(object : ChannelFutureListener {
+      override fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.info("ScaleChain API available at ${(if (useSSL) "https" else "http")}://127.0.0.1:${port}")

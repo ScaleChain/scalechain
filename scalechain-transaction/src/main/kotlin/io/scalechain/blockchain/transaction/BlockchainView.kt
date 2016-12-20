@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.storage.index.ClosableIterator
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
 /** A block in a best blockchain.

@@ -208,18 +208,18 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
   }
 
   fun getPayloadLength(encodedByteBuf : ByteBuf) : Long {
-    val payloadLengthByteBuf = Unpooled.buffer() // BUGBUG : Is this resulting in a performance issue?
-    encodedByteBuf.getBytes(encodedByteBuf.readerIndex() + PAYLOAD_LENGTH_OFFSET, payloadLengthByteBuf, 0, PAYLOAD_LENGTH_SIZE)
+    val destBuffer = Unpooled.buffer()
+    encodedByteBuf.getBytes(encodedByteBuf.readerIndex() + PAYLOAD_LENGTH_OFFSET, destBuffer, PAYLOAD_LENGTH_SIZE)
 
-    val payloadLength = PayloadLengthCodec.decode(payloadLengthByteBuf)
+    val payloadLength = PayloadLengthCodec.decode(destBuffer)
     return payloadLength!!
   }
 
   fun getMagic(encodedByteBuf : ByteBuf) : Magic {
-    val magicByteBuf = Unpooled.buffer() // BUGBUG : Is this resulting in a performance issue?
-    encodedByteBuf.getBytes(encodedByteBuf.readerIndex(), magicByteBuf, 0, Magic.VALUE_SIZE)
+    val destBuffer = Unpooled.buffer()
+    encodedByteBuf.getBytes(encodedByteBuf.readerIndex(), destBuffer, Magic.VALUE_SIZE)
 
-    val magic = MagicCodec.decode(magicByteBuf)
+    val magic = MagicCodec.decode(destBuffer)
     return magic!!
   }
 

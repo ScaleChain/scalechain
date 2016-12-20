@@ -23,8 +23,8 @@ class BitcoinProtocolCodec( private val protocol : NetworkProtocol ) {
     * @param messages The messages decoded from the given BitVector. The BitVector may have multiple messages, with or without an incomplete message. However, the BitVector itself may not have enough data to construct a message.
     * @return BitVector If we do not have enough data to construct a message, return the data as BitVector instead of constructing a message.
     */
-  tailrec fun decode(encodedByteBuf : ByteBuf, messages : java.util.List<Any>) : Unit {
-    if ( BitcoinMessageEnvelopeCodec.decodable(encodedByteBuf) ) {
+  fun decode(encodedByteBuf : ByteBuf, messages : MutableList<Any>) : Unit {
+    while ( BitcoinMessageEnvelopeCodec.decodable(encodedByteBuf) ) {
 //      val io = CodecInputOutputStream(encodedByteBuf, isInput = false)
       val envelope = BitcoinMessageEnvelopeCodec.decode(encodedByteBuf)!!
 
@@ -32,10 +32,6 @@ class BitcoinProtocolCodec( private val protocol : NetworkProtocol ) {
       val protocolMessage = protocol.decode( envelope.payload, envelope.command )
 
       messages.add( protocolMessage )
-
-      if ( encodedByteBuf.readableBytes() >= BitcoinMessageEnvelopeCodec.MIN_ENVELOPE_BYTES) {
-        decode(encodedByteBuf, messages )
-      }
     }
   }
 }

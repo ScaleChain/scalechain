@@ -93,7 +93,7 @@ class BlockConsensusServer(id: Int, configHome : String) : DefaultRecoverable() 
 
   override fun getSnapshot(): ByteArray {
     try {
-      System.out.println("getState called")
+      //System.out.println("getState called")
       // TODO : Rethink syncrhonization.
       val chain = Blockchain.get()
       val rawBestBlockHash = HashCodec.encode( chain.getBestBlockHash(chain.db)!! )

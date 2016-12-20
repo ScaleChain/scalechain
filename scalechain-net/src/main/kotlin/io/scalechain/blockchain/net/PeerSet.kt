@@ -103,8 +103,8 @@ class PeerSet {
       if (channels.size > 0) {
         logger.trace("Sending to all peers : ${messageString}")
 
-        channels.writeAndFlush(message).addListener(ChannelGroupFutureListener() {
-          fun operationComplete(future: ChannelGroupFuture) {
+        channels.writeAndFlush(message).addListener(object : ChannelGroupFutureListener {
+          override fun operationComplete(future: ChannelGroupFuture) {
             assert(future.isDone)
             val remoteAddresses = channels.iterator().asSequence().map{it.remoteAddress()}.joinToString(",");
             if (future.isSuccess) {

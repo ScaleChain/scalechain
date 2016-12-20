@@ -64,6 +64,7 @@ class NodeClient(private val peerSet : PeerSet) : AutoCloseable {
         }
       }
     })
+
   }
 
   override fun close() : Unit {

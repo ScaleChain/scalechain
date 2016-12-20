@@ -44,14 +44,15 @@ class NodeServerHandler(private val peerSet : PeerSet) : SimpleChannelInboundHan
           */
 
           assert(messageHandler == null)
+
           val peer = peerSet.add(ctx.channel())
           messageHandler = ProtocolMessageHandler(peer, PeerCommunicator(peerSet))
 
           // Upon successful connection, send the version message.
           peer.send( VersionFactory.create() )
 
-          ctx.channel().closeFuture().addListener(ChannelFutureListener() {
-            fun operationComplete(future:ChannelFuture) {
+          ctx.channel().closeFuture().addListener(object : ChannelFutureListener {
+            override fun operationComplete(future:ChannelFuture) {
               assert( future.isDone )
 
               peerSet.remove(remoteAddress)

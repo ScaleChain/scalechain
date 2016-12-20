@@ -43,6 +43,7 @@ data class Peer(private val channel : Channel) {
     */
   fun isLive() : Boolean {
     // TODO : Implement this based on the time we received pong from this peer.
+
     return channel.isOpen && channel.isActive
     // Check if the time we received pong is within a threshold.
     //assert(false)
@@ -51,8 +52,8 @@ data class Peer(private val channel : Channel) {
 
   fun send(message : ProtocolMessage) {
     val messageString = MessageSummarizer.summarize(message)
-    channel.writeAndFlush(message).addListener(ChannelFutureListener() {
-      fun operationComplete(future:ChannelFuture) {
+    channel.writeAndFlush(message).addListener(object : ChannelFutureListener {
+      override fun operationComplete(future:ChannelFuture) {
         assert( future.isDone )
         if (future.isSuccess) { // completed successfully
           logger.debug("Successfully sent to peer : ${channel.remoteAddress()}, ${messageString}")

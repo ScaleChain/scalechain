@@ -30,7 +30,7 @@ interface TransactionTimeIndexTestTrait : ShouldSpec, KeyValueCommonTrait, Proto
         time.putTransactionTime(db, 1, TestData.dummyHash(1))
 
         val oldestTxHashes = time.getOldestTransactionHashes(db, 1)
-        println("time.getOldestTransactionHashes(db, 1): ${oldestTxHashes.first().prefix}, ${oldestTxHashes.first().data}")
+        //println("time.getOldestTransactionHashes(db, 1): ${oldestTxHashes.first().prefix}, ${oldestTxHashes.first().data}")
 
         oldestTxHashes shouldBe listOf(
           CStringPrefixed(TransactionTimeIndex.timeToString(1), TestData.dummyHash(1))

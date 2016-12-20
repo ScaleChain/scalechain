@@ -15,6 +15,7 @@ import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.Either
 import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
+import io.scalechain.blockchain.transaction.isRelatedWith
 import java.util.*
 
 /** The WalletOutput with additional information such as OutPoint.
@@ -564,13 +565,17 @@ class Wallet() : ChainEventListener {
     // TODO : Bitcoin Compatibility : bitcoind might not register the watch-only address as a receiving address.
     store.putReceivingAddress(db, account, outputOwnership)
 
-    var tranasctionIndex = -1
+    var transactionIndex = -1
     // Step 3 : Rescan blockchain
     if (rescanBlockchain) {
-      blockchainView.getIterator(db, height = 0L).forEach { chainBlock : ChainBlock ->
+      // BUGBUG : Need to check if block reorg happened. If happened, need to cancel the current rescan, and run it again.
+      blockchainView.getIterator(db, height = 0L).forEach { chainBlock: ChainBlock ->
         chainBlock.block.transactions.forEach { transaction ->
-          tranasctionIndex += 1
-          registerTransaction(db, transaction.hash(), transaction, chainBlock, tranasctionIndex)
+          transactionIndex += 1
+          // registerTransaction is an expensive operation. Call this only when the transaction is related to the given output ownership.
+          if (transaction.isRelatedWith(db, blockchainView, outputOwnership)) {
+            registerTransaction(db, transaction.hash(), transaction, chainBlock, transactionIndex)
+          }
         }
       }
     }

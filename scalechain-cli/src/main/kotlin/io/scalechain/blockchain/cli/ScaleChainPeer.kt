@@ -37,8 +37,8 @@ object ScaleChainPeer {
                          val miningAccount: String = io.scalechain.util.Config.getString("scalechain.mining.account"),
                          val network: String = io.scalechain.util.Config.getString("scalechain.network.name"),
                          val maxBlockSize: Int = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
-                         val minerInitialDelayMS: Int = 20000,
-                         val minerHashDelayMS : Int = 200,
+                         val minerInitialDelayMS: Int = 10000,
+                         val minerHashDelayMS : Int = 200000,
                          val disableMiner : Boolean = false
                        )
 
@@ -137,8 +137,8 @@ object ScaleChainPeer {
           miningAccount = line.getOptionValue("miningAccount", null) ?: io.scalechain.util.Config.getString("scalechain.mining.account"),
           network = line.getOptionValue("network", null) ?: io.scalechain.util.Config.getString("scalechain.network.name"),
           maxBlockSize = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
-          minerInitialDelayMS = CommandArgumentConverter.toInt( "minerInitialDelayMS", line.getOptionValue("minerInitialDelayMS", null), minValue = 0 ) ?: 20000,
-          minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200,
+          minerInitialDelayMS = CommandArgumentConverter.toInt( "minerInitialDelayMS", line.getOptionValue("minerInitialDelayMS", null), minValue = 0 ) ?: 10000,
+          minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200000,
           disableMiner = line.getOptionValue("disableMiner", "false").toBoolean()
       )
 
