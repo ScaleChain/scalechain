@@ -10,8 +10,6 @@ rm target/sc*.log
 
 ./run.sh 3 &
 
-./run.sh 4 &
-
 while [ `grep "Height : " target/sc0.log | wc -l` -lt 1 ]
 do
    echo "Waiting for the first block to be mined"
@@ -24,6 +22,5 @@ echo "Starting test process"
 
 read -p "Press any key to stop all processes... " -n1 -s
 
-
-#./kill-all.sh
+./kill-all.sh
 

@@ -133,6 +133,7 @@ open class BlockGateway {
           } else {
             // TODO : BUGBUG : Need to check if no sibling exists on the blockchain.
             // put the block as an orphan block
+            logger.trace("Current best block. Hash : ${currentBestBlockHash}")
             logger.trace("Added orphan block. Hash : ${blockHash}")
             BlockProcessor.get().putOrphan(receivedBlock)
           }

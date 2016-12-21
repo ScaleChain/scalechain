@@ -196,6 +196,7 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
             setBestBlock(db, blockHash, blockInfo )
 
             // TODO : Update best block in wallet (so we can detect restored wallets)
+            //assert(getBestBlockHash(db) == blockHash)
             logger.info("Successfully have put the block in the best blockchain.\n Height : ${blockInfo.height}, Hash : ${blockHash}")
             return true
           } else { // Case 2.B : The previous block of the new block is NOT the current best block.
