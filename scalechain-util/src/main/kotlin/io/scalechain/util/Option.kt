@@ -26,6 +26,7 @@ sealed class Option<T>() {
     abstract fun toNullable() : T?
 
     companion object {
+        @JvmStatic
         fun<T> from(value : T?) : Option<T> {
             if (value == null) {
                 return None()

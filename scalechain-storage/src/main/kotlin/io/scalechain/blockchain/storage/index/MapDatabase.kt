@@ -54,6 +54,8 @@ class MapDatabase(path : File) : KeyValueDatabase {
     db = DBMaker
       .fileDB(dbFilePath)
       .fileMmapEnableIfSupported()
+      //.fileMmapPreclearDisable()
+      //.cleanerHackEnable()
       .transactionEnable()
       .make()
 

@@ -1,38 +1,49 @@
 package io.scalechain.util
 
+import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 import org.junit.Test
 import junit.framework.TestCase
 import kotlin.test.*
 import org.junit.After
 import org.junit.Before
+import org.junit.runner.RunWith
 
-/**
- * JUnit 4 Test Case
- */
-class StackUtilSpec {
 
-    @Before fun setUp() {
-        // set up the test case
+@RunWith(KTestJUnitRunner::class)
+class StackUtilSpec : FlatSpec(), Matchers {
+    override fun beforeEach() {
+        // set-up code
+        //
+
+        super.beforeEach()
     }
 
-    @After fun tearDown() {
-        // tear down the test case
+    override fun afterEach() {
+        super.afterEach()
+
+        // tear-down code
+        //
     }
 
-    @Test fun testGetStackTrace() {
-        try {
-            throw IllegalArgumentException()
-        } catch ( t : Throwable ) {
-            assertTrue( StackUtil.getCurrentStack().contains("java.lang.Thread.getStackTrace") )
+    init {
+        "getCurrentStack" should "return a string that contains java.lang.Thread.getStackTrace" {
+            try {
+                throw IllegalArgumentException()
+            } catch ( t : Throwable ) {
+                assertTrue( StackUtil.getCurrentStack().contains("java.lang.Thread.getStackTrace") )
+            }
         }
-    }
 
-
-    @Test fun getCurrentStack() {
-        try {
-            throw IllegalArgumentException()
-        } catch ( t : Throwable ) {
-            assertTrue( StackUtil.getStackTrace(t).contains("IllegalArgumentException") )
+        "getStackTrace" should "return a string that contains the name of the thrown exception" {
+            try {
+                throw IllegalArgumentException()
+            } catch ( t : Throwable ) {
+                assertTrue( StackUtil.getStackTrace(t).contains("IllegalArgumentException") )
+            }
         }
+
     }
+
 }

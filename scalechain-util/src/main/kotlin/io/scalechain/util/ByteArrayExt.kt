@@ -7,5 +7,10 @@ import io.netty.buffer.ByteBuf
  */
 
 object ByteArrayExt {
+    /**
+     * Construct a byte array that has only one byte.
+     * @param byte The byte value that the byte array will have.
+     */
+    @JvmStatic
     fun from( byte : Byte) : ByteArray = ByteArray(1, {byte})
 }

@@ -10,10 +10,13 @@ import java.util.*
  */
 
 object ByteBufExt {
+    @JvmStatic
     fun from( hexString : String ) : ByteBuf {
         val bytes = HexUtil.bytes(hexString)
         return Unpooled.wrappedBuffer(bytes)
     }
+
+    @JvmStatic
     fun from( bytes : ByteArray ) : ByteBuf {
         return Unpooled.wrappedBuffer(bytes)
     }

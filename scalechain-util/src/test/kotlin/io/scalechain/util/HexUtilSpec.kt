@@ -3,11 +3,6 @@ package io.scalechain.util
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
-import org.junit.Test
-import junit.framework.TestCase
-import kotlin.test.*
-import org.junit.After
-import org.junit.Before
 
 import io.scalechain.test.TestMethods.S
 import io.scalechain.test.TestMethods.A

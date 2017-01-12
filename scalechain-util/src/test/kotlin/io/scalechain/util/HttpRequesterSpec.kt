@@ -1,37 +1,45 @@
 package io.scalechain.util
 
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
+import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 import org.junit.Test
 import junit.framework.TestCase
 import kotlin.test.*
 import org.junit.After
 import org.junit.Before
+import org.junit.runner.RunWith
 
-/**
- * JUnit 4 Test Case
- */
-class HttpRequesterSpec {
 
-    @Before fun setUp() {
-        // set up the test case
+@RunWith(KTestJUnitRunner::class)
+class HttpRequesterSpec : FlatSpec(), Matchers {
+    override fun beforeEach() {
+        // set-up code
+        //
+
+        super.beforeEach()
     }
 
-    @After fun tearDown() {
-        // tear down the test case
+    override fun afterEach() {
+        super.afterEach()
+
+        // tear-down code
+        //
     }
 
-    @Test fun testInputStreamAsString() {
-        val INPUT = "HelloWord"
-        val istream = ByteInputStream(INPUT.toByteArray(), INPUT.length)
-        assertEquals(
-            HttpRequester.inputStreamAsString(istream),
-            INPUT)
-    }
+    init {
+        "inputStreamAsString" should "return the string representation of the stream in the HttpRequester" {
+            val INPUT = "HelloWord"
+            val istream = ByteInputStream(INPUT.toByteArray(), INPUT.length)
 
-    @Test fun testPost() {
-        val POST_DATA = "Hello World!"
-        val response = HttpRequester.post("http://httpbin.org/post", POST_DATA, "unused", "unused")
-        assertTrue( response.contains(POST_DATA) )
+            HttpRequester.inputStreamAsString(istream) shouldBe INPUT
+        }
 
+        "post" should "request POST to a HTTP server and get a response from it" {
+            val POST_DATA = "Hello World!"
+            val response = HttpRequester.post("http://httpbin.org/post", POST_DATA, "unused", "unused")
+            assertTrue( response.contains(POST_DATA) )
+        }
     }
 }

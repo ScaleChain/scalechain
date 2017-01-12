@@ -1,107 +1,84 @@
 package io.scalechain.util
 
+import io.kotlintest.KTestJUnitRunner
+import io.kotlintest.matchers.Matchers
+import io.kotlintest.specs.FlatSpec
 import org.junit.Test
 import junit.framework.TestCase
 import kotlin.test.*
 import org.junit.After
 import org.junit.Before
+import org.junit.runner.RunWith
 
-/**
- * JUnit 4 Test Case
- */
-class ArrayUtilSpec {
+@RunWith(KTestJUnitRunner::class)
+class ArrayUtilSpec : FlatSpec(), Matchers {
+    override fun beforeEach() {
+        // set-up code
+        //
 
-    @Before fun setUp() {
-        // set up the test case
+        super.beforeEach()
     }
 
-    @After fun tearDown() {
-        // tear down the test case
-    }
+    override fun afterEach() {
+        super.afterEach()
 
-    fun byteArrayOf(vararg args : Int) : ByteArray = args.map { it.toByte() }.toByteArray()
-
-    @Test fun testPad() {
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.pad(byteArrayOf(), 0, 0 ),
-                byteArrayOf()))
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.pad(byteArrayOf(), 1, 0 ),
-                byteArrayOf(0)))
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.pad(byteArrayOf(1), 1, 0 ),
-                byteArrayOf(1)))
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.pad(byteArrayOf(1), 2, 0 ),
-                byteArrayOf(1,0)))
-    }
-
-    @Test fun testUnPad() {
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(), 0),
-                byteArrayOf()
-            )
-        )
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(), 1),
-                byteArrayOf()
-            )
-        )
-
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(0), 0),
-                byteArrayOf()
-            )
-        )
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(1), 0),
-                byteArrayOf(1)
-            )
-        )
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(0, 0), 0),
-                byteArrayOf()
-            )
-        )
-
-        assertTrue(
-            ArrayUtil.isEqual(
-                ArrayUtil.unpad(byteArrayOf(1, 0), 0),
-                byteArrayOf(1)
-            )
-        )
+        // tear-down code
+        //
     }
 
 
-    @Test fun testIsEqual() {
-        assertTrue(ArrayUtil.isEqual(byteArrayOf(), byteArrayOf()))
+    fun byteArrayOf(vararg args: Int): ByteArray = args.map { it.toByte() }.toByteArray()
 
-        assertTrue(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(2)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1,2)))
+    init {
+        "pad" should "pad bytes" {
+            ArrayUtil.pad(byteArrayOf(), 0, 0).toList() shouldBe
+              byteArrayOf().toList()
 
-        assertTrue(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,2)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,3)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2), byteArrayOf(1,2,3)))
+            ArrayUtil.pad(byteArrayOf(), 1, 0).toList() shouldBe
+              byteArrayOf(0).toList()
 
-        assertTrue(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,3)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,4)))
-        assertFalse(ArrayUtil.isEqual(byteArrayOf(1,2,3), byteArrayOf(1,2,3,4)))
+            ArrayUtil.pad(byteArrayOf(1), 1, 0).toList() shouldBe
+              byteArrayOf(1).toList()
+
+            ArrayUtil.pad(byteArrayOf(1), 2, 0).toList() shouldBe
+              byteArrayOf(1, 0).toList()
+        }
+
+        "unpad" should "unpad padded bytes" {
+            ArrayUtil.unpad(byteArrayOf(), 0).toList() shouldBe
+              byteArrayOf().toList()
+
+            ArrayUtil.unpad(byteArrayOf(), 1).toList() shouldBe
+              byteArrayOf().toList()
+
+
+            ArrayUtil.unpad(byteArrayOf(0), 0).toList() shouldBe
+              byteArrayOf().toList()
+
+            ArrayUtil.unpad(byteArrayOf(1), 0).toList() shouldBe
+              byteArrayOf(1).toList()
+
+            ArrayUtil.unpad(byteArrayOf(0, 0), 0).toList() shouldBe
+              byteArrayOf().toList()
+
+            ArrayUtil.unpad(byteArrayOf(1, 0), 0).toList() shouldBe
+              byteArrayOf(1).toList()
+        }
+
+        "isEqual" should "return true only if two bytearrays are equal" {
+            ArrayUtil.isEqual(byteArrayOf(), byteArrayOf()) shouldBe true
+
+            ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1)) shouldBe true
+            ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(2)) shouldBe false
+            ArrayUtil.isEqual(byteArrayOf(1), byteArrayOf(1, 2)) shouldBe false
+
+            ArrayUtil.isEqual(byteArrayOf(1, 2), byteArrayOf(1, 2)) shouldBe true
+            ArrayUtil.isEqual(byteArrayOf(1, 2), byteArrayOf(1, 3)) shouldBe false
+            ArrayUtil.isEqual(byteArrayOf(1, 2), byteArrayOf(1, 2, 3)) shouldBe false
+
+            ArrayUtil.isEqual(byteArrayOf(1, 2, 3), byteArrayOf(1, 2, 3)) shouldBe true
+            ArrayUtil.isEqual(byteArrayOf(1, 2, 3), byteArrayOf(1, 2, 4)) shouldBe false
+            ArrayUtil.isEqual(byteArrayOf(1, 2, 3), byteArrayOf(1, 2, 3, 4)) shouldBe false
+        }
     }
 }

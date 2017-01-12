@@ -26,6 +26,7 @@ class Bytes(val array : ByteArray) {
   }
 
   companion object {
+    @JvmStatic
     fun from(hexString : String ) = Bytes(HexUtil.bytes(hexString))
   }
 }
