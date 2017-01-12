@@ -1,8 +1,10 @@
 package io.scalechain.util;
 
+import io.kotlintest.KTestJUnitRunner;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -14,70 +16,73 @@ import static org.junit.Assert.assertTrue;
 /**
  * JUnit 4 Test Case
  */
-class UtilsSpec {
+public class UtilsSpec {
   @Before
-  void setUp() {
+  public void setUp() {
     // set up the test case
   }
 
   @After
-  void tearDown() {
+  public void tearDown() {
     // tear down the test case
   }
 
 
   @Test
-  void testBigIntegerToBytes() {
+  public void testBigIntegerToBytes() {
   }
 
   @Test
-  void testBytesToBigInteger() {
-  }
-  @Test
-  void testCastToBool() {
-  }
-  @Test
-  void testCastToBigInteger() {
-  }
-  @Test
-  void testReverseBytes() {
+  public void testBytesToBigInteger() {
   }
 
   @Test
-  void testDecodeMPI() {
+  public void testCastToBool() {
   }
 
   @Test
-  void testEncodeMPI() {
+  public void testCastToBigInteger() {
   }
 
   @Test
-  void testUint32ToByteArrayBE() {
+  public void testReverseBytes() {
   }
 
-
   @Test
-  void testReadUint32BE() {
+  public void testDecodeMPI() {
   }
 
+  @Test
+  public void testEncodeMPI() {
+  }
 
   @Test
-  void testEqualsRange() {
+  public void testUint32ToByteArrayBE() {
   }
 
 
   @Test
-  void testRemoveAllInstancesOf() {
+  public void testReadUint32BE() {
   }
 
 
   @Test
-  void testRemoveAllInstancesOfOp() {
+  public void testEqualsRange() {
   }
 
 
   @Test
-  void testBigIntegerToBytes_ShouldRoundTrip() {
+  public void testRemoveAllInstancesOf() {
+  }
+
+
+  @Test
+  public void testRemoveAllInstancesOfOp() {
+  }
+
+
+  @Test
+  public void testBigIntegerToBytes_ShouldRoundTrip() {
     for (int i = 0; i<1000; i++) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
       SecureRandom random = new SecureRandom();
       random.setSeed(random.generateSeed(32));

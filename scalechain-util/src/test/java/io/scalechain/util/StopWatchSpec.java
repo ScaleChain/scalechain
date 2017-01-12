@@ -1,42 +1,44 @@
 package io.scalechain.util;
 
+import io.kotlintest.KTestJUnitRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * JUnit 4 Test Case
  */
-class StopWatchSpec {
+public class StopWatchSpec {
   private StopWatch watch = null;
   @Before
-  void setUp() {
+  public void setUp() {
     // set up the test case
     watch = new StopWatch();
   }
 
   @After
-  void tearDown() {
+  public void tearDown() {
     // tear down the test case
     watch = null;
   }
 
   @Test
-  void testReset() {
+  public void testReset() {
 
   }
 
   @Test
-  void testStart() {
+  public void testStart() {
 
   }
 
   @Test
-  void testStop() {
+  public void testStop() {
 
   }
 
   @Test
-  void testToString() {
+  public void testToString() {
   }
 }
