@@ -11,7 +11,6 @@ import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 import io.scalechain.crypto.Hash256
 import io.scalechain.crypto.HashFunctions
-import io.scalechain.crypto.TransactionSigHash
 import io.scalechain.util.Bytes
 import io.scalechain.util.Utils
 import io.scalechain.util.toByteArray

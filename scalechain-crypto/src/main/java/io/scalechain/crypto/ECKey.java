@@ -28,7 +28,7 @@ public class ECKey {
     /**
      * Signs the given hash and returns the R and S components as BigIntegers.
      *
-     * @param inputBytes The input bytes to sign.
+     * @param inputBytes           The input bytes to sign.
      * @param privateKeyForSigning The private key we use for signing.
      */
     public static ECDSASignature doSign(byte[] inputBytes, BigInteger privateKeyForSigning) {
@@ -39,18 +39,19 @@ public class ECKey {
         return new ECDSASignature(components[0], components[1]).toCanonicalised();
     }
 
-    /** Decode the encoded public key to get the ECPoint.
+    /**
+     * Decode the encoded public key to get the ECPoint.
      *
      * @param pub The encoded public key.
      * @return The public key, which is a point on the elliptic curve.
      */
-    public static ECPoint decodePublicKey(byte[] pub ) {
+    public static ECPoint decodePublicKey(byte[] pub) {
         return CURVE.getCurve().decodePoint(pub);
     }
 
     /**
      * <p>Verifies the given ECDSA signature against the message bytes using the public key bytes.</p>
-     *
+     * <p>
      * <p>When using native ECDSA verification, data must be 32 bytes, and no element may be
      * larger than 520 bytes.</p>
      *
@@ -76,13 +77,16 @@ public class ECKey {
     // The parameters of the secp256k1 curve that Bitcoin uses.
     private static final X9ECParameters CURVE_PARAMS = CustomNamedCurves.getByName("secp256k1");
 
-    /** The parameters of the secp256k1 curve that Bitcoin uses. */
-    public static final ECDomainParameters CURVE;
+    /**
+     * The parameters of the secp256k1 curve that Bitcoin uses.
+     */
+    private static final ECDomainParameters CURVE;
+
     /**
      * Equal to CURVE.getN().shiftRight(1), used for canonicalising the S value of a signature. If you aren't
      * sure what this is about, you can ignore it.
      */
-    public static final BigInteger HALF_CURVE_ORDER;
+    private static final BigInteger HALF_CURVE_ORDER;
 
 
     /**
@@ -115,7 +119,7 @@ public class ECKey {
         // picked after consulting with the BC team.
         FixedPointUtil.precompute(CURVE_PARAMS.getG(), 12);
         CURVE = new ECDomainParameters(CURVE_PARAMS.getCurve(), CURVE_PARAMS.getG(), CURVE_PARAMS.getN(),
-                CURVE_PARAMS.getH());
+          CURVE_PARAMS.getH());
         HALF_CURVE_ORDER = CURVE_PARAMS.getN().shiftRight(1);
     }
 
@@ -126,8 +130,10 @@ public class ECKey {
      * components can be useful for doing further EC maths on them.
      */
     public static class ECDSASignature {
-        /** The two components of the signature. */
-        public final BigInteger r, s;
+        /**
+         * The two components of the signature.
+         */
+        private final BigInteger r, s;
 
         /**
          * Constructs a signature with the given components. Does NOT automatically canonicalise the signature.
@@ -199,7 +205,10 @@ public class ECKey {
                 throw new RuntimeException(e);
             } finally {
                 if (decoder != null)
-                    try { decoder.close(); } catch (IOException x) {}
+                    try {
+                        decoder.close();
+                    } catch (IOException x) {
+                    }
             }
         }
 
@@ -244,18 +253,18 @@ public class ECKey {
                 return false;
 */
             //                   "wrong type"                  "wrong length marker"
-            if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length-3)
+            if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length - 3)
                 return false;
 
             int lenR = signature[3] & 0xff;
             if (5 + lenR >= signature.length || lenR == 0)
                 return false;
-            int lenS = signature[5+lenR] & 0xff;
+            int lenS = signature[5 + lenR] & 0xff;
             if (lenR + lenS + 7 != signature.length || lenS == 0)
                 return false;
 
             // R value type mismatch
-            if (signature[4-2] != 0x02)
+            if (signature[4 - 2] != 0x02)
                 return false;
 /*
             Fix for : https://github.com/ScaleChain/scalechain/issues/33
@@ -265,7 +274,7 @@ public class ECKey {
             if ((signature[4] & 0x80) == 0x80)
                 return false;
 */
-            if (lenR > 1 && signature[4] == 0x00 && (signature[4+1] & 0x80) != 0x80)
+            if (lenR > 1 && signature[4] == 0x00 && (signature[4 + 1] & 0x80) != 0x80)
                 return false; // R value excessively padded
 
             // S value type mismatch
@@ -284,6 +293,4 @@ public class ECKey {
             return true;
         }
     }
-
-
 }
