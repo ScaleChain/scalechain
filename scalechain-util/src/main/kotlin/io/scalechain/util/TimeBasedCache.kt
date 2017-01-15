@@ -8,8 +8,7 @@ import com.google.common.cache.*
  * Keeps unsigned blocks for a specific time.
  */
 class TimeBasedCache<K, V>(duration: Long, unit: TimeUnit) {
-    val cache : Cache<K, V> =
-    CacheBuilder.newBuilder().expireAfterWrite(duration, unit).build<K, V>()
+    val cache : Cache<K, V> = CacheBuilder.newBuilder().expireAfterWrite(duration, unit).build<K, V>()
 
     fun put(hashKey : K, block : V) {
         // Assumption : Cache is thread-safe

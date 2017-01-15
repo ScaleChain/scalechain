@@ -63,9 +63,4 @@ fun ByteBuf.writeUnsignedShort(value : Int) {
     this.writeByte((0xFF and value))
 }
 
-fun ByteBuf.kotlinHex() : String {
-    // BUGBUG : Optimize by passing ByteBuf to HexUtil not to copy the byte array
-    return HexUtil.kotlinHex(this.toByteArray())
-}
-
 fun ByteBuf.toByteArray() = ByteBufUtil.getBytes(this)

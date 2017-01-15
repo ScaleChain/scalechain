@@ -30,6 +30,14 @@ class BytesSpec : FlatSpec(), Matchers {
     }
 
     init {
+        "from" should "return a Bytes instance from the given hex value" {
+            Bytes.from("") shouldBe Bytes(byteArrayOf())
+            Bytes.from("00") shouldBe Bytes(byteArrayOf(0))
+            Bytes.from("01") shouldBe Bytes(byteArrayOf(1))
+            Bytes.from("FF") shouldBe Bytes(byteArrayOf(-1))
+            Bytes.from("0001") shouldBe Bytes(byteArrayOf(0,1))
+        }
+
         "secondary constructor" should "accept a byte array" {
             val bytes = Bytes(A(1, 2))
             Arrays.equals(bytes.array.toTypedArray(), arrayOf<Byte>(1, 2)) shouldBe true

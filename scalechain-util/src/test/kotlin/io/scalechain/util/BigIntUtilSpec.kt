@@ -14,16 +14,10 @@ import scala.math.BigInt
 @RunWith(KTestJUnitRunner::class)
 class BigIntUtilSpec : FlatSpec(), Matchers {
     init {
-        "abc" should "def" {
+        "bint" should "return a string representing the big integer" {
+            val value = java.math.BigInteger("1")
+            BigIntUtil.bint(value) shouldBe "BigInt(\"$value\")"
         }
-    }
-
-    @Test fun testBint() {
-        val value = java.math.BigInteger("1")
-        assertEquals(
-            "BigInt(\"$value\")",
-            BigIntUtil.bint(value)
-        )
     }
 }
 

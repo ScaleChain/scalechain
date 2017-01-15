@@ -1,6 +1,5 @@
 package io.scalechain.util
 
-// BUGBUG : Add a unit test.
 sealed class Option<T>() {
     class Some<T>(val value : T) : Option<T>() {
         override fun toNullable() : T? = value
@@ -19,7 +18,7 @@ sealed class Option<T>() {
         // BUGBUG : Currently None<TypeA> equals None<TypeB>
         override fun hashCode() : Int = 1258712095
         override fun equals(other: Any?): Boolean {
-           return true
+            return other is None<*>
         }
     }
 

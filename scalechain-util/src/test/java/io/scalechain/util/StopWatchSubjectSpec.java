@@ -6,6 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * JUnit 4 Test Case
  */
@@ -26,20 +29,27 @@ public class StopWatchSubjectSpec {
 
   @Test
   public void testReset() {
-
+    subject.start();
+    subject.stop();
+    subject.reset();
+    assertEquals( "(sum=0);{}", subject.toString() );
   }
 
   @Test
-  public void testStart() {
-
+  public void testStartStopOnce() {
+    subject.start();
+    subject.stop();
+    // toString returns a string such as (sum=250);{0=1}
+    assertTrue(subject.toString().contains("{0=1}"));
   }
 
   @Test
-  public void testStop() {
-
-  }
-
-  @Test
-  public void testToString() {
+  public void testStartStopTwice() {
+    subject.start();
+    subject.stop();
+    subject.start();
+    subject.stop();
+    // toString returns a string such as (sum=526);{0=2}
+    assertTrue(subject.toString().contains("{0=2}"));
   }
 }

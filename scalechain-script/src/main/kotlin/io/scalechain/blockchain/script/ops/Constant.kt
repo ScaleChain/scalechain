@@ -120,8 +120,8 @@ class OpPushData(val lengthBytes : Int, val inputValue : ScriptValue? = null) : 
     } else if (length == 4) {
       result = (rawScript[offset].toInt() and 0xFF).toLong() +
                ((rawScript[offset+1].toInt() and 0xFF).toLong() shl 8) +
-               ((rawScript[offset+1].toInt() and 0xFF).toLong() shl 16) +
-               ((rawScript[offset+1].toInt() and 0xFF).toLong() shl 24)
+               ((rawScript[offset+2].toInt() and 0xFF).toLong() shl 16) +
+               ((rawScript[offset+3].toInt() and 0xFF).toLong() shl 24)
     } else {
       assert(false);
     }

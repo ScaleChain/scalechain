@@ -5,11 +5,11 @@ package io.scalechain.util
  */
 object ExceptionUtil {
     @JvmStatic
-    fun describe(throwable : Throwable?) : Unit {
+    fun describe(throwable : Throwable?) : String {
         if (throwable == null)
-            ""
+            return ""
         else
-            "{exception : ${throwable}, stack : ${StackUtil.getStackTrace(throwable)} }"
+            return "{exception : ${throwable}, stack : ${StackUtil.getStackTrace(throwable)} }"
     }
 
 }
