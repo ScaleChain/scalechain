@@ -82,6 +82,7 @@ interface TransactionTimeIndex {
 
     fun timeToString(nanoSeconds : Long) : String {
       val encodedString = Base58Util.encode( LongValueCodec.encode( LongValue( nanoSeconds) ) )
+
       if (encodedString.length > MaxBase58EncodedLength) {
         assert(false)
         return ""
