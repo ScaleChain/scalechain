@@ -8,7 +8,7 @@ import io.scalechain.blockchain.chain.NewOutput
 import io.scalechain.blockchain.chain.TransactionWithName
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
-import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.TransactionPoolIndex
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.test.PerformanceTestTrait
 import io.scalechain.util.StopWatch

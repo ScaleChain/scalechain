@@ -52,6 +52,8 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        // BUGBUG : Need to make sure what happens if a malformed message was received.
+        // Is it stopping the netty pipeline? Or is it ignoring the message?
         codec.decode(msg, out);
         if (out.size() > 0) {
             System.out.println("decoded : " + out.size());

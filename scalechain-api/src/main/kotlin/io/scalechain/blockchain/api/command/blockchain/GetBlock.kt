@@ -2,7 +2,7 @@ package io.scalechain.blockchain.api.command.blockchain
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
-import io.scalechain.blockchain.api.RpcSubSystem
+import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.api.command.BlockFormatter
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.StringResult

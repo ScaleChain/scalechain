@@ -14,7 +14,7 @@ import io.scalechain.util.NetUtil
 import io.scalechain.util.Config
 import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
-import io.scalechain.blockchain.api.RpcSubSystem
+import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
 import io.scalechain.blockchain.cli.command.CommandExecutor
 import io.scalechain.blockchain.storage.index.DatabaseFactory
@@ -245,17 +245,23 @@ object ScaleChainPeer {
     val wallet = Wallet.create()
     chain.setEventListener(wallet)
 
-    // Step 7 : Net Layer : Initialize peer to peer communication system, and
+    // Step 7 : OAP Layer : create OAP protocol layer
+    val cachePath = File("./target/oap-store-${params.p2pInboundPort}")
+    val chainView = ScalechainBlockchainInterface(chain)
+    val walletInterface = ScalechainWalletInterface(chain, wallet)
+    OpenAssetsProtocol.create(chainView, walletInterface, cachePath)
+
+    // Step 8 : Net Layer : Initialize peer to peer communication system, and
     // return the peer communicator that knows how to propagate blocks and transactions to peers.
 
     val peerCommunicator: PeerCommunicator = initializeNetLayer(params, chain)
 
-    // Step 8 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
+    // Step 9 : API Layer : Initialize RpcSubSystem Sub-system and start the RPC service.
     // TODO : Pass Wallet as a parameter.
     RpcSubSystem.create(chain, peerCommunicator)
     JsonRpcMicroservice.runService(params.apiInboundPort)
 
-    // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
+    // Step 10 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
 
     val miner = CoinMiner.create(db, params.miningAccount, wallet, chain, peerCommunicator, minerParams)

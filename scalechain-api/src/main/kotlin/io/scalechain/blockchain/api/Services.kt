@@ -38,6 +38,16 @@ object Services {
     /*
         GetTransaction,
     */
+    GetAddressesByAccount,
+    GetAssetAddress,
+    GetBalance,
+    GetAssetBalance,
+    CreateAssetDefinition,
+    GetAssetDefinition,
+    ListAssetTransactions,
+    SendMany,
+    IssueAsset,
+    TransferAsset
   )
 
   // The map from the command to the service object.

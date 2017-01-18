@@ -1,4 +1,5 @@
 package io.scalechain.blockchain.api.domain
+import com.google.gson.*
 
 interface RpcResult
 // Return JsNull. (for submitblock)
@@ -9,3 +10,4 @@ data class NumberResult(val value : java.math.BigDecimal) : RpcResult
 
 data class RpcResponse(val result : RpcResult?, val error : RpcError?, val id : Long)
 
+data class JsResult(val value : JsonElement) : RpcResult

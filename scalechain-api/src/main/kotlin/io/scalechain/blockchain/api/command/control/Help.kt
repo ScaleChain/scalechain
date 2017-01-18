@@ -84,6 +84,10 @@ object Help : RpcCommand() {
       |listtransactions ( "account" count from includeWatchonly)
       |listunspent ( minconf maxconf  ["address",...] )
       |sendfrom "fromaccount" "tobitcoinaddress" amount ( minconf "comment" "comment-to" )
+      |
+      |== Open Assets Protocol
+      |issueasset "issuer_address" "to_address" "quantity" "change_address" "fees"
+      |transferasset "from_address", [ "asset_transfer_to" ] "change_address" "fees"
     """.trimMargin()
 
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {

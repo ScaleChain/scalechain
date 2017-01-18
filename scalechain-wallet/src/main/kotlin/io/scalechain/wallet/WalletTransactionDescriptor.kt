@@ -1,6 +1,7 @@
 package io.scalechain.wallet
 
 import io.scalechain.blockchain.proto.Hash
+import io.scalechain.blockchain.proto.WalletTransaction
 
 /** Describes details on a transaction.
   */
@@ -59,7 +60,7 @@ data class WalletTransactionDescriptor(
   // P2
   //    walletconflicts   : List<Hash>,            // : <>,
   // A Unix epoch time when the transaction was added to the wallet
-  val time              : Long                   // 1418695703,
+  val time              : Long,                   // 1418695703
   // A Unix epoch time when the transaction was detected by the local node,
   // or the time of the block on the local best block chain that included the transaction.
   // Not returned for move category payments
@@ -81,4 +82,6 @@ data class WalletTransactionDescriptor(
   // as indicated by a negative or positive amount field in this payment
   // P3
   //    otheraccount : Option<String>
+
+  val walletTransaction : WalletTransaction?
 )

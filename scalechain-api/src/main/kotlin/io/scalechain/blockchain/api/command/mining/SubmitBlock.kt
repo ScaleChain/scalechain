@@ -4,8 +4,8 @@ import com.google.gson.JsonObject
 import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
-import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.api.SubmitBlockResult
+import io.scalechain.blockchain.net.RpcSubSystem
+import io.scalechain.blockchain.net.SubmitBlockResult
 import io.scalechain.blockchain.api.command.BlockDecoder
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError

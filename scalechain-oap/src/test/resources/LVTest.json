@@ -1,0 +1,17 @@
+{
+  "asset_ids": [
+    "AahW4fXGAc3h9bhMBajpCibVuYbxzPn3jH"
+  ],
+  "contract_url": "https://www.coinprism.info/asset/AahW4fXGAc3h9bhMBajpCibVuYbxzPn3jH",
+  "name_short": "LVTest",
+  "name": "Lightvil Test Asset",
+  "issuer": "LIGHTVIL",
+  "description": "This is an asset for test purpose only.\r\n",
+  "description_mime": "text/x-markdown; charset=UTF-8",
+  "type": "Other",
+  "divisibility": 0,
+  "link_to_website": false,
+  "icon_url": "https://coinprism.blob.core.windows.net/profile/icon/AahW4fXGAc3h9bhMBajpCibVuYbxzPn3jH.jpg",
+  "image_url": "https://coinprism.blob.core.windows.net/profile/image/AahW4fXGAc3h9bhMBajpCibVuYbxzPn3jH.jpg",
+  "version": "1.0"
+}

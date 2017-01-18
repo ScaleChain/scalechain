@@ -28,12 +28,16 @@ class RpcResultSerializer : JsonSerializer<RpcResult> {
   }
   override fun serialize(src: RpcResult?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
     return when {
+      src is JsResult -> src.value check type
       src is StringResult -> JsonPrimitive(src.value)
       src is StringListResult -> toJsonArray(src.value)
       src is NumberResult -> JsonPrimitive(src.value)
       src is GetPeerInfoResult -> toJsonArray(src.peerInfos)
       src is ListTransactionsResult -> toJsonArray(src.transactionDescs)
+      src is ListAssetTransactionsResult -> src.transactionDescs check type
       src is ListUnspentResult -> toJsonArray(src.unspentCoins)
+      src is IssueAssetResultResult -> src.value check type
+      src is ListAssetBalanceDescResult -> src.value check type
       else -> {
         Json.get().toJsonTree(src, typeOfSrc)
       }

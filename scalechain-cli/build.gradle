@@ -3,6 +3,7 @@ apply plugin: 'application'
 dependencies {
     compile project(':scalechain-api')
     compile project(':scalechain-net')
+    compile project(':scalechain-oap')
     compile project(':scalechain-wallet')
     compile project(':scalechain-chain')
     compile project(':scalechain-transaction')
