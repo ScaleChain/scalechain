@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 @RunWith(KTestJUnitRunner::class)
 class CStringCodecSpec : MultiplePayloadTestSuite<String>()  {
 
-  override val codec = CStringCodec(Charset.forName("UTF-8"))
+  override val codec = Codecs.CString
 
   override val payloads =
     table(

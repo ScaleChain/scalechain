@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class CStringPrefixedCodecSpec : MultiplePayloadTestSuite<CStringPrefixed<Byte>>()  {
 
-  override val codec = CStringPrefixedCodec( ByteCodec() )
+  override val codec = Codecs.cstringPrefixed( ByteCodec() )
 
   override val payloads =
     table(

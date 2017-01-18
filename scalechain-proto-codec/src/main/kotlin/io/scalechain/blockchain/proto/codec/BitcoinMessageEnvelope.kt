@@ -8,9 +8,9 @@ import io.scalechain.util.Bytes
 import java.nio.charset.StandardCharsets
 
 import io.scalechain.crypto.HashFunctions
+import io.scalechain.blockchain.proto.Checksum
+import io.scalechain.blockchain.proto.Magic
 
-
-import io.scalechain.util.HexUtil
 import io.scalechain.util.ArrayUtil
 
 import io.scalechain.blockchain.proto.ProtocolMessage
@@ -28,67 +28,6 @@ import java.util.*
  *           ?,     payload,   uchar[],  The actual data
  */
 
-
-data class Checksum(val value : Bytes) {
-    init {
-        assert(value.array.size == Checksum.VALUE_SIZE)
-    }
-
-  override fun toString() = "Checksum(${HexUtil.kotlinHex(value.array)})"
-
-  companion object {
-      val VALUE_SIZE = 4
-
-      fun fromHex(hexString : String) = Checksum(Bytes.from(hexString))
-  }
-}
-
-object ChecksumCodec : Codec<Checksum> {
-    override fun transcode(io: CodecInputOutputStream, obj: Checksum?): Checksum? {
-        val value = Codecs.fixedByteArray(Checksum.VALUE_SIZE).transcode(io, obj?.value?.array)
-        if (io.isInput) {
-            return Checksum(Bytes(value!!))
-        }
-
-        return null
-    }
-}
-
-
-data class Magic(val value : Bytes) {
-  init {
-    assert(value.array.size == Magic.VALUE_SIZE )
-  }
-  override fun toString() = "Magic(${HexUtil.kotlinHex(value.array)})"
-
-  companion object {
-        val VALUE_SIZE = 4
-
-        val MAIN     = fromHex("D9B4BEF9")
-        val TESTNET  = fromHex("DAB5BFFA")
-        val TESTNET3 = fromHex("0709110B")
-        val NAMECOIN = fromHex("FEB4BEF9")
-
-        fun fromHex(hexString : String) = Magic(Bytes.from(hexString))
-/*
-        val codec: Codec<Magic> = bytes(VALUE_SIZE).xmap(
-            b => Magic.apply(b.reverse.toArray),
-        m => ByteVector(m.value.array.reverse))
-*/
-    }
-}
-
-object MagicCodec : Codec<Magic> {
-    override fun transcode(io: CodecInputOutputStream, obj: Magic?): Magic? {
-        val value = Codecs.fixedReversedByteArray(Magic.VALUE_SIZE).transcode(io, obj?.value?.array)
-        if (io.isInput) {
-            return Magic(Bytes(value!!))
-        }
-
-        return null
-    }
-}
-
 data class BitcoinMessageEnvelope(
     val magic    : Magic,
     val command  : String,
@@ -97,7 +36,7 @@ data class BitcoinMessageEnvelope(
     val payload  : ByteBuf) {
     //   override fun toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
 
-    override fun toString() = """BitcoinMessageEnvelope($magic, \"${command}\", $length, $checksum, $payload)"""
+    override fun toString() = """BitcoinMessageEnvelope($magic, "$command", $length, $checksum, $payload)"""
 
     companion object {
       /**
@@ -144,13 +83,12 @@ data class BitcoinMessageEnvelope(
           throw ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
       }
     }
-
 }
 
 object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
   val COMMAND_SIZE = 12
 
-  private fun decodeCommand(zeroPaddedCommand : ByteArray): String {
+  internal fun decodeCommand(zeroPaddedCommand : ByteArray): String {
     assert(zeroPaddedCommand.size == COMMAND_SIZE)
 
     // command is a 0 padded string. Get rid of trailing 0 values.
@@ -160,7 +98,7 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
     return String(command, StandardCharsets.US_ASCII)
   }
 
-  private fun encodeCommand(command: String) : ByteArray {
+  internal fun encodeCommand(command: String) : ByteArray {
     assert(command.length <= COMMAND_SIZE)
 
     // BUGBUG : Dirty code. make it clean.
@@ -169,35 +107,35 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
     return ArrayUtil.pad(bytes, COMMAND_SIZE /* targetLength */ , 0 /* value */)
   }
 
-  val COMMAND_LENGTH = 12
-  val PayloadLengthCodec = Codecs.UInt32L
-    override fun transcode(io: CodecInputOutputStream, obj: BitcoinMessageEnvelope?): BitcoinMessageEnvelope? {
-        val magic    = MagicCodec.transcode(io, obj?.magic)
-        val command  = Codecs.fixedByteArray(COMMAND_LENGTH).transcode(io, if (obj==null) null else encodeCommand(obj.command))
-        val length   = PayloadLengthCodec.transcode(io, obj?.length?.toLong())
-        val checksum = ChecksumCodec.transcode(io, obj?.checksum)
+  private val COMMAND_LENGTH = 12
+  private val PayloadLengthCodec = Codecs.UInt32L
+  override fun transcode(io: CodecInputOutputStream, obj: BitcoinMessageEnvelope?): BitcoinMessageEnvelope? {
+      val magic    = MagicCodec.transcode(io, obj?.magic)
+      val command  = Codecs.fixedByteArray(COMMAND_LENGTH).transcode(io, if (obj==null) null else encodeCommand(obj.command))
+      val length   = PayloadLengthCodec.transcode(io, obj?.length?.toLong())
+      val checksum = ChecksumCodec.transcode(io, obj?.checksum)
 
-        // To avoid read index from being changed for the bytes ByteBuf, wrap it before passing to writeBytes
-        val wrappedPayload = if (obj == null) null else Unpooled.wrappedBuffer(obj.payload)
+      // To avoid read index from being changed for the bytes ByteBuf, wrap it before passing to writeBytes
+      val wrappedPayload = if (obj == null) null else Unpooled.wrappedBuffer(obj.payload)
 
-        val payload  = io.fixedBytes(obj?.length ?: length!!.toInt() , wrappedPayload)
+      val payload  = io.fixedBytes(obj?.length ?: length!!.toInt() , wrappedPayload)
 
-        if (io.isInput) {
-            return BitcoinMessageEnvelope(
-                magic!!,
-                decodeCommand(command!!),
-                length!!.toInt(),
-                checksum!!,
-                payload!!
-            )
-        }
-        return null
-    }
+      if (io.isInput) {
+          return BitcoinMessageEnvelope(
+              magic!!,
+              decodeCommand(command!!),
+              length!!.toInt(),
+              checksum!!,
+              payload!!
+          )
+      }
+      return null
+  }
 
-  val PAYLOAD_LENGTH_SIZE = PayloadLengthCodec.encode(0L).size
-  val MIN_ENVELOPE_BYTES = envelopSize(payloadLength=0)
+  private val PAYLOAD_LENGTH_SIZE = PayloadLengthCodec.encode(0L).size
+  private val MIN_ENVELOPE_BYTES = envelopSize(payloadLength=0)
 
-  val PAYLOAD_LENGTH_OFFSET = Magic.VALUE_SIZE + COMMAND_LENGTH // command
+  private val PAYLOAD_LENGTH_OFFSET = Magic.VALUE_SIZE + COMMAND_LENGTH // command
 
   fun envelopSize(payloadLength : Long ) : Long {
     return Magic.VALUE_SIZE +

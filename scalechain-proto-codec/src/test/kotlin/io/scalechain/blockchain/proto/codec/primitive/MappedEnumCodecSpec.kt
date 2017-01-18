@@ -12,7 +12,7 @@ enum class Seasons {
 @RunWith(KTestJUnitRunner::class)
 class MappedEnumCodecSpec : MultiplePayloadTestSuite<Seasons>()  {
 
-  override val codec = MappedEnumCodec(Int32Codec(), mapOf(
+  override val codec = Codecs.mappedEnum(Int32Codec(), mapOf(
     Seasons.Spring to 1,
     Seasons.Summer to 2,
     Seasons.Autumn to 3,

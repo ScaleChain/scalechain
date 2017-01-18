@@ -27,7 +27,7 @@ class TransactionPoolEntryCodecSpec : PayloadTestSuite<TransactionPoolEntry>()  
     """)
 
   override val message = TransactionPoolEntry(
-    transaction = TransactionSpec.SampleTransaction,
+    transaction = TransactionSpec.SampleTransaction1,
     outputsSpentBy = listOf( null, InPoint(DUMMY_HASH1, 1), null ),
     createdAtNanos = 1
   )

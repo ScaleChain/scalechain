@@ -161,9 +161,9 @@ interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
       L(db.get(B("k3"))) shouldBe L(B("v3"))
     }
 
-    val keyCount = 1000
+    val keyCount = 10
 
-    "put/get" should "put/get 1,000 keys" {
+    "put/get" should "put/get 10 keys" {
       for (i in 1.. keyCount ) {
         val key = HashFunctions.sha256(i.toString().toByteArray())
         val value = HashFunctions.sha256((i*10).toString().toByteArray())
@@ -177,7 +177,7 @@ interface KeyValueDatabaseTestTrait : ShouldSpec, KeyValueCommonTrait {
       }
     }
 
-    "put/del/get" should "put/del/get 1,000 keys" {
+    "put/del/get" should "put/del/get 10 keys" {
       for (i in 1 .. keyCount ) {
         val key = HashFunctions.sha256(i.toString().toByteArray())
         val value = HashFunctions.sha256((i*10).toString().toByteArray())

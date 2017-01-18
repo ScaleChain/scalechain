@@ -205,15 +205,25 @@ abstract class BlockStorageTestTrait : FlatSpec(), Matchers {
       storage.getBlockHeader(db, blockHash1) shouldBe null
     }
 
-    "hasBlockHeader" should "return Some(block header) if the block header was put." {
+    "getBlockHeader" should "return Some(block header) if the block header was put." {
       storage.putBlockHeader(db, block1.header)
       storage.getBlockHeader(db, blockHash1) shouldBe block1.header
     }
 
-    "hasBlockHeader" should "return Some(block header) if the block was put." {
+    "getBlockHeader" should "return Some(block header) if the block was put." {
       storage.putBlock(db, block1)
       storage.getBlockHeader(db, blockHash1) shouldBe block1.header
     }
+
+    "hasBlockHeader" should "return false if the block header does not exist" {
+      storage.hasBlockHeader(db, blockHash1) shouldBe false
+    }
+
+    "hasBlockHeader" should "return true if the block header exists" {
+      storage.putBlockHeader(db, block1.header)
+      storage.hasBlockHeader(db, blockHash1) shouldBe true
+    }
+
 
     // This method is a wrapper of the getBlock(Hash). Just do a sanity test.
     "getBlock(Hash)" should "get a block" {
@@ -260,16 +270,13 @@ abstract class BlockStorageTestTrait : FlatSpec(), Matchers {
       storage.updateNextBlockHash(db, blockHash1, blockHash2)
 
       storage.getBlockInfo(db, blockHash1)?.nextBlockHash shouldBe blockHash2
+      storage.getNextBlockHash(db, blockHash1) shouldBe blockHash2
     }
 
     "updateNextBlockHash" should "hit an assertion if the block hash does not exist" {
       shouldThrow<AssertionError> {
         storage.updateNextBlockHash(db, blockHash1, null)
       }
-    }
-
-    "putBlock" should "return transaction locators" {
-
     }
   }
 }

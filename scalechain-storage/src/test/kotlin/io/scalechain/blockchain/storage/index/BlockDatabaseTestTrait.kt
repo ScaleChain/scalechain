@@ -41,7 +41,7 @@ abstract class BlockDatabaseTestTrait : FlatSpec(), Matchers, CodecTestUtil {
   val DUMMY_HASH1 = Hash(Bytes.from(String(ListExt.fill(64,'1').toCharArray())))
   val DUMMY_HASH2 = Hash(Bytes.from(String(ListExt.fill(64,'2').toCharArray())))
 
-  fun runTests() {
+  fun addTests() {
     "putBlockInfo/getBlockInfo" should "successfully put/get data" {
       blockDb.getBlockInfo(db, TestData.blockHash) shouldBe null
 

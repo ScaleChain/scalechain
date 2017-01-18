@@ -92,7 +92,7 @@ object WalletTransactionCodec : Codec<WalletTransaction> {
 }
 
 object OwnershipDescriptorCodec : Codec<OwnershipDescriptor> {
-  private val StringListCodec = Codecs.variablelistOf( Codecs.VariableString )
+  private val StringListCodec = Codecs.variableListOf( Codecs.VariableString )
   override fun transcode(io : CodecInputOutputStream, obj : OwnershipDescriptor? ) : OwnershipDescriptor? {
     val account = Codecs.VariableString.transcode(io, obj?.account)
     val privateKeys = StringListCodec.transcode(io, obj?.privateKeys)

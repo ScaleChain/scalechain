@@ -159,7 +159,7 @@ object TransactionInputCodec : Codec<TransactionInput> {
     }
   }
 
-  private fun generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput {
+  internal fun generationOrNormalToNormalTx(txInput : TransactionInput) : NormalTransactionInput {
     when {
       txInput is GenerationTransactionInput -> {
         //assert(isGenerationTransaction(txInput))

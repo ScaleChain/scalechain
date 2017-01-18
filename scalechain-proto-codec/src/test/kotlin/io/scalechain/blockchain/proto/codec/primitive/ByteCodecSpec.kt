@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class ByteCodecSpec : MultiplePayloadTestSuite<Byte>()  {
 
-  override val codec = ByteCodec()
+  override val codec = Codecs.Byte
 
   override val payloads =
     table(

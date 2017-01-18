@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.spongycastle.math.ec.ECPoint;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -59,18 +60,25 @@ public class ECKeySpec {
     byte[] sig = HexUtil.bytes(
       "3046022100dffbc26774fc841bbe1c1362fd643609c6e42dcb274763476d87af2c0597e89e022100c59e3c13b96b316cae9fa0ab0260612c7a133a6fe2b3445b6bf80b3123bf274d");
 
-    assertTrue( ECKey.verify(ZERO_HASH, ECKey.ECDSASignature.decodeFromDER(sig), publicKey) );
-
+    try {
+      assertTrue( ECKey.verify(ZERO_HASH, ECKey.ECDSASignature.decodeFromDER(sig), publicKey) );
+    } catch (IOException e) {
+      assertTrue(false);
+    }
   }
 
   @Test
   public void testRoundTripDerFormat() {
-    ECKey.ECDSASignature signature = ECKey.doSign(ZERO_HASH, PRIVATE_KEY);
-    byte[] signatureInDerFormat = signature.encodeToDER();
-    ECKey.ECDSASignature decodedSignature = ECKey.ECDSASignature.decodeFromDER(signatureInDerFormat);
+    try {
+      ECKey.ECDSASignature signature = ECKey.doSign(ZERO_HASH, PRIVATE_KEY);
+      byte[] signatureInDerFormat = signature.encodeToDER();
+      ECKey.ECDSASignature decodedSignature = ECKey.ECDSASignature.decodeFromDER(signatureInDerFormat);
 
-    assertEquals( decodedSignature.hashCode(), signature.hashCode() );
-    assertEquals( decodedSignature, signature);
+      assertEquals( decodedSignature.hashCode(), signature.hashCode() );
+      assertEquals( decodedSignature, signature);
+    } catch (IOException e) {
+      assertTrue(false);
+    }
   }
 
   private BigInteger generatePrivateKey() {

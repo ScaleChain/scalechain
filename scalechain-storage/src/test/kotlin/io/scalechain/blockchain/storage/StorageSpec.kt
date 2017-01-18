@@ -24,6 +24,7 @@ class StorageSpec : FlatSpec(), Matchers {
     "initialized" should "return true after initialize is invoked" {
       Storage.initialize()
       Storage.initialized() shouldBe true
+      Storage.isInitialized shouldBe true
     }
   }
 }

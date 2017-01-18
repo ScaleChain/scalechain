@@ -3,8 +3,8 @@ package io.scalechain.blockchain.storage.index
 import io.kotlintest.KTestJUnitRunner
 import io.scalechain.blockchain.proto.CStringPrefixed
 import io.scalechain.blockchain.proto.test.ProtoTestData
-import io.scalechain.blockchain.storage.TransactionPoolIndex
-import io.scalechain.blockchain.storage.TransactionTimeIndex
+import io.scalechain.blockchain.storage.index.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.TransactionTimeIndex
 import io.scalechain.blockchain.storage.test.TestData
 import io.scalechain.test.ShouldSpec
 import io.scalechain.test.ShouldSpec.Companion.shouldThrow

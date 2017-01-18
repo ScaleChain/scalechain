@@ -9,20 +9,22 @@ import org.junit.runner.RunWith
 import java.io.File
 
 @RunWith(KTestJUnitRunner::class)
-@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
+//@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
 class TransactingMapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   val testPath = File("./target/unittests-TransactingMapDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
   lateinit var txDb : TransactingKeyValueDatabase
+  lateinit var mapDB : MapDatabase
 
   override fun beforeEach() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    db = MapDatabase(testPath)
-    txDb = db.transacting()
+    mapDB = MapDatabase(testPath)
+    txDb = mapDB.transacting()
     txDb.beginTransaction()
+    db = txDb
 
     super.beforeEach()
   }
@@ -30,7 +32,7 @@ class TransactingMapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
   override fun afterEach() {
     super.afterEach()
     txDb.commitTransaction()
-    db.close()
+    mapDB.close()
   }
 
   init {

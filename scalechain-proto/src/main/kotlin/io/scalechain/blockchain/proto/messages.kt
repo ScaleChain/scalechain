@@ -185,6 +185,7 @@ data class Reject(val message:String,
 /** These messages are related to Bloom filtering of connections and are funined in BIP 0037.
  * Details : https://en.bitcoin.it/wiki/BIP_0037
  */
+/*
 data class FilterLoad(private val dummy : Int = 1) : ProtocolMessage {
   override fun toString() = "FilterLoad()"
 }
@@ -226,7 +227,7 @@ data class MerkleBlock(private val dummy : Int = 1) : ProtocolMessage {
 data class Alert(private val dummy : Int = 1) : ProtocolMessage {
   override fun toString() = "Alert()"
 }
-
+*/
 
 /** SendHeaders; The sendheaders message tells the receiving peer
   * to send new block announcements using a headers message rather than an inv message.

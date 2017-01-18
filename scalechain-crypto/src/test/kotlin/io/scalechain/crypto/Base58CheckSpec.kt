@@ -3,6 +3,8 @@ package io.scalechain.crypto
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
 import java.math.BigInteger
 import java.security.SecureRandom
 
@@ -31,10 +33,11 @@ class Base58CheckSpec : FlatSpec(), Matchers {
     //
   }
 
+  val VERSION : Byte = 1
+
   init {
     "Base58Check" should "decode encoded string" {
-      val VERSION : Byte = 1
-      for (i in 1 .. 1000) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
+      for (i in 1 .. 100) { // Because we are generating random numbers, test many times not to let the test case pass with some small randome number.
         val random = SecureRandom()
         random.setSeed( random.generateSeed(32) )
 
@@ -54,6 +57,24 @@ class Base58CheckSpec : FlatSpec(), Matchers {
       }
 
     }
+
+    "decode" should "throw GeneralException if the checksum is invalid" {
+      val random = SecureRandom()
+      random.setSeed( random.generateSeed(32) )
+
+      val originalValue : ByteArray = ByteArray(32)
+      random.nextBytes(originalValue)
+
+      val encodedValue = Base58Check.encode(VERSION, originalValue)
+
+
+      val thrown = shouldThrow<GeneralException> {
+        val encodedValueWithInvalidChecksum = encodedValue.substring(0, encodedValue.length-4) + "1111"
+
+        Base58Check.decode(encodedValueWithInvalidChecksum)
+      }
+      thrown.code shouldBe ErrorCode.InvalidChecksum
+   }
   }
 
 }

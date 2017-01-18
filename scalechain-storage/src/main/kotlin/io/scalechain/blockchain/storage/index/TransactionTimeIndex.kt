@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage
+package io.scalechain.blockchain.storage.index
 
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.CStringPrefixed

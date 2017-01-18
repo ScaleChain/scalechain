@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class Int32CodecSpec : MultiplePayloadTestSuite<Int>()  {
 
-  override val codec = Int32Codec()
+  override val codec = Codecs.Int32
 
   override val payloads =
     table(
@@ -28,7 +28,7 @@ class Int32CodecSpec : MultiplePayloadTestSuite<Int>()  {
 @RunWith(KTestJUnitRunner::class)
 class Int32LCodecSpec : MultiplePayloadTestSuite<Int>()  {
 
-  override val codec = Int32LCodec()
+  override val codec = Codecs.Int32L
 
   override val payloads =
     table(
@@ -47,7 +47,7 @@ class Int32LCodecSpec : MultiplePayloadTestSuite<Int>()  {
 @RunWith(KTestJUnitRunner::class)
 class UInt32CodecSpec : MultiplePayloadTestSuite<Long>()  {
 
-  override val codec = UInt32Codec()
+  override val codec = Codecs.UInt32
 
   override val payloads =
     table(
@@ -65,7 +65,7 @@ class UInt32CodecSpec : MultiplePayloadTestSuite<Long>()  {
 @RunWith(KTestJUnitRunner::class)
 class UInt32LCodecSpec : MultiplePayloadTestSuite<Long>()  {
 
-  override val codec = UInt32LCodec()
+  override val codec = Codecs.UInt32L
 
   override val payloads =
     table(

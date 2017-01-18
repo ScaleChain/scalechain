@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class OptionalCodecSpec : MultiplePayloadTestSuite<Option<Int>>()  {
 
-  override val codec = OptionalCodec(BooleanCodec(), Int32Codec())
+  override val codec = Codecs.optional(BooleanCodec(), Int32Codec())
 
   override val payloads =
     Table2<Option<Int>, ByteArray>(

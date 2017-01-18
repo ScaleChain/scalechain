@@ -1,4 +1,4 @@
-package io.scalechain.blockchain.storage.record
+package io.scalechain.blockchain.storage
 
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers

@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BooleanCodecSpec : MultiplePayloadTestSuite<Boolean>()  {
 
-  override val codec = BooleanCodec()
+  override val codec = Codecs.Boolean
 
   override val payloads =
     table(

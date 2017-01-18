@@ -153,7 +153,7 @@ object BlockHeightCodec : Codec<BlockHeight> {
 }
 
 internal val OptionalInPointListCodec =
-  Codecs.variablelistOf(
+  Codecs.variableListOf(
     valueCodec = Codecs.optional(valueCodec = InPointCodec)
   )
 

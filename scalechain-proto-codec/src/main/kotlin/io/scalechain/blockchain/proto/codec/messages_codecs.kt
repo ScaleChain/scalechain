@@ -6,7 +6,7 @@ import io.scalechain.blockchain.proto.codec.primitive.*
 import io.scalechain.blockchain.*
 import io.scalechain.util.Bytes
 
-internal val HashListCodec = Codecs.variablelistOf( HashCodec )
+internal val HashListCodec = Codecs.variableListOf( HashCodec )
 
 /**
   * <Description>
@@ -125,7 +125,7 @@ object AddrCodec : ProtocolMessageCodec<Addr> {
   override val command = "addr"
   override val clazz = Addr::class.java
 
-  private val networkAddressWithTimestampListCodec = Codecs.variablelistOf(
+  private val networkAddressWithTimestampListCodec = Codecs.variableListOf(
       NetworkAddressWithTimestampCodec
   )
 
@@ -167,7 +167,7 @@ internal object InvVectorCodec : Codec<InvVector> {
 }
 
 internal val InvVectorListCodec : Codec<List<InvVector>> =
-    Codecs.variablelistOf( InvVectorCodec )
+    Codecs.variableListOf( InvVectorCodec )
 
 /**
   * <Description>
@@ -382,7 +382,7 @@ object BlockCodec : ProtocolMessageCodec<Block> {
   override val command = "block"
   override val clazz = Block::class.java
 
-  private val TransactionListCodec = Codecs.variablelistOf( TransactionCodec )
+  private val TransactionListCodec = Codecs.variableListOf( TransactionCodec )
   override fun transcode(io : CodecInputOutputStream, obj : Block? ) : Block? {
     val header = BlockHeaderCodec.transcode(io, obj?.header)
     val transactions = TransactionListCodec.transcode(io, obj?.transactions)
@@ -500,8 +500,8 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
   override val command = "tx"
   override val clazz = Transaction::class.java
 
-  private val TransactionInputListCodec = Codecs.variablelistOf( TransactionInputCodec )
-  private val TransactionOutputListCodec = Codecs.variablelistOf( TransactionOutputCodec )
+  private val TransactionInputListCodec = Codecs.variableListOf( TransactionInputCodec )
+  private val TransactionOutputListCodec = Codecs.variableListOf( TransactionOutputCodec )
 
   override fun transcode(io : CodecInputOutputStream, obj : Transaction? ) : Transaction? {
     val version  = Codecs.Int32L.transcode(io, obj?.version)
@@ -534,7 +534,7 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
 }
 
 internal val BlockHeaderListCodec : Codec<List<BlockHeader>> =
-  Codecs.variablelistOf(BlockHeaderCodec)
+  Codecs.variableListOf(BlockHeaderCodec)
 /**
   * <Description>
   * The headers message sends one or more block headers to a node
@@ -812,6 +812,7 @@ object RejectCodec : ProtocolMessageCodec<Reject> {
   *  00000000 ... nTweak: 0/none
   *  00 ......... nFlags: BLOOM_UPDATE_NONE
   */
+/*
 object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
   override val command = "filterload"
   override val clazz = FilterLoad::class.java
@@ -821,7 +822,7 @@ object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
     throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
   }
 }
-
+*/
 
 /**
   * <Description>
@@ -843,6 +844,7 @@ object FilterLoadCodec : ProtocolMessageCodec<FilterLoad> {
   *  9dee312d666187ed77ee7d26af16cb0b ... Element (A TXID)
   *
   */
+/*
 object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
   override val command = "filteradd"
   override val clazz = FilterAdd::class.java
@@ -852,6 +854,7 @@ object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
     throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
   }
 }
+*/
 
 /**
   * <Description>
@@ -867,6 +870,7 @@ object FilterAddCodec : ProtocolMessageCodec<FilterAdd> {
   * <Protocol>
   * No Payload.
   */
+/*
 object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
   override val command = "filterclear"
   override val clazz = FilterClear::class.java
@@ -876,6 +880,7 @@ object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
     return Codec.transcode(io, obj)
   }
 }
+*/
 
 /**
   * <Description>
@@ -926,6 +931,7 @@ object FilterClearCodec : ProtocolMessageCodec<FilterClear> {
   *  1d ................................. Flags: 1 0 1 1 1 0 0 0
   *
   */
+/*
 object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
   override val command = "merkleblock"
   override val clazz = MerkleBlock::class.java
@@ -935,6 +941,7 @@ object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
     throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
   }
 }
+*/
 
 /**
   * <Description>
@@ -980,6 +987,7 @@ object MerkleBlockCodec : ProtocolMessageCodec<MerkleBlock> {
   *  723326e4e8a4f1 ..................... Signature
   *
   */
+/*
 object AlertCodec : ProtocolMessageCodec<Alert> {
   override val command = "alert"
   override val clazz = Alert::class.java
@@ -989,6 +997,7 @@ object AlertCodec : ProtocolMessageCodec<Alert> {
     throw UnsupportedFeature(ErrorCode.UnsupportedFeature)
   }
 }
+*/
 
 /**
   * <Description>

@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
   *  <Bitcoin Core Packets Not Captured>
   *  No Payload
   */
-
+/*
 @RunWith(KTestJUnitRunner::class)
 class FilterClearSpec : PayloadTestSuite<FilterClear>() {
 
@@ -20,3 +20,4 @@ class FilterClearSpec : PayloadTestSuite<FilterClear>() {
 
   override val message = FilterClear()
 }
+*/

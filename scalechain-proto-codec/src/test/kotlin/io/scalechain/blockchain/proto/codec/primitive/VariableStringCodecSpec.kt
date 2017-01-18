@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class VariableStringCodecSpec : MultiplePayloadTestSuite<String>()  {
 
-  override val codec = VariableStringCodec(VariableIntCodec())
+  override val codec = Codecs.variableString(VariableIntCodec())
 
   override val payloads =
     table(

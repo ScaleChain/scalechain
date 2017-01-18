@@ -176,15 +176,11 @@ public class ECKey {
          * It's somewhat like protocol buffers but less convenient. This method returns a standard DER encoding
          * of the signature, as recognized by OpenSSL and other libraries.
          */
-        public byte[] encodeToDER() {
-            try {
-                return derByteStream().toByteArray();
-            } catch (IOException e) {
-                throw new RuntimeException(e);  // Cannot happen.
-            }
+        public byte[] encodeToDER() throws IOException {
+            return derByteStream().toByteArray();
         }
 
-        public static ECDSASignature decodeFromDER(byte[] bytes) {
+        public static ECDSASignature decodeFromDER(byte[] bytes) throws IOException {
             ASN1InputStream decoder = null;
             try {
                 decoder = new ASN1InputStream(bytes);
@@ -201,8 +197,6 @@ public class ECKey {
                 // OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
                 // Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
                 return new ECDSASignature(r.getPositiveValue(), s.getPositiveValue());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             } finally {
                 if (decoder != null)
                     try {

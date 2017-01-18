@@ -9,10 +9,10 @@ import org.rocksdb.WriteBatchWithIndex
   */
 class TransactingRocksDatabase(private val db : RocksDatabase) : TransactingKeyValueDatabase {
 
-  var writeBatch : WriteBatchWithIndex? = null
+  private var writeBatch : WriteBatchWithIndex? = null
 
-  var putCache : MutableMap<Bytes, ByteArray>? = null // key, value
-  var delCache : MutableMap<Bytes, Unit>? = null // key, dummy
+  private var putCache : MutableMap<Bytes, ByteArray>? = null // key, value
+  private var delCache : MutableMap<Bytes, Unit>? = null // key, dummy
 
   /**
     * Begin a database transaction.

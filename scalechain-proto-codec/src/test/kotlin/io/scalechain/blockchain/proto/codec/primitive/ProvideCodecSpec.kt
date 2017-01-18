@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class ProvideCodecSpec : MultiplePayloadTestSuite<OneByte>()  {
 
-  override val codec = ProvideCodec(OneByte(1))
+  override val codec = Codecs.provide(OneByte(1))
 
   override val payloads =
     table(

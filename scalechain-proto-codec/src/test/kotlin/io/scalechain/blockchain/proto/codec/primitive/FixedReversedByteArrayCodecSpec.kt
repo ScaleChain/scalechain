@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class FixedReversedByteArrayCodecSpec : MultiplePayloadTestSuite<ByteArray>()  {
 
-  override val codec = FixedByteArrayCodec(1)
+  override val codec = Codecs.fixedByteArray(1)
 
   override val payloads =
     table(
@@ -23,7 +23,7 @@ class FixedReversedByteArrayCodecSpec : MultiplePayloadTestSuite<ByteArray>()  {
 @RunWith(KTestJUnitRunner::class)
 class FixedReversedByteArrayCodecWithLength2Spec : MultiplePayloadTestSuite<ByteArray>()  {
 
-  override val codec = FixedReversedByteArrayCodec(2)
+  override val codec = Codecs.fixedReversedByteArray(2)
 
   override val payloads =
     table(

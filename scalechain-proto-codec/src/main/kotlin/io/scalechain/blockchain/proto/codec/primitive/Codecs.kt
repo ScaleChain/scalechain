@@ -50,11 +50,11 @@ object Codecs {
 
     val VariableString = variableString( VariableInt )
 
-    fun<T> variablelistOf(lengthCodec : Codec<Long>, valueCodec : Codec<T>)
+    fun<T> variableListOf(lengthCodec : Codec<Long>, valueCodec : Codec<T>)
         = VariableListCodec<T>(lengthCodec, valueCodec)
 
-    fun<T> variablelistOf(valueCodec : Codec<T>)
-        = variablelistOf(VariableInt, valueCodec)
+    fun<T> variableListOf(valueCodec : Codec<T>)
+        = variableListOf(VariableInt, valueCodec)
 
     fun<T> optional( flagCodec : Codec<Boolean>, valueCodec : Codec<T>)
         = OptionalCodec<T>(flagCodec, valueCodec)

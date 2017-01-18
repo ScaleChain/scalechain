@@ -12,7 +12,7 @@ import java.math.BigInteger
 @RunWith(KTestJUnitRunner::class)
 class Int64CodecSpec : MultiplePayloadTestSuite<Long>()  {
 
-  override val codec = Int64Codec()
+  override val codec = Codecs.Int64
 
   override val payloads =
     table(
@@ -30,7 +30,7 @@ class Int64CodecSpec : MultiplePayloadTestSuite<Long>()  {
 @RunWith(KTestJUnitRunner::class)
 class Int64LCodecSpec : MultiplePayloadTestSuite<Long>()  {
 
-  override val codec = Int64LCodec()
+  override val codec = Codecs.Int64L
 
   override val payloads =
     table(
@@ -53,7 +53,7 @@ class Int64LCodecSpec : MultiplePayloadTestSuite<Long>()  {
 @RunWith(KTestJUnitRunner::class)
 class UInt64LCodecSpec : MultiplePayloadTestSuite<BigInteger>()  {
 
-  override val codec = UInt64LCodec()
+  override val codec = Codecs.UInt64L
 
   override val payloads =
     table(

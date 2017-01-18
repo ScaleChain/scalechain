@@ -40,7 +40,7 @@ internal object HumanCodec : Codec<Human> {
 @RunWith(KTestJUnitRunner::class)
 class PolymorphicCodecSpec : MultiplePayloadTestSuite<Animal>()  {
 
-  override val codec = PolymorphicCodec<Long, Animal>(
+  override val codec = Codecs.polymorphicCodec<Long, Animal>(
     typeIndicatorCodec = VariableIntCodec(),
     typeClassNameToTypeIndicatorMap = mapOf(
       "Dog" to 1L,

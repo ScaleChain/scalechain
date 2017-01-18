@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
 class FixedByteBufCodecSpec : MultiplePayloadTestSuite<ByteBuf>()  {
-  override val codec = FixedByteBufCodec(1)
+  override val codec = Codecs.fixedByteBuf(1)
 
   override val payloads =
     table(
@@ -22,7 +22,7 @@ class FixedByteBufCodecSpec : MultiplePayloadTestSuite<ByteBuf>()  {
 
 @RunWith(KTestJUnitRunner::class)
 class FixedByteBufCodecLength2Spec : MultiplePayloadTestSuite<ByteBuf>()  {
-  override val codec = FixedByteBufCodec(2)
+  override val codec = Codecs.fixedByteBuf(2)
 
   override val payloads =
     table(

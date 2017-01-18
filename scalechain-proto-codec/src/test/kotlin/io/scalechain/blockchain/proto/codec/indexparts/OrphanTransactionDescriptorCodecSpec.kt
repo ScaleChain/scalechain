@@ -18,6 +18,6 @@ class OrphanTransactionDescriptorCodecSpec : PayloadTestSuite<OrphanTransactionD
     """)
 
   override val message = OrphanTransactionDescriptor(
-    TransactionSpec.SampleTransaction
+    TransactionSpec.SampleTransaction1
   )
 }
