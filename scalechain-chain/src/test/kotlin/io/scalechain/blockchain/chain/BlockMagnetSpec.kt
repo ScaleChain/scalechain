@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BlockMagnetSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
-  override val testPath = File("./target/unittests-BlockMagnetSpec/")
+  override val testPath = File("./build/unittests-BlockMagnetSpec/")
 
   lateinit var bm : BlockMagnet
 

@@ -26,7 +26,7 @@ class BlockWriterSpec : FlatSpec(), Matchers {
   lateinit var storage : BlockRecordStorage
   override fun beforeEach() {
 
-    val testPath = File("./target/unittests-BlockWriterSpec/")
+    val testPath = File("./build/unittests-BlockWriterSpec/")
     testPath.deleteRecursively()
     testPath.mkdir()
 

@@ -13,10 +13,9 @@ class BlockDatabaseWithRocks : BlockDatabaseTestTrait() {
 
   init {
     Storage.initialize()
-    addTests()
   }
 
-  val testPath = File("./target/unittests-BlockDatabaseWithRocks")
+  val testPath = File("./build/unittests-BlockDatabaseWithRocks")
 
 
   lateinit override var db : KeyValueDatabase

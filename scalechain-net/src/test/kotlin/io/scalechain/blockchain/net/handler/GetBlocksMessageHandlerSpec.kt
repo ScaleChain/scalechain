@@ -8,7 +8,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 class GetBlocksMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-GetBlocksMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-GetBlocksMessageHandlerSpec/")
 
   init {
     "handle" should "" {

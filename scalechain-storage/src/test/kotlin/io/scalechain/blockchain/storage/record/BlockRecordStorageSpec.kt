@@ -30,7 +30,7 @@ class BlockRecordStorageSpec : FlatSpec(), Matchers {
 
   override fun beforeEach() {
 
-    val testPath = File("./target/unittests-BlockRecordStorageSpec/")
+    val testPath = File("./build/unittests-BlockRecordStorageSpec/")
     testPath.deleteRecursively()
     testPath.mkdir()
     rs = RecordStorage(

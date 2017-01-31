@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BlockchainSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
-  override val testPath = File("./target/unittests-BlockchainSpec/")
+  override val testPath = File("./build/unittests-BlockchainSpec/")
 
   override fun beforeEach() {
     // initialize a test.

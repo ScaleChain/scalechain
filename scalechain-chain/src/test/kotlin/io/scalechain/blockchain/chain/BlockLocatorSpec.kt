@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BlockLocatorSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
-  override val testPath = File("./target/unittests-BlockLocatorSpec/")
+  override val testPath = File("./build/unittests-BlockLocatorSpec/")
   lateinit var locator : BlockLocator
 
   // For testing, override the MAX_HASH_COUNT to 5 so that we get only 5 hashes if the hashStop is all zero.

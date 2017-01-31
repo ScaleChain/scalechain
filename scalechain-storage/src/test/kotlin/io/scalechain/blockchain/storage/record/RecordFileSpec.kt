@@ -20,7 +20,7 @@ class RecordFileSpec : FlatSpec(), Matchers, CodecTestUtil {
 
   override fun beforeEach() {
 
-    val f = File("./target/unittests-RecordFileSpec")
+    val f = File("./build/unittests-RecordFileSpec")
     if (f.exists())
       f.delete()
 

@@ -9,8 +9,8 @@ import io.scalechain.blockchain.chain.TransactionPriorityQueue
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.storage.TransactionTimeIndex
-import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.TransactionTimeIndex
+import io.scalechain.blockchain.storage.index.TransactionPoolIndex
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.transaction.CoinsView

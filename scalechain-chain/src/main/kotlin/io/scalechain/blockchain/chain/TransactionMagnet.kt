@@ -9,8 +9,8 @@ import io.scalechain.blockchain.transaction.ChainBlock
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.proto.*
-import io.scalechain.blockchain.storage.TransactionTimeIndex
-import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.TransactionTimeIndex
+import io.scalechain.blockchain.storage.index.TransactionPoolIndex
 import io.scalechain.blockchain.script.hash
 import io.scalechain.util.HexUtil
 import io.scalechain.util.ListExt

@@ -83,7 +83,7 @@ class TransactionGenerator(private val db : KeyValueDatabase, private val wallet
 
     init {
       Storage.initialize()
-      val walletDbPath = File("./target/transaction-generator-${Random().nextLong()}")
+      val walletDbPath = File("./build/transaction-generator-${Random().nextLong()}")
       walletDbPath.deleteRecursively()
       walletDbPath.mkdir()
 

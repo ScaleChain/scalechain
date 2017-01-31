@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
   */
 @RunWith(KTestJUnitRunner::class)
 class TransactionPoolSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
-  override val testPath = File("./target/unittests-TransactionPoolSpec/")
+  override val testPath = File("./build/unittests-TransactionPoolSpec/")
 
   lateinit var p : TransactionPool
 

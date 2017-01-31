@@ -4,18 +4,11 @@ import io.kotlintest.KTestJUnitRunner
 import java.io.File
 
 import io.scalechain.blockchain.proto.*
-import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
-import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto.codec.primitive.Codecs
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
-import io.scalechain.blockchain.storage.test.TestData
 import io.scalechain.blockchain.storage.test.TestData.block1
-import io.scalechain.util.ListExt
 import org.junit.runner.RunWith
-import kotlin.test.assertTrue
 
 /**
   * Created by kangmo on 11/2/15.
@@ -27,7 +20,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
 
   lateinit var diskBlockStorage : DiskBlockStorage
   override lateinit var storage : BlockStorage
-  val testPath = File("./target/unittests-DiskBlockStorageSpec/")
+  val testPath = File("./build/unittests-DiskBlockStorageSpec/")
   override fun beforeEach() {
 
     testPath.deleteRecursively()
@@ -101,7 +94,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
     "getBlock" should "read a block correctly on the file boundary" {
       diskBlockStorage.putBlock(db, block1)
       var prevBlockHash = block1.header.hash()
-      while (diskBlockStorage.blockRecordStorage.files.size < 2) {
+      while( diskBlockStorage.blockRecordStorage.files.size < 2) {
         val newBlock = block1.copy(
           header = block1.header.copy(
             hashPrevBlock = prevBlockHash
@@ -112,93 +105,6 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
 
         diskBlockStorage.getBlock(db, prevBlockHash)?.second shouldBe newBlock
       }
-    }
-    "getTransaction" should "read a transaction in the transaction pool" {
-      for( expectedTx in block1.transactions ) {
-        if (! expectedTx.inputs[0].isCoinBaseInput()) {
-          diskBlockStorage.putTransactionToPool(db,
-            expectedTx.hash(),
-            TransactionPoolEntry(
-              expectedTx,
-              listOf( null, InPoint(TestData.dummyHash(1), 1), null ),
-              System.currentTimeMillis()
-            )
-          )
-        }
-      }
-      for( expectedTx in block1.transactions ) {
-        if (!expectedTx.inputs[0].isCoinBaseInput()) {
-          val actualTx = diskBlockStorage.getTransaction(db, expectedTx.hash())
-          actualTx shouldBe expectedTx
-        }
-      }
-    }
-
-    "getTransaction" should "read a transaction in a block" {
-      diskBlockStorage.putBlock(db, block1)
-
-      // Need to put the transaction descriptor to get the transaction from it..
-      val block1Hash = block1.header.hash()
-      val blockInfo = storage.getBlockInfo(db, block1Hash)!!
-
-      val txDescIndex = object : TransactionDescriptorIndex {}
-
-      // This is the offset of the block
-      var currentOffset = blockInfo.blockLocatorOption!!.recordLocator.offset
-      val blockHeaderSize = BlockHeaderCodec.encode(block1.header).size
-      val txLengthFieldSize = Codecs.VariableInt.encode(block1.transactions.size.toLong()).size
-      // Block header and transaction size is written first.
-      currentOffset += blockHeaderSize + txLengthFieldSize
-
-      for( tx in block1.transactions ) {
-        val txHash = tx.hash()
-
-        diskBlockStorage.hasTransaction(db, txHash) shouldBe false
-
-        // And then each transaction is written.
-        // currentOffset has the location where the transaction is written.
-        val txSize = TransactionCodec.encode(tx).size
-        val txLocator = blockInfo.blockLocatorOption!!.copy(
-          recordLocator = RecordLocator(
-            currentOffset,
-            txSize
-          )
-        )
-        // Increase the offset for the next transaction.
-        currentOffset += txSize
-        txDescIndex.putTransactionDescriptor(
-          db,
-          txHash,
-          TransactionDescriptor(
-            transactionLocator = txLocator,
-            blockHeight = 1,
-            outputsSpentBy = ListExt.fill<InPoint?>( tx.outputs.size, null)
-          )
-        )
-      }
-
-
-/*
-      val txMagnet = TransactionMagnet(storage, txPoolIndex = storage, txTimeIndex = storage)
-      val txPool = TransactionPool(storage, txMagnet)
-      val blockMagnet = BlockMagnet(storage, txPool, txMagnet)
-      blockMagnet.attachBlock(db, blockInfo, block1)
-*/
-
-
-      for( expectedTx in block1.transactions ) {
-        val txHash = expectedTx.hash()
-        diskBlockStorage.hasTransaction(db, txHash) shouldBe true
-
-        val actualTx = diskBlockStorage.getTransaction(db, txHash)
-        actualTx shouldBe expectedTx
-      }
-    }
-
-    "get" should "return the object created by create method" {
-      val testPath = File("./target/unittests-DiskBlockStorageSpec-for-create-test/")
-      val storage = DiskBlockStorage.create(testPath, db);
-      assertTrue( DiskBlockStorage.get() === storage )
     }
   }
 

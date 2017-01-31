@@ -10,20 +10,18 @@ import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
 class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDatabasePerformanceTrait {
-  val testPath = File("./target/unittests-DatabasePerformanceSpec")
+  val testPath = File("./build/unittests-DatabasePerformanceSpec")
 
   lateinit var transactingDB : TransactingKeyValueDatabase
   lateinit override var db : KeyValueDatabase
-  lateinit var rocksDB : RocksDatabase
 
   override fun beforeEach() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    rocksDB = RocksDatabase( testPath )
-    transactingDB = rocksDB.transacting()
+    db = RocksDatabase( testPath )
+    transactingDB = db.transacting()
     transactingDB.beginTransaction()
-    db = transactingDB
 
     super.beforeEach()
   }
@@ -32,7 +30,7 @@ class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDa
     super.afterEach()
 
     transactingDB.commitTransaction()
-    rocksDB.close()
+    db.close()
   }
 
   init {
