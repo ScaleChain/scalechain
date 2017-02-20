@@ -111,7 +111,7 @@ data class GetBlockResult (
   */
 object GetBlock : RpcCommand() {
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
-    return return handlingException {
+    return handlingException {
       // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
       val headerHashString  : String  = request.params.get<String>("Header Hash", 0)
       val format            : Boolean = request.params.getOption<Boolean>("Format", 1) ?: true
