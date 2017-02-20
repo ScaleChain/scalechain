@@ -5,8 +5,9 @@ import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 
 import io.scalechain.blockchain.storage.Storage
+import org.junit.Ignore
 import org.junit.runner.RunWith
-
+@Ignore  // SpannerDatabase requires Spanner instance setup in Google Cloud Platform.
 @RunWith(KTestJUnitRunner::class)
 class TransactingSpannerDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDatabasePerformanceTrait {
   lateinit var transactingDB : TransactingKeyValueDatabase

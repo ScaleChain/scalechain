@@ -9,12 +9,13 @@ import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
 
 import io.scalechain.blockchain.storage.Storage
+import org.junit.Ignore
 import org.junit.runner.RunWith
 
 /**
  * Created by kangmo on 11/2/15.
  */
-// Currently RocksDB crashes while seeking a key and iterating (key,value) pairs.
+@Ignore  // SpannerDatabase requires Spanner instance setup in Google Cloud Platform.
 @RunWith(KTestJUnitRunner::class)
 class SpannerDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
