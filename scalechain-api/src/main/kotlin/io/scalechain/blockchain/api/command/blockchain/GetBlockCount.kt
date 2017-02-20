@@ -10,6 +10,28 @@ import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import java.math.BigDecimal
 
+/*
+  CLI command :
+    bitcoin-cli -testnet getblockcount
+
+  CLI output :
+    315280
+
+  Json-RPC request :
+    {"jsonrpc": "1.0", "id":"curltest", "method": "getblockcount", "params": [] }
+
+  Json-RPC response :
+    {
+      "result": << Same to CLI Output >> ,
+      "error": null,
+      "id": "curltest"
+    }
+*/
+
+/** GetBlockCount: returns the number of blocks in the local best block chain.
+ *
+ * https://bitcoin.org/en/developer-reference#getblockcount
+ */
 object GetBlockCount : RpcCommand() {
   override fun invoke(request: RpcRequest): Either<RpcError, RpcResult?> {
     return handlingException {
