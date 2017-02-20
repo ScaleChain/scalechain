@@ -5,6 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
+import io.scalechain.blockchain.StorageException
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb.*
 import org.rocksdb.util.SizeUnit
@@ -17,7 +18,7 @@ class RocksDatabaseIterator(private val rocksIterator : RocksIterator) : Closabl
     assert( !isClosed )
 
     if (!rocksIterator.isValid()) {
-      throw GeneralException(ErrorCode.NoMoreKeys)
+      throw StorageException(ErrorCode.NoMoreKeys)
     }
 
     val rawKey = rocksIterator.key()
