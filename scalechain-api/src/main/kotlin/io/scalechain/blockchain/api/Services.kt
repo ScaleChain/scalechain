@@ -19,6 +19,7 @@ object Services {
   val all = listOf(
     GetBestBlockHash,
     GetBlock,
+    GetBlockCount,
     GetBlockHash,
     Help,
     SubmitBlock,

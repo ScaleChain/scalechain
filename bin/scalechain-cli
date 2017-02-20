@@ -25,6 +25,9 @@ getblock)
 getblockhash)
 	getblockhash.sh $2
 	;;
+getblockcount)
+  getblockcount.sh
+  ;;
 getpeerinfo)
 	getpeerinfo.sh 
 	;;
