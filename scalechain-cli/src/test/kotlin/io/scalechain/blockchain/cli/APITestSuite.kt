@@ -82,6 +82,7 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
       // Disable miner, to make the test result deterministic. Miner mines blocks randomly resulting in different test results whenever we run test cases.
       ScaleChainPeer.main( arrayOf("-a", "localhost", "-x", "$BITCOIND_PORT", "-disableMiner") )
 
+      chain = Blockchain.get()
       // Create test data.
       // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.
       // ( Transactions should be signed to test sendrawtransaction, which verifies the sent transaction by executing the unlocking script and the locking script. )
@@ -99,5 +100,6 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
 
   companion object {
     lateinit var Data : TransactionSampleData
+    lateinit var chain : Blockchain
   }
 }
