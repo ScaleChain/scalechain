@@ -18,6 +18,7 @@ import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
 import io.scalechain.blockchain.cli.command.CommandExecutor
 import io.scalechain.blockchain.storage.index.DatabaseFactory
+import io.scalechain.blockchain.storage.index.SpannerDatabase
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
@@ -224,6 +225,7 @@ object ScaleChainPeer {
         // Initialize the block storage.
         // TODO : Investigate when to call storage.close.
         DiskBlockStorage.create(blockStoragePath, db)
+//        SpannerBlockStorage.create(db, "scalechain", "blockchain")
       }
 
 

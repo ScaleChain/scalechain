@@ -77,7 +77,8 @@ open class SpannerDatabase(instanceId : String, databaseId : String, val tableNa
 
   fun getDbClient() = dbClient
 
-  val options : SpannerOptions = SpannerOptions.newBuilder().build();
+  val sessionPoolOptions = SessionPoolOptions.newBuilder().setMinSessions(1).build()
+  val options : SpannerOptions = SpannerOptions.newBuilder().setSessionPoolOption(sessionPoolOptions).build();
   var spanner : Spanner? = options.getService();
 
   init {

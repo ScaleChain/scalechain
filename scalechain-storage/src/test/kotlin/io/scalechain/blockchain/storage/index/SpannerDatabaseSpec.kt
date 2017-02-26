@@ -15,6 +15,40 @@ import org.junit.runner.RunWith
 /**
  * Created by kangmo on 11/2/15.
  */
+
+/* Required Spanner Tables :
+
+CREATE TABLE data (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+CREATE TABLE test (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+CREATE TABLE transaction (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+CREATE TABLE block (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+CREATE TABLE test_transaction (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+CREATE TABLE test_block (
+	key BYTES(MAX) NOT NULL,
+	value BYTES(MAX) NOT NULL,
+) PRIMARY KEY (key);
+
+ */
 @Ignore  // SpannerDatabase requires Spanner instance setup in Google Cloud Platform.
 @RunWith(KTestJUnitRunner::class)
 class SpannerDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
