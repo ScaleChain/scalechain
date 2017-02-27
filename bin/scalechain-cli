@@ -19,6 +19,9 @@ getaccount)
 getaccountaddress)
 	getaccountaddress.sh $2
 	;;
+getaddressesbyaccount)
+  getaddressesbyaccount.sh $2
+  ;;
 getblock)
 	getblock.sh $2
 	;;
