@@ -5,8 +5,10 @@ import io.scalechain.blockchain.api.command.blockchain.GetBlockCount
 import io.scalechain.blockchain.api.domain.NumberResult
 import io.scalechain.blockchain.cli.APITestSuite
 import io.scalechain.blockchain.script.hash
+import org.junit.Ignore
 import org.junit.runner.RunWith
 
+@Ignore
 @RunWith(KTestJUnitRunner::class)
 class GetBlockCountSpec : APITestSuite() {
   override fun beforeEach() {
