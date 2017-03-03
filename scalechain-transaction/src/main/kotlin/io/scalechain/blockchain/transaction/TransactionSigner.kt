@@ -254,9 +254,9 @@ class TransactionSigner(private val db : KeyValueDatabase) {
       throw TransactionSignException( ErrorCode.UnableToSignCoinbaseTransaction )
     }
 
-    val signedTranasction = signInputsFrom(transaction, 0/*input index*/, privateKeys, sigHash, chainView)
+    val signedTransaction = signInputsFrom(transaction, 0/*input index*/, privateKeys, sigHash, chainView)
 
-    val signedResult : SignedTransaction = mergeSignatures(transaction, signedTranasction, chainView)
+    val signedResult : SignedTransaction = mergeSignatures(transaction, signedTransaction, chainView)
     return signedResult
   }
 }

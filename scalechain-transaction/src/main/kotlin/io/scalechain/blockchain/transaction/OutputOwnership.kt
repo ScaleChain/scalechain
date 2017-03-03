@@ -151,10 +151,8 @@ data class CoinAddress(val version:Byte, val publicKeyHash : Bytes) : OutputOwne
   * @param scriptOps The list of script operations from the public key script.
   */
 data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
-  /** Check if the scriptOps is one of the pubKeyScript patters for standard transactions.
-    */
   override fun isValid(): Boolean {
-    // TOOD : Check if the scriptOps is one of the pubKeyScript patters for standard transactions.
+    // TODO : Check if the scriptOps is one of the pubKeyScript patterns for standard transactions.
     return true
   }
 
