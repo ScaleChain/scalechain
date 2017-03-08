@@ -1,12 +1,15 @@
-package io.scalechain.blockchain.api.command.wallet.p0
+package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.api.domain.StringListResult
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.transaction.OutputOwnership
 import io.scalechain.util.Either
-import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
+import io.scalechain.wallet.Wallet
 
 /*
   CLI command :
@@ -36,9 +39,13 @@ import io.scalechain.util.Either.Right
   */
 object GetAddressesByAccount : RpcCommand() {
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
-    // TODO : Implement
-    assert(false)
-    return Right(null)
+    return handlingException {
+      val account: String = request.params.get<String>("Account", 0)
+
+      val addresses : List<String> = Wallet.get().store.getOutputOwnerships(Blockchain.get().db, account).map { it.stringKey() }
+
+      Right(StringListResult(addresses))
+    }
   }
   override fun help() : String =
     """getaddressesbyaccount "account"

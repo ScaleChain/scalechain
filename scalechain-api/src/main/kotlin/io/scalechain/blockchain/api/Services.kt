@@ -30,6 +30,7 @@ object Services {
     ImportAddress,
     GetAccount,
     GetAccountAddress,
+    GetAddressesByAccount,
     GetNewAddress,
     GetReceivedByAddress,
     ListTransactions,
