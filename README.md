@@ -1,6 +1,6 @@
 Under construction
 ==================
-ScaleChain source code is under construction and will have big changes to integrate distributed neural network.
+ScaleChain source code is under construction. Big changes are to come to integrate distributed neural network.
 The latest release does not include the integration of distributed neural network yet.
 
 Introduction
