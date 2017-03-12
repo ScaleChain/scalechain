@@ -1,6 +1,6 @@
 Introduction
 ============
-An altcoin realizes distributed deep learning on blockchain.
+ScaleChain is an altcoin that realizes distributed neural network on blockchain.
 
 For the avoidance of doubt, this particular copy of the software is released under the version 3 of the GNU General Public License. It is brought to you by ScaleChain.
 
