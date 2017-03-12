@@ -1,11 +1,6 @@
 Introduction
 ============
-
-[A five-minute pitch for ScaleChain private blockchain.](https://www.youtube.com/watch?v=Nh-XuL8mb6I)
-
-A customizable blockchain implementation for private blockchains.
-Includes Bitcoin script parser and executor. Fully customizable, fully compatible with Bitcoin scripts.
-Take a look at an example [configuration](data/docs/config.md).
+An altcoin realizes distributed deep learning on blockchain.
 
 For the avoidance of doubt, this particular copy of the software is released under the version 3 of the GNU General Public License. It is brought to you by ScaleChain.
 
@@ -13,39 +8,17 @@ Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
 Why ScaleChain?
 ===============
-1. Easy to use, easy to integrate, easy to customize.
-2. Shard data across P2P nodes(Private blockchain only). 
+1. No more expensive hardware and electricity for the training process of your deep neural network.
+2. Payment network between robots, which require intelligence for their behavior decisions. 
 
 Getting Started
 ===============
 [A guide on starting a ScaleChain peer to peer network.](https://github.com/ScaleChain/scalechain/wiki/How-to-start-a-ScaleChain-peer)
 
-A pitch deck
-============
-The following deck contains how financial companies can benefit from using ScaleChain.
- 
-[Cost Reduction for the Financial Industry using Blockchain Technology] (https://drive.google.com/file/d/0B5FqZAXWn_zgSThTdTVBYlhuUjA/view)
-
 Supported Features
 ==================
-- All Bitcoin scripts are supported and tested with actual bitcoin P2PK, P2PKH and P2SH transactions.
-- Spark Integration; [load bitcoin transaction/block data onto Spark](data/docs/spark-integration.md) for real-time analysis.
-- P2P networking; Bitcoin test-net integration.
-
-Customization
-=============
-An example of adding a logarithm operation : 
-```
-// OP_LOG : Pop top two items, x and y to calculate logarithm of x with base y.
-case class OpLog() extends Arithmetic {
-　def opCode() = OpCode(0xb0)
-　def execute(env : ScriptEnvironment) = binaryIntOperation( env, Math.log(_) / Math.log(_) )
-}
-```
-
-Use Cases
-=========
-Private blockchains require customized script operations based on the Bitcoin script. ScaleChain provides customizable Bitcoin script executor, which is fully compatible with the recent version of Bitcoin script.
+- Compatible with Bitcoin remote procedure calls and peer-to-peer protocols.
+- (TODO) Integrate neural network.
 
 License
 =======
