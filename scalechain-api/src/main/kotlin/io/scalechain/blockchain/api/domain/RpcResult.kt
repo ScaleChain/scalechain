@@ -10,4 +10,3 @@ data class NumberResult(val value : java.math.BigDecimal) : RpcResult
 
 data class RpcResponse(val result : RpcResult?, val error : RpcError?, val id : Long)
 
-data class JsResult(val value : JsonElement) : RpcResult

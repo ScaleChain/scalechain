@@ -4,8 +4,8 @@ import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.proto.LockingScript;
 import io.scalechain.blockchain.transaction.*;
 import io.scalechain.crypto.Base58Check;
-import io.scalechain.util.ByteArray;
-import scala.Tuple2;
+import io.scalechain.util.Bytes;
+import kotlin.Pair;
 
 /**
  * Created by shannon on 16. 11. 23.
@@ -39,10 +39,10 @@ public class AssetAddress implements OutputOwnership {
 
   @Override
   public boolean isValid() {
-    ChainEnvironment env = ChainEnvironment$.MODULE$.get();
+    ChainEnvironment env = ChainEnvironment.get();
     byte ver = namespaceAndVersion[1];
     if (publicKeyHash.length != 20) return false;
-    if (ver != env.PubkeyAddressVersion() && ver != env.ScriptAddressVersion()) return false;
+    if (ver != env.getPubkeyAddressVersion() && ver != env.getScriptAddressVersion()) return false;
     if (namespaceAndVersion[0] != 0x13) return false;
     return true;
   }
@@ -66,15 +66,15 @@ public class AssetAddress implements OutputOwnership {
   }
 
   public CoinAddress coinAddress() {
-    return CoinAddress.apply(namespaceAndVersion[1], ByteArray.apply(publicKeyHash));
+    return new CoinAddress(namespaceAndVersion[1], new Bytes(publicKeyHash));
   }
 
   public static AssetAddress from(String base58) throws OapException {
     try {
-      Tuple2<Object, byte[]> decoded = Base58Check.decode(base58);
+      Pair<Byte, byte[]> decoded = Base58Check.decode(base58);
       byte[] publicKeyHash = new byte[20];
-      System.arraycopy(decoded._2(), 1, publicKeyHash, 0, 20);
-      return new AssetAddress(decoded._2()[0], publicKeyHash);
+      System.arraycopy(decoded.getSecond(), 1, publicKeyHash, 0, 20);
+      return new AssetAddress(decoded.getSecond()[0], publicKeyHash);
     } catch (Exception e) {
       throw new OapException(OapException.INVALID_ADDRESS, "Invalid AssetAddress: " + base58, e);
     }
@@ -82,14 +82,14 @@ public class AssetAddress implements OutputOwnership {
 
   public static AssetAddress fromCoinAddress(String coinAddress) throws OapException {
     try {
-      Tuple2<Object, byte[]> decoded = Base58Check.decode(coinAddress);
-      return new AssetAddress((byte) decoded._1(), decoded._2());
+      Pair<Byte, byte[]> decoded = Base58Check.decode(coinAddress);
+      return new AssetAddress(decoded.getFirst(), decoded.getSecond());
     } catch (Exception e) {
       throw new OapException(OapException.INVALID_ADDRESS, "Cannot create AssetAddress from CoinAddress: " + coinAddress, e);
     }
   }
 
   public static AssetAddress fromCoinAddress(CoinAddress coinAddress) {
-    return new AssetAddress(coinAddress.version(), coinAddress.publicKeyHash().array());
+    return new AssetAddress(coinAddress.getVersion(), coinAddress.getPublicKeyHash().getArray());
   }
 }

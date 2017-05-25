@@ -9,11 +9,7 @@ import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.Bytes
-import io.scalechain.util.HexUtil
-
-import scala.collection.mutable.ListBuffer
 import java.math.BigDecimal
-import java.math.BigInteger
 
 
 /**
@@ -63,7 +59,7 @@ class TransactionBuilder() {
     *                             If Some(sequence) is passed, we will use the given value.
     *
     */
-  fun addInput(db : KeyValueDatabase, coinsView : CoinsView, outPoint : OutPoint, unlockingScriptOption : UnlockingScript? = null, sequenceNumberOption : Long? = null) : TransactionBuilder {
+  fun addInput(db : KeyValueDatabase, coinsView : CoinsView, outPoint : OutPoint, unlockingScriptOption : UnlockingScript?, sequenceNumberOption : Long?) : TransactionBuilder {
     // TODO : Check if the sequenceNumberOption.get is the maximum of unsigned integer.
     val input = NormalTransactionInput(
       Hash(outPoint.transactionHash.value),
@@ -79,7 +75,11 @@ class TransactionBuilder() {
     return this
   }
 
-  /** Add a transaction output with a public key hash.
+  fun addInput(db : KeyValueDatabase, coinsView : CoinsView, outPoint : OutPoint) : TransactionBuilder {
+    return addInput(db, coinsView, outPoint, null, null);
+  }
+
+    /** Add a transaction output with a public key hash.
     *
     * @param amount The amount of coins .
     * @param publicKeyHash The public key hash to put into the locking script.
@@ -159,7 +159,7 @@ class TransactionBuilder() {
     * @param version The version of the transaction.
     * @return The built transaction.
     */
-  fun build(lockTime : Long = 0, version : Int = ChainEnvironment.get().DefaultTransactionVersion) : Transaction {
+  fun build(lockTime : Long, version : Int) : Transaction {
     checkValidity()
 
     return Transaction(
@@ -169,14 +169,19 @@ class TransactionBuilder() {
       lockTime
     )
   }
+  fun build() : Transaction {
+    return build(0, ChainEnvironment.get().DefaultTransactionVersion)
+  }
 
   companion object {
     /** create a transaction builder.
      *
      * @return The transaction builder.
      */
+    @JvmStatic
     fun newBuilder() = TransactionBuilder()
 
+    @JvmStatic
     fun newGenerationTransaction(coinbaseData : CoinbaseData, minerAddress : CoinAddress) : Transaction {
       return TransactionBuilder.newBuilder()
           .addGenerationInput(coinbaseData)

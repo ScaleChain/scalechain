@@ -1,6 +1,7 @@
 package io.scalechain.blockchain.oap.blockchain;
 
 import io.scalechain.blockchain.oap.wallet.OapTransactionDescriptor;
+import io.scalechain.blockchain.oap.wallet.UnspentAssetDescriptor;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.exception.OapException;
@@ -31,7 +32,7 @@ public abstract class OapWallet implements IOapConstants {
      * @return
      * @throws OapException
      */
-    public abstract List<UnspentCoinDescriptor> listUnspent(
+    public abstract List<UnspentAssetDescriptor> listUnspent(
             long minConfirmations,
             long maxConfirmations,
             List<CoinAddress> addresses,
@@ -48,7 +49,7 @@ public abstract class OapWallet implements IOapConstants {
      * @return
      * @throws OapException
      */
-    public abstract List<OapTransactionDescriptor> listTransactionsWithAsset(Option<String> accountOption, int count, long skip, boolean includeWatchOnly) throws OapException;
+    public abstract List<OapTransactionDescriptor> listTransactionsWithAsset(String accountOption, int count, long skip, boolean includeWatchOnly) throws OapException;
 
     /**
      * return addresses of the given account.
@@ -58,7 +59,7 @@ public abstract class OapWallet implements IOapConstants {
      * @return
      * @throws OapException
      */
-    public abstract List<CoinAddress> getAddressesByAccount(Option<String> accountOption, boolean includeWatchOnly) throws OapException;
+    public abstract List<CoinAddress> getAddressesByAccount(String accountOption, boolean includeWatchOnly) throws OapException;
 
     /**
      * returns receving address of the given accouint.

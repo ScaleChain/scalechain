@@ -13,7 +13,7 @@ import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
 import io.scalechain.blockchain.oap.transaction.OapTransaction;
 import io.scalechain.blockchain.oap.transaction.OapTransactionOutput;
 import io.scalechain.blockchain.oap.transaction.TransactionCodec;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.proto.Hash;
@@ -22,13 +22,12 @@ import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.proto.TransactionOutput;
 import io.scalechain.blockchain.transaction.CoinAmount;
 import io.scalechain.blockchain.transaction.ParsedPubKeyScript;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import scala.Option;
-import scala.math.BigDecimal;
+import java.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by shannon on 16. 12. 8.
@@ -133,10 +133,10 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     for (int i = 0; i < hashes.length; i++) {
       AddressData[] addressDatas = provider.addressesOf(accounts[i]);
       AddressData issuerData = addressDatas[addressDatas.length - 1];
-      Option<Transaction> txOption = provider.blockChainView().getTransaction(hashes[i], provider.blockChainView().db());
-      assertTrue("Transaction should exists", txOption.isDefined());
+      Transaction txOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hashes[i]);
+      assertTrue("Transaction should exists", txOption != null);
 
-      AssetId assetId = coloringEngine.assetIdForIssuance(chain, txOption.get());
+      AssetId assetId = coloringEngine.assetIdForIssuance(chain, txOption);
 
       assertEquals("AssetId for issuance sholuld be match issuer address", assetId, issuerData.assetId);
     }
@@ -153,11 +153,11 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     for (int i = 0; i < hashes.length; i++) {
       AddressData[] addressDatas = provider.addressesOf(accounts[i]);
       AddressData issuerData = addressDatas[0];
-      Option<Transaction> txOption = provider.blockChainView().getTransaction(hashes[i], provider.blockChainView().db());
-      assertTrue("Transaction should exists", txOption.isDefined());
+      Transaction txOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hashes[i]);
+      assertTrue("Transaction should exists", txOption != null);
 
       try {
-        AssetId assetId = coloringEngine.assetIdForIssuance(chain, txOption.get());
+        AssetId assetId = coloringEngine.assetIdForIssuance(chain, txOption);
       } catch (OapException e) {
         assertThat("OapException Message", e.getMessage(), startsWith("Not OAP Issuance Tx"));
       }
@@ -259,12 +259,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     for (int i = 0; i < hashes.length; i++) {
       AddressData[] addressDatas = provider.addressesOf(accounts[i]);
       AddressData issuerData = addressDatas[0];
-      Option<Transaction> txOption = provider.blockChainView().getTransaction(hashes[i], provider.blockChainView().db());
-      assertTrue("Transaction should exists", txOption.isDefined());
-      int markerOutputIndex = coloringEngine.getMarkerOutputIndex(txOption.get());
+      Transaction txOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hashes[i]);
+      assertTrue("Transaction should exists", txOption != null);
+      int markerOutputIndex = coloringEngine.getMarkerOutputIndex(txOption);
       assertThat("MARKER OUTPUT shluld exist", markerOutputIndex != -1);
 
-      List<TransactionOutput> outputs = coloringEngine.colorUntilMarkerOutput(chain, txOption.get(), markerOutputIndex);
+      List<OapTransactionOutput> outputs = coloringEngine.colorUntilMarkerOutput(chain, txOption, markerOutputIndex);
 
       assertEquals("OUTPUTS SHOULD BE 2", 2, outputs.size());
       assertTrue("SECOND OUTPUT SHOULD BE MARKER OUTPUT", (outputs.get(1) instanceof OapMarkerOutput));
@@ -286,12 +286,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     for (int i = 0; i < hashes.length; i++) {
       AddressData[] addressDatas = provider.addressesOf(accounts[i]);
       AddressData issuerData = addressDatas[0];
-      Option<Transaction> txOption = provider.blockChainView().getTransaction(hashes[i], provider.blockChainView().db());
-      assertTrue("Transaction should exists", txOption.isDefined());
-      int markerOutputIndex = coloringEngine.getMarkerOutputIndex(txOption.get());
+      Transaction txOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hashes[i]);
+      assertTrue("Transaction should exists", txOption != null);
+      int markerOutputIndex = coloringEngine.getMarkerOutputIndex(txOption);
       assertThat("MARKER OUTPUT shluld exist", markerOutputIndex != -1);
 
-      List<TransactionOutput> outputs = coloringEngine.colorUntilMarkerOutput(chain, txOption.get(), markerOutputIndex);
+      List<OapTransactionOutput> outputs = coloringEngine.colorUntilMarkerOutput(chain, txOption, markerOutputIndex);
 
       assertEquals("OUTPUTS SHOULD BE 1", 1, outputs.size());
       assertTrue("THE ONLY OUTPUT SHOULD BE MARKER OUTPUT", (outputs.get(0) instanceof OapMarkerOutput));
@@ -311,19 +311,19 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       AddressData[] addressData = provider.addressesOf(accounts[index]);
       AddressData fromAddres = addressData[addressData.length - 1];
 
-      Option<Transaction> rawTxOption = provider.blockChainView().getTransaction(hash, provider.blockChainView().db());
-      assertTrue("Transaction should exists", rawTxOption.isDefined());
-      assertEquals("MarkerOutput Index sholuld be 1", 1, coloringEngine.getMarkerOutputIndex(rawTxOption.get()));
-      Transaction tx = ColoringEngine.get().color(rawTxOption.get(), hash);
+      Transaction rawTxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hash);
+      assertTrue("Transaction should exists", rawTxOption != null);
+      assertEquals("MarkerOutput Index sholuld be 1", 1, coloringEngine.getMarkerOutputIndex(rawTxOption));
+      OapTransaction tx = ColoringEngine.get().color(rawTxOption, hash);
       assertTrue("Transaction should be an instance of " + OapTransaction.class.getSimpleName(), (tx instanceof OapTransaction));
 
-      OapTransactionOutput issueOutput = (OapTransactionOutput) tx.outputs().apply(0);
+      OapTransactionOutput issueOutput = tx.getOapOutputs().get(0);
       // ASSET ID ISSUE OUTUT
       assertEquals("Asset Id of ISSUE OUTPUT should be " + fromAddres.assetId.base58(), fromAddres.assetId, issueOutput.getAssetId());
       // QUANTITY OF ISSUE OUTUT
       assertEquals("Asset Id of ISSUE OUTPUT should be " + 10000, 10000, issueOutput.getQuantity());
       // ASSET ADDRESS OF ISSUE OUTPUT
-      assertEquals("Receiving Address of ISSUE OUTPUT should be ISSUER Address", fromAddres.address.lockingScript(), issueOutput.lockingScript());
+      assertEquals("Receiving Address of ISSUE OUTPUT should be ISSUER Address", fromAddres.address.lockingScript(), issueOutput.getTransactionOutput().getLockingScript());
       index++;
     }
   }
@@ -341,19 +341,19 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       AddressData fromAddres = addressData[0];
       AddressData toAddres = addressData[addressData.length - 1];
 
-      Option<Transaction> rawTxOption = provider.blockChainView().getTransaction(hash, provider.blockChainView().db());
-      assertTrue("Transaction should exists", rawTxOption.isDefined());
-      assertEquals("MarkerOutput Index sholuld be 1", 1, coloringEngine.getMarkerOutputIndex(rawTxOption.get()));
-      Transaction tx = ColoringEngine.get().color(rawTxOption.get(), hash);
+      Transaction rawTxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hash);
+      assertTrue("Transaction should exists", rawTxOption != null);
+      assertEquals("MarkerOutput Index sholuld be 1", 1, coloringEngine.getMarkerOutputIndex(rawTxOption));
+      OapTransaction tx = ColoringEngine.get().color(rawTxOption, hash);
       assertTrue("Transaction should be an instance of " + OapTransaction.class.getSimpleName(), (tx instanceof OapTransaction));
 
-      OapTransactionOutput issueOutput = (OapTransactionOutput) tx.outputs().apply(0);
+      OapTransactionOutput issueOutput = tx.getOapOutputs().get(0);
       // ASSET ID ISSUE OUTUT
       assertEquals("Asset Id of ISSUE OUTPUT should be " + fromAddres.assetId.base58(), fromAddres.assetId, issueOutput.getAssetId());
       // QUANTITY OF ISSUE OUTUT
       assertEquals("Asset Id of ISSUE OUTPUT should be " + 10000, 10000, issueOutput.getQuantity());
       // ASSET ADDRESS OF ISSUE OUTPUT
-      assertEquals("Receiving Address of ISSUE OUTPUT should be ISSUER Address", toAddres.address.lockingScript(), issueOutput.lockingScript());
+      assertEquals("Receiving Address of ISSUE OUTPUT should be ISSUER Address", toAddres.address.lockingScript(), issueOutput.getTransactionOutput().getLockingScript());
 
       index++;
     }
@@ -372,26 +372,26 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       AddressData fromAddres = addressData[addressData.length - 1];
       AddressData toAddress = addressData[0];
 
-      Option<Transaction> rawTxOption = provider.blockChainView().getTransaction(hash, provider.blockChainView().db());
-      assertTrue("Transaction should exists", rawTxOption.isDefined());
-      assertEquals("MarkerOutput Index sholuld be 0", coloringEngine.getMarkerOutputIndex(rawTxOption.get()), 0);
-      Transaction tx = ColoringEngine.get().color(rawTxOption.get(), hash);
-      assertTrue("Transaction should be an instance of " + OapTransaction.class.getSimpleName(), (tx instanceof OapTransaction));
+      Transaction rawTxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hash);
+      assertTrue("Transaction should exists", rawTxOption != null);
+      assertEquals("MarkerOutput Index sholuld be 0", coloringEngine.getMarkerOutputIndex(rawTxOption), 0);
+      OapTransaction tx = ColoringEngine.get().color(rawTxOption, hash);
+      assertTrue("Transaction should be colored " + OapTransaction.class.getSimpleName(), (tx.isColored()));
 
-      OapTransactionOutput transferOuput = (OapTransactionOutput) tx.outputs().apply(1);
-      OapTransactionOutput changeOuput = (OapTransactionOutput) tx.outputs().apply(2);
+      OapTransactionOutput transferOuput = tx.getOapOutputs().get(1);
+      OapTransactionOutput changeOuput = tx.getOapOutputs().get(2);
       // ASSET ID TRANSFER OUTUT
       assertEquals("Asset Id of TRANSFER OUTPUT should be " + fromAddres.assetId.base58(), fromAddres.assetId, transferOuput.getAssetId());
       // QUANTITY OF TRANSFER OUTUT
       assertEquals("Asset Id of TRANSFER OUTPUT should be " + ((index + 1) * 2000), ((index + 1) * 2000), transferOuput.getQuantity());
       // ADDRESS OF TRANSFER OUTPUT
-      assertEquals("Receiving Address of ISSUE OUTPUT should be RECEIVER Address", toAddress.address.lockingScript(), transferOuput.lockingScript());
+      assertEquals("Receiving Address of ISSUE OUTPUT should be RECEIVER Address", toAddress.address.lockingScript(), transferOuput.getTransactionOutput().getLockingScript());
       // ASSET ID OF CHANGE OUTPUT
       assertEquals("Asset Id of CHANGE OUTPUT should be " + fromAddres.assetId.base58(), fromAddres.assetId, changeOuput.getAssetId());
       // QUANTITY OF CHANGE OUTUT
       assertEquals("Asset Id of CHANGE OUTPUT should be " + (10000 - (index + 1) * 2000), (10000 - (index + 1) * 2000), changeOuput.getQuantity());
       // ADDRESS OF CHANGE OUTPUT
-      assertEquals("Receiving Address of ISSUE OUTPUT should be SENDER Address", fromAddres.address.lockingScript(), changeOuput.lockingScript());
+      assertEquals("Receiving Address of ISSUE OUTPUT should be SENDER Address", fromAddres.address.lockingScript(), changeOuput.getTransactionOutput().getLockingScript());
 
       index++;
     }
@@ -403,12 +403,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     ColoringEngine coloringEngine = ColoringEngine.get();
     OapBlockchain chain = OpenAssetsProtocol.get().chain();
     for (Hash hash : provider.s3NormalTxHashes) {
-      Option<Transaction> rawTxOption = provider.blockChainView().getTransaction(hash, provider.blockChainView().db());
-      assertTrue("Transaction should exists", rawTxOption.isDefined());
-      Transaction tx = coloringEngine.color(hash);
+      Transaction rawTxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), hash);
+      assertTrue("Transaction should exists", rawTxOption != null);
+      OapTransaction tx = coloringEngine.color(hash);
 
-      assertEquals("TX AFTER color() should be same instance of rawTx", rawTxOption.get(), tx);
-      assertEquals("MarkerOutput Index sholuld be -1", coloringEngine.getMarkerOutputIndex(tx), -1);
+      assertEquals("TX AFTER color() should be same instance of rawTx", rawTxOption, tx.getTransaction());
+      assertEquals("MarkerOutput Index sholuld be -1", coloringEngine.getMarkerOutputIndex(rawTxOption), -1);
     }
   }
 
@@ -430,12 +430,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
   //      COIN +CHANGE    : "17KGX72xM71xV99FvYWCekabF5aFWx78US"                                       50000
   //  FEES : 10000
   private Hash hashFromHex(String hex) {
-    return new Hash(new ByteArray(HexUtil.bytes(hex)));
+    return new Hash(new Bytes(HexUtil.bytes(hex)));
   }
 
   private Hash hashFromAssetAddressBase58(String base58) throws OapException {
     AssetAddress address = AssetAddress.from(base58);
-    return new Hash(new ByteArray(address.getPublicKeyHash()));
+    return new Hash(new Bytes(address.getPublicKeyHash()));
   }
 
   private List<OutPoint> addInputs(OutPoint... points) {
@@ -457,12 +457,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
   private Transaction buildTransaction(WalletSampleDataProvider provider, List<OutPoint> inputs, List<NewOutput> newOutputs) {
     TransactionBuilder builder = TransactionBuilder.newBuilder();
     for (OutPoint p : inputs) {
-      builder.addInput(provider.blockChainView(), p, builder.addInput$default$3(), builder.addInput$default$4(), provider.blockChainView().db());
+      builder.addInput(provider.blockChainView().db(), provider.blockChainView(), p);
     }
     for (NewOutput o : newOutputs) {
-      builder.addOutput(o.amount(), o.outputOwnership());
+      builder.addOutput(o.getAmount(), o.getOutputOwnership());
     }
-    return builder.build(builder.build$default$1(), builder.build$default$2());
+    return builder.build();
   }
 
   @Test
@@ -470,7 +470,6 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     WalletSampleDataProvider provider = getDataProvider();
     ColoringEngine coloringEngine = OpenAssetsProtocol.get().coloringEngine();
 
-    OapBlockchain chain = OpenAssetsProtocol.get().chain();
     ColoringEngine ce = ColoringEngine.get();
     String[] accounts = provider.accounts();
     for (int i = 0; i < accounts.length; i++) {
@@ -480,12 +479,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       AddressData[] nextAccountAddresses = provider.addressesOf(accounts[(i + 1) % accounts.length]);
       AddressData nextRecvAddress = nextAccountAddresses[nextAccountAddresses.length - 1];
 
-      Option<Transaction> s5TxOption = provider.blockChainView().getTransaction(provider.s5TransferTxHashes[i], provider.blockChainView().db());
-      Option<Transaction> s6TxOption = provider.blockChainView().getTransaction(provider.s6IssueTxHashes[i], provider.blockChainView().db());
-      Transaction s5Tx = coloringEngine.color(s5TxOption.get());
-      Transaction s6Tx = coloringEngine.color(s6TxOption.get());
-      OapTransactionOutput s5TxOut2 = (OapTransactionOutput) s5Tx.outputs().apply(2);
-      OapTransactionOutput s6TxOut0 = (OapTransactionOutput) s6Tx.outputs().apply(0);
+      Transaction s5TxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), provider.s5TransferTxHashes[i]);
+      Transaction s6TxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), provider.s6IssueTxHashes[i]);
+      OapTransaction s5Tx = coloringEngine.color(s5TxOption);
+      OapTransaction s6Tx = coloringEngine.color(s6TxOption);
+      OapTransactionOutput s5TxOut2 = (OapTransactionOutput) s5Tx.getOapOutputs().get(2);
+      OapTransactionOutput s6TxOut0 = (OapTransactionOutput) s6Tx.getOapOutputs().get(0);
 
       int[] expectedAssetQuantities = new int[]{
         20000, s5TxOut2.getQuantity() / 2, s5TxOut2.getQuantity() - s5TxOut2.getQuantity() / 2,
@@ -499,7 +498,7 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       };
 
       long change =
-        s5TxOption.get().outputs().apply(3).value() + IOapConstants.DUST_IN_SATOSHI * 2
+        s5TxOption.getOutputs().get(3).getValue() + IOapConstants.DUST_IN_SATOSHI * 2
           - 5 * IOapConstants.DUST_IN_SATOSHI
           - 2 * IOapConstants.ONE_BTC_IN_SATOSHI.longValue()
           - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
@@ -509,9 +508,9 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       //    S5 ASSET CHANGE   OUTPUT(2) : ASSET_R : ASSET ISSUED FROM RECEIVNING ADDRESS
       //    S6 ASSET TRANSFER OUTPUT(1) : ASSET_W ASSET ISSUED FROM WATCH-ONLY ADDRESS
       List<OutPoint> inputs = addInputs(
-        OutPoint.apply(provider.s5TransferTxHashes[i], 3),
-        OutPoint.apply(provider.s5TransferTxHashes[i], 2),
-        OutPoint.apply(provider.s6IssueTxHashes[i], 0)
+        new OutPoint(provider.s5TransferTxHashes[i], 3),
+        new OutPoint(provider.s5TransferTxHashes[i], 2),
+        new OutPoint(provider.s6IssueTxHashes[i], 0)
       );
       //  OUTPUT
       //    ISSUE ASSET_R, 10000 TO THE RECEIVING ADDRESS
@@ -524,28 +523,28 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       //    SEND  ASSET_W, HALF OF SPENDING QUANTITY AS ASSET CHANGE TO THE RECEIVING ADDRESS
       //    SEND  COIN CHANGE TO THE RECEIVING ADDRESS
       List<NewOutput> newOutputs = addOuputs(
-        NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-        NewOutput.apply(CoinAmount.apply(BigDecimal.valueOf(1)), nextRecvAddress.address),
+        new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+        new NewOutput(new CoinAmount(BigDecimal.valueOf(1)), nextRecvAddress.address),
         markerOutput(expectedAssetQuantities, issuerAddress.assetDefinitionPointer.getPointer()),
-        NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
-        NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-        NewOutput.apply(CoinAmount.apply(BigDecimal.valueOf(1)), watchOnlyAddress.address),
-        NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
-        NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-        NewOutput.apply(CoinAmount.from(change), issuerAddress.address)
+        new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
+        new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+        new NewOutput(new CoinAmount(BigDecimal.valueOf(1)), watchOnlyAddress.address),
+        new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
+        new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+        new NewOutput(CoinAmount.from(change), issuerAddress.address)
       );
       Transaction tx = buildTransaction(provider, inputs, newOutputs);
-      Transaction t = coloringEngine.color(tx);
-      assertTrue("", (t instanceof OapTransaction));
-      OapTransaction ct = (OapTransaction) t;
+      OapTransaction ct = coloringEngine.color(tx);
+      assertTrue("transaction should be colored", ct.isColored());
       int makerOutputIndex = ce.getMarkerOutputIndex(tx);
-      OapMarkerOutput marker = (OapMarkerOutput) ct.outputs().apply(makerOutputIndex);
+      OapMarkerOutput marker = (OapMarkerOutput) ct.getOapOutputs().get(makerOutputIndex);
       assertArrayEquals("MARKER OUTPUT QUANTITIES", expectedAssetQuantities, marker.getQuantities());
       assertArrayEquals("MARKER OUTPUT METADATA", issuerAddress.assetDefinitionPointer.getPointer(), marker.getMetadata());
       int qindex = 0;
-      for (int oindex = 0; oindex < ct.outputs().size(); oindex++) {
-        TransactionOutput out = ct.outputs().apply(oindex);
-        if (out.value() == IOapConstants.DUST_IN_SATOSHI) {
+      for (int oindex = 0; oindex < ct.getOapOutputs().size(); oindex++) {
+        OapTransactionOutput out = ct.getOapOutputs().get(oindex);
+        // BUGBUG : OAP : Can't assume that colored coin's coin amount is always 600.
+        if (out.getTransactionOutput().getValue() == IOapConstants.DUST_IN_SATOSHI) {
           assertEquals("THE QUANTITY OF EACH OUTPUT SHOUL BE EQUAL", expectedAssetQuantities[qindex], ((OapTransactionOutput) out).getQuantity());
           assertEquals("THE ASSET ID OF EACH OUTPUT SHOUL BE EQUAL", expAssetIds[qindex], ((OapTransactionOutput) out).getAssetId());
           qindex++;
@@ -574,7 +573,7 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
   //    SEND  COIN CHANGE TO THE RECEIVING ADDRESS
 
   private NewOutput markerOutput(int[] quantities, byte[] definitionPointer) throws OapException {
-    NewOutput markerOutput = NewOutput.apply(
+    NewOutput markerOutput = new NewOutput(
       CoinAmount.from(0L),
       ParsedPubKeyScript.from(OapMarkerOutput.lockingScriptFrom(quantities, definitionPointer))
     );
@@ -599,12 +598,12 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     AddressData[] nextAccountAddresses = provider.addressesOf(accounts[(SENDER_INDEX + 1) % accounts.length]);
     AddressData nextRecvAddress = nextAccountAddresses[nextAccountAddresses.length - 1];
 
-    Option<Transaction> s5TxOption = provider.blockChainView().getTransaction(provider.s5TransferTxHashes[SENDER_INDEX], provider.blockChainView().db());
-    Option<Transaction> s6TxOption = provider.blockChainView().getTransaction(provider.s6IssueTxHashes[SENDER_INDEX], provider.blockChainView().db());
-    Transaction s5Tx = coloringEngine.color(s5TxOption.get());
-    Transaction s6Tx = coloringEngine.color(s6TxOption.get());
-    OapTransactionOutput s5TxOut2 = (OapTransactionOutput) s5Tx.outputs().apply(2);
-    OapTransactionOutput s6TxOut0 = (OapTransactionOutput) s6Tx.outputs().apply(0);
+    Transaction s5TxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), provider.s5TransferTxHashes[SENDER_INDEX]);
+    Transaction s6TxOption = provider.blockChainView().getTransaction(provider.blockChainView().db(), provider.s6IssueTxHashes[SENDER_INDEX]);
+    OapTransaction s5Tx = coloringEngine.color(s5TxOption);
+    OapTransaction s6Tx = coloringEngine.color(s6TxOption);
+    OapTransactionOutput s5TxOut2 = (OapTransactionOutput) s5Tx.getOapOutputs().get(2);
+    OapTransactionOutput s6TxOut0 = (OapTransactionOutput) s6Tx.getOapOutputs().get(0);
 
     // INVALID QUANTITY
     int[] expectedAssetQuantities = new int[]{
@@ -618,7 +617,7 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
       nextRecvAddress.assetId, issuerAddress.assetId
     };
     long change =
-      s5TxOption.get().outputs().apply(3).value() + IOapConstants.DUST_IN_SATOSHI * 2
+      s5TxOption.getOutputs().get(3).getValue() + IOapConstants.DUST_IN_SATOSHI * 2
         - 5 * IOapConstants.DUST_IN_SATOSHI
         - 2 * IOapConstants.ONE_BTC_IN_SATOSHI.longValue()
         - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
@@ -628,9 +627,9 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     //    S5 ASSET CHANGE   OUTPUT(2) : ASSET_R : ASSET ISSUED FROM RECEIVNING ADDRESS
     //    S6 ASSET TRANSFER OUTPUT(1) : ASSET_W ASSET ISSUED FROM WATCH-ONLY ADDRESS
     List<OutPoint> inputs = addInputs(
-      OutPoint.apply(provider.s5TransferTxHashes[SENDER_INDEX], 3),
-      OutPoint.apply(provider.s5TransferTxHashes[SENDER_INDEX], 2),
-      OutPoint.apply(provider.s6IssueTxHashes[SENDER_INDEX], 0)
+      new OutPoint(provider.s5TransferTxHashes[SENDER_INDEX], 3),
+      new OutPoint(provider.s5TransferTxHashes[SENDER_INDEX], 2),
+      new OutPoint(provider.s6IssueTxHashes[SENDER_INDEX], 0)
     );
     //  OUTPUT
     //    ISSUE ASSET_R, 10000 TO THE RECEIVING ADDRESS
@@ -643,17 +642,18 @@ public class ColoringEngineTest extends TestWithWalletSampleData {
     //    SEND  ASSET_W, HALF OF SPENDING QUANTITY AS ASSET CHANGE TO THE RECEIVING ADDRESS
     //    SEND  COIN CHANGE TO THE RECEIVING ADDRESS
     List<NewOutput> newOutputs = addOuputs(
-      NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-      NewOutput.apply(CoinAmount.apply(BigDecimal.valueOf(1)), nextRecvAddress.address),
+      new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+      new NewOutput(new CoinAmount(BigDecimal.valueOf(1)), nextRecvAddress.address),
       markerOutput(expectedAssetQuantities, issuerAddress.assetDefinitionPointer.getPointer()),
-      NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
-      NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-      NewOutput.apply(CoinAmount.apply(BigDecimal.valueOf(1)), watchOnlyAddress.address),
-      NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
-      NewOutput.apply(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
-      NewOutput.apply(CoinAmount.from(change), issuerAddress.address)
+      new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
+      new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+      new NewOutput(new CoinAmount(BigDecimal.valueOf(1)), watchOnlyAddress.address),
+      new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), nextRecvAddress.address),
+      new NewOutput(CoinAmount.from(IOapConstants.DUST_IN_SATOSHI), issuerAddress.address),
+      new NewOutput(CoinAmount.from(change), issuerAddress.address)
     );
     Transaction tx = buildTransaction(provider, inputs, newOutputs);
-    Transaction t = coloringEngine.color(tx);
+    OapTransaction t = coloringEngine.color(tx);
+    // BUGBUG : OAP : ASK : No assertions? What's the purpose of this test?
   }
 }

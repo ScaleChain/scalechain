@@ -520,6 +520,10 @@ object TransactionCodec : ProtocolMessageCodec<Transaction> {
     return null
   }
 
+  // This method is used from Java.
+  @JvmStatic
+  fun parse(data : ByteArray) : Transaction? = super.decode(data)
+
   fun parseMany(bytes : ByteArray) : List<Transaction> {
     val byteBuf = Unpooled.wrappedBuffer(bytes)
     val io = CodecInputOutputStream( byteBuf, isInput = true)

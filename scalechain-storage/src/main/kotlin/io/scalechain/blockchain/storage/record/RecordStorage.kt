@@ -2,10 +2,8 @@ package io.scalechain.blockchain.storage.record
 
 import java.io.File
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.codec.Codec
 import io.scalechain.blockchain.proto.FileRecordLocator
-import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.BlockStorageException
 import io.scalechain.blockchain.ErrorCode
 

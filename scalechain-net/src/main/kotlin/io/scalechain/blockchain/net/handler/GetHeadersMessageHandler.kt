@@ -1,14 +1,5 @@
 package io.scalechain.blockchain.net.handler
 
-import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.NetException
-import io.scalechain.blockchain.chain.BlockLocatorHashes
-import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.chain.BlockLocator
-import io.scalechain.blockchain.chain.processor.BlockProcessor
-import io.scalechain.blockchain.net.message.HeadersFactory
-import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.proto.*
 import org.slf4j.LoggerFactory
 

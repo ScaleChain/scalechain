@@ -1,22 +1,13 @@
 package io.scalechain.blockchain.storage.index
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.CStringPrefixed
 import io.scalechain.blockchain.proto.codec.LongValueCodec
 import io.scalechain.blockchain.proto.codec.OneByteCodec
-import io.scalechain.blockchain.proto.codec.TransactionPoolEntryCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
 import io.scalechain.blockchain.proto.LongValue
 import io.scalechain.blockchain.proto.OneByte
-import io.scalechain.blockchain.proto.TransactionPoolEntry
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.storage.index.DB
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.Base58Util
-//import io.scalechain.util.Using.*
-import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.ListBuffer
 
 /**
   * Maintains an index from the creation time of a transaction to the transaction hash.

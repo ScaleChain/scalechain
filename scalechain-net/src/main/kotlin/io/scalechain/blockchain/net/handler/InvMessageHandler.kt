@@ -3,9 +3,6 @@ package io.scalechain.blockchain.net.handler
 import java.util.TimerTask
 import java.util.Timer
 
-import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.chain.processor.InventoryProcessor
 import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.net.MessageSummarizer
@@ -14,7 +11,6 @@ import io.scalechain.blockchain.net.message.GetBlocksFactory
 import io.scalechain.blockchain.proto.InvType
 import io.scalechain.blockchain.proto.InvVector
 import io.scalechain.blockchain.proto.Inv
-import io.scalechain.blockchain.proto.ProtocolMessage
 import org.slf4j.LoggerFactory
 
 /**

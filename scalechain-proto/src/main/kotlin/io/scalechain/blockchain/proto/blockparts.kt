@@ -26,7 +26,7 @@ data class Hash(val value : Bytes) : Transcodable, Comparable<Hash> {
         return i == valueLength
     }
 
-//  fun toHex() : String = value.toString
+    fun toHex() : String = value.toString()
 
     override fun toString() = """Hash("${HexUtil.hex(value.array)}")"""
 

@@ -13,11 +13,9 @@ import io.scalechain.blockchain.script.ScriptParser;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.transaction.OutputOwnership;
 import io.scalechain.blockchain.transaction.ParsedPubKeyScript;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import io.scalechain.wallet.Wallet;
-import scala.Option;
-import scala.collection.JavaConverters;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -97,8 +95,8 @@ public class  UnitTestHelper {
     } catch(Exception e) {
       if (e instanceof GeneralException) {
         try {
-          ownership = ParsedPubKeyScript.apply(
-            ScriptParser.parse(new LockingScript(ByteArray.apply(HexUtil.bytes(scriptOrAddress))))
+          ownership = new ParsedPubKeyScript(
+            ScriptParser.parse(new LockingScript(new Bytes(HexUtil.bytes(scriptOrAddress))))
           );
         } catch(Exception ex) {
             throw new OapException(OapException.INTERNAL_ERROR, "Cannot parse script", ex);
@@ -108,29 +106,29 @@ public class  UnitTestHelper {
         }
       }
       System.out.println("importing" + ownership);
-      Wallet.get().importOutputOwnership(Blockchain.get(), account, ownership, false, Blockchain.get().db());
+      Wallet.get().importOutputOwnership(Blockchain.get().getDb(), Blockchain.get(), account, ownership, false);
   }
 
   // Compare 2 transactions.
   // 2 transactions should have
   //   same tx inputs and same tx outputs
   public static boolean compareTx(Transaction tx, Transaction ex, long fees) throws OapException {
-    if (tx.version() != tx.version()) return false;
-    if (tx.outputs().size() != ex.outputs().size()) return false;
-    if (tx.inputs().size() != ex.inputs().size()) return false;
-    Iterator<TransactionOutput> txOutIter = JavaConverters.asJavaCollection(tx.outputs()).iterator();
-    Iterator<TransactionOutput> exOutIter = JavaConverters.asJavaCollection(tx.outputs()).iterator();
+    if (tx.getVersion() != ex.getVersion()) return false;
+    if (tx.getOutputs().size() != ex.getOutputs().size()) return false;
+    if (tx.getInputs().size() != ex.getInputs().size()) return false;
+    Iterator<TransactionOutput> txOutIter = tx.getOutputs().iterator();
+    Iterator<TransactionOutput> exOutIter = ex.getOutputs().iterator();
     while(true) {
       if (!txOutIter.hasNext() || !exOutIter.hasNext()) break;
       TransactionOutput txOut = txOutIter.next();
       TransactionOutput exOut = exOutIter.next();
-      if (txOut.value() != exOut.value()) return false;
-      return txOut.lockingScript().equals(exOut.lockingScript());
+      if (txOut.getValue() != exOut.getValue()) return false;
+      return txOut.getLockingScript().equals(exOut.getLockingScript());
     }
     if (txOutIter.hasNext() || exOutIter.hasNext()) return false;
 
-    Iterator<TransactionInput> txInIter = JavaConverters.asJavaCollection(tx.inputs()).iterator();
-    Iterator<TransactionInput> exInIter = JavaConverters.asJavaCollection(tx.inputs()).iterator();
+    Iterator<TransactionInput> txInIter = tx.getInputs().iterator();
+    Iterator<TransactionInput> exInIter = ex.getInputs().iterator();
     while(true) {
       if (!txInIter.hasNext() || !exInIter.hasNext()) break;
       TransactionInput txIn = txInIter.next();
@@ -142,7 +140,7 @@ public class  UnitTestHelper {
   }
 
   public static Transaction getTransaction(String txId) throws OapException {
-    Option<Transaction> tx = Blockchain.get().getTransaction(Hash.apply(ByteArray.apply(HexUtil.bytes(txId))), Blockchain.get().db());
-    return tx.isDefined() ? tx.get() : null;
+    Transaction tx = Blockchain.get().getTransaction(Blockchain.get().getDb(), new Hash( new Bytes(HexUtil.bytes(txId))));
+    return tx;
   }
 }

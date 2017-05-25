@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.api.http
 
-import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.*

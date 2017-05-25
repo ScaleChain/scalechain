@@ -27,7 +27,7 @@ import java.util.*
 class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestInterface, Matchers {
   val TEST_LOOP_COUNT = 1000
 
-  override val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")
+  override val testPath = File("./build/unittests-WalletPerformanceSpec-storage/")
 
   override fun beforeEach() {
 

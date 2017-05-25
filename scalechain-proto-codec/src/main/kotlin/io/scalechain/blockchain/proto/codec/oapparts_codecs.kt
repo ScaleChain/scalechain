@@ -1,9 +1,12 @@
 package io.scalechain.blockchain.proto.codec
 
-import io.scalechain.blockchain.proto.WalletTransaction
-import scodec.Codec
-import scodec.codecs.{bool, int32, int64, optional}
 
+import io.scalechain.blockchain.proto.FixedByteArrayMessage
+import io.scalechain.util.HexUtil
+import io.scalechain.blockchain.proto.StringMessage
+import io.scalechain.blockchain.proto.codec.primitive.Codecs
+import io.scalechain.util.Bytes
+import io.scalechain.blockchain.proto.codec.primitive.CHexByteArrayCodec
 /**
   * Created by shannon on 16. 12. 27.
   */
@@ -20,3 +23,32 @@ import scodec.codecs.{bool, int32, int64, optional}
 //  }.as[WalletTransaction]
 //}
 //
+
+
+// TODO : Add a test case
+object FixedByteArrayMessageCodec : Codec<FixedByteArrayMessage> {
+  override fun transcode(io : CodecInputOutputStream, obj : FixedByteArrayMessage? ) : FixedByteArrayMessage? {
+    val bytes = CHexByteArrayCodec().transcode(io, obj?.value?.array);
+    //val bytes = Codecs.CHexByteArray.transcode(io, obj?.value?.array);
+    if (io.isInput) {
+      return FixedByteArrayMessage(Bytes(bytes!!))
+    }
+    return null
+  }
+}
+
+
+
+// TODO : Add a test case
+object StringMessageCodec : Codec<StringMessage> {
+  override fun transcode(io: CodecInputOutputStream, obj: StringMessage?): StringMessage? {
+    val value = Codecs.CString.transcode(io, obj?.value)
+    if (io.isInput) {
+      return StringMessage(
+        value!!
+      )
+    }
+    return null
+  }
+}
+

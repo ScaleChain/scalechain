@@ -17,12 +17,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import scala.Option;
-import scala.Tuple2;
-import scala.collection.JavaConverters;
-import scala.collection.immutable.List;
-import scala.collection.mutable.ListBuffer;
-import scala.math.BigDecimal;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.ArrayList;
+import kotlin.Pair;
 
 import static org.junit.Assert.*;
 
@@ -67,61 +65,61 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
   // Helper methods for SendManyTest
 
   private List<CoinAddress> nonWatchOnlyAddressesOf(String account) {
-    ListBuffer<CoinAddress> buffer = new ListBuffer<CoinAddress>();
-    buffer.$plus$eq(provider.receivingAddressOf(account).address);
-    return buffer.toList();
+    ArrayList<CoinAddress> buffer = new ArrayList<CoinAddress>();
+    buffer.add(provider.receivingAddressOf(account).address);
+    return buffer;
   }
 
-  private Tuple2<List<Tuple2<CoinAddress, CoinAmount>>, CoinAmount> makeOutputs(AddressData[] addressData, int size, CoinAmount baseAmount, CoinAmount fees) {
-    BigDecimal outputSum = fees.value();
-    ListBuffer<Tuple2<CoinAddress, CoinAmount>> buffer = new ListBuffer<Tuple2<CoinAddress, CoinAmount>>();
+  private Pair<List<Pair<CoinAddress, CoinAmount>>, CoinAmount> makeOutputs(AddressData[] addressData, int size, CoinAmount baseAmount, CoinAmount fees) {
+    BigDecimal outputSum = fees.getValue();
+    ArrayList<Pair<CoinAddress, CoinAmount>> buffer = new ArrayList<Pair<CoinAddress, CoinAmount>>();
     size = size > addressData.length ? addressData.length : size;
     for (int i = 0; i < size; i++) {
-      CoinAmount amount = CoinAmount.apply(baseAmount.value().$times(BigDecimal.decimal(i + 1))); // baseAmount * (i + 1)
-      buffer.$plus$eq(new Tuple2<CoinAddress, CoinAmount>(addressData[i].address, amount));
-      outputSum = outputSum.$plus(amount.value());
+      CoinAmount amount = new CoinAmount(baseAmount.getValue().multiply(BigDecimal.valueOf(i + 1))); // baseAmount * (i + 1)
+      buffer.add(new Pair<CoinAddress, CoinAmount>(addressData[i].address, amount));
+      outputSum = outputSum.add(amount.getValue());
     }
-    return new Tuple2<List<Tuple2<CoinAddress, CoinAmount>>, CoinAmount>(buffer.toList(), CoinAmount.apply(outputSum));
+    return new Pair<List<Pair<CoinAddress, CoinAmount>>, CoinAmount>(buffer, new CoinAmount(outputSum));
   }
 
-  private List<Tuple2<String, BigDecimal>> makeOutputsForSendManyAPI(AddressData[] addressData, int size, CoinAmount baseAmount, boolean invalidAddress, boolean negativeAmount) {
-    ListBuffer<Tuple2<String, BigDecimal>> buffer = new ListBuffer<Tuple2<String, BigDecimal>>();
+  private List<Pair<String, BigDecimal>> makeOutputsForSendManyAPI(AddressData[] addressData, int size, CoinAmount baseAmount, boolean invalidAddress, boolean negativeAmount) {
+    ArrayList<Pair<String, BigDecimal>> buffer = new ArrayList<Pair<String, BigDecimal>>();
     size = size > addressData.length ? addressData.length : size;
     for (int i = 0; i < size; i++) {
-      BigDecimal amount = baseAmount.value().$times(BigDecimal.decimal((negativeAmount ? -(i + 1) : i + 1)));
-      buffer.$plus$eq(new Tuple2<String, BigDecimal>(addressData[i].address.base58() + (invalidAddress ? "invalid" : ""), amount));
+      BigDecimal amount = baseAmount.getValue().multiply(BigDecimal.valueOf((negativeAmount ? -(i + 1) : i + 1)));
+      buffer.add(new Pair<String, BigDecimal>(addressData[i].address.base58() + (invalidAddress ? "invalid" : ""), amount));
     }
-    return buffer.toList();
+    return buffer;
   }
 
   @Test
   public void getInputsAndChangeTest() {
-    Option<List<CoinAddress>> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
-    Tuple2<List<Tuple2<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
+    List<CoinAddress> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
+    Pair<List<Pair<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
       receiverAddressData,
       receiverAddressData.length,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI)
     );
 
     // DO TEST
-    Tuple2<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
-      addressesOption, outputAndSumWithFees._1()
+    Pair<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
+      addressesOption, outputAndSumWithFees.getFirst()
     );
 
     // SUM inputs.
     long inputSum = 0;
-    for (int i = 0; i < inputAndChange._1().size(); i++) {
-      UnspentCoinDescriptor unspent = inputAndChange._1().apply(i);
-      inputSum = CoinAmount.apply(unspent.amount()).coinUnits();
+    for (int i = 0; i < inputAndChange.getFirst().size(); i++) {
+      UnspentCoinDescriptor unspent = inputAndChange.getFirst().get(i);
+      inputSum = new CoinAmount(unspent.getAmount()).coinUnits();
     }
-    CoinAmount actualChange = CoinAmount.from(inputSum - outputAndSumWithFees._2().coinUnits());
+    CoinAmount actualChange = CoinAmount.from(inputSum - outputAndSumWithFees.getSecond().coinUnits());
 
-    System.err.println("Change=" + inputAndChange._2());
+    System.err.println("Change=" + inputAndChange.getSecond());
     System.err.println("inputSum=" + inputSum);
     System.err.println("outputAndSumWithFees=" + outputAndSumWithFees);
 
-    assertEquals("change should be inputSum - outputSum", inputAndChange._2(), actualChange);
+    assertEquals("change should be inputSum - outputSum", inputAndChange.getSecond(), actualChange);
   }
 
   @Test
@@ -129,99 +127,99 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     thrown.expect(OapException.class);
     thrown.expectMessage("No outputs");
 
-    Option<List<CoinAddress>> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
+    List<CoinAddress> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
 
-    Tuple2<List<Tuple2<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
+    Pair<List<Pair<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
       receiverAddressData,
       0,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI)
     );
 
     // DO TEST
-    Tuple2<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
-      addressesOption, outputAndSumWithFees._1()
+    Pair<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
+      addressesOption, outputAndSumWithFees.getFirst()
     );
     //  CHECK
-    BigDecimal inputSum = BigDecimal.decimal(0);
-    for (int i = 0; i < inputAndChange._1().size(); i++) {
-      inputSum = inputSum.$plus(inputAndChange._1().apply(i).amount());
+    BigDecimal inputSum = BigDecimal.valueOf(0);
+    for (int i = 0; i < inputAndChange.getFirst().size(); i++) {
+      inputSum = inputSum.add(inputAndChange.getFirst().get(i).getAmount());
     }
-    assertEquals("Sum of inputs should be equal to Sum of outputs + fees", inputSum, outputAndSumWithFees._2().value().$plus(inputAndChange._2().value()));
+    assertEquals("Sum of inputs should be equal to Sum of outputs + fees", inputSum, outputAndSumWithFees.getSecond().getValue().add(inputAndChange.getSecond().getValue()));
   }
 
   @Test
   public void buildTransationTest() {
     // MAKE PRE TEST DATA
     //   ADDRESS LIST FOR senderAccount
-    Option<List<CoinAddress>> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
+    List<CoinAddress> addressesOption = rpcSubSystem.nonWatchOnlyAddressesOf(senderAccount);
     //   SAMPLE OUTPUTS DATA
-    Tuple2<List<Tuple2<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
+    Pair<List<Pair<CoinAddress, CoinAmount>>, CoinAmount> outputAndSumWithFees = makeOutputs(
       receiverAddressData,
       receiverAddressData.length,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI)
     );
     //   GET UNSPENT COINS AND CACULATE CHANGE
-    Tuple2<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
-      addressesOption, outputAndSumWithFees._1()
+    Pair<List<UnspentCoinDescriptor>, CoinAmount> inputAndChange = rpcSubSystem.calculateInputsAndChange(
+      addressesOption, outputAndSumWithFees.getFirst()
     );
 
     // DO TEST
-    Transaction tx = rpcSubSystem.buildSendManyTransaction(inputAndChange, outputAndSumWithFees._1(), senderAccount);
+    Transaction tx = rpcSubSystem.buildSendManyTransaction(inputAndChange, outputAndSumWithFees.getFirst(), senderAccount);
 
     // CHECK RESULT
     assertNotNull("Transaction should be returned", tx);
     //   COMPARE OUTPUTS
-    for (int i = 0; i < outputAndSumWithFees._1().size(); i++) {
-      outputAndSumWithFees._1().apply(i)._2();
+    for (int i = 0; i < outputAndSumWithFees.getFirst().size(); i++) {
+      outputAndSumWithFees.getFirst().get(i).getSecond();
       assertEquals("Each output should be equal",
-        outputAndSumWithFees._1().apply(i)._2(), CoinAmount.from(tx.outputs().apply(i).value())
+        outputAndSumWithFees.getFirst().get(i).getSecond(), CoinAmount.from(tx.getOutputs().get(i).getValue())
       );
     }
     //   COMPARE CHANGE
-    if (inputAndChange._2().value().$greater(BigDecimal.decimal(0L))) {
+    if (inputAndChange.getSecond().getValue().compareTo(BigDecimal.valueOf(0L)) > 0 ) {
       assertEquals("Change sould be equal",
-        inputAndChange._2(),
-        CoinAmount.from(tx.outputs().apply(tx.outputs().size() - 1).value())
+        inputAndChange.getSecond(),
+        CoinAmount.from(tx.getOutputs().get(tx.getOutputs().size() - 1).getValue())
       );
     }
     //   CHECK INPUTS
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      TransactionOutput spedingOutput = Blockchain.get().getTransactionOutput(tx.inputs().apply(i).getOutPoint(), Blockchain.get().db());
-      UnspentCoinDescriptor unspent = inputAndChange._1().apply(i);
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      TransactionOutput spedingOutput = Blockchain.get().getTransactionOutput(Blockchain.get().getDb(), tx.getInputs().get(i).getOutPoint());
+      UnspentCoinDescriptor unspent = inputAndChange.getFirst().get(i);
       assertEquals(
         "Inpout amount(" + i + ") should be match",
-        CoinAmount.from(spedingOutput.value()),
-        CoinAmount.apply(unspent.amount())
+        CoinAmount.from(spedingOutput.getValue()),
+        new CoinAmount(unspent.getAmount())
       );
     }
   }
 
 
-  private void checkTx(List<Tuple2<String, CoinAmount>> outputs, Transaction tx) {
+  private void checkTx(List<Pair<String, CoinAmount>> outputs, Transaction tx) {
     for (int i = 0; i < outputs.size(); i++) {
       assertEquals("Receving amount should be equal to output amount",
-        outputs.apply(i)._2(),
-        CoinAmount.from(tx.outputs().apply(i).value())
+        outputs.get(i).getSecond(),
+        CoinAmount.from(tx.getOutputs().get(i).getValue())
       );
       assertEquals("Receiving address should match to output address",
-        CoinAddress.from(outputs.apply(i)._1()).lockingScript(),
-        tx.outputs().apply(i).lockingScript()
+        CoinAddress.from(outputs.get(i).getFirst()).lockingScript(),
+        tx.getOutputs().get(i).getLockingScript()
       );
     }
     //    CHECK INPUT & FEE
   }
 
-  private void checkTxForSendManyAPI(List<Tuple2<String, BigDecimal>> outputs, Transaction tx) {
+  private void checkTxForSendManyAPI(List<Pair<String, BigDecimal>> outputs, Transaction tx) {
     for (int i = 0; i < outputs.size(); i++) {
       assertEquals("Receving amount should be equal to output amount",
-        CoinAmount.apply(outputs.apply(i)._2()),
-        CoinAmount.from(tx.outputs().apply(i).value())
+        new CoinAmount(outputs.get(i).getSecond()),
+        CoinAmount.from(tx.getOutputs().get(i).getValue())
       );
       assertEquals("Receiving address should match to output address",
-        CoinAddress.from(outputs.apply(i)._1()).lockingScript(),
-        tx.outputs().apply(i).lockingScript()
+        CoinAddress.from(outputs.get(i).getFirst()).lockingScript(),
+        tx.getOutputs().get(i).getLockingScript()
       );
     }
     //    CHECK INPUT & FEE
@@ -234,9 +232,9 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
   @Test
   public void sendManySignleAddressTest() {
     // 1 OUTPUT TO RECEIVER ADDRESS 0, 1BTC
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
       receiverAddressData, 1,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false);
 
     Hash hash = rpcSubSystem.sendMany(
@@ -248,11 +246,11 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
 
     assertNotNull("Hash should not be null", hash);
     // DO TEST
-    Option<Transaction> tx = Blockchain.get().getTransaction(hash, Blockchain.get().db());
+    Transaction tx = Blockchain.get().getTransaction(Blockchain.get().getDb(), hash);
     //    CHECK TxHash returned.
-    assertTrue("Transaction should be exists", tx.isDefined());
+    assertTrue("Transaction should be exists", tx != null);
     //    CHECK EACH OUTPUT IS CORRECT
-    checkTxForSendManyAPI(outputs, tx.get());
+    checkTxForSendManyAPI(outputs, tx);
     waitForChain(1);
   }
 
@@ -260,24 +258,24 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
   public void sendManyMultipleAddressTest() {
     java.util.List<CoinAddress> addresses = new java.util.ArrayList<CoinAddress>();
     addresses.add(provider.receivingAddressOf(provider.accounts()[1]).address);
-    scala.collection.immutable.List<UnspentCoinDescriptor> unspents = Wallet.get().listUnspent(
+    List<UnspentCoinDescriptor> unspents = Wallet.get().listUnspent(
+      Blockchain.get().getDb(),
       Blockchain.get(),
       0,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
-      Option.apply(JavaConverters.asScalaBuffer(addresses).toList()),
-      Blockchain.get().db()
+      addresses
     );
     System.err.println("Unspents.size()" + unspents.size());
     for(int i = 0;i < unspents.size();i++) {
-      System.out.println(unspents.apply(i).confirmations()+"==>" +unspents.apply(i).toString());
+      System.out.println(unspents.get(i).getConfirmations()+"==>" +unspents.get(i).toString());
     }
     System.out.println("ACCOUNT==>" + provider.accounts()[1]);
     System.out.println("RECEVING ADDRESS=" + provider.receivingAddressOf(provider.accounts()[1]).address + " > " + provider.receivingAddressOf(provider.accounts()[1]).address.base58());
     System.out.println("WATCHONLY ADDRESS=" + provider.watchOnlyAddressesOf(provider.accounts()[1])[0].address + " > " + provider.watchOnlyAddressesOf(provider.accounts()[1])[0].address.base58());
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
       receiverAddressData, 2,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false);
 
     Hash hash = rpcSubSystem.sendMany(
@@ -290,11 +288,11 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     assertNotNull("TxHash should not be null", hash);
 
     // DO TEST
-    Option<Transaction> tx = Blockchain.get().getTransaction(hash, Blockchain.get().db());
+    Transaction tx = Blockchain.get().getTransaction(Blockchain.get().getDb(), hash);
     //    CHECK TxHash returned.
-    assertTrue("Transaction should be exists", tx.isDefined());
+    assertTrue("Transaction should be exists", tx != null);
     //    CHECK EACH OUTPUT IS CORRECT
-    checkTxForSendManyAPI(outputs, tx.get());
+    checkTxForSendManyAPI(outputs, tx);
 
     waitForChain(1);
   }
@@ -305,9 +303,9 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     thrown.expect(OapException.class);
     thrown.expectMessage("No outputs");
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
       receiverAddressData, 0,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false
     );
     Hash hash = rpcSubSystem.sendMany(senderAccount, outputs, null, null);
@@ -318,10 +316,10 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     thrown.expect(OapException.class);
     thrown.expectMessage("No addresses exist for account");
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
       receiverAddressData,
       2,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false
     );
 
@@ -333,9 +331,9 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     thrown.expect(OapException.class);
     thrown.expectMessage("not enought coins");
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
       2,
-      CoinAmount.apply(BigDecimal.valueOf(10000)), // 10000BTC
+      new CoinAmount(BigDecimal.valueOf(10000)), // 10000BTC
       false,
       false
     );
@@ -347,9 +345,9 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
      thrown.expect(OapException.class);
      thrown.expectMessage("Cannot convert address");
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
       2,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       true,
       false);
     Hash hash = rpcSubSystem.sendMany(senderAccount, outputs, null, null);
@@ -360,9 +358,9 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
     thrown.expect(Exception.class);
     thrown.expectMessage("Negative amount");
 
-    List<Tuple2<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
+    List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
       2,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 10000BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 10000BTC
       false,
       true
     );

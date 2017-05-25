@@ -4,14 +4,14 @@ import java.io.File
 
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointer
 import io.scalechain.blockchain.oap.transaction.OapTransactionOutput
-import io.scalechain.blockchain.oap.util.Pair
 import io.scalechain.blockchain.oap.wallet.AssetId
-import io.scalechain.blockchain.proto.codec._
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.proto.codec.primitive._
-import io.scalechain.blockchain.storage.index.{ClosableIterator, KeyValueDatabase, RocksDatabase}
-import io.scalechain.util.ByteArray
-import scodec.Codec
+import io.scalechain.blockchain.proto.codec.*
+import io.scalechain.blockchain.proto.*
+import io.scalechain.blockchain.proto.codec.primitive.*
+import io.scalechain.blockchain.storage.index.ClosableIterator
+import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.blockchain.storage.index.RocksDatabase
+import io.scalechain.util.Bytes
 
 /**
   * Storage for OAP.
@@ -25,126 +25,140 @@ import scodec.Codec
   * Created by shannon on 16. 12. 27.
   */
 
-object OapStorage {
-  var theStorage : OapStorage = null
-  def create(path : File) = {
-    theStorage = new OapStorage(path)
-    theStorage
-  }
-  def get() = {
-    theStorage
-  }
-}
-
 class OapStorage(path : File) {
-  val COLORED_OUTPUT :          Byte = 'O'
-  val ASSET_DEFINITION:        Byte = 'D'
-  val ASSET_DEFINITION_POINTER: Byte = 'H'
+  val db :  RocksDatabase = RocksDatabase(path);
 
-  val db :  RocksDatabase = new RocksDatabase(path);
-
-  def putOutput(outPoint : OutPoint, output : OapTransactionOutput) : Unit = {
+  fun putOutput(outPoint : OutPoint, output : OapTransactionOutput) : Unit  {
     val value = OutputCacheItem.from(output);
-    db.putObject(COLORED_OUTPUT, outPoint, value)(OutPointCodec, OutputCacheItemCodec)
+    db.putObject(OutPointCodec, OutputCacheItemCodec, COLORED_OUTPUT, outPoint, value)
   }
 
-  def getOutput(outPoint : OutPoint) : Option[OapTransactionOutput] = {
-    val itemOption = db.getObject(COLORED_OUTPUT, outPoint)(OutPointCodec, OutputCacheItemCodec)
-    if (itemOption.isEmpty) None
-    else {
-      Option(new OapTransactionOutput(AssetId.from(itemOption.get.assetId), itemOption.get.quantity, itemOption.get.output))
+  fun getOutput(outPoint : OutPoint) : OapTransactionOutput? {
+    val itemOption = db.getObject(OutPointCodec, OutputCacheItemCodec, COLORED_OUTPUT, outPoint)
+    if (itemOption == null) {
+      return null
+    } else {
+      return OapTransactionOutput(AssetId.from(itemOption.assetId), itemOption.quantity, itemOption.output)
     }
   }
 
-  def delOutput(outPoint : OutPoint) : Unit = {
-    db.delObject(COLORED_OUTPUT, outPoint)(OutPointCodec);
+  fun delOutput(outPoint : OutPoint) : Unit  {
+    db.delObject(OutPointCodec, COLORED_OUTPUT, outPoint);
   }
 
-  def getOutputs(hash : Hash) : java.util.List[Pair[OutPoint, OapTransactionOutput]] = {
-    val result : java.util.List[Pair[OutPoint, OapTransactionOutput]] = new java.util.ArrayList[Pair[OutPoint, OapTransactionOutput]]()
+  fun getOutputs(hash : Hash) : List<Pair<OutPoint, OapTransactionOutput>> {
+    val result : MutableList<Pair<OutPoint, OapTransactionOutput>> = mutableListOf<Pair<OutPoint, OapTransactionOutput>>()
     val outPoint = OutPoint(hash, 0)
     var f : Boolean = true
-    var iterator : ClosableIterator[(OutPoint, OutputCacheItem)] = null
-    try {
-      iterator = db.seekObject(COLORED_OUTPUT, outPoint)(OutPointCodec, OutputCacheItemCodec)
-      while (iterator.hasNext && f) {
+
+    db.seekObject(OutPointCodec, OutputCacheItemCodec, COLORED_OUTPUT, outPoint).use { iterator ->
+      while (iterator.hasNext() && f) {
         val (key, value) = iterator.next()
-        if (key.transactionHash.equals(hash))
-          result.add(new Pair[OutPoint, OapTransactionOutput](
-            key, new OapTransactionOutput(AssetId.from(value.assetId), value.quantity, value.output)
+        if (key.transactionHash.equals(hash)) {
+          result.add(Pair(
+            key, OapTransactionOutput(AssetId.from(value.assetId), value.quantity, value.output)
           ))
-        else
+        } else {
           f = false
+        }
       }
-    } finally {
-      if (iterator != null)
-        iterator.close
     }
-    result
+
+    return result
   }
 
-  def delOutputs(hash : Hash) : Int = {
+  fun delOutputs(hash : Hash) : Int  {
     val outPoint = OutPoint(hash, 0);
     var count = 0;
     var f : Boolean = true;
-    var iterator : ClosableIterator[(OutPoint, OutputCacheItem)] = null
-    try {
-      iterator = db.seekObject(COLORED_OUTPUT, outPoint)(OutPointCodec, OutputCacheItemCodec)
-      while (iterator.hasNext && f) {
+
+    db.seekObject(OutPointCodec, OutputCacheItemCodec, COLORED_OUTPUT, outPoint).use { iterator ->
+      while (iterator.hasNext() && f) {
         val (key, v) = iterator.next()
         if (key.transactionHash.equals(hash)) {
-          db.delObject(COLORED_OUTPUT, key)(OutPointCodec)
+          db.delObject(OutPointCodec, COLORED_OUTPUT, key)
           count += 1
         } else {
           f = false
         }
       }
-    } finally {
-      if (iterator != null) iterator.close
     }
-    count
+    return count
   }
 
-  def putAssetDefinition(pointer : AssetDefinitionPointer, value : String) : Unit = {
-    db.putObject(ASSET_DEFINITION,
-      FixedByteArrayMessage(ByteArray(pointer.getPointer())),
+  fun putAssetDefinition(pointer : AssetDefinitionPointer, value : String) : Unit  {
+    db.putObject(
+      AssetDefinitionPointerCodec, StringMessageCodec,
+      ASSET_DEFINITION,
+      FixedByteArrayMessage(Bytes(pointer.pointer)),
       StringMessage(value)
-    )(FixedByteArrayMessageCodec, StringMessageCodec)
+    )
   }
 
-  def getAssetDefinition(pointer : AssetDefinitionPointer) : Option[String] = {
-    val v = db.getObject(ASSET_DEFINITION,
-      FixedByteArrayMessage(ByteArray(pointer.getPointer()))
-    )(FixedByteArrayMessageCodec, StringMessageCodec)
-    if (v.isDefined) Some(v.get.value) else None
+  fun getAssetDefinition(pointer : AssetDefinitionPointer) : String?  {
+    val v = db.getObject(
+      AssetDefinitionPointerCodec, StringMessageCodec,
+      ASSET_DEFINITION,
+      FixedByteArrayMessage(Bytes(pointer.pointer))
+    )
+    return v?.value
   }
 
-  def delAssetDefintion(pointer : AssetDefinitionPointer) : Unit = {
-    db.delObject(ASSET_DEFINITION, FixedByteArrayMessage(ByteArray(pointer.getPointer())))(FixedByteArrayMessageCodec)
+  fun delAssetDefinition(pointer : AssetDefinitionPointer) : Unit  {
+    val pointerBytes = Bytes(pointer.pointer)
+
+    db.delObject(AssetDefinitionPointerCodec, ASSET_DEFINITION, FixedByteArrayMessage(pointerBytes))
   }
 
-  def putAssetDefinitionPointer(assetId : String, pointer : AssetDefinitionPointer) = {
-    db.putObject(ASSET_DEFINITION_POINTER,
+  fun putAssetDefinitionPointer(assetId : String, pointer : AssetDefinitionPointer)  {
+
+    db.putObject(
+      StringMessageCodec, AssetDefinitionPointerCodec,
+      ASSET_DEFINITION_POINTER,
       StringMessage(assetId),
-      FixedByteArrayMessage(ByteArray(pointer.getPointer()))
-    )(StringMessageCodec, FixedByteArrayMessageCodec)
+      FixedByteArrayMessage(Bytes(pointer.pointer))
+    )
   }
 
-  def getAssetDefinitionPointer(assetId : String) : Option[AssetDefinitionPointer] = {
-    val v = db.getObject(ASSET_DEFINITION_POINTER, StringMessage(assetId))(StringMessageCodec, FixedByteArrayMessageCodec)
-    if (v.isDefined)
-      Option(AssetDefinitionPointer.from(
-        v.get.value.array
-      ))
-    else None
+  fun getAssetDefinitionPointer(assetId : String) : AssetDefinitionPointer? {
+    val v = db.getObject(StringMessageCodec, AssetDefinitionPointerCodec, ASSET_DEFINITION_POINTER, StringMessage(assetId))
+    if (v != null) {
+      return AssetDefinitionPointer.from(
+        v.value.array
+      )
+    }
+    else {
+      return null
+    }
   }
 
-  def delAssetDefinitionPointer(assetId : String) : Unit = {
-    db.delObject(ASSET_DEFINITION_POINTER, StringMessage(assetId))(StringMessageCodec)
+  fun delAssetDefinitionPointer(assetId : String) : Unit  {
+    db.delObject(StringMessageCodec, ASSET_DEFINITION_POINTER, StringMessage(assetId))
   }
 
-  def close : Unit = {
-    db.close
+  fun close() : Unit  {
+    db.close()
+  }
+
+  companion object {
+    lateinit var theStorage : OapStorage
+
+    @JvmStatic
+    fun create(path : File) : OapStorage {
+      theStorage = OapStorage(path)
+      return theStorage
+    }
+
+    @JvmStatic
+    fun get() : OapStorage {
+      return theStorage
+    }
+
+    private val AssetDefinitionPointerCodec = FixedByteArrayMessageCodec
+
+    private val COLORED_OUTPUT           = 'O'.toByte()
+    private val ASSET_DEFINITION         = 'D'.toByte()
+    private val ASSET_DEFINITION_POINTER = 'H'.toByte()
   }
 }
 

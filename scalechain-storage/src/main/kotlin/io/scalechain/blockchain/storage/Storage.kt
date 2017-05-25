@@ -7,7 +7,11 @@ import org.rocksdb.RocksDB
   */
 object Storage {
   var isInitialized : Boolean = false
+
+  @JvmStatic
   fun initialized() = isInitialized
+
+  @JvmStatic
   fun initialize() : Unit {
     //RocksDB.loadLibrary()
     isInitialized = true

@@ -1,12 +1,8 @@
 package io.scalechain.blockchain.storage
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.*
-import io.scalechain.blockchain.proto.codec.BlockCodec
-import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.script.*
 import io.scalechain.blockchain.storage.index.*
-import io.scalechain.crypto.HashEstimation
 import org.slf4j.LoggerFactory
 
 /**

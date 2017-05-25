@@ -36,6 +36,7 @@ data class PublicKey(val point : ECPoint, val shouldUseCompressedFormat : Boolea
      * @param encoded The encoded public key. Can be either a compressed one or uncompressed one.
      * @return The public key.
      */
+    @JvmStatic
     fun from(encoded : ByteArray) : PublicKey {
       val point : ECPoint = ECKey.decodePublicKey(encoded)
       return PublicKey(point)
@@ -47,6 +48,7 @@ data class PublicKey(val point : ECPoint, val shouldUseCompressedFormat : Boolea
      * @param privateKey The private key to derive the public key.
      * @return The derived public key.
      */
+    @JvmStatic
     fun from(privateKey : PrivateKey) : PublicKey {
       val encodedPublicKey : ByteArray = ECKey.publicKeyFromPrivate(privateKey.value, false)
       val point : ECPoint = ECKey.decodePublicKey(encodedPublicKey)

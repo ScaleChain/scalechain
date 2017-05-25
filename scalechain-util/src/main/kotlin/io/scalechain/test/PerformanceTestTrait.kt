@@ -3,11 +3,7 @@ package io.scalechain.test
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import scala.collection.mutable.ListBuffer
-import scala.util.Random
-
-import io.kotlintest.matchers.Matchers
-import io.kotlintest.specs.FlatSpec
+import java.util.Random
 
 // Create one when we write a performance testing case using Kotlin.
 interface PerformanceTestTrait {

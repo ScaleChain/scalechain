@@ -3,15 +3,16 @@ package io.scalechain.blockchain.oap.sampledata;
 import io.scalechain.blockchain.chain.*;
 import io.scalechain.blockchain.oap.blockchain.mockup.TestBlockChainView;
 import io.scalechain.blockchain.proto.*;
-import io.scalechain.blockchain.script.HashSupported;
+import io.scalechain.blockchain.script.HashCalculator;
 import io.scalechain.blockchain.storage.index.KeyValueDatabase;
 import io.scalechain.blockchain.transaction.*;
-import io.scalechain.util.ByteArray;
-import scala.Option;
-import scala.collection.immutable.List;
-import scala.collection.mutable.ListBuffer;
+import io.scalechain.util.Bytes;
 
+import java.math.BigDecimal;
 import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
+
 
 /**
  * Created by shannon on 17. 1. 5.
@@ -69,13 +70,13 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
   }
 
   KeyValueDatabase db;
-  Option<ChainEventListener> chainEventListener;
+  ChainEventListener chainEventListener;
   String testName;
 
 //  public TransactionDataProvider(Blockchain chain, Wallet wallet, AddressDataProvider addressDataProvider) {
 
-  protected ChainSampleDataProvider(String testName, Option<ChainEventListener> chainEventListener, AddressDataProvider addressDataProvider, KeyValueDatabase db) {
-    env = ChainEnvironment$.MODULE$.get();
+  protected ChainSampleDataProvider(String testName, ChainEventListener chainEventListener, AddressDataProvider addressDataProvider, KeyValueDatabase db) {
+    env = ChainEnvironment.get();
     this.db = db;
     this.chainView = TestBlockChainView.create(db);
     this.chainEventListener = chainEventListener;
@@ -121,12 +122,12 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
   //  }
   public void addTransaction(TransactionOutputSet outputSet, TransactionWithName transactionWithName) {
     Hash txHash = getTxHash(transactionWithName);
-    for (int i = 0; i < transactionWithName.transaction().outputs().size(); i++) {
-      outputSet.addTransactionOutput(OutPoint.apply(txHash, i), transactionWithName.transaction().outputs().apply(i));
+    for (int i = 0; i < transactionWithName.getTransaction().getOutputs().size(); i++) {
+      outputSet.addTransactionOutput(new OutPoint(txHash, i), transactionWithName.getTransaction().getOutputs().get(i));
     }
-    chainView.blockIndex.addTransaction(txHash, transactionWithName.transaction());
-    if (chainEventListener.isDefined()) {
-      chainEventListener.get().onNewTransaction(txHash, transactionWithName.transaction(), Option.empty(), Option.empty(), db);
+    chainView.blockIndex.addTransaction(txHash, transactionWithName.getTransaction());
+    if (chainEventListener != null) {
+      chainEventListener.onNewTransaction(db, txHash, transactionWithName.getTransaction(), null, null);
     }
   }
 
@@ -134,11 +135,11 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
   //  def getTxHash(transactionWithName : TransactionWithName) = transactionWithName.transaction.hash
   //  def getBlockHash(block : Block) = block.header.hash
   public Hash getTxHash(TransactionWithName transactionWithName) {
-    return HashSupported.toHashSupportedTransaction(transactionWithName.transaction()).hash();
+    return HashCalculator.transactionHash(transactionWithName.getTransaction());
   }
 
   public Hash getBlockHash(Block block) {
-    return HashSupported.toHashSupportedBlockHeader(block.header()).hash();
+    return HashCalculator.blockHeaderHash(block.getHeader());
   }
 
   //  def addBlock(block: Block) : Unit = {
@@ -156,18 +157,18 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
   //    }
   //  }
   public void addBlock(Block block) {
-    int blockHeight = chainView.blockIndex.bestBlockHeight() + 1;
+    long blockHeight = chainView.blockIndex.getBestBlockHeight() + 1;
     chainView.blockIndex.addBlock(block, blockHeight);
-    if (chainEventListener.isDefined()) {
-      for (int i = 0; i < block.transactions().size(); i++) {
-        Transaction tx = block.transactions().apply(i);
-        Hash txHash = HashSupported.toHashSupportedTransaction(tx).hash();
-        chainEventListener.get().onNewTransaction(
+    if (chainEventListener != null) {
+      for (int i = 0; i < block.getTransactions().size(); i++) {
+        Transaction tx = block.getTransactions().get(i);
+        Hash txHash = HashCalculator.transactionHash(tx);
+        chainEventListener.onNewTransaction(
+          db,
           txHash,
           tx,
-          Option.apply(ChainBlock.apply(blockHeight, block)),
-          Option.apply(i),
-          db
+          new ChainBlock(blockHeight, block),
+          i
         );
       }
     }
@@ -184,15 +185,15 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
       System.err.println("WARNING: No transactions to add");
       return null;
     }
-    Block block = newBlock(chainView.blockIndex.bestBlockHash(), transactionsWithName);
+    Block block = newBlock(chainView.blockIndex.getBestBlockHash(), transactionsWithName);
     addBlock(block);
     return block;
   }
 
   public Block newBlock(TransactionWithName transactionWithName) {
-    ListBuffer<TransactionWithName> buffer = new ListBuffer<TransactionWithName>();
-    buffer.$plus$eq(transactionWithName);
-    return newBlock(buffer.toList());
+    ArrayList<TransactionWithName> buffer = new ArrayList<TransactionWithName>();
+    buffer.add(transactionWithName);
+    return newBlock(buffer);
   }
 
   // BlockBuildingTestTrait.sala
@@ -210,13 +211,13 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
   public Block newBlock(Hash prevBlockHash, List<TransactionWithName> transationsWithName) {
     BlockBuilder builder = BlockBuilder.newBuilder();
     for (int i = 0; i < transationsWithName.size(); i++) {
-      builder.addTransaction(transationsWithName.apply(i).transaction());
+      builder.addTransaction(transationsWithName.get(i).getTransaction());
     }
 
     return builder.build(
       prevBlockHash,
       System.currentTimeMillis() / 1000,
-      ChainEnvironment$.MODULE$.get().DefaultBlockVersion(),
+      ChainEnvironment.get().getDefaultBlockVersion(),
       0,
       0);
   }
@@ -252,21 +253,19 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
 
     for (int i = 0; i < spendingOutputs.size(); i++) {
       builder.addInput(
+        db,
         availableOutputs(),
-        spendingOutputs.apply(i).outPoint(),
-        builder.addInput$default$3(),
-        builder.addInput$default$4(),
-        db
+        spendingOutputs.get(i).getOutPoint()
       );
     }
     for (int i = 0; i < newOutputs.size(); i++) {
       builder.addOutput(
-        newOutputs.apply(i).amount(),
-        newOutputs.apply(i).outputOwnership()
+        newOutputs.get(i).getAmount(),
+        newOutputs.get(i).getOutputOwnership()
       );
     }
 
-    TransactionWithName transactionWithName = TransactionWithName.apply(name, builder.build(builder.build$default$1(), builder.build$default$2()));
+    TransactionWithName transactionWithName = new TransactionWithName(name, builder.build());
     addTransaction(availableOutputs(), transactionWithName);
     return transactionWithName;
   }
@@ -295,10 +294,10 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
     String data = "Random:" + (random.nextLong()) + ".The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.";
     TransactionBuilder builder = TransactionBuilder.newBuilder();
     Transaction transaction = builder
-      .addGenerationInput(CoinbaseData.apply(ByteArray.apply(data.getBytes())), builder.addGenerationInput$default$2())
-      .addOutput(CoinAmount.apply(scala.math.BigDecimal.valueOf(50)), generatedBy)
-      .build(builder.build$default$1(), builder.build$default$2());
-    TransactionWithName transactionWithName = TransactionWithName.apply(name, transaction);
+      .addGenerationInput(new CoinbaseData(new Bytes(data.getBytes())), 0)
+      .addOutput(new CoinAmount(BigDecimal.valueOf(50)), generatedBy)
+      .build();
+    TransactionWithName transactionWithName = new TransactionWithName(name, transaction);
 
     addTransaction(availableOutputs(), transactionWithName);
 

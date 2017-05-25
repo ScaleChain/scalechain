@@ -1,16 +1,25 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult, StringResult}
-import io.scalechain.blockchain.chain.{Blockchain, TransactionBuilder}
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.api.domain.StringResult
+import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.chain.TransactionBuilder
 import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.oap.IOapConstants
 import io.scalechain.blockchain.proto.OutPoint
-import io.scalechain.blockchain.script.HashSupported._
-import io.scalechain.blockchain.transaction._
-import io.scalechain.util.{ByteArray, HexUtil}
+import io.scalechain.blockchain.script.HashCalculator
+import io.scalechain.blockchain.transaction.*
+import io.scalechain.util.Bytes
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Left
+import io.scalechain.util.Either.Right
+import io.scalechain.util.HexUtil
 import io.scalechain.wallet.Wallet
-import spray.json.DefaultJsonProtocol._
+import java.math.BigDecimal
+
 /*
   CLI command :
     # From the account test1, send 0.1 coins to the first address
@@ -43,13 +52,14 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#sendmany
   */
-object SendMany extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val account:      String                  = request.params.get[String]("From Account", 0)
-      val outputs:      Map[String, BigDecimal] = request.params.get[Map[String, BigDecimal]]("outputs", 1)
-      val comment:      String                  = request.params.getOption[String]("Comment", 2).getOrElse("")
-      val subtractFees: List[String]            = request.params.getOption[List[String]]("Subtract Fees From Amount", 3).getOrElse(List.empty[String])
+object SendMany : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account: String = request.params.get<String>("From Account", 0)
+      // BUGBUG : OAP : Make sure that this code works.
+      val outputs: Map<String, BigDecimal> = request.params.get<Map<String, BigDecimal>>("outputs", 1)
+      val comment: String = request.params.getOption<String>("Comment", 2) ?: ""
+      val subtractFees: List<String> = request.params.getListOption<String>("Subtract Fees From Amount", 3) ?: listOf()
 
       if (comment.length > 0) {
         Left(RpcError(
@@ -64,15 +74,15 @@ object SendMany extends RpcCommand {
           "subtractfeesfromamount is not supported"
         ))
       } else {
-        val txHash = RpcSubSystem.get.sendMany(account, outputs.toList, comment, subtractFees)
-        Right(Some(StringResult(
-          HexUtil.hex(txHash.value)
-        )))
+        val txHash = RpcSubSystem.get().sendMany(account, outputs.toList(), comment, subtractFees)
+        Right(StringResult(
+          HexUtil.hex( txHash.value.array )
+        ))
       }
     }
   }
 
-  def help() : String =
+  override fun help() : String =
     """sendmany "fromaccount" {"address":amount,...} ( minconf "comment" ["address",...] )
       |
       |Send multiple times. Amounts are double-precision floating point numbers.
@@ -112,7 +122,7 @@ object SendMany extends RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendmany", "params": ["", "{\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\":0.01,\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\":0.02}", 6, "testing"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

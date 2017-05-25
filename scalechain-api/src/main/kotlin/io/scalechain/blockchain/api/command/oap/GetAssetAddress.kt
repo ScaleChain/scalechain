@@ -1,15 +1,18 @@
 package io.scalechain.blockchain.api.command.oap
 
-import io.scalechain.blockchain.{ErrorCode, GeneralException}
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
+
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.net.IssueAssetResult
 import io.scalechain.blockchain.oap.exception.OapException
-import io.scalechain.blockchain.oap.wallet.{AssetAddress, AssetId}
+import io.scalechain.blockchain.oap.wallet.AssetAddress
+import io.scalechain.blockchain.oap.wallet.AssetId
 import io.scalechain.blockchain.transaction.CoinAddress
-import io.scalechain.util.HexUtil
-import spray.json.DefaultJsonProtocol._
-import spray.json.{JsObject, JsString}
 
 /*
 */
@@ -33,37 +36,36 @@ import spray.json.{JsObject, JsString}
   *    "id": "curltest"
   * }
   */
-object GetAssetAddress extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val address: String           = request.params.get[String]("address", 0)
+
+data class GetAssetAddressResult(val address : String, val asset_address : String, val asset_id: String) : RpcResult
+
+object GetAssetAddress : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val address: String           = request.params.get<String>("address", 0)
 
       val coinAddress : CoinAddress =
         try {
           CoinAddress.from(address);
-        } catch {
-          case ge : GeneralException => {
-            try {
-              AssetAddress.from(address).coinAddress();
-            } catch {
-              case oe : OapException => {
-                throw new GeneralException(ErrorCode.RpcInvalidAddress)
-              }
-            }
+        } catch(ge : GeneralException) {
+          try {
+            AssetAddress.from(address).coinAddress();
+          } catch(oe : OapException) {
+            throw GeneralException(ErrorCode.RpcInvalidAddress)
           }
         }
 
-      Right(Some(JsResult(
-        JsObject(
-          ("address",       JsString(address)),
-          ("asset_address", JsString(AssetAddress.fromCoinAddress(coinAddress).base58())),
-          ("asset_id",      JsString(AssetId.from(coinAddress).base58()))
+      Right(
+        GetAssetAddressResult(
+          address,
+          AssetAddress.fromCoinAddress(coinAddress).base58(),
+          AssetId.from(coinAddress).base58()
         )
-      )))
+      )
     }
   }
 
-  def help() : String =
+  override fun help() : String =
     """getAssetAddress ( "account" )
       |
       |Arguments:
@@ -81,5 +83,5 @@ object GetAssetAddress extends RpcCommand {
       |As a json rpc call
       |
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getassetaddress", "params": ["n3xRLJSdJrWngv9yUYZDeepMbqU5decwbG"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }

@@ -75,7 +75,7 @@ public class TransferAssetApiTest extends ApiTestWithSampleTransactions {
         transferTo(toAddress, assetId, 1000)
       );
 
-      String result = transferAsset(fromAddress, tos, privateKeys, fromAddress, IOapConstants.DUST_IN_SATOSHI);
+      JsonObject result = transferAsset(fromAddress, tos, privateKeys, fromAddress, IOapConstants.DUST_IN_SATOSHI);
     } catch(RpcInvoker.RpcCallException e) {
       assertEquals("Invalid private key should be return", "Invalid private key", e.getData());
     }

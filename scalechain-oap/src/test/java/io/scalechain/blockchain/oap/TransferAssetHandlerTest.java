@@ -7,7 +7,7 @@ import io.scalechain.blockchain.oap.sampledata.AddressData;
 import io.scalechain.blockchain.oap.sampledata.WalletSampleDataProvider;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
 import io.scalechain.blockchain.oap.transaction.OapTransactionOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.oap.wallet.AssetTransfer;
@@ -75,7 +75,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> fromAddresses = new ArrayList<CoinAddress>();
     fromAddresses.add(fromAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       fromAddresses, true
@@ -127,7 +127,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> fromAddresses = new ArrayList<CoinAddress>();
     fromAddresses.add(fromAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       fromAddresses, true
@@ -139,10 +139,10 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     AssetId assetId = null;
     int quantity = 0;
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
-    for (UnspentCoinDescriptor desc : unspents) {
-      if (CoinAmount.apply(desc.amount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
+    for (UnspentAssetDescriptor desc : unspents) {
+      if (new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
         assetId = ad.getAssetId();
         quantity = ad.getQuantity() / 2;
         break;
@@ -157,20 +157,20 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
       = transferHandler.splitUnspent(unspents);
 
     // DO TEST
-    Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = transferHandler.assetInputsAndActualTransfer(
+    Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = transferHandler.assetInputsAndActualTransfer(
       unspentCoinsAndAssets.getSecond(),
       transfersByAssetId,
       AssetAddress.fromCoinAddress(fromAddress)
     );
 
     // CHECK OUTPUT QUANTITIES.
-    List<UnspentCoinDescriptor> spending = assetInputsAndActualTransfer.getFirst();
+    List<UnspentAssetDescriptor> spending = assetInputsAndActualTransfer.getFirst();
     List<AssetTransfer> actualTransfers = assetInputsAndActualTransfer.getSecond();
     assertEquals("The size of actualTransfers should be", 2, actualTransfers.size());
 
 
     long spendingSum = 0;
-    for (UnspentCoinDescriptor d : spending) {
+    for (UnspentAssetDescriptor d : spending) {
       UnspentAssetDescriptor input = (UnspentAssetDescriptor) d;
       if (input.getAssetId().equals(assetId)) {
         spendingSum += input.getQuantity();
@@ -211,7 +211,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> fromAddresses = new ArrayList<CoinAddress>();
     fromAddresses.add(fromAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       fromAddresses, true
@@ -221,10 +221,10 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // SPEND ALL FOR EACH ASSET.
     // THIS WILL PRODUCE 2 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
-    for (UnspentCoinDescriptor desc : unspents) {
-      if (CoinAmount.apply(desc.amount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
+    for (UnspentAssetDescriptor desc : unspents) {
+      if (new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
       }
     }
     HashMap<AssetId, List<AssetTransfer>> transfersByAssetId
@@ -235,19 +235,19 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
       = transferHandler.splitUnspent(unspents);
 
     // DO TEST
-    Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = transferHandler.assetInputsAndActualTransfer(
+    Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = transferHandler.assetInputsAndActualTransfer(
       unspentCoinsAndAssets.getSecond(),
       transfersByAssetId,
       AssetAddress.fromCoinAddress(fromAddress)
     );
 
     // CHECK OUTPUT QUANTITIES.
-    List<UnspentCoinDescriptor> spending = assetInputsAndActualTransfer.getFirst();
+    List<UnspentAssetDescriptor> spending = assetInputsAndActualTransfer.getFirst();
     List<AssetTransfer> actualTransfers = assetInputsAndActualTransfer.getSecond();
     assertEquals("The size of actualTransfers should be", 2, actualTransfers.size());
     for (AssetTransfer t : actualTransfers) {
       long sum = 0;
-      for (UnspentCoinDescriptor d : spending) {
+      for (UnspentAssetDescriptor d : spending) {
         UnspentAssetDescriptor input = (UnspentAssetDescriptor) d;
         if (input.getAssetId().equals(t.getAssetId())) {
           sum += input.getQuantity();
@@ -278,7 +278,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(fromCoinAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses, true
@@ -288,10 +288,10 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // SPEND 1/2 FOR EACH ASSET.
     // THIS WILL PRODUCE 4 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
-    for (UnspentCoinDescriptor desc : unspents) {
-      if (CoinAmount.apply(desc.amount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
+    for (UnspentAssetDescriptor desc : unspents) {
+      if (new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
       }
     }
     HashMap<AssetId, List<AssetTransfer>> transfersByAssetId
@@ -300,7 +300,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     Pair<List<UnspentCoinDescriptor>, HashMap<AssetId, List<UnspentAssetDescriptor>>> unspentCoinsAndAssets
       = TransferAssetHandler.get().splitUnspent(unspents);
 
-    Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = TransferAssetHandler.get().assetInputsAndActualTransfer(
+    Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = TransferAssetHandler.get().assetInputsAndActualTransfer(
       unspentCoinsAndAssets.getSecond(),
       transfersByAssetId,
       changeAddress
@@ -308,7 +308,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     CoinAmount fees = CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI);
 
     // DO TEST.
-    Pair<List<UnspentCoinDescriptor>, CoinAmount> allInputsAndCoinChange = TransferAssetHandler.get().allInputsAndCoinChangeForTransfer(
+    Pair<List<UnspentAssetDescriptor>, CoinAmount> allInputsAndCoinChange = TransferAssetHandler.get().allInputsAndCoinChangeForTransfer(
       unspentCoinsAndAssets.getFirst(),
       assetInputsAndActualTransfer.getFirst(),
       assetInputsAndActualTransfer.getSecond(),
@@ -318,8 +318,8 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
 
     // CHECK COIN INPUT AND CHANGE
     long inputSum = 0;
-    for (UnspentCoinDescriptor d : allInputsAndCoinChange.getFirst()) {
-      inputSum += CoinAmount.apply(d.amount()).coinUnits();
+    for (UnspentAssetDescriptor d : allInputsAndCoinChange.getFirst()) {
+      inputSum += new CoinAmount(d.getUnspentCoinDescriptor().getAmount()).coinUnits();
     }
     long outputSum = fees.coinUnits() +allInputsAndCoinChange.getSecond().coinUnits() + assetInputsAndActualTransfer.getSecond().size() * IOapConstants.DUST_IN_SATOSHI;
     assertEquals(
@@ -353,7 +353,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(fromCoinAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses, true
@@ -363,10 +363,10 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // SPEND 1/2 FOR EACH ASSET.
     // THIS WILL PRODUCE 4 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
-    for (UnspentCoinDescriptor desc : unspents) {
-      if (CoinAmount.apply(desc.amount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
+    for (UnspentAssetDescriptor desc : unspents) {
+      if (new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
       }
     }
     HashMap<AssetId, List<AssetTransfer>> transfersByAssetId
@@ -375,7 +375,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     Pair<List<UnspentCoinDescriptor>, HashMap<AssetId, List<UnspentAssetDescriptor>>> unspentCoinsAndAssets
       = TransferAssetHandler.get().splitUnspent(unspents);
 
-    Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = TransferAssetHandler.get().assetInputsAndActualTransfer(
+    Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer = TransferAssetHandler.get().assetInputsAndActualTransfer(
       unspentCoinsAndAssets.getSecond(),
       transfersByAssetId,
       changeAddress
@@ -385,20 +385,22 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // REMOVE ALL UNSPENT COINS.THIS WILL PRODUCE "not enough coin" EXCEPTION
     List<UnspentCoinDescriptor> inputs = unspentCoinsAndAssets.getFirst();
     for (int i = inputs.size() - 1; i >= 0; i--) {
-      if (!(inputs.get(i) instanceof UnspentAssetDescriptor)) {
-        inputs.remove(i);
-        i--;
-      }
+      // BUGBUG : OAP : ASK : Check if inputs can have UnspentAssetDescriptor
+//      if (!(inputs.get(i) instanceof UnspentAssetDescriptor)) {
+      inputs.remove(i);
+      i--;
     }
 
     // DO TEST.
-    Pair<List<UnspentCoinDescriptor>, CoinAmount> allInputsAndCoinChange = TransferAssetHandler.get().allInputsAndCoinChangeForTransfer(
+    Pair<List<UnspentAssetDescriptor>, CoinAmount> allInputsAndCoinChange = TransferAssetHandler.get().allInputsAndCoinChangeForTransfer(
       unspentCoinsAndAssets.getFirst(),
       assetInputsAndActualTransfer.getFirst(),
       assetInputsAndActualTransfer.getSecond(),
       fees,
       fromAddress
     );
+
+    // BUGBUG : ASK : What is purpose of this test? It does not check any result.
   }
 
 
@@ -524,7 +526,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     AssetAddress toAddress = receiverRecvAddress.assetAddress;
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     // SPEND ALL ASSETS AND MAKE ASSET CHANGE 100
-    tos.add(AssetTransferTo.apply(
+    tos.add(new AssetTransferTo(
       toAddress.base58(), assetId.base58(), sendRecvAssetBalance - assetChange
     ));
 
@@ -536,19 +538,19 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
 
     assertNotNull("TRANSFER TX", tx);
     // SPEND ALL ASSET INPUTS, INPUT SIZE SHOULD BE 2
-    assertEquals("INPUT SIZE", 2, tx.inputs().size());
+    assertEquals("INPUT SIZE", 2, tx.getInputs().size());
     // OUTPUT SIZE SOULD BE 4. (MAKER OUTPUT, ASSET TRANSFER, ASSET TRANSFER(CHANGE), COIN TRANSFER(CHAGNE))
-    assertEquals("OUTPUT SIZE", 4, tx.outputs().size());
+    assertEquals("OUTPUT SIZE", 4, tx.getOutputs().size());
     // THE FIRST OUTPUT SHOULD BE MARKER OUTPUT.
-    assertEquals("Marker Output value", 0, tx.outputs().apply(0).value());
-    OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(0), null);
+    assertEquals("Marker Output value", 0, tx.getOutputs().get(0).getValue());
+    OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(0), null);
     // ASSSET QUANTITY COUNT SHOULD BE 2. (ASSET TRANSFER, ASSET TRANSFER(CHANGE))
     assertEquals("Marker Output Quantity", 2, marker.getQuantities().length);
     assertEquals("Asset Quantity", sendRecvAssetBalance - assetChange, marker.getQuantities()[0]);
     assertEquals("Asset Change Quantity", assetChange, marker.getQuantities()[1]);
     long coinSum = fees;
-    for (int j = 0; j < tx.outputs().size(); j++) {
-      coinSum += tx.outputs().apply(j).value();
+    for (int j = 0; j < tx.getOutputs().size(); j++) {
+      coinSum += tx.getOutputs().get(j).getValue();
     }
     assert checkInputs(tx, fromAddress, coinSum);
   }
@@ -606,7 +608,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     AssetAddress toAddress = receiverRecvAddress.assetAddress;
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     // SPEND ALL ASSETS AND MAKE ASSET CHANGE 100
-    tos.add(AssetTransferTo.apply(
+    tos.add(new AssetTransferTo(
       toAddress.base58(), assetId.base58(), sendRecvAssetBalance - assetChange
     ));
 
@@ -618,18 +620,18 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
 
     assertNotNull("TRANSFER TX", tx);
     // SPEND ALL ASSET INPUTS, INPUT SIZE SHOULD BE 2
-    assertEquals("INPUT SIZE", 2, tx.inputs().size());
+    assertEquals("INPUT SIZE", 2, tx.getInputs().size());
     // OUTPUT SIZE SOULD BE 4. (MAKER OUTPUT, ASSET TRANSFER, COIN TRANSFER(CHAGNE))
-    assertEquals("OUTPUT SIZE", 3, tx.outputs().size());
+    assertEquals("OUTPUT SIZE", 3, tx.getOutputs().size());
     // THE FIRST OUTPUT SHOULD BE MARKER OUTPUT.
-    assertEquals("Marker Output value", 0, tx.outputs().apply(0).value());
-    OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(0), null);
+    assertEquals("Marker Output value", 0, tx.getOutputs().get(0).getValue());
+    OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(0), null);
     // ASSSET QUANTITY COUNT SHOULD BE 2. (ASSET TRANSFER, ASSET TRANSFER(CHANGE))
     assertEquals("Marker Output Quantity Count", 1, marker.getQuantities().length);
     assertEquals("Asset Quantity", sendRecvAssetBalance - assetChange, marker.getQuantities()[0]);
     long coinSum = fees;
-    for (int j = 0; j < tx.outputs().size(); j++) {
-      coinSum += tx.outputs().apply(j).value();
+    for (int j = 0; j < tx.getOutputs().size(); j++) {
+      coinSum += tx.getOutputs().get(j).getValue();
     }
     assert checkInputs(tx, fromAddress, coinSum);
   }
@@ -655,7 +657,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(fromCoinAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses, true
@@ -666,12 +668,12 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // THIS WILL PRODUCE 4 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
     long inputAmount = 0;
-    for (UnspentCoinDescriptor desc : unspents) {
-      long value = CoinAmount.apply(desc.amount()).coinUnits();
+    for (UnspentAssetDescriptor desc : unspents) {
+      long value = new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits();
       inputAmount += value;
       if (value == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
       }
     }
     fees = inputAmount - transfers.size() * IOapConstants.DUST_IN_SATOSHI;
@@ -683,23 +685,23 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     );
 
     assertNotNull("TRANSFER TX", tx);
-    assertEquals("INPUT SIZE", 3, tx.inputs().size());
-    assertEquals("OUTPUT SIZE", 3, tx.outputs().size());
-    assertEquals("Marker Output value", 0, tx.outputs().apply(0).value());
-    OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(0), null);
+    assertEquals("INPUT SIZE", 3, tx.getInputs().size());
+    assertEquals("OUTPUT SIZE", 3, tx.getOutputs().size());
+    assertEquals("Marker Output value", 0, tx.getOutputs().get(0).getValue());
+    OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(0), null);
     assertEquals("Marker Output Quantity", 2, marker.getQuantities().length);
     int[] qts = marker.getQuantities();
     int qindex = 0;
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      TransactionOutput o = OpenAssetsProtocol.get().coloringEngine().getOutput(tx.inputs().apply(i).getOutPoint());
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      OapTransactionOutput o = OpenAssetsProtocol.get().coloringEngine().getOapOutput(tx.getInputs().get(i).getOutPoint());
       assertNotNull("Spending output should not be null", o);
-      if (o.value() != 600) continue;
+      if (o.getTransactionOutput().getValue() != 600) continue;
 
       OapTransactionOutput output = (OapTransactionOutput) o;
       AssetId id = output.getAssetId();
       boolean f = false;
       for (int j = 0; j < transfers.size(); j++) {
-        if (transfers.get(j).asset_id().equals(id.base58()) && transfers.get(j).quantity() == qts[qindex]) {
+        if (transfers.get(j).getAsset_id().equals(id.base58()) && transfers.get(j).getQuantity() == qts[qindex]) {
           f = true;
         }
       }
@@ -708,8 +710,8 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     }
 
     long coinSum = fees;
-    for (int j = 0; j < tx.outputs().size(); j++) {
-      coinSum += tx.outputs().apply(j).value();
+    for (int j = 0; j < tx.getOutputs().size(); j++) {
+      coinSum += tx.getOutputs().get(j).getValue();
     }
     assertTrue(checkInputs(tx, fromCoinAddress, coinSum));
   }
@@ -739,7 +741,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     AssetAddress toAddress = receiverRecvAddress.assetAddress;
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     // SPEND ALL ASSETS AND MAKE ASSET CHANGE 100
-    tos.add(AssetTransferTo.apply(
+    tos.add(new AssetTransferTo(
       toAddress.base58(), assetId.base58(), sendRecvAssetBalance - assetChange
     ));
 
@@ -771,7 +773,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(fromCoinAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses, true
@@ -780,10 +782,10 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // SPEND 1/2 FOR EACH ASSET.
     // THIS WILL PRODUCE 4 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
-    for (UnspentCoinDescriptor desc : unspents) {
-      if (CoinAmount.apply(desc.amount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
+    for (UnspentAssetDescriptor desc : unspents) {
+      if (new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits() == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity() / 2));
       }
     }
 
@@ -794,25 +796,25 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     );
 
     assertNotNull("TRANSFER TX", tx);
-    assertEquals("INPUT SIZE", 3, tx.inputs().size());
-    assertEquals("OUTPUT SIZE", 6, tx.outputs().size());
-    assertEquals("Marker Output value", 0, tx.outputs().apply(0).value());
-    OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(0), null);
+    assertEquals("INPUT SIZE", 3, tx.getInputs().size());
+    assertEquals("OUTPUT SIZE", 6, tx.getOutputs().size());
+    assertEquals("Marker Output value", 0, tx.getOutputs().get(0).getValue());
+    OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(0), null);
     assertEquals("Marker Output Quantity", 4, marker.getQuantities().length);
     int[] qts = marker.getQuantities();
     int qindex = 0;
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      TransactionOutput o = OpenAssetsProtocol.get().coloringEngine().getOutput(tx.inputs().apply(i).getOutPoint());
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      OapTransactionOutput o = OpenAssetsProtocol.get().coloringEngine().getOapOutput(tx.getInputs().get(i).getOutPoint());
       assertNotNull("Spending output should not be null", o);
-      if (o.value() != 600) continue;
+      if (o.getTransactionOutput().getValue() != 600) continue;
 
       OapTransactionOutput output = (OapTransactionOutput) o;
       AssetId id = output.getAssetId();
       boolean f = false;
       for (int j = 0; j < transfers.size(); j++) {
         if (
-          transfers.get(j).asset_id().equals(id.base58()) &&
-            transfers.get(j).quantity() == qts[qindex]
+          transfers.get(j).getAsset_id().equals(id.base58()) &&
+            transfers.get(j).getQuantity() == qts[qindex]
             && qts[qindex] == qts[qindex + 1] // TRANSFERED 1/2. SO CHANGE QUANTITY IS EQUAL TO TRANSFER QUANTITY
           ) {
           f = true;
@@ -822,8 +824,8 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
       qindex += 2;
     }
     long coinSum = fees;
-    for (int j = 0; j < tx.outputs().size(); j++) {
-      coinSum += tx.outputs().apply(j).value();
+    for (int j = 0; j < tx.getOutputs().size(); j++) {
+      coinSum += tx.getOutputs().get(j).getValue();
     }
     assert checkInputs(tx, fromCoinAddress, coinSum);
   }
@@ -849,7 +851,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(fromCoinAddress);
     // GET UNPENTS.
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses, true
@@ -860,12 +862,12 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     // THIS WILL PRODUCE 2 TRANSFER OUTPUTS.
     List<AssetTransferTo> transfers = new ArrayList<AssetTransferTo>();
     long inputAmount = 0;
-    for (UnspentCoinDescriptor desc : unspents) {
-      long value = CoinAmount.apply(desc.amount()).coinUnits();
+    for (UnspentAssetDescriptor desc : unspents) {
+      long value = new CoinAmount(desc.getUnspentCoinDescriptor().getAmount()).coinUnits();
       inputAmount += value;
       if (value == IOapConstants.DUST_IN_SATOSHI) {
         UnspentAssetDescriptor ad = (UnspentAssetDescriptor) desc;
-        transfers.add(AssetTransferTo.apply(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
+        transfers.add(new AssetTransferTo(toAddress.base58(), ad.getAssetId().base58(), ad.getQuantity()));
       }
     }
 
@@ -876,23 +878,23 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     );
 
     assertNotNull("TRANSFER TX", tx);
-    assertEquals("INPUT SIZE", 3, tx.inputs().size());
-    assertEquals("OUTPUT SIZE", 4, tx.outputs().size());
-    assertEquals("Marker Output value", 0, tx.outputs().apply(0).value());
-    OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(0), null);
+    assertEquals("INPUT SIZE", 3, tx.getInputs().size());
+    assertEquals("OUTPUT SIZE", 4, tx.getOutputs().size());
+    assertEquals("Marker Output value", 0, tx.getOutputs().get(0).getValue());
+    OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(0), null);
     assertEquals("Marker Output Quantity", 2, marker.getQuantities().length);
     int[] qts = marker.getQuantities();
     int qindex = 0;
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      TransactionOutput o = coloringEngine.getOutput(tx.inputs().apply(i).getOutPoint());
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      OapTransactionOutput o = coloringEngine.getOapOutput(tx.getInputs().get(i).getOutPoint());
       assertNotNull("Spending output should not be null", o);
-      if (o.value() != 600) continue;
+      if (o.getTransactionOutput().getValue() != 600) continue;
 
       OapTransactionOutput output = (OapTransactionOutput) o;
       AssetId id = output.getAssetId();
       boolean f = false;
       for (int j = 0; j < transfers.size(); j++) {
-        if (transfers.get(j).asset_id().equals(id.base58()) && transfers.get(j).quantity() == qts[qindex]) {
+        if (transfers.get(j).getAsset_id().equals(id.base58()) && transfers.get(j).getQuantity() == qts[qindex]) {
           f = true;
         }
       }
@@ -901,8 +903,8 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     }
 
     long coinSum = fees;
-    for (int j = 0; j < tx.outputs().size(); j++) {
-      coinSum += tx.outputs().apply(j).value();
+    for (int j = 0; j < tx.getOutputs().size(); j++) {
+      coinSum += tx.getOutputs().get(j).getValue();
     }
     assertTrue(checkInputs(tx, fromCoinAddress, coinSum));
   }
@@ -932,7 +934,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     // SPEND ALL ASSETS AND MAKE ASSET CHANGE 100
     String notExistingAssetId = "odpxybEFcg9zs2eG3bijDMzhi4nCdeuRUj";
-    tos.add(AssetTransferTo.apply(
+    tos.add(new AssetTransferTo(
       toAddress.base58(), notExistingAssetId, 1000
     ));
 
@@ -946,7 +948,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
   @Test
   public void notEnoughAssetTest() throws OapException {
     thrown.expect(OapException.class);
-    thrown.expectMessage("Not enoough asset");
+    thrown.expectMessage("Not enough asset");
 
     TransferAssetHandler handler = TransferAssetHandler.get();
     WalletSampleDataProvider provider = getDataProvider();
@@ -969,7 +971,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
     AssetAddress toAddress = receiverRecvAddress.assetAddress;
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     // SPEND ALL ASSETS AND MAKE ASSET CHANGE 100
-    tos.add(AssetTransferTo.apply(
+    tos.add(new AssetTransferTo(
       toAddress.base58(), assetId.base58(), sendRecvAssetBalance + 1
     ));
 
@@ -983,24 +985,23 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
 
   private boolean checkInputs(Transaction tx, CoinAddress coinAddresse, long coinSum) throws OapException {
     long sum = 0;
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      OutPoint point = tx.inputs().apply(i).getOutPoint();
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      OutPoint point = tx.getInputs().get(i).getOutPoint();
       TransactionOutput prevOTX = OpenAssetsProtocol.get().chain().getRawOutput(point);
       if (!checkPublicKeyHash(prevOTX, coinAddresse))
         throw new OapException(OapException.INTERNAL_ERROR, "Invalid inpuit: " + point);
-      sum += prevOTX.value();
+      sum += prevOTX.getValue();
     }
     return sum == coinSum;
   }
 
   private boolean checkPublicKeyHash(TransactionOutput output, CoinAddress coinAddress) {
-    Collection<ScriptOp> c = JavaConverters.asJavaCollectionConverter(
-      ParsedPubKeyScript.from(output.lockingScript()).scriptOps().operations()
-    ).asJavaCollection();
+    Collection<ScriptOp> c =
+      ParsedPubKeyScript.from(output.getLockingScript()).getScriptOps().getOperations();
     for (ScriptOp op : c) {
       if (op instanceof OpPush) {
-        byte[] bytes = ((OpPush) op).inputValue().value();
-        if (comprareBytes(bytes, coinAddress.publicKeyHash().array())) return true;
+        byte[] bytes = ((OpPush) op).getInputValue().getValue();
+        if (comprareBytes(bytes, coinAddress.getPublicKeyHash().getArray())) return true;
       }
     }
     return false;

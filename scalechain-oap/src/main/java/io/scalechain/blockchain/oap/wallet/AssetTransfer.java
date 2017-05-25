@@ -37,6 +37,6 @@ public class AssetTransfer {
     }
 
     public static AssetTransfer from(AssetTransferTo to) throws OapException {
-        return create(to.to_address(), to.asset_id(), to.quantity());
+        return create(to.getTo_address(), to.getAsset_id(), to.getQuantity());
     }
 }

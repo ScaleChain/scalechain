@@ -11,18 +11,27 @@ import io.scalechain.blockchain.proto.TransactionOutput;
  *
  * Created by shannon on 16. 11. 23.
  */
-public class OapTransactionOutput extends TransactionOutput {
-    AssetId assetId;
-    int quantity;
+public class OapTransactionOutput {
+    AssetId assetId = null;
+    int quantity = -1;
+    TransactionOutput output;
+
+    public boolean isColored() {
+        return assetId != null && quantity >= 0;
+    }
+
+    public OapTransactionOutput(TransactionOutput output) {
+        this.output = output;
+    }
 
     public OapTransactionOutput(AssetId assetId, int quantity, long value, LockingScript lockingScript) {
-        super(value, lockingScript);
+        output = new TransactionOutput(value, lockingScript);
         this.assetId = assetId;
         this.quantity = quantity;
     }
 
     public OapTransactionOutput(AssetId assetId, int quantity, TransactionOutput output) {
-        this(assetId, quantity, output.value(), output.lockingScript());
+        this(assetId, quantity, output.getValue(), output.getLockingScript());
     }
 
     public AssetId getAssetId() {
@@ -33,13 +42,17 @@ public class OapTransactionOutput extends TransactionOutput {
         return quantity;
     }
 
+    public TransactionOutput getTransactionOutput() {
+        return output;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder(OapTransactionOutput.class.getSimpleName()).append('(');
         if (assetId != null) {
             sb.append("assetId=").append(assetId.base58()).append(", ");
             sb.append("quantity=").append(quantity).append(", ");
         }
-        sb.append("super=(").append(super.toString()).append(')');
+        sb.append("output=(").append(output.toString()).append(')');
         sb.append(')');
         return sb.toString();
     }

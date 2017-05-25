@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.command.AssetTransferTo;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class AssetTransferTest {
   @BeforeClass
   public static void setUpForClass() throws Exception {
     System.out.println(AssetTransferTest.class.getName() + ".setupForClass()");
-    ChainEnvironment$.MODULE$.create(env);
+    ChainEnvironment.create(env);
   }
 
   String[] coinAddresses = {
@@ -61,10 +61,10 @@ public class AssetTransferTest {
   @Test
   public void AssetTransferToTest() {
     int quantity = 10000;
-    AssetTransferTo trnasferTo1 = AssetTransferTo.apply(assetAddresses[0], assetIds[0], quantity);
-    assertEquals("asset_id should to equal to", assetIds[0], trnasferTo1.asset_id());
-    assertEquals("to_address should to equal to", assetAddresses[0], trnasferTo1.to_address());
-    assertEquals("quantity should to equal to", quantity, trnasferTo1.quantity());
+    AssetTransferTo trnasferTo1 = new AssetTransferTo(assetAddresses[0], assetIds[0], quantity);
+    assertEquals("asset_id should to equal to", assetIds[0], trnasferTo1.getAsset_id());
+    assertEquals("to_address should to equal to", assetAddresses[0], trnasferTo1.getTo_address());
+    assertEquals("quantity should to equal to", quantity, trnasferTo1.getQuantity());
     AssetTransferTo trnasferTo2 = new AssetTransferTo(assetAddresses[0], assetIds[0], quantity);
 
     assertEquals("2 AssetTranferTo instance created from same values should be equals", trnasferTo1, trnasferTo2);

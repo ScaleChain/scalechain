@@ -4,95 +4,74 @@ import io.scalechain.blockchain.oap.transaction.OapTransactionOutput
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.wallet.WalletTransactionDescriptor
 
-import scala.reflect.internal.util.Statistics.Quantity
-
 /**
   * Created by shannon on 16. 12. 26.
   */
 
-object OapTransactionDescriptor {
-//  def from(desc: WalletTransactionDescriptor, asset_id: Option[String], quantity: Option[Int]) = {
-//    OapTransactionDescriptor.apply(
-//      desc.involvesWatchonly,
-//      desc.account,
-//      desc.address,
-//      desc.category,
-//      desc.amount,
-//      desc.vout,
-//      desc.fee,
-//      desc.confirmations,
-//      desc.generated,
-//      desc.blockhash,
-//      desc.blockindex,
-//      desc.blocktime,
-//      desc.txid,
-//      desc.time,
-//      asset_id,
-//      quantity
-//    )
-//  }
+data class OapTransactionDescriptor(
+  val involvesWatchonly: Boolean,
+  val account: String,
+  val address: String?,
+  val category: String,
+  val amount: java.math.BigDecimal,
+  val vout: Int?,
+  val fee: java.math.BigDecimal?,
+  val confirmations: Long?,
+  val generated: Boolean?,
+  val blockhash: Hash?,
+  val blockindex: Long?,
+  val blocktime: Long?,
+  val txid: Hash?,
+  val time: Long,
+  val asset_id: String?,
+  val quantity: Int?
+) {
 
-  def from(desc: WalletTransactionDescriptor) = {
-    OapTransactionDescriptor.apply(
-      desc.involvesWatchonly,
-      desc.account,
-      desc.address,
-      desc.category,
-      desc.amount,
-      desc.vout,
-      desc.fee,
-      desc.confirmations,
-      desc.generated,
-      desc.blockhash,
-      desc.blockindex,
-      desc.blocktime,
-      desc.txid,
-      desc.time,
-      None,
-      None
-    )
+  companion object {
+
+    @JvmStatic
+    fun from(desc: WalletTransactionDescriptor) : OapTransactionDescriptor{
+      return OapTransactionDescriptor(
+        desc.involvesWatchonly,
+        desc.account,
+        desc.address,
+        desc.category,
+        desc.amount,
+        desc.vout,
+        desc.fee,
+        desc.confirmations,
+        desc.generated,
+        desc.blockhash,
+        desc.blockindex,
+        desc.blocktime,
+        desc.txid,
+        desc.time,
+        null,
+        null
+      )
+    }
+
+    @JvmStatic
+    fun from(desc: WalletTransactionDescriptor, output : OapTransactionOutput) : OapTransactionDescriptor {
+      return OapTransactionDescriptor(
+        desc.involvesWatchonly,
+        desc.account,
+        desc.address,
+        desc.category,
+        desc.amount,
+        desc.vout,
+        desc.fee,
+        desc.confirmations,
+        desc.generated,
+        desc.blockhash,
+        desc.blockindex,
+        desc.blocktime,
+        desc.txid,
+        desc.time,
+        if (output.assetId == null) null else output.assetId.base58(),
+        if (output.assetId == null) null else output.quantity
+      )
+    }
   }
-
-  def from(desc: WalletTransactionDescriptor, output : OapTransactionOutput) = {
-    OapTransactionDescriptor.apply(
-      desc.involvesWatchonly,
-      desc.account,
-      desc.address,
-      desc.category,
-      desc.amount,
-      desc.vout,
-      desc.fee,
-      desc.confirmations,
-      desc.generated,
-      desc.blockhash,
-      desc.blockindex,
-      desc.blocktime,
-      desc.txid,
-      desc.time,
-      if (output.getAssetId == null) None else Option(output.getAssetId.base58()),
-      if (output.getAssetId == null) None else Option(output.getQuantity)
-    )
-  }
-
-
 }
-
-case class OapTransactionDescriptor(
-  involvesWatchonly: Boolean,
-  account: String,
-  address: Option[String],
-  category: String,
-  amount: scala.math.BigDecimal,
-  vout: Option[Int],
-  fee: Option[scala.math.BigDecimal],
-  confirmations: Option[Long],
-  generated: Option[Boolean],
-  blockhash: Option[Hash],
-  blockindex: Option[Long],
-  blocktime: Option[Long],
-  txid: Option[Hash],
-  time: Long,
-  asset_id: Option[String],
-  quantity: Option[Int]
-);
 

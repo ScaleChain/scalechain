@@ -1,11 +1,13 @@
 package io.scalechain.blockchain.api.command.wallet
 
-import java.util
-
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{NumberResult, RpcError, RpcRequest, RpcResult}
+import io.scalechain.blockchain.api.domain.NumberResult
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.oap.OpenAssetsProtocol
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -29,26 +31,28 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getbalance
   */
-object GetBalance extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val account: String           = request.params.getOption[String] ("Account", 0).getOrElse("")
-      val minconf: Long             = request.params.getOption[Long]("minconf", 1).getOrElse(1)
-      val includeWatchOnly: Boolean = request.params.getOption[Boolean]("includeWatchOnly", 2).getOrElse(false)
+object GetBalance : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account: String           = request.params.getOption<String> ("Account", 0) ?: ""
+      val minconf: Long             = request.params.getOption<Long>("minconf", 1) ?: 1
+      val includeWatchOnly: Boolean = request.params.getOption<Boolean>("includeWatchOnly", 2) ?: false
 
-      val accountOption = if (account == "*") None else Some(account)
+      val accountOption = if (account == "*") null else account
 
-      Right(Some(NumberResult(BigDecimal(
-        OpenAssetsProtocol.get().getBalance(
-          accountOption,
-          minconf,
-          includeWatchOnly
+      Right(
+        NumberResult(
+          OpenAssetsProtocol.get().getBalance(
+            accountOption,
+            minconf,
+            includeWatchOnly
+          )
         )
-      ))))
+      )
     }
   }
 
-  def help() : String =
+  override fun help() : String =
     """getbalance ( "account" minconf includeWatchonly )
       |
       |If account is not specified, returns the server's total available balance.
@@ -74,7 +78,7 @@ object GetBalance extends RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getbalance", "params": ["*", 6] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

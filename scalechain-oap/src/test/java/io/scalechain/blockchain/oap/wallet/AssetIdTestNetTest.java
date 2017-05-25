@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.oap.wallet;
 
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
@@ -13,7 +13,7 @@ public class AssetIdTestNetTest extends AssetIdMainNetTest {
     @BeforeClass
     public static void setUpForClass() throws Exception {
         System.out.println(AssetIdTestNetTest.class.getName() + ".setupForClass()");
-        ChainEnvironment$.MODULE$.create("testnet");
+        ChainEnvironment.create("testnet");
         coinAddresses = new String[] {
                 "mz3fAEjRE3EWgz5NQRgLyYRbUxQqMU7CQY",
                 "n46wToj3QY9T7df5sV8Znd4oASK3msdab7",
@@ -49,9 +49,8 @@ public class AssetIdTestNetTest extends AssetIdMainNetTest {
         String p2shScriptHash = "36e0ea8e93eaa0285d641305f4c81e563aa570a2";
         String expectedHash = HexUtil.hex(
                 AssetId.p2pkhScriptHash(
-                        CoinAddress.from(coinAddress).publicKeyHash().array()
-                ),
-                HexUtil.hex$default$2()
+                        CoinAddress.from(coinAddress).getPublicKeyHash().getArray()
+                )
         );
         assert p2shScriptHash.equals(expectedHash);
     }

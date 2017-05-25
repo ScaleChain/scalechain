@@ -9,8 +9,6 @@ import io.scalechain.blockchain.ProtocolCodecException
 import io.scalechain.blockchain.proto.Checksum
 import io.scalechain.blockchain.proto.Magic
 import io.scalechain.blockchain.proto.Ping
-import io.scalechain.blockchain.proto.codec.EnvelopeData.envelope
-import io.scalechain.blockchain.proto.codec.EnvelopeData.message
 import io.scalechain.util.Bytes
 import io.scalechain.util.HexUtil.bytes
 import io.scalechain.util.toByteArray
@@ -25,6 +23,8 @@ object EnvelopeData {
 
 @RunWith(KTestJUnitRunner::class)
 class BitcoinMessageEnvelopeSpec : FlatSpec(), Matchers {
+  val message = EnvelopeData.message
+  val envelope = EnvelopeData.envelope
 
   override fun beforeEach() {
     super.beforeEach()
@@ -93,6 +93,9 @@ class BitcoinMessageEnvelopeSpec : FlatSpec(), Matchers {
 
 @RunWith(KTestJUnitRunner::class)
 class BitcoinMessageEnvelopeCodecSpec : FlatSpec(), Matchers {
+  val message = EnvelopeData.message
+  val envelope = EnvelopeData.envelope
+
   val codec = BitcoinMessageEnvelopeCodec
   override fun beforeEach() {
     super.beforeEach()

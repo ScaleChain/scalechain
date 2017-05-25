@@ -105,6 +105,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : Bytes) : OutputOwne
      * @param address The address to decode.
      * @return The decoded CoinAddress.
      */
+    @JvmStatic
     fun from(address : String) : CoinAddress {
       val (versionPrefix, publicKeyHash) = Base58Check.decode(address)
       val coinAddress = CoinAddress(versionPrefix, Bytes(publicKeyHash))
@@ -120,6 +121,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : Bytes) : OutputOwne
      * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
      * @return The created CoinAddress.
      */
+    @JvmStatic
     fun from(publicKeyHash : ByteArray) : CoinAddress {
       // Step 1 : Get the chain environment to get the address version.
       val chainEnv = ChainEnvironment.get()
@@ -134,6 +136,7 @@ data class CoinAddress(val version:Byte, val publicKeyHash : Bytes) : OutputOwne
      * @param privateKey The private key to use to generate public key and public key hash for the new coin address.
      * @return The created CoinAddress.
      */
+    @JvmStatic
     fun from(privateKey : PrivateKey) : CoinAddress {
       // Step 1 : Create a public key.
       val publicKey : PublicKey = PublicKey.from(privateKey)
@@ -177,6 +180,7 @@ data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
      * @param lockingScript The locking script to parse.
      * @return The ParsedPubKeyScript that has the parsed locking script.
      */
+    @JvmStatic
     fun from(lockingScript:LockingScript) : ParsedPubKeyScript{
       return ParsedPubKeyScript( ScriptParser.parse(lockingScript) )
     }
@@ -186,6 +190,7 @@ data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
      * @param privateKey The private key to use to generate public key and public key hash for the new coin address.
      * @return The created CoinAddress.
      */
+    @JvmStatic
     fun from(privateKey : PrivateKey) : ParsedPubKeyScript {
       // Step 1 : Create a public key.
       val publicKey : ByteArray = ECKey.publicKeyFromPrivate(privateKey.value, false /* uncompressed */)
@@ -201,6 +206,7 @@ data class ParsedPubKeyScript(val scriptOps : ScriptOpList) : OutputOwnership {
      * @param publicKeyHash The public key hash. RIPEMD160( SHA256( publicKey ) )
      * @return The created ParsedPubKeyScript.
      */
+    @JvmStatic
     fun from(publicKeyHash : ByteArray) : ParsedPubKeyScript {
       assert(publicKeyHash.size == 20)
       val scriptOps = listOf( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(publicKeyHash)), OpEqualVerify(), OpCheckSig() )

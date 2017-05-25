@@ -1,8 +1,6 @@
 package io.scalechain.blockchain.chain
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import org.slf4j.LoggerFactory
 

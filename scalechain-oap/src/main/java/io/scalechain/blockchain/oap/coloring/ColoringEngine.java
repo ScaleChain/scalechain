@@ -11,18 +11,16 @@ import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
 import io.scalechain.blockchain.oap.transaction.OapTransactionOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AddressUtil;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.oap.wallet.UnspentAssetDescriptor;
 import io.scalechain.wallet.UnspentCoinDescriptor;
-import scala.Option;
-import scala.collection.JavaConverters;
-import scala.collection.immutable.List;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
 
 /**
  * Takes care of colring of Open Assets Protocol transactions and transaction outpus
@@ -50,9 +48,9 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      */
     public boolean isMarkerOutput(TransactionOutput output) {
-        if (output.value() != 0) return false;
+        if (output.getValue() != 0) return false;
         // MarkerOuput LockingScript starts with OP_RETURN
-        return ParsedPubKeyScript.from(output.lockingScript()).scriptOps().operations().apply(0) instanceof OpReturn;
+        return ParsedPubKeyScript.from(output.getLockingScript()).getScriptOps().getOperations().get(0) instanceof OpReturn;
     }
 
     /**
@@ -64,9 +62,9 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      */
     public int getMarkerOutputIndex(Transaction tx) {
-        List<TransactionOutput> outputs = tx.outputs();
+        List<TransactionOutput> outputs = tx.getOutputs();
         for (int i = 0; i < outputs.size(); i++) {
-            TransactionOutput output = outputs.apply(i);
+            TransactionOutput output = outputs.get(i);
             if (isMarkerOutput(output)) {
                 return i;
             }
@@ -78,10 +76,10 @@ public class ColoringEngine implements  IOapConstants {
         if (getMarkerOutputIndex(tx) < 1) throw new OapException(OapException.COLORING_ERROR, "Not OAP Issuance Tx.");
         // AssetId is calculated from address from first input
         TransactionOutput prevTxOut = chain.getRawOutput(
-                tx.inputs().apply(0).getOutPoint()
+                tx.getInputs().get(0).getOutPoint()
         );
         return AssetId.from(
-                AddressUtil.coinAddressFromLockingScript(prevTxOut.lockingScript())
+                AddressUtil.coinAddressFromLockingScript(prevTxOut.getLockingScript())
         );
     }
 
@@ -95,36 +93,36 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      * @throws OapException
      */
-    public java.util.List<TransactionOutput> colorUntilMarkerOutput(
+    public List<OapTransactionOutput> colorUntilMarkerOutput(
             OapBlockchain chain,
             Transaction tx,
             int markerOutputIndex
     ) throws OapException {
-        java.util.List<TransactionOutput> result = new java.util.ArrayList<TransactionOutput>();
-        List<TransactionOutput> outputs = tx.outputs();
+        List<OapTransactionOutput> result = new java.util.ArrayList<OapTransactionOutput>();
+        List<TransactionOutput> outputs = tx.getOutputs();
         if (markerOutputIndex > 0) {
             AssetId assetId = assetIdForIssuance(chain, tx);
-            OapMarkerOutput markerOutput = new OapMarkerOutput(tx.outputs().apply(markerOutputIndex),assetId);
+            OapMarkerOutput markerOutput = new OapMarkerOutput(tx.getOutputs().get(markerOutputIndex),assetId);
             int[] quantities = markerOutput.getQuantities();
             int quntityIndex = 0;
             for (int i = 0; i < markerOutputIndex; i++) {
-                TransactionOutput output = outputs.apply(i);
-                if (output.value() == DUST_IN_SATOSHI) {
+                TransactionOutput output = outputs.get(i);
+                if (output.getValue() == DUST_IN_SATOSHI) {
                     OapTransactionOutput coloredOutput = new OapTransactionOutput(
                             assetId,
                             quantities.length == 0 ? 0 : quantities[quntityIndex++],
-                            output.value(),
-                            output.lockingScript()
+                            output.getValue(),
+                            output.getLockingScript()
                     );
                     result.add(coloredOutput);
                 } else {
-                    result.add(output);
+                    result.add(new OapTransactionOutput(output));
                 }
             }
             result.add(markerOutput);
         } else {
             result.add(new OapMarkerOutput(
-                    tx.outputs().apply(markerOutputIndex),
+                    tx.getOutputs().get(markerOutputIndex),
                     null
             ));
         }
@@ -160,10 +158,10 @@ public class ColoringEngine implements  IOapConstants {
     public HashMap<AssetId, Integer> buildAssetQuantitiesMap(List<TransactionInput> inputs) throws OapException {
         HashMap<AssetId, Integer> result = new LinkedHashMap<AssetId, Integer>();
         for (int i = 0; i < inputs.size(); i++) {
-            TransactionOutput spendingTxOut = getOutput(inputs.apply(i).getOutPoint());
-            if (spendingTxOut.value() == DUST_IN_SATOSHI) {
+            OapTransactionOutput spendingTxOut = getOapOutput(inputs.get(i).getOutPoint());
+            if (spendingTxOut.getTransactionOutput().getValue() == DUST_IN_SATOSHI) {
                 // Asset Transfer or Issue
-                OapTransactionOutput o = (OapTransactionOutput) spendingTxOut;
+                OapTransactionOutput o = spendingTxOut;
                 Integer sum = result.get(o.getAssetId());
                 if (sum == null) {
                     result.put(o.getAssetId(), o.getQuantity());
@@ -192,23 +190,23 @@ public class ColoringEngine implements  IOapConstants {
             OapBlockchain chain,
             Hash hash,
             Transaction tx,
-            java.util.List<TransactionOutput> outputs,
+            List<OapTransactionOutput> outputs,
             int markerOutputIndex
     ) throws OapException {
         // 1. Agggrgate Asset Quantities by Asset ID of all inputs.
-        HashMap<AssetId, Integer> inputQuantitiesByAssetId = buildAssetQuantitiesMap(tx.inputs());
+        HashMap<AssetId, Integer> inputQuantitiesByAssetId = buildAssetQuantitiesMap(tx.getInputs());
 
         int quanitiyCountIndex = 0;
-        for(TransactionOutput output : outputs) {
-            if (output.value() == DUST_IN_SATOSHI) {
+        for(OapTransactionOutput output : outputs) {
+            if (output.getTransactionOutput().getValue() == DUST_IN_SATOSHI) {
                 quanitiyCountIndex++;
             }
         }
         OapMarkerOutput marker = (OapMarkerOutput)outputs.get(markerOutputIndex);
         int[] assetQuantities =  marker.getQuantities();
-        for(int i = markerOutputIndex + 1;i < tx.outputs().size();i++) {
-            TransactionOutput rawOutput = tx.outputs().apply(i);
-            if (rawOutput.value() == DUST_IN_SATOSHI) {
+        for(int i = markerOutputIndex + 1;i < tx.getOutputs().size();i++) {
+            TransactionOutput rawOutput = tx.getOutputs().get(i);
+            if (rawOutput.getValue() == DUST_IN_SATOSHI) {
                 Pair<AssetId, Integer> pair = getNextAssetIdAndQuantity(inputQuantitiesByAssetId, assetQuantities[quanitiyCountIndex]);
                 if (pair.getFirst() == null) {
                     throw new OapException(OapException.COLORING_ERROR, "Cannot assign asset id and asset quantity for index:" + quanitiyCountIndex);
@@ -218,27 +216,26 @@ public class ColoringEngine implements  IOapConstants {
                         new OapTransactionOutput(pair.getFirst(), pair.getSecond(), rawOutput)
                 );
             } else {
-                outputs.add(rawOutput);
+                outputs.add(new OapTransactionOutput(rawOutput) );
             }
         }
         if (hash != null) {
             // IF TX HASH IS GIVEN, PUT COLORED OUTPUTS TO CACHE
             // TODO : We can propaget newly colored transaction here.
             for(int i = 0;i < outputs.size();i++) {
-                TransactionOutput output = outputs.get(i);
-                if (output.value() != DUST_IN_SATOSHI) continue;
+                OapTransactionOutput output = outputs.get(i);
+                if (output.getTransactionOutput().getValue() != DUST_IN_SATOSHI) continue;
                 // PUT COLORED OUTPUT TO CACHE
-                OapTransactionOutput o = (OapTransactionOutput) output;
                 OutPoint key = new OutPoint(hash, i);
-                OapStorage.get().putOutput(key, o);
+                OapStorage.get().putOutput(key, output);
             }
         }
         // CREATE OapTransaction.
         return new OapTransaction(
-                tx.version(),
-                tx.inputs(),
-                JavaConverters.asScalaBuffer(outputs).toList(),
-                tx.lockTime()
+                tx.getVersion(),
+                tx.getInputs(),
+                outputs,
+                tx.getLockTime()
         );
     }
 
@@ -251,36 +248,37 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      * @throws OapException
      */
-    public Transaction color(Transaction tx, Hash hash) throws OapException {
+    public OapTransaction color(Transaction tx, Hash hash) throws OapException {
         OapBlockchain chain = OpenAssetsProtocol.get().chain();
         // CHECK IF tx HAS A MARKER OUTPUT
         int markerOutputIndex = getMarkerOutputIndex(tx);
         // Not a OpenAssetsProtocolImpl Transaction, return tx.
-        if (markerOutputIndex < 0) return tx;
+        if (markerOutputIndex < 0) return new OapTransaction(tx);
 
         // GET COLORED OUTPUTS FROM CACHE
         if (hash != null) {
-            java.util.List<Pair<OutPoint, OapTransactionOutput>> coloredOutputs = OapStorage.get().getOutputs(hash);
+            List<Pair<OutPoint, OapTransactionOutput>> coloredOutputs = OapStorage.get().getOutputs(hash);
             if (coloredOutputs.size() > 0) {
-                java.util.List<TransactionOutput> newOutputs = new java.util.ArrayList<TransactionOutput>();
-                newOutputs.addAll(JavaConverters.asJavaCollection(tx.outputs()));
+                java.util.List<OapTransactionOutput> newOutputs = new java.util.ArrayList<OapTransactionOutput>();
+                newOutputs.addAll( OapTransaction.toOapOutput( tx.getOutputs() ) );
                 for (Pair<OutPoint, OapTransactionOutput> p : coloredOutputs) {
-                    newOutputs.set(p.getFirst().outputIndex(), p.getSecond());
+                    newOutputs.set(p.getFirst().getOutputIndex(), p.getSecond());
                 }
                 newOutputs.set(markerOutputIndex,
                         new OapMarkerOutput(
-                                tx.outputs().apply(markerOutputIndex),
-                                markerOutputIndex > 0 ? ((OapTransactionOutput) newOutputs.get(0)).getAssetId() : null
+                                tx.getOutputs().get(markerOutputIndex),
+                                markerOutputIndex > 0 ? (newOutputs.get(0)).getAssetId() : null
                         )
                 );
                 return new OapTransaction(
-                        tx.version(), tx.inputs(),
-                        JavaConverters.asScalaBuffer(newOutputs).toList(),
-                        tx.lockTime()
+                        tx.getVersion(),
+                        tx.getInputs(),
+                        newOutputs,
+                        tx.getLockTime()
                 );
             }
         }
-        java.util.List<TransactionOutput> outputs = colorUntilMarkerOutput(chain, tx, markerOutputIndex);
+        List<OapTransactionOutput> outputs = colorUntilMarkerOutput(chain, tx, markerOutputIndex);
         return colorTransfer(chain, hash, tx, outputs, markerOutputIndex);
     }
 
@@ -295,7 +293,7 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      * @throws OapException
      */
-    public Transaction color(Hash hash) throws OapException {
+    public OapTransaction color(Hash hash) throws OapException {
         OapBlockchain chain = OpenAssetsProtocol.get().chain();
         Transaction tx = chain.getRawTransaction(hash);
         if (tx == null) return null;
@@ -311,24 +309,28 @@ public class ColoringEngine implements  IOapConstants {
      */
     // JUST COLORING.
     // WITHOUT TX HASH, WE CANNOT PUT OUTPUTS OF THIS TX TO CACHE
-    public Transaction color(Transaction tx) throws OapException {
+    public OapTransaction color(Transaction tx) throws OapException {
         return color(tx, null);
     }
 
-    public TransactionOutput getOutput(OutPoint outPoint) throws OapException {
+    public OapTransactionOutput getOapOutput(OutPoint outPoint) throws OapException {
         // If we have Tx Output already colored, return it.
-        Option<OapTransactionOutput> item = OapStorage.get().getOutput(outPoint);//cache.get(outPoint);
-        if (item.isDefined())
-            return item.get();
+        OapTransactionOutput item = OapStorage.get().getOutput(outPoint);//cache.get(outPoint);
+        if (item != null)
+            return item;
 
         // GET RAW TX FROM BLOCKCHAIN
-        Transaction tx = OpenAssetsProtocol.get().chain().getRawTransaction(outPoint.transactionHash());
-        if (tx == null) throw new OapException(OapException.COLORING_ERROR, "Transaction does not exsist having TX ID=" + outPoint.transactionHash().toHex());
+        Transaction tx = OpenAssetsProtocol.get().chain().getRawTransaction(outPoint.getTransactionHash());
+        if (tx == null) throw new OapException(OapException.COLORING_ERROR, "Transaction does not exsist having TX ID=" + outPoint.getTransactionHash().toHex());
 
         // NOW WE HAVE AN UNCOLORED TX, LET'S COLOR...
-        Transaction coloredTx = color(tx, outPoint.transactionHash());
+        OapTransaction oapTx = color(tx, outPoint.getTransactionHash());
 
-        return coloredTx.outputs().apply(outPoint.outputIndex());
+        if (oapTx.isColored()) {
+            return oapTx.getOapOutputs().get(outPoint.getOutputIndex());
+        } else {
+            return new OapTransactionOutput(oapTx.getTransaction().getOutputs().get(outPoint.getOutputIndex()));
+        }
     }
 
     /**
@@ -338,28 +340,28 @@ public class ColoringEngine implements  IOapConstants {
      * @return
      * @throws OapException
      */
-    public UnspentCoinDescriptor colorUnspentCoinDescriptor(UnspentCoinDescriptor unspent) throws OapException {
-        if (UnspentAssetDescriptor.amountToCoinUnit(unspent.amount()) != DUST_IN_SATOSHI) {
-            return unspent;
+    public UnspentAssetDescriptor colorUnspentCoinDescriptor(UnspentCoinDescriptor unspent) throws OapException {
+        if (UnspentAssetDescriptor.amountToCoinUnit(unspent.getAmount()) != DUST_IN_SATOSHI) {
+            return new UnspentAssetDescriptor(unspent);
         }
         // CACHED ITEM?
         //  BUILD COLOR THIS UNSPENT.
-        Option<OapTransactionOutput> outputOption = OapStorage.get().getOutput(new OutPoint(unspent.txid(), unspent.vout()));// cache.get(new OutPoint(unspent.txid(), unspent.vout()));
-        if (outputOption.isDefined()) {
-            return new UnspentAssetDescriptor(unspent, outputOption.get().getAssetId(), outputOption.get().getQuantity());
+        OapTransactionOutput outputOption = OapStorage.get().getOutput(new OutPoint(unspent.getTxid(), unspent.getVout()));// cache.get(new OutPoint(unspent.txid(), unspent.vout()));
+        if (outputOption != null) {
+            return new UnspentAssetDescriptor(unspent, outputOption.getAssetId(), outputOption.getQuantity());
         }
 
         UnspentAssetDescriptor result = null;
         // COLOR TX containing unspent.
-        Transaction tx = color(unspent.txid());
+        OapTransaction tx = color(unspent.getTxid());
         // PUT ALL COLORED OUTPUT TO CACHE AND COLOR THIS UNSPENT.
-        for(int i = 0;i < tx.outputs().size();i++) {
-            TransactionOutput output = tx.outputs().apply(i);
-            if (output.value() == DUST_IN_SATOSHI) {
+        for(int i = 0;i < tx.getOapOutputs().size();i++) {
+            OapTransactionOutput output = tx.getOapOutputs().get(i);
+            if (output.getTransactionOutput().getValue() == DUST_IN_SATOSHI) {
                 OapTransactionOutput o = (OapTransactionOutput)output;
 //                cache.put(new OutPoint(unspent.txid(), i), new OapOutputCacheItem(o, o.getAssetId().base58(), o.getQuantity()));
-                OapStorage.get().putOutput(new OutPoint(unspent.txid(), i), o);
-                if (unspent.vout() == i) {
+                OapStorage.get().putOutput(new OutPoint(unspent.getTxid(), i), o);
+                if (unspent.getVout() == i) {
                     result = new UnspentAssetDescriptor(unspent, o.getAssetId(), o.getQuantity());
                 }
             }

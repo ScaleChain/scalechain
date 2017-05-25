@@ -1,10 +1,11 @@
 package io.scalechain.blockchain.oap;
 
 import io.scalechain.blockchain.chain.TransactionBuilder;
+import io.scalechain.blockchain.oap.blockchain.OapBlockchain;
 import io.scalechain.blockchain.oap.command.AssetTransferTo;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.oap.wallet.AssetTransfer;
@@ -65,7 +66,7 @@ public class TransferAssetHandler implements  IOapConstants {
       // FIXED
       throw new OapException(OapException.NO_ASSET, "Address has no asset " + assetId.base58());
     }
-    if (sum > 0) throw new OapException(OapException.NOT_ENOUGH_ASSET, "Not enoough asset " + assetId.base58() + " for transfer");
+    if (sum > 0) throw new OapException(OapException.NOT_ENOUGH_ASSET, "Not enough asset " + assetId.base58() + " for transfer");
     int change = Math.abs(sum);
 
     return new Pair<List<UnspentAssetDescriptor>, Integer>(spending, change);
@@ -76,21 +77,20 @@ public class TransferAssetHandler implements  IOapConstants {
    *
    */
   public Pair<List<UnspentCoinDescriptor>, HashMap<AssetId, List<UnspentAssetDescriptor>>> splitUnspent(
-    List<UnspentCoinDescriptor> unspentCoinDescriptors
+    List<UnspentAssetDescriptor> unspentCoinDescriptors
   ) {
     List<UnspentCoinDescriptor> coinDescriptors = new ArrayList<UnspentCoinDescriptor>();
     HashMap<AssetId, List<UnspentAssetDescriptor>> assetDescriptors = new HashMap<AssetId, List<UnspentAssetDescriptor>>();
-    for (UnspentCoinDescriptor unspent : unspentCoinDescriptors) {
-      if (unspent instanceof UnspentAssetDescriptor) {
-        UnspentAssetDescriptor descrptor = (UnspentAssetDescriptor) unspent;
-        List<UnspentAssetDescriptor> list = assetDescriptors.get(descrptor.getAssetId());
+    for (UnspentAssetDescriptor unspent : unspentCoinDescriptors) {
+      if (unspent.isColored()) {
+        List<UnspentAssetDescriptor> list = assetDescriptors.get(unspent.getAssetId());
         if (list == null) {
           list = new ArrayList<UnspentAssetDescriptor>();
-          assetDescriptors.put(descrptor.getAssetId(), list);
+          assetDescriptors.put(unspent.getAssetId(), list);
         }
-        list.add(descrptor);
+        list.add(unspent);
       } else {
-        coinDescriptors.add(unspent);
+        coinDescriptors.add(unspent.getUnspentCoinDescriptor());
       }
     }
     return new Pair<List<UnspentCoinDescriptor>, HashMap<AssetId, List<UnspentAssetDescriptor>>>(coinDescriptors, assetDescriptors);
@@ -106,8 +106,8 @@ public class TransferAssetHandler implements  IOapConstants {
   protected  HashMap<AssetId, List<AssetTransfer>> groupAssetTransfersByAssetId(List<AssetTransferTo> transfers) throws OapException {
     HashMap<AssetId, List<AssetTransfer>> result = new HashMap<AssetId, List<AssetTransfer>>();
     for (AssetTransferTo transfer : transfers) {
-      if (transfer.quantity() < 0) {
-        throw new OapException(OapException.INVALID_QUANTITY, "Invalid quantity: " + transfer.quantity());
+      if (transfer.getQuantity() < 0) {
+        throw new OapException(OapException.INVALID_QUANTITY, "Invalid quantity: " + transfer.getQuantity());
       }
       AssetTransfer to = AssetTransfer.from(transfer);
       List<AssetTransfer> list = result.get(to.getAssetId());
@@ -131,13 +131,13 @@ public class TransferAssetHandler implements  IOapConstants {
    * @return
    * @throws OapException
    */
-  protected Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer(
+  protected Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualTransfer(
     HashMap<AssetId, List<UnspentAssetDescriptor>> unspentAssetDescrptors,
     HashMap<AssetId, List<AssetTransfer>> transfersByAssetId,
     AssetAddress changeAddress
   ) throws OapException {
     List<AssetTransfer> actualAssetTransfers = new ArrayList<AssetTransfer>();
-    List<UnspentCoinDescriptor> txInputs = new ArrayList<UnspentCoinDescriptor>();
+    List<UnspentAssetDescriptor> txInputs = new ArrayList<UnspentAssetDescriptor>();
     for (Map.Entry<AssetId, List<AssetTransfer>> entry : transfersByAssetId.entrySet()) {
       AssetId assetId = entry.getKey();
       Pair<List<UnspentAssetDescriptor>, Integer> inuputsAndChage = caculateAssetChange(
@@ -155,7 +155,7 @@ public class TransferAssetHandler implements  IOapConstants {
         actualAssetTransfers.add(new AssetTransfer(changeAddress, assetId, inuputsAndChage.getSecond()));
       }
     }
-    return new Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>>(txInputs, actualAssetTransfers);
+    return new Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>>(txInputs, actualAssetTransfers);
   }
 
   /**
@@ -173,31 +173,31 @@ public class TransferAssetHandler implements  IOapConstants {
    * @return
    * @throws OapException
    */
-  protected Pair<List<UnspentCoinDescriptor>, CoinAmount> allInputsAndCoinChangeForTransfer(
+  protected Pair<List<UnspentAssetDescriptor>, CoinAmount> allInputsAndCoinChangeForTransfer(
     List<UnspentCoinDescriptor> coinDescriptors,
-    List<UnspentCoinDescriptor> assetInputs,
+    List<UnspentAssetDescriptor> assetInputs,
     List<AssetTransfer> actualTransfers,
     CoinAmount fees,
     AssetAddress fromAddress
   ) throws OapException {
-    List<UnspentCoinDescriptor> txInputs = new ArrayList<UnspentCoinDescriptor>();
+    List<UnspentAssetDescriptor> txInputs = new ArrayList<UnspentAssetDescriptor>();
 
     txInputs.addAll(assetInputs);
     // NOW WE HAVE THE MINIMUM SUM OF COINS NEEDED TO TRANSFER ASSET(S)
     long coinInputAmount = fees.coinUnits() + actualTransfers.size() * DUST_IN_SATOSHI;
-    for (UnspentCoinDescriptor descriptor : assetInputs) {
-      coinInputAmount -= descriptor.amount().bigDecimal().multiply(ONE_BTC_IN_SATOSHI).longValue();
+    for (UnspentAssetDescriptor descriptor : assetInputs) {
+      coinInputAmount -= descriptor.getUnspentCoinDescriptor().getAmount().multiply(ONE_BTC_IN_SATOSHI).longValue();
     }
 
     // Calculate coin change
     for (UnspentCoinDescriptor descriptor : coinDescriptors) {
-      txInputs.add(descriptor);
-      coinInputAmount -= UnspentAssetDescriptor.amountToCoinUnit(descriptor.amount());
+      txInputs.add(new UnspentAssetDescriptor( descriptor ) );
+      coinInputAmount -= UnspentAssetDescriptor.amountToCoinUnit(descriptor.getAmount());
       if (coinInputAmount <= 0) break;
     }
     if (coinInputAmount > 0) throw new OapException(OapException.NOT_ENOUGH_COIN, "from_address(" + fromAddress.base58() + ") has not enought coins");
     CoinAmount coinChange = CoinAmount.from(Math.abs(coinInputAmount));
-    return new Pair<List<UnspentCoinDescriptor>, CoinAmount>(txInputs, coinChange);
+    return new Pair<List<UnspentAssetDescriptor>, CoinAmount>(txInputs, coinChange);
   }
 
   /**
@@ -227,31 +227,33 @@ public class TransferAssetHandler implements  IOapConstants {
    * @throws OapException
    */
   protected Transaction buildTransferTransacation(
-    List<UnspentCoinDescriptor> txInputs,
+    List<UnspentAssetDescriptor> txInputs,
     List<AssetTransfer> realTransfers,
     int[] assetQuantities,
     AssetAddress changeAddress,
     CoinAmount coinChange
   ) throws OapException {
     TransactionBuilder builder = TransactionBuilder.newBuilder();
-    for (UnspentCoinDescriptor descriptor : txInputs) {
+    OapBlockchain chain = OpenAssetsProtocol.get().chain();
+    for (UnspentAssetDescriptor descriptor : txInputs) {
       builder.addInput(
-        OpenAssetsProtocol.get().chain(), new OutPoint(descriptor.txid(), descriptor.vout()), builder.addInput$default$3(), builder.addInput$default$4(), null
+        chain.db(),
+        chain, new OutPoint(descriptor.getUnspentCoinDescriptor().getTxid(), descriptor.getUnspentCoinDescriptor().getVout())
       );
     }
     // BUILD Marker Output : have empty metadata for transfer transaction.
     OapMarkerOutput markerOutput = new OapMarkerOutput(null, assetQuantities, new byte[0]);
     // MarkerOutput
-    builder.addOutput(OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.lockingScript()));
+    builder.addOutput(OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.getTransactionOutput().getLockingScript()));
     // Asset Issue/Transfer Output
     for (AssetTransfer transfer : realTransfers) {
-      builder.addOutput(CoinAmount.from(DUST_IN_SATOSHI), new Hash(transfer.getToAddress().coinAddress().publicKeyHash()));
+      builder.addOutput(CoinAmount.from(DUST_IN_SATOSHI), new Hash(transfer.getToAddress().coinAddress().getPublicKeyHash()));
     }
     // ADD coin change output
     if (coinChange.coinUnits() > 0) {
-      builder.addOutput(coinChange, new Hash(changeAddress.coinAddress().publicKeyHash()));
+      builder.addOutput(coinChange, new Hash(changeAddress.coinAddress().getPublicKeyHash()));
     }
-    return builder.build(builder.build$default$1(), builder.build$default$2());
+    return builder.build();
   }
 
   public Transaction createTransferTransaction(
@@ -272,14 +274,14 @@ public class TransferAssetHandler implements  IOapConstants {
       OpenAssetsProtocol.get().wallet().listUnspent(DEFAULT_MIN_CONFIRMATIONS, DEFAULT_MAX_CONFIRMATIONS, fromAddresses,true)
     );
     // GET Asset Inputs and Actual Asset Transfers
-    Pair<List<UnspentCoinDescriptor>, List<AssetTransfer>> assetInputsAndActualAssetTransfers = assetInputsAndActualTransfer(
+    Pair<List<UnspentAssetDescriptor>, List<AssetTransfer>> assetInputsAndActualAssetTransfers = assetInputsAndActualTransfer(
       unspentCoinsAndAssets.getSecond(),
       transfersByAssetId,
       changeAddress
     );
 
     // GET all inputs(Asset Inputs + Coin Inputs) and Coin Change.
-    Pair<List<UnspentCoinDescriptor>, CoinAmount> txInputsAndCoinChange = allInputsAndCoinChangeForTransfer(
+    Pair<List<UnspentAssetDescriptor>, CoinAmount> txInputsAndCoinChange = allInputsAndCoinChangeForTransfer(
       unspentCoinsAndAssets.getFirst(),
       assetInputsAndActualAssetTransfers.getFirst(),
       assetInputsAndActualAssetTransfers.getSecond(),

@@ -20,18 +20,17 @@ public class ScalechainBlockchainInterface implements IBlockchainInterface {
 
     @Override
     public Transaction getTransation(Hash txId) {
-        Option<Transaction> transactionOption = chain.getTransaction(txId, chain.get().db());
-        if (transactionOption.isDefined()) return transactionOption.get();
-        else return null;
+        Transaction transaction = chain.getTransaction(chain.getDb(), txId);
+        return transaction;
     }
 
     @Override
     public TransactionOutput getTransactionOutput(OutPoint outPoint) {
-        return chain.getTransactionOutput(outPoint, Blockchain.get().db());
+        return chain.getTransactionOutput(Blockchain.get().getDb(), outPoint);
     }
 
     @Override
     public KeyValueDatabase db() {
-        return Blockchain.get().db();
+        return Blockchain.get().getDb();
     }
 }

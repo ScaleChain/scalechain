@@ -2,7 +2,9 @@ package io.scalechain.blockchain.api.oap;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.scalechain.blockchain.api.ApiTestWithSampleTransactions;
+import io.scalechain.blockchain.api.Json;
 import io.scalechain.blockchain.net.RpcSubSystem;
 import io.scalechain.blockchain.oap.OapStorage;
 import io.scalechain.blockchain.oap.OpenAssetsProtocol;
@@ -17,10 +19,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import scala.Option;
-import spray.json.JsObject;
-import spray.json.JsonParser;
-import spray.json.ParserInput;
 
 import static org.junit.Assert.assertTrue;
 
@@ -89,10 +87,10 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
     // DELETE Asset Definition and Asset Definition Pointer for AssetId
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
     // CRATE AND PUT Asset Definition and Asset Definition Pointer for AssetId
     AssetDefinition definition = AssetDefinition.from(assetId.base58(), in.toString());
@@ -102,9 +100,10 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
 
     // DO TEST
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.getAssetDefinitionPointer(assetId, Option.empty());
-    assertTrue("Asset Definition Pointer should be defined", pointerOption.isDefined());
+    AssetDefinitionPointer pointerOption = rpcSubSystem.getAssetDefinitionPointer(assetId, null);
+    assertTrue("Asset Definition Pointer should be defined", pointerOption != null );
     // CHECK MORE ?
+    // TODO : OAP : ASK to Shannon : Need more check?
   }
 
   @Test
@@ -121,10 +120,10 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
     // DELETE Asset Definition and Asset Definition Pointer for AssetId
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
     // CRATE AND PUT Asset Definition and Asset Definition Pointer for AssetId
     AssetDefinition definition = AssetDefinition.from(assetId.base58(), in.toString());
@@ -133,13 +132,14 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.getAssetDefinitionPointer(
+    AssetDefinitionPointer pointerOption = rpcSubSystem.getAssetDefinitionPointer(
       assetId,
-      Option.apply(HexUtil.hex(pointer.getValue(), HexUtil.hex$default$2()))
+      HexUtil.hex(pointer.getValue())
     );
 
-    assertTrue("Asset Definition Pointer should be defined", pointerOption.isDefined());
+    assertTrue("Asset Definition Pointer should be defined", pointerOption != null);
     // CHECK MORE ?
+    // TODO : Check asset definition pointer.
   }
 
   @Test
@@ -158,19 +158,21 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
     // DELETE Asset Definition and Asset Definition Pointer for AssetId
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
     // CRATE AND PUT Asset Definition and Asset Definition Pointer for AssetId
     AssetDefinition definition = AssetDefinition.from(assetId.base58(), in.toString());
     AssetDefinitionPointer pointer = AssetDefinitionPointer.create(AssetDefinitionPointer.HASH_POINTER, definition.hash());
     storage.putAssetDefinition(pointer, definition.toString());
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
-    Option<String> invalidHashOption = Option.apply("0000000000000000000000000000000000000000");
+    String invalidHashOption = "0000000000000000000000000000000000000000";
     // DO TEST
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.getAssetDefinitionPointer(assetId, invalidHashOption);
+    AssetDefinitionPointer pointerOption = rpcSubSystem.getAssetDefinitionPointer(assetId, invalidHashOption);
+
+    // TODO : Add check for pointerOption
   }
 
 
@@ -190,10 +192,10 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
     // DELETE Asset Definition and Asset Definition Pointer for AssetId
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
     // CRATE AND PUT Asset Definition and Asset Definition Pointer for AssetId
     AssetDefinition definition = AssetDefinition.from(assetId.base58(), in.toString());
@@ -203,14 +205,18 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
 
 
     // DO TEST
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.getAssetDefinitionPointer(
+    AssetDefinitionPointer pointerOption = rpcSubSystem.getAssetDefinitionPointer(
       assetId,
-      Option.apply(HexUtil.hex(pointer.getValue(), HexUtil.hex$default$2()))
+      HexUtil.hex(pointer.getValue())
     );
+
+    // TODO : OAP : ASK to Shannon : Need more check?
   }
 
-  private Option<JsObject> createMetadtaOption(String jsonString) {
-    return Option.apply(JsonParser.apply(new ParserInput.StringBasedParserInput(jsonString)).asJsObject());
+  private JsonObject createMetadtaOption(String jsonString) {
+    JsonElement jelement = new JsonParser().parse(jsonString);
+    JsonObject  jobject = jelement.getAsJsonObject();
+    return jobject;
   }
 
   @Test
@@ -225,25 +231,25 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
     JsonObject in = new com.google.gson.JsonParser().parse(gsonObject.toString()).getAsJsonObject();
     in.remove("asset_ids");
 
-    Option<JsObject> metadataOption = createMetadtaOption(in.toString());
+    JsonObject metadataOption = createMetadtaOption(in.toString());
 
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
 
     // DO TEST
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.createAssetDefinition(assetId, metadataOption);
+    AssetDefinitionPointer pointerOption = rpcSubSystem.createAssetDefinition(assetId, metadataOption);
 
     // CHECK RESULT
-    assertTrue("Asset Definition Pointer sould be defined", pointerOption.isDefined());
-    Option<String> s = storage.getAssetDefinition(pointerOption.get());
-    assertTrue("Asset Definition sould not be defined", s.isDefined());
+    assertTrue("Asset Definition Pointer sould be defined", pointerOption != null);
+    String s = storage.getAssetDefinition(pointerOption);
+    assertTrue("Asset Definition sould not be defined", s != null);
 
     //  Asset Definition should have Asset Id in "asset_ids" field.
-    AssetDefinition definition = AssetDefinition.from(s.get());
+    AssetDefinition definition = AssetDefinition.from(s);
     assertTrue("Asset Definition should have asset_ids", definition.toJson().has("asset_ids"));
     boolean found = false;
     for (JsonElement e : definition.toJson().get("asset_ids").getAsJsonArray()) {
@@ -266,17 +272,18 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
     JsonObject gsonObject = new com.google.gson.JsonParser().parse(definitionString).getAsJsonObject();
     JsonObject in = new com.google.gson.JsonParser().parse(gsonObject.toString()).getAsJsonObject();
     in.remove("asset_ids");
-    Option<JsObject> metadataOption = createMetadtaOption(in.toString());
+    JsonObject metadataOption = createMetadtaOption(in.toString());
 
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
 
     // DO TEST : Exception should be thrown
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.createAssetDefinition(assetId, Option.empty());
+    AssetDefinitionPointer pointerOption = rpcSubSystem.createAssetDefinition(assetId, null);
+    // TODO : OAP : ASK to Shannon : need to check exception thrown?
   }
 
   @Test
@@ -295,17 +302,17 @@ public class IssueAssetTest extends ApiTestWithSampleTransactions {
     in.remove("asset_ids");
     in.remove("name"); // REMOVE
 
-    Option<JsObject> metadataOption = createMetadtaOption(in.toString());
+    JsonObject metadataOption = createMetadtaOption(in.toString());
 
     // REMOVE ASSET DEFINITION AND ASSET POINTER
-    Option<AssetDefinitionPointer> p = storage.getAssetDefinitionPointer(assetId.base58());
-    if (p.isDefined()) {
+    AssetDefinitionPointer p = storage.getAssetDefinitionPointer(assetId.base58());
+    if (p != null) {
       storage.delAssetDefinitionPointer(assetId.base58());
-      storage.delAssetDefintion(p.get());
+      storage.delAssetDefinition(p);
     }
 
     // DO TEST : Exception should be thrown
-    Option<AssetDefinitionPointer> pointerOption = rpcSubSystem.createAssetDefinition(assetId, Option.empty());
+    AssetDefinitionPointer pointerOption = rpcSubSystem.createAssetDefinition(assetId, null);
+    // TODO : OAP : ASK to Shannon : need to check exception thrown?
   }
-
 }

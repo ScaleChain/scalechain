@@ -4,6 +4,9 @@ import com.google.gson.*
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.api.command.network.GetPeerInfoResult
+import io.scalechain.blockchain.api.command.oap.IssueAssetResultResult
+import io.scalechain.blockchain.api.command.oap.ListAssetTransactionsResult
+import io.scalechain.blockchain.api.command.wallet.ListAssetBalanceDescResult
 import io.scalechain.blockchain.api.command.wallet.ListTransactionsResult
 import io.scalechain.blockchain.api.command.wallet.ListUnspentResult
 import io.scalechain.blockchain.api.domain.*
@@ -11,8 +14,6 @@ import io.scalechain.blockchain.api.http.ApiServer
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.HexUtil
 import java.lang.reflect.Type
-
-//import scala.io.StdIn
 
 // TODO : Need to move to scalechain-api-domain?
 
@@ -28,16 +29,15 @@ class RpcResultSerializer : JsonSerializer<RpcResult> {
   }
   override fun serialize(src: RpcResult?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
     return when {
-      src is JsResult -> src.value check type
       src is StringResult -> JsonPrimitive(src.value)
       src is StringListResult -> toJsonArray(src.value)
       src is NumberResult -> JsonPrimitive(src.value)
       src is GetPeerInfoResult -> toJsonArray(src.peerInfos)
       src is ListTransactionsResult -> toJsonArray(src.transactionDescs)
-      src is ListAssetTransactionsResult -> src.transactionDescs check type
+      src is ListAssetTransactionsResult -> toJsonArray(src.transactionDescs)
       src is ListUnspentResult -> toJsonArray(src.unspentCoins)
-      src is IssueAssetResultResult -> src.value check type
-      src is ListAssetBalanceDescResult -> src.value check type
+      src is IssueAssetResultResult -> Json.get().toJsonTree(src.item)
+      src is ListAssetBalanceDescResult -> toJsonArray(src.transactionDescs)
       else -> {
         Json.get().toJsonTree(src, typeOfSrc)
       }
@@ -175,6 +175,9 @@ object Json {
                 .registerTypeAdapter(GetPeerInfoResult::class.java, RpcResultSerializer())
                 .registerTypeAdapter(ListTransactionsResult::class.java, RpcResultSerializer())
                 .registerTypeAdapter(ListUnspentResult::class.java, RpcResultSerializer())
+                .registerTypeAdapter(ListAssetTransactionsResult::class.java, RpcResultSerializer())
+                .registerTypeAdapter(IssueAssetResultResult::class.java, RpcResultSerializer())
+                .registerTypeAdapter(ListAssetBalanceDescResult::class.java, RpcResultSerializer())
                 .setPrettyPrinting()
                 .create()
     }

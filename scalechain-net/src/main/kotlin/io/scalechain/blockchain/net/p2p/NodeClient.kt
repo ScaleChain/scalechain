@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.nio.NioEventLoopGroup
@@ -11,11 +10,8 @@ import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 import io.scalechain.util.ExceptionUtil
-import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 

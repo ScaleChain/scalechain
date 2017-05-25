@@ -17,18 +17,18 @@ import java.io.IOException;
  * Created by shannon on 17. 1. 5.
  */
 public class TestWithWalletSampleData {
-  static OapWallet              wallet;
+  public static OapWallet              wallet;
 
-  static WalletHandler          walletHandler;
-  static IssueAssetHandler      issueHandler;
-  static TransferAssetHandler   transferHandler;
-  static AssetDefinitionHandler definitionHandler;
-  static WalletSampleDataProvider provider;
-  static File storagePath = new File("./target");
-  static ColoringEngine coloringEngine;
+  public static WalletHandler          walletHandler;
+  public static IssueAssetHandler      issueHandler;
+  public static TransferAssetHandler   transferHandler;
+  public static AssetDefinitionHandler definitionHandler;
+  public static WalletSampleDataProvider provider;
+  public static File storagePath = new File("./target");
+  public static ColoringEngine coloringEngine;
 
 
-  protected WalletSampleDataProvider getDataProvider() {
+  public  WalletSampleDataProvider getDataProvider() {
     return provider;
   }
 
@@ -96,7 +96,7 @@ public class TestWithWalletSampleData {
 
   @Before
   public void setUp() throws Exception {
-    String testName = runningTestName.getClass().getSimpleName() + "-" + runningTestName.getMethodName();
+    String testName = getClass().getSimpleName() + "-" + runningTestName.getMethodName();
     provider = WalletSampleDataProvider.create(
       testName
     );
@@ -121,6 +121,7 @@ public class TestWithWalletSampleData {
   @After
   public void tearDown() {
     WalletSampleDataProvider.destroy(provider);
+    OpenAssetsProtocol.get().storage().close();
   }
 
   @AfterClass

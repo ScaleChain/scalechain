@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
   */
 @RunWith(KTestJUnitRunner::class)
 class BlockAccessFileSpec : FlatSpec(), Matchers {
-  val underlyingFile = File("./target/unittests-BlockAccessFileSpec")
+  val underlyingFile = File("./build/unittests-BlockAccessFileSpec")
 
   lateinit var file : BlockAccessFile
 

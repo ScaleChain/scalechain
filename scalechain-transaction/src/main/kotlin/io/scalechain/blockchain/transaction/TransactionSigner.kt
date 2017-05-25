@@ -1,24 +1,18 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.script.ops.OpPush
-import io.scalechain.blockchain.script.ScriptValue
 import io.scalechain.blockchain.script.ScriptSerializer
 import io.scalechain.blockchain.script.TransactionSignature
-import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.TransactionSignException
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.proto.*
-import io.scalechain.blockchain.transaction.SigHash
 import io.scalechain.crypto.ECKey.ECDSASignature
 import io.scalechain.crypto.ECKey
 import io.scalechain.crypto.Hash256
 import io.scalechain.util.ByteArrayExt
 import io.scalechain.util.Bytes
-import io.scalechain.util.HexUtil
-
-import scala.annotation.tailrec
 import java.util.*
 
 enum class SigHash  {

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.proto.LockingScript;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.transaction.PrivateKey;
 import io.scalechain.blockchain.transaction.PublicKey;
@@ -18,7 +18,7 @@ import io.scalechain.util.HexUtil;
  */
 public class CreateTestAddresses {
   public static void main(String[] args) throws Exception {
-    ChainEnvironment$.MODULE$.create("testnet");
+    ChainEnvironment.create("testnet");
     JsonArray array = new JsonArray();
     for (int i = 0; i < 8; i++) {
       PrivateKey privateKey = PrivateKey.generate();
@@ -31,11 +31,11 @@ public class CreateTestAddresses {
       JsonObject addressObject = new JsonObject();
       String assetId = AssetId.from(coinAddress).base58();
       addressObject.addProperty("privateKey", privateKey.base58());
-      addressObject.addProperty("privateKeyHex", HexUtil.hex(privateKey.value().toByteArray(), HexUtil.hex$default$2()));
-      addressObject.addProperty("publicKeyEncodedHex", HexUtil.hex(publicKey.encode(), HexUtil.hex$default$2()));
-      addressObject.addProperty("publicKeyHashHex", HexUtil.hex(publicKey.getHash().bytes(), HexUtil.hex$default$2()));
+      addressObject.addProperty("privateKeyHex", HexUtil.hex(privateKey.getValue().toByteArray()));
+      addressObject.addProperty("publicKeyEncodedHex", HexUtil.hex(publicKey.encode()));
+      addressObject.addProperty("publicKeyHashHex", HexUtil.hex(publicKey.getHash().getValue().getArray()));
       addressObject.addProperty("bitcoinAddress", coinAddressBase58);
-      addressObject.addProperty("lockingScriptHex", HexUtil.hex(lockingScript.data().array(), HexUtil.hex$default$2()));
+      addressObject.addProperty("lockingScriptHex", HexUtil.hex(lockingScript.getData().getArray()));
       addressObject.addProperty("assetAddress", AssetAddress.fromCoinAddress(coinAddress).base58());
       addressObject.addProperty("assetId", assetId);
       JsonObject assetDefinition = new JsonObject();
@@ -56,19 +56,19 @@ public class CreateTestAddresses {
       assetDefinition.addProperty("version", "1.0");
       addressObject.add("asset_definition", assetDefinition);
       addressObject.addProperty("asset_definition_hash", HexUtil.hex(
-        HashFunctions.hash160(assetDefinition.toString().getBytes()).bytes(), HexUtil.hex$default$2()
+        HashFunctions.hash160(assetDefinition.toString().getBytes()).getValue().getArray()
       ));
       array.add(addressObject);
 //            System.out.println("privateKey=" + privateKey);
 //            System.out.println("privateKey.base58()=" + privateKey.base58());
-//            System.out.println("privateKeyHex=" + HexUtil.hex(privateKey.value().toByteArray(), HexUtil.hex$default$2()));
+//            System.out.println("privateKeyHex=" + HexUtil.hex(privateKey.value().toByteArray()));
 //            System.out.println("publicKey=" + publicKey);
-//            System.out.println("publicKey.encode().hex()=" + HexUtil.hex(publicKey.encode(), HexUtil.hex$default$2()));
-//            System.out.println("publicKey.hash().hex()=" + HexUtil.hex(publicKey.getHash().bytes(), HexUtil.hex$default$2()));
-//            System.out.println("BitcoinAddress.publicKeyHash().hex()=" + HexUtil.hex(coinAddress.publicKeyHash().array(), HexUtil.hex$default$2()));
+//            System.out.println("publicKey.encode().hex()=" + HexUtil.hex(publicKey.encode()));
+//            System.out.println("publicKey.hash().hex()=" + HexUtil.hex(publicKey.getHash().bytes()));
+//            System.out.println("BitcoinAddress.publicKeyHash().hex()=" + HexUtil.hex(coinAddress.publicKeyHash().array()));
 //            System.out.println("BitcoinAddress=" + coinAddressBase58);
 //            System.out.println("lockingScript=" + lockingScript);
-//            System.out.println("locakingScript.hex()=" +  HexUtil.hex(lockingScript.data().array(), HexUtil.hex$default$2()));
+//            System.out.println("locakingScript.hex()=" +  HexUtil.hex(lockingScript.data().array()));
 //            System.out.println("AssetAddress=" + AssetAddress.from(coinAddress));
 //            System.out.println("AssetId=" + AssetId.from(coinAddress));
 //
@@ -89,7 +89,7 @@ public class CreateTestAddresses {
 //            byte[] bytes = new byte[25];
 //
 //            buffer.get(bytes);
-//            System.out.println("LockingScript(ManuallyBuilt)=" + HexUtil.hex(bytes, HexUtil.hex$default$2()));
+//            System.out.println("LockingScript(ManuallyBuilt)=" + HexUtil.hex(bytes));
 
     }
     System.out.println(array.toString());

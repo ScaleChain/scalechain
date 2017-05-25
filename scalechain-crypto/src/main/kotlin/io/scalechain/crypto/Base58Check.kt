@@ -24,6 +24,7 @@ import java.util.*
   *
   */
 object Base58Check {
+  @JvmStatic
   fun checksum(data: ByteArray) : ByteArray = HashFunctions.hash256(data).value.array.take(4).toByteArray()
 
   /**
@@ -34,6 +35,7 @@ object Base58Check {
     * @param data date to be encoded
     * @return a Base58 string
     */
+  @JvmStatic
   fun encode(prefix: Byte, data: ByteArray) : String {
     return encode(ByteArray(1, {prefix}), data)
   }
@@ -44,6 +46,7 @@ object Base58Check {
     * @param data data to be encoded
     * @return a Base58 String
     */
+  @JvmStatic
   fun encode(prefix: ByteArray, data: ByteArray) : String {
     val prefixAndData = prefix + data
     return Base58Util.encode(prefixAndData + checksum(prefixAndData))
@@ -56,6 +59,7 @@ object Base58Check {
     * @return a (prefix, data) tuple
     * @throws RuntimeException if the checksum that is part of the encoded data cannot be verified
     */
+  @JvmStatic
   fun decode(encoded: String) : Pair<Byte, ByteArray> {
     val raw = Base58Util.decode(encoded)
     val versionAndHash : ByteArray = raw.dropLast(4).toByteArray()

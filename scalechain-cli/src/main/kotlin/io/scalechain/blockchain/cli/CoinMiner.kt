@@ -10,11 +10,9 @@ import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
-
-import scala.util.Random
+import java.util.Random
 
 data class CoinMinerParams(val P2PPort : Int, val InitialDelayMS : Int, val HashDelayMS : Int, val MaxBlockSize : Int )
 

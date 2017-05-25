@@ -1,13 +1,12 @@
 package io.scalechain.blockchain.oap;
 
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointerTest;
-import io.scalechain.blockchain.oap.assetdefinition.AssetDefintionTest;
+import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionTest;
 import io.scalechain.blockchain.oap.coloring.ColoringEngineTest;
 import io.scalechain.blockchain.oap.coloring.OapWalletTest;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutputTest;
 import io.scalechain.blockchain.oap.transaction.OapTransactionTest;
 import io.scalechain.blockchain.oap.util.LEB128Test;
-import io.scalechain.blockchain.oap.util.PairTest;
 import io.scalechain.blockchain.oap.wallet.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -18,14 +17,13 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
   LEB128Test.class,
-  PairTest.class,
   CaseClassTest.class,
   AddressUtilMainNetTest.class,
   AddressUtilTestNetTest.class,
   AssetAddressMainNetTest.class,
   AssetAddressTestNetTest.class,
   AssetDefinitionPointerTest.class,
-  AssetDefintionTest.class,
+  AssetDefinitionTest.class,
   AssetIdMainNetTest.class,
   AssetIdTestNetTest.class,
   AssetTransferTest.class,

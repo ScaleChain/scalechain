@@ -458,6 +458,8 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
 
   companion object {
     var theBlockchain : Blockchain? = null
+
+    @JvmStatic
     fun create(db : KeyValueDatabase, storage : BlockStorage) : Blockchain {
       theBlockchain = Blockchain(db, storage)
 
@@ -465,6 +467,8 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
       BlockchainLoader(db, theBlockchain!!, storage).load()
       return theBlockchain!!
     }
+
+    @JvmStatic
     fun get() : Blockchain {
       return theBlockchain!!
     }

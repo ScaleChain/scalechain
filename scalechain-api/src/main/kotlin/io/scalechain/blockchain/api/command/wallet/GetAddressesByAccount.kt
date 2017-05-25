@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult, StringListResult}
-import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.api.domain.StringListResult
 import io.scalechain.blockchain.oap.OpenAssetsProtocol
-import io.scalechain.blockchain.transaction.{CoinAddress, OutputOwnership}
-import io.scalechain.wallet.Wallet
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -34,21 +35,22 @@ import spray.json.DefaultJsonProtocol._
   *
   * https://bitcoin.org/en/developer-reference#getaddressesbyaccount
   */
-object GetAddressesByAccount extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val account: String           = request.params.getOption[String] ("Account", 0).getOrElse("")
+object GetAddressesByAccount  : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account: String           = request.params.getOption<String> ("Account", 0) ?: ""
 
-      val accountOption = if (account == "*") None else Some(account)
-      import scala.collection.JavaConverters;
-      val addresses : List[String] = JavaConverters.asScalaBuffer(
-        OpenAssetsProtocol.get().getAddressesByAccount(accountOption, true)
-      ).map(a => a.base58()).toList;
+      val accountOption = if (account == "*") null else account
 
-      Right(Some(StringListResult(addresses)))
+      val addresses : List<String> =
+        OpenAssetsProtocol.get().getAddressesByAccount(accountOption, true).map{ it.base58() }
+
+      Right(StringListResult(addresses))
     }
   }
-  def help() : String =
+
+
+  override fun help() : String =
     """getaddressesbyaccount "account"
       |
       |DEPRECATED. Returns the list of addresses for the given account.
@@ -65,7 +67,7 @@ object GetAddressesByAccount extends RpcCommand {
       |Examples:
       |> bitcoin-cli getaddressesbyaccount "tabby"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getaddressesbyaccount", "params": ["tabby"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

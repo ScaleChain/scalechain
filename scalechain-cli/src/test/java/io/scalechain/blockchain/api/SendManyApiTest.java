@@ -9,17 +9,16 @@ import io.scalechain.blockchain.proto.Hash;
 import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.transaction.CoinAmount;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.Wallet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import scala.Option;
-import scala.collection.JavaConverters;
-import scala.math.BigDecimal;
+import java.math.BigDecimal;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -55,7 +54,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     JsonObject outputs = new JsonObject();
     size = size > addressData.length ? addressData.length : size;
     for (int i = 0; i < size; i++) {
-      BigDecimal amount = baseAmount.value().$times(BigDecimal.decimal((negativeAmount ? -(i + 1) : i + 1)));
+      BigDecimal amount = baseAmount.getValue().multiply(BigDecimal.valueOf(negativeAmount ? -(i + 1) : i + 1));
 
       outputs.addProperty(
         addressData[i].address.base58() + (invalidAddress ? "invalid" : ""),
@@ -69,14 +68,14 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     int i = 0;
     for (Map.Entry<String, JsonElement> e : outputs.entrySet()) {
       CoinAddress address = CoinAddress.from(e.getKey());
-      BigDecimal amount = BigDecimal.javaBigDecimal2bigDecimal(e.getValue().getAsBigDecimal());
+      BigDecimal amount = e.getValue().getAsBigDecimal();
       assertEquals("Receving amount should be equal to output amount",
-        CoinAmount.apply(amount),
-        CoinAmount.from(tx.outputs().apply(i).value())
+        new CoinAmount(amount),
+        CoinAmount.from(tx.getOutputs().get(i).getValue())
       );
       assertEquals("Receiving address should match to output address",
         address.lockingScript(),
-        tx.outputs().apply(i).lockingScript()
+        tx.getOutputs().get(i).getLockingScript()
       );
       i++;
     }
@@ -88,7 +87,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     // 1 OUTPUT TO RECEIVER ADDRESS 0, 1BTC
     JsonObject outputs = outputsForSendManyAPI(
       receiverAddressData, 1,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false);
 
     String hashHex = sendMany(
@@ -99,14 +98,14 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     );
 
     assertNotNull("Hash should not be null", hashHex);
-    Hash hash = Hash.apply(ByteArray.apply(HexUtil.bytes(hashHex)));
+    Hash hash = new Hash( new Bytes(HexUtil.bytes(hashHex)));
 
     // DO TEST
-    Option<Transaction> tx = Blockchain.get().getTransaction(hash, Blockchain.get().db());
+    Transaction tx = Blockchain.get().getTransaction(Blockchain.get().getDb(), hash);
     //    CHECK TxHash returned.
-    assertTrue("Transaction should be exists", tx.isDefined());
+    assertTrue("Transaction should be exists", tx != null);
     //    CHECK EACH OUTPUT IS CORRECT
-    checkTxForSendManyAPI(outputs, tx.get());
+    checkTxForSendManyAPI(outputs, tx);
     waitForChain(1);
   }
 
@@ -114,20 +113,20 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
   public void sendManyMultipleAddressTest() throws RpcInvoker.RpcCallException {
     java.util.List<CoinAddress> addresses = new java.util.ArrayList<CoinAddress>();
     addresses.add(provider.receivingAddressOf(provider.accounts()[1]).address);
-    scala.collection.immutable.List<UnspentCoinDescriptor> unspents = Wallet.get().listUnspent(
+    List<UnspentCoinDescriptor> unspents = Wallet.get().listUnspent(
+      Blockchain.get().getDb(),
       Blockchain.get(),
       0,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
-      Option.apply(JavaConverters.asScalaBuffer(addresses).toList()),
-      Blockchain.get().db()
+      addresses
     );
     for (int i = 0; i < unspents.size(); i++) {
-      System.out.println(unspents.apply(i).confirmations() + "==>" + unspents.apply(i).toString());
+      System.out.println(unspents.get(i).getConfirmations() + "==>" + unspents.get(i).toString());
     }
 
     JsonObject outputs = outputsForSendManyAPI(
       receiverAddressData, 2,
-      CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+      new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
       false, false);
 
     String hashHex = sendMany(
@@ -138,14 +137,14 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     );
 
     assertNotNull("TxHash should not be null", hashHex);
-    Hash hash = Hash.apply(ByteArray.apply(HexUtil.bytes(hashHex)));
+    Hash hash = new Hash(new Bytes(HexUtil.bytes(hashHex)));
 
     // DO TEST
-    Option<Transaction> tx = Blockchain.get().getTransaction(hash, Blockchain.get().db());
+    Transaction tx = Blockchain.get().getTransaction(Blockchain.get().getDb(), hash);
     //    CHECK TxHash returned.
-    assertTrue("Transaction should be exists", tx.isDefined());
+    assertTrue("Transaction should be exists", tx != null);
     //    CHECK EACH OUTPUT IS CORRECT
-    checkTxForSendManyAPI(outputs, tx.get());
+    checkTxForSendManyAPI(outputs, tx);
 
     waitForChain(1);
   }
@@ -156,14 +155,14 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     try {
       JsonObject outputs = outputsForSendManyAPI(
         receiverAddressData, 0,
-        CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+        new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
         false, false
       );
       String hashHex = sendMany(senderAccount, outputs, null, null);
     } catch (RpcInvoker.RpcCallException e) {
       assertTrue("RPC error data should contain \"No outputs.\"", e.getData().contains("No outputs."));
     }
-
+    // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }
 
   @Test
@@ -172,7 +171,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
       JsonObject outputs = outputsForSendManyAPI(
         receiverAddressData,
         2,
-        CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+        new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
         false, false
       );
 
@@ -180,7 +179,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     } catch (RpcInvoker.RpcCallException e) {
       assertTrue("RPC error data should start with \"No addresses exist for account\"", e.getData().startsWith("No addresses exist for account"));
     }
-
+    // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }
 
   @Test
@@ -189,7 +188,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
 
       JsonObject outputs = outputsForSendManyAPI(receiverAddressData,
         2,
-        CoinAmount.apply(BigDecimal.valueOf(10000)), // 10000BTC
+        new CoinAmount(BigDecimal.valueOf(10000)), // 10000BTC
         false,
         false
       );
@@ -197,7 +196,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     } catch (RpcInvoker.RpcCallException e) {
       assertTrue("RPC error data should contain \"not enought coins\"", e.getData().contains("not enought coins"));
     }
-
+    // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }
 
   @Test
@@ -205,13 +204,14 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     try {
       JsonObject outputs = outputsForSendManyAPI(receiverAddressData,
         2,
-        CoinAmount.apply(BigDecimal.valueOf(1)), // 1BTC
+        new CoinAmount(BigDecimal.valueOf(1)), // 1BTC
         true,
         false);
       String hashHex = sendMany(senderAccount, outputs, null, null);
     } catch (RpcInvoker.RpcCallException e) {
       assertTrue("RPC error data should contain \"Cannot convert address\"", e.getData().contains("Cannot convert address"));
     }
+    // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }
 
   @Test
@@ -219,7 +219,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     try {
       JsonObject outputs = outputsForSendManyAPI(receiverAddressData,
         2,
-        CoinAmount.apply(BigDecimal.valueOf(1)), // 10000BTC
+        new CoinAmount(BigDecimal.valueOf(1)), // 10000BTC
         false,
         true
       );
@@ -228,6 +228,6 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
     } catch (RpcInvoker.RpcCallException e) {
       assertTrue("RPC error data should contain \"Negative amount\"", e.getData().contains("Negative amount"));
     }
-
+    // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }
 }

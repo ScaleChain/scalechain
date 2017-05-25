@@ -25,7 +25,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
   lateinit var rs: RecordStorage
 
-  val testPath = File("./target/unittests-RecordStorageSpec")
+  val testPath = File("./build/unittests-RecordStorageSpec")
   fun openRecordStorage() = RecordStorage(testPath, filePrefix = "blk", maxFileSize = 12)
 
   override fun beforeEach() {
@@ -213,7 +213,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
     "newFile(blockFile)" should "should create a new record file." {
       val fileName = BlockFileName("abc", 1).toString()
-      val filePath = "./target/" + fileName
+      val filePath = "./build/" + fileName
 
       val f = File(filePath)
       f.delete()
@@ -225,7 +225,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
     "newFile(blockFile)" should "should throw BlockStorageException if it hits size limit. case 1 : no remaining space for the first file." {
       val R = FileNumberCodec
 
-      val f = File("./target/" + BlockFileName("abc", 1))
+      val f = File("./build/" + BlockFileName("abc", 1))
       f.delete()
 
       val newFile = rs.newFile(f)
@@ -246,7 +246,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
     "newFile(blockFile)" should "should throw BlockStorageException if it hits size limit. case 2 : some remaining space for the first file." {
       val R = FileNumberCodec
 
-      val f = File("./target/" + BlockFileName("abc", 1))
+      val f = File("./build/" + BlockFileName("abc", 1))
       f.delete()
 
       val newFile = rs.newFile(f)

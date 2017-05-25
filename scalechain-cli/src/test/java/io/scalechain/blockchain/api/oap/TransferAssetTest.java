@@ -69,23 +69,25 @@ public class TransferAssetTest extends ApiTestWithSampleTransactions {
 
     // Provide no private key.
     List<PrivateKey> list = new ArrayList<PrivateKey>();
-    List<AssetTransferTo> tos = new ArrayList<>();
+    List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     tos.add(new AssetTransferTo(toAddress, assetId,1000));
 
     rpc.transferAsset(
       fromAddress,
-      JavaConverters.asScalaBuffer(tos).toList(),
-      Option.apply(JavaConverters.asScalaBuffer(list).toList()),
+      tos,
+      list,
       fromAddress,
       IOapConstants.DEFAULT_FEES_IN_SATOSHI
     );
+
+    // TODO : OAP : ASK to Shannon : need to check for seeing if transfer completed?
   }
 
 
   @Test
   public void transferAssetNotEnoughAssetTest() {
-    thrown.expect(GeneralException.class);
-    thrown.expectMessage("Not enoough asset");
+    thrown.expect(OapException.class);
+    thrown.expectMessage("Not enough asset");
 
     RpcSubSystem rpc = RpcSubSystem.get();
     AddressData senderAddressData = provider.receivingAddressOf(provider.ACCOUNT_SENDER);
@@ -101,17 +103,19 @@ public class TransferAssetTest extends ApiTestWithSampleTransactions {
 
     // Provide no private key.
     List<PrivateKey> list = new ArrayList<PrivateKey>();
-    List<AssetTransferTo> tos = new ArrayList<>();
+    List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     tos.add(new AssetTransferTo(toAddress, assetId, quantity));
 
     rpc.transferAsset(
       fromAddress,
-      JavaConverters.asScalaBuffer(tos).toList(),
-      Option.apply(JavaConverters.asScalaBuffer(list).toList()),
+      tos,
+      list,
       fromAddress,
       IOapConstants.DEFAULT_FEES_IN_SATOSHI
     );
     assertTrue("Transfer should fail", false);
+
+    // TODO : OAP : ASK to Shannon : How did this test pass?
   }
 
   @Test
@@ -129,16 +133,18 @@ public class TransferAssetTest extends ApiTestWithSampleTransactions {
 
     // Provide no private key.
     List<PrivateKey> list = new ArrayList<PrivateKey>();
-    List<AssetTransferTo> tos = new ArrayList<>();
+    List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     tos.add(new AssetTransferTo(toAddress, senderAddressData.assetId.base58(),1000));
 
     rpc.transferAsset(
       fromAddress,
-      JavaConverters.asScalaBuffer(tos).toList(),
-      Option.apply(JavaConverters.asScalaBuffer(list).toList()),
+      tos,
+      list,
       fromAddress,
       IOapConstants.DEFAULT_FEES_IN_SATOSHI
     );
+
+    // TODO : OAP : ASK to Shannon : Need to check the result of transfer?
   }
 
   @Test
@@ -156,16 +162,18 @@ public class TransferAssetTest extends ApiTestWithSampleTransactions {
 
     List<PrivateKey> list = new ArrayList<PrivateKey>();
     list.add(privateKey);
-    List<AssetTransferTo> tos = new ArrayList<>();
+    List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     tos.add(new AssetTransferTo("INVALID_ASSET_ADDRESS", senderAddressData.assetId.base58(),1000));
 
     rpc.transferAsset(
       fromAddress,
-      JavaConverters.asScalaBuffer(tos).toList(),
-      Option.apply(JavaConverters.asScalaBuffer(list).toList()),
+      tos,
+      list,
       fromAddress,
       IOapConstants.DEFAULT_FEES_IN_SATOSHI
     );
+
+    // TODO : OAP : ASK to Shannon : Need to check the result of transfer?
   }
 
   @Test
@@ -183,16 +191,18 @@ public class TransferAssetTest extends ApiTestWithSampleTransactions {
 
     List<PrivateKey> list = new ArrayList<PrivateKey>();
     list.add(privateKey);
-    List<AssetTransferTo> tos = new ArrayList<>();
+    List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     tos.add(new AssetTransferTo(toAddress, senderAddressData.assetId.base58(),1000));
 
     rpc.transferAsset(
       fromAddress,
-      JavaConverters.asScalaBuffer(tos).toList(),
-      Option.apply(JavaConverters.asScalaBuffer(list).toList()),
+      tos,
+      list,
       fromAddress,
       IOapConstants.DEFAULT_FEES_IN_SATOSHI
     );
+
+    // TODO : OAP : ASK to Shannon : Need to check the result of transfer?
   }
 
 }

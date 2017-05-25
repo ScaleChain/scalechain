@@ -1,5 +1,7 @@
 package io.scalechain.blockchain.proto
 
+import io.scalechain.util.Bytes
+
 
 /**
   * Created by shannon on 16. 12. 27.
@@ -17,3 +19,6 @@ package io.scalechain.blockchain.proto
 //    OapOutputCacheItem(output, assetId.base58(), quantity);
 //  }
 //}
+data class FixedByteArrayMessage(val value : Bytes) : ProtocolMessage
+
+data class StringMessage(val value:String) : ProtocolMessage

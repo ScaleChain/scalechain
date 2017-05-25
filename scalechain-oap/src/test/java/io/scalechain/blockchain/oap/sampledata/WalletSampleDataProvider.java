@@ -7,20 +7,18 @@ import io.scalechain.blockchain.chain.TransactionWithName;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetTransfer;
 import io.scalechain.blockchain.proto.Hash;
 import io.scalechain.blockchain.proto.OutPoint;
 import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.proto.TransactionOutput;
-import io.scalechain.blockchain.script.HashSupported;
+import io.scalechain.blockchain.script.HashCalculator;
 import io.scalechain.blockchain.storage.Storage;
-import io.scalechain.blockchain.storage.index.CachedRocksDatabase;
+import io.scalechain.blockchain.storage.index.RocksDatabase;
 import io.scalechain.blockchain.transaction.*;
 import io.scalechain.wallet.Wallet;
 import org.apache.commons.io.FileUtils;
-import scala.Option;
-import scala.collection.JavaConverters;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +36,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     return wallet;
   }
   public WalletSampleDataProvider(String testName, Wallet wallet, File blockStoragePath) {
-    super(testName, Option.apply(wallet), new AddressDataProvider(null, null), new CachedRocksDatabase(blockStoragePath));
+    super(testName, wallet, new AddressDataProvider(null, null), new RocksDatabase(blockStoragePath));
     this.wallet = wallet;
     this.dbPath = blockStoragePath;
     onAddressGeneration(super.internalAccount(), super.internalAddressData().address, super.internalAddressData().privateKey);
@@ -52,7 +50,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
   public void onAddressGeneration(String account, CoinAddress address, PrivateKey privateKey) {
     super.onAddressGeneration(account, address, privateKey);
     if (privateKey == null) {
-      wallet.importOutputOwnership(chainView, account, address, false, db);
+      wallet.importOutputOwnership(db, chainView, account, address, false);
     } else {
       // From: Wallet.newAddress()
       //      // Step 1 : Generate a random number and a private key.
@@ -65,16 +63,16 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       //      store.putPrivateKeys(address, List(privateKey))
       //      // Step 5 : Put the address as the receiving address of the account.
       //      store.putReceivingAddress(account, address)
-      wallet.store().putOutputOwnership(account, address, db);
-      List<PrivateKey> keys = new ArrayList<>();
+      wallet.getStore().putOutputOwnership(db, account, address);
+      List<PrivateKey> keys = new ArrayList<PrivateKey>();
       keys.add(privateKey);
-      wallet.store().putPrivateKeys(address, JavaConverters.asScalaBuffer(keys).toList(), db);
-      wallet.store().putReceivingAddress(account, address, db);
+      wallet.getStore().putPrivateKeys(db, address, keys);
+      wallet.getStore().putReceivingAddress(db, account, address);
     }
   }
 
   public Hash getTxHash(Transaction tx) {
-    return HashSupported.toHashSupportedTransaction(tx).hash();
+    return HashCalculator.transactionHash(tx);
   }
 
 
@@ -84,43 +82,37 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
   //                      privateKeys   : Option[List[PrivateKey]],
   //                      sigHash       : SigHash
   //  )(implicit db : KeyValueDatabase) : signedTx = {
-  public signedTx signTransaction(Transaction transaction, Option<List<PrivateKey>> privateKeysOption) {
-    Option<scala.collection.immutable.List<PrivateKey>> keysOption = Option.empty();
-    if (privateKeysOption.isDefined()) {
-      keysOption = Option.apply(JavaConverters.asScalaBuffer(privateKeysOption.get()).toList());
-    }
+  public SignedTransaction signTransaction(Transaction transaction, List<PrivateKey> privateKeysOption) {
     List<UnspentTransactionOutput> empty = new ArrayList<UnspentTransactionOutput>();
-    return wallet.signTransaction(transaction, blockChainView(), JavaConverters.asScalaBuffer(empty).toList(), keysOption, SigHash.ALL(), blockChainView().db());
+    return wallet.signTransaction(blockChainView().db(), transaction, blockChainView(), new ArrayList(), privateKeysOption, SigHash.ALL);
   }
 
-  public Hash sendTransaction(signedTx tx) {
-    Hash hash = getTxHash(tx.transaction());
+  public Hash sendTransaction(SignedTransaction tx) {
+    Hash hash = getTxHash(tx.getTransaction());
     // CREATE A TransactionWithName.
-    TransactionWithName transactionWithName = TransactionWithName.apply("SignedTx:" + hash.toHex(), tx.transaction());
+    TransactionWithName transactionWithName = new TransactionWithName("SignedTx:" + hash.toHex(), tx.getTransaction());
     addTransaction(availableOutputs(), transactionWithName);
     // CREATE AND ADD A NEW BLOCK
     newBlock(transactionWithName);
     return hash;
   }
 
-  public TransactionWithName signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, Option<List<PrivateKey>> privateKeysOption) {
+  public TransactionWithName signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, List<PrivateKey> privateKeysOption) {
     TransactionBuilder builder = TransactionBuilder.newBuilder();
 
     for (int i = 0; i < spendingOutputs.size(); i++) {
       builder.addInput(
+        db,
         availableOutputs(),
-        spendingOutputs.get(i).outPoint(),
-        builder.addInput$default$3(),
-        builder.addInput$default$4(),
-        db
+        spendingOutputs.get(i).getOutPoint()
       );
     }
     for (int i = 0; i < newOutputs.size(); i++) {
-      builder.addOutput(newOutputs.get(i).amount(), newOutputs.get(i).outputOwnership());
+      builder.addOutput(newOutputs.get(i).getAmount(), newOutputs.get(i).getOutputOwnership());
     }
-    Transaction tx = builder.build(builder.build$default$1(), builder.build$default$2());
-    signedTx signedTx = signTransaction(tx, privateKeysOption);
-    TransactionWithName transactionWithName = TransactionWithName.apply(name,signedTx.transaction());
+    Transaction tx = builder.build();
+    SignedTransaction signedTx = signTransaction(tx, privateKeysOption);
+    TransactionWithName transactionWithName = new TransactionWithName(name,signedTx.getTransaction());
     addTransaction(availableOutputs(), transactionWithName);
     return transactionWithName;
   }
@@ -128,12 +120,12 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
   public TransactionWithName signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, PrivateKey privateKey) {
     List<PrivateKey> keys = new ArrayList<PrivateKey>();
     keys.add(privateKey);
-    return signedNormalTransaction(name, spendingOutputs, newOutputs, Option.apply(keys));
+    return signedNormalTransaction(name, spendingOutputs, newOutputs, keys);
   }
 
   public TransactionWithName signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs) {
-    List<PrivateKey> keys = new ArrayList<PrivateKey>();
-    return signedNormalTransaction(name, spendingOutputs, newOutputs, Option.empty());
+    List<PrivateKey> keys = null;
+    return signedNormalTransaction(name, spendingOutputs, newOutputs, keys);
   }
 
 
@@ -141,7 +133,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     coinAddress = (coinAddress != null) ? coinAddress : internalAddressData().address;
     TransactionWithName transactionWithName  = generationTransaction(
       "GENTX-" + coinAddress.base58() + "-" + (System.currentTimeMillis() / 1000),
-      CoinAmount.apply(scala.math.BigDecimal.valueOf(50)),
+      new CoinAmount(java.math.BigDecimal.valueOf(50)),
       coinAddress
     );
 
@@ -149,7 +141,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
   }
 
   private NewOutput markerOutput(int[] quantities, byte[] definitionPointer) throws OapException {
-    NewOutput markerOutput = NewOutput.apply(
+    NewOutput markerOutput = new NewOutput(
       CoinAmount.from(0L),
       ParsedPubKeyScript.from(OapMarkerOutput.lockingScriptFrom(quantities, definitionPointer))
     );
@@ -170,7 +162,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     List<OutputWithOutPoint> result = new ArrayList<OutputWithOutPoint>();
 
     for(Pair<OutPoint, TransactionOutput> pair : outPointsAndOutpus) {
-      result.add(OutputWithOutPoint.apply(pair.getSecond(), pair.getFirst()));
+      result.add(new OutputWithOutPoint(pair.getSecond(), pair.getFirst()));
     }
 
     return result;
@@ -274,7 +266,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     ListConverter<AssetTransfer> AssetTransferListConverter = new ListConverter<AssetTransfer>();
 
     // Put genesis block.
-    addBlock(env.GenesisBlock());
+    addBlock(env.getGenesisBlock());
 
     // CREATE ACCOUNT AND ADRESSES
     addressDataProvider.generateAccountsAndAddresses();
@@ -298,14 +290,14 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       AddressData lastAddress = data[data.length - 1];
       TransactionWithName tx  = generationTransaction(
         "S2_GENTX-" + account + "-" + (System.currentTimeMillis() / 1000),
-        CoinAmount.apply(scala.math.BigDecimal.valueOf(50)),
+        new CoinAmount(java.math.BigDecimal.valueOf(50)),
         lastAddress.address
       );
 
-      Hash hash = HashSupported.toHashSupportedTransaction(tx.transaction()).hash();
+      Hash hash = HashCalculator.transactionHash(tx.getTransaction());
       // CHECK
-      outputs[index] = tx.transaction().outputs().apply(0);
-      outPoints[index] = OutPoint.apply(hash, 0);
+      outputs[index] = tx.getTransaction().getOutputs().get(0);
+      outPoints[index] = new OutPoint(hash, 0);
       // ADD balance to account
       addBalance(account, lastAddress.address.base58(), BigDecimal.valueOf(50));
       transactionCounts[index][1]++;  // increase receiving transactions.
@@ -320,24 +312,23 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     // STEP 3 : Transfer coins from last non watch-only address to first watch-only address
     transactionWithNames = new ArrayList<TransactionWithName>();
     index = 0;
-    Option<List<PrivateKey>> privateKeyNone = Option.empty();
     for(String account : accounts()) {
       AddressData[] data = addressesOf(account);
       AddressData lastAddress = data[data.length - 1];
       AddressData firstAddress = data[0];
 
       long amount       = IOapConstants.ONE_BTC_IN_SATOSHI.longValue() * ((1 + index) * 5);
-      long changeAmount = outputs[index].value() - amount - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
+      long changeAmount = outputs[index].getValue() - amount - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
 
       TransactionWithName tx = signedNormalTransaction(
         "S3_NORMALTX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(new Pair<OutPoint, TransactionOutput>(outPoints[index], outputs[index])),
         NewOutListConveter.toList(
-          NewOutput.apply(
+          new NewOutput(
             CoinAmount.from(amount),
             firstAddress.address
           ),
-          NewOutput.apply(
+          new NewOutput(
             CoinAmount.from(changeAmount),
             lastAddress.address
           )    //CHANGE
@@ -346,16 +337,16 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       // CHECK
       transactionWithNames.add(tx);
 
-      Hash hash = HashSupported.toHashSupportedTransaction(tx.transaction()).hash();
+      Hash hash = HashCalculator.transactionHash(tx.getTransaction());
       s3NormalTxHashes[index]   = hash;
-      s3Outputs[index] = tx.transaction().outputs().apply(0);
-      s3OOutPoints[index] = OutPoint.apply(hash, 0);
-      changeOutputs[index] = tx.transaction().outputs().apply(1);
-      changeOutPoints[index] = OutPoint.apply(hash, 1);
+      s3Outputs[index] = tx.getTransaction().getOutputs().get(0);
+      s3OOutPoints[index] = new OutPoint(hash, 0);
+      changeOutputs[index] = tx.getTransaction().getOutputs().get(1);
+      changeOutPoints[index] = new OutPoint(hash, 1);
       // substract the tx fee
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
-      substractBalance(account, lastAddress.address.base58(), CoinAmount.from(amount).value().bigDecimal());
-      addBalance      (account, firstAddress.address.base58(), CoinAmount.from(amount).value().bigDecimal());
+      substractBalance(account, lastAddress.address.base58(), CoinAmount.from(amount).getValue());
+      addBalance      (account, firstAddress.address.base58(), CoinAmount.from(amount).getValue());
 
       transactionCounts[index][1] += 2;  // increase receiving transactions.
       transactionCounts[index][0]++;  // increase sending transactions.
@@ -363,7 +354,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       index++;
     }
     // CREATE NEW BLOCK WITH NEW TRANSACTION
-    newBlock(JavaConverters.asScalaBuffer(transactionWithNames).toList());
+    newBlock(transactionWithNames);
 
     // STEP 4 : Issue Assets from the last address of each account
     transactionWithNames = new ArrayList<TransactionWithName>();
@@ -372,7 +363,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       AddressData[] data = addressesOf(account);
       AddressData lastAddress = data[data.length - 1];
 
-      long changeAmount = changeOutputs[index].value() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = changeOutputs[index].getValue() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
       // CREATE ISSUE TRANSACTION.
       TransactionWithName tx = signedNormalTransaction(
         "S4_ISSUETX-" + account + "-" + (System.currentTimeMillis() / 1000),
@@ -380,28 +371,28 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
           new Pair<OutPoint, TransactionOutput>(changeOutPoints[index], changeOutputs[index])
         ),
         NewOutListConveter.toList(
-          NewOutput.apply( // INDEX : 0 ISSUE OUTPUT
+          new NewOutput( // INDEX : 0 ISSUE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
           markerOutput( // INDEX : 1MARKER OUTPUT
             new int[] { assetQuntity }, lastAddress.assetDefinitionPointer.getPointer()
           ),
-          NewOutput.apply( // INDEX : 2 COIN CHANGE
+          new NewOutput( // INDEX : 2 COIN CHANGE
             CoinAmount.from(changeAmount),
             lastAddress.address
           )
         )
       );
       // CHECK
-      Hash hash = HashSupported.toHashSupportedTransaction(tx.transaction()).hash();
+      Hash hash = HashCalculator.transactionHash(tx.getTransaction());
       s4IssueTxHashes[index] = hash;
       // Store the issue output into outputs
-      outputs[index] = tx.transaction().outputs().apply(0);
-      outPoints[index] = OutPoint.apply(hash, 0);
+      outputs[index] = tx.getTransaction().getOutputs().get(0);
+      outPoints[index] = new OutPoint(hash, 0);
       // Store the coin change output into change output
-      changeOutputs[index] = tx.transaction().outputs().apply(2);
-      changeOutPoints[index] = OutPoint.apply(hash, 2);
+      changeOutputs[index] = tx.getTransaction().getOutputs().get(2);
+      changeOutPoints[index] = new OutPoint(hash, 2);
 
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
 //      substractBalance(account, lastAddress.address.base58(), IOapConstants.DUST_IN_BITCOIN);
@@ -416,7 +407,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     }
 
     // CREATE NEW BLOCK WITH NEW TRANSACTION
-    newBlock(JavaConverters.asScalaBuffer(transactionWithNames).toList());
+    newBlock(transactionWithNames);
 
     // STEP 5 : Transfer Issue Assets
     //     from the last address of each account
@@ -428,7 +419,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       AddressData lastAddress = data[data.length - 1];
       AddressData firstAddress = data[0];
 
-      long changeAmount = (outputs[index].value() + changeOutputs[index].value()) - (IOapConstants.DUST_IN_SATOSHI * 2 + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = (outputs[index].getValue() + changeOutputs[index].getValue()) - (IOapConstants.DUST_IN_SATOSHI * 2 + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
 
       int transferQuantity = 2000 * (index + 1);
       int changeQuantity = assetQuntity - transferQuantity;
@@ -445,21 +436,21 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
           markerOutput( // MARKER OUTPUT
             new int[] { transferQuantity, changeQuantity }, new byte[0]
           ),
-          NewOutput.apply( // TRANSFER ASSET
+          new NewOutput( // TRANSFER ASSET
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             firstAddress.address
           ),
-          NewOutput.apply( // ASSET CHANGE OUTPUT
+          new NewOutput( // ASSET CHANGE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
-          NewOutput.apply( // COIN CHANGE
+          new NewOutput( // COIN CHANGE
             CoinAmount.from(changeAmount),
             lastAddress.address
           )
         )
       );
-      Hash hash = HashSupported.toHashSupportedTransaction(tx.transaction()).hash();
+      Hash hash = HashCalculator.transactionHash(tx.getTransaction());
       s5TransferTxHashes[index] = hash;
 
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
@@ -478,7 +469,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       transactionWithNames.add(tx);
     }
     // CREATE NEW BLOCK WITH NEW TRANSACTION
-    newBlock(JavaConverters.asScalaBuffer(transactionWithNames).toList());
+    newBlock(transactionWithNames);
 
     // STEP 6 : Issue Assets from the first address of each account to last address of each account
     transactionWithNames = new ArrayList<TransactionWithName>();
@@ -488,7 +479,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       AddressData firstAddress = data[0];
       AddressData lastAddress  = data[data.length - 1];
 
-      long changeAmount = s3Outputs[index].value() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = s3Outputs[index].getValue() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
       // CREATE ISSUE TRANSACTION.
       TransactionWithName tx = signedNormalTransaction(
         "S6_ISSUETX-" + account + "-" + (System.currentTimeMillis() / 1000),
@@ -496,14 +487,14 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
           new Pair<OutPoint, TransactionOutput>(s3OOutPoints[index], s3Outputs[index])
         ),
         NewOutListConveter.toList(
-          NewOutput.apply( // INDEX : 0 ISSUE OUTPUT
+          new NewOutput( // INDEX : 0 ISSUE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
           markerOutput( // INDEX : 1MARKER OUTPUT
             new int[] { assetQuntity }, lastAddress.assetDefinitionPointer.getPointer()
           ),
-          NewOutput.apply( // INDEX : 2 COIN CHANGE
+          new NewOutput( // INDEX : 2 COIN CHANGE
             CoinAmount.from(changeAmount),
             firstAddress.address
           )
@@ -511,7 +502,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
         firstAddress.privateKey
       );
       // CHECK
-      Hash hash = HashSupported.toHashSupportedTransaction(tx.transaction()).hash();
+      Hash hash = HashCalculator.transactionHash(tx.getTransaction());
       s6IssueTxHashes[index]    = hash;
 
       substractBalance(account, firstAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
@@ -527,7 +518,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
       transactionWithNames.add(tx);
     }
     // CREATE NEW BLOCK WITH NEW TRANSACTION
-    newBlock(JavaConverters.asScalaBuffer(transactionWithNames).toList());
+    newBlock(transactionWithNames);
 
     for(int i= 0;i < transactionCounts.length;i++) {
       receivingTransactionCounts.put(accounts()[i], transactionCounts[i][0]);
@@ -550,7 +541,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
   File dbPath = null;
   public static void init(String envName, File path) {
     if (envName == null) envName = "testnet";
-    ChainEnvironment$.MODULE$.create(envName);
+    ChainEnvironment.create(envName);
 
     if (path == null) {
       targetPath = new File("./target");

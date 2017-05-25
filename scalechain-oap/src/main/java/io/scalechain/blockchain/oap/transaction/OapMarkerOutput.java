@@ -6,7 +6,7 @@ import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.proto.LockingScript;
 import io.scalechain.blockchain.proto.TransactionOutput;
 import io.scalechain.blockchain.oap.util.LEB128Codec;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 
 import java.nio.ByteBuffer;
@@ -19,9 +19,9 @@ public class OapMarkerOutput extends OapTransactionOutput {
     int[]  quantities;
 
     public OapMarkerOutput(TransactionOutput output, AssetId assetId) throws OapException {
-        super(assetId, 0, IOapConstants.MARKER_OUTPUT_AMOUNT, output.lockingScript());
+        super(assetId, 0, IOapConstants.MARKER_OUTPUT_AMOUNT, output.getLockingScript());
         // Need to check output.value() == 0 ?
-        parse(output.lockingScript().data().array());
+        parse(output.getLockingScript().getData().getArray());
     }
 
     public OapMarkerOutput(AssetId assetId, int[] quantities, byte[] metadata) throws OapException {
@@ -88,7 +88,7 @@ public class OapMarkerOutput extends OapTransactionOutput {
         bufer.flip();
         result = new byte[length];
         bufer.get(result);
-        return new LockingScript(new ByteArray(result));
+        return new LockingScript(new Bytes(result));
     }
 
     //  /**
@@ -108,7 +108,7 @@ public class OapMarkerOutput extends OapTransactionOutput {
     //   }
     // Marker OUTPUT : def addOutput(data : Array[Byte]) : TransactionBuilder
     public static byte[] stripOpReturnFromLockScript(LockingScript lockingScript) {
-        byte[] scriptBytes = lockingScript.data().array();
+        byte[] scriptBytes = lockingScript.getData().getArray();
         // If script start with OP_RETURN, strip 2 bytes from locking  script
         if (scriptBytes[0] == 0x6a) {
             // STRIP 2 bytes 0x6a + PUSHDATA(n)
@@ -135,7 +135,7 @@ public class OapMarkerOutput extends OapTransactionOutput {
                 sb.append(')');
             }
             if (metadata != null) {
-                sb.append(", metadata=(").append(HexUtil.hex(metadata, HexUtil.hex$default$2())).append(')');
+                sb.append(", metadata=(").append(HexUtil.hex(metadata)).append(')');
             }
         return sb.append(')').toString();
     }

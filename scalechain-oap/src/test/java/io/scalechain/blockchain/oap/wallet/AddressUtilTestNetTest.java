@@ -2,9 +2,9 @@ package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.proto.LockingScript;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class AddressUtilTestNetTest {
     public static void setUpForClass() throws Exception {
         System.out.println(AddressUtilTestNetTest.class.getName() + ".setupForClass()");
 
-        ChainEnvironment$.MODULE$.create("mainnet");
+        ChainEnvironment.create("mainnet");
     }
 
     @Test
@@ -29,7 +29,7 @@ public class AddressUtilTestNetTest {
         String lockingScriptHex  = "a91419a7d869032368fd1f1e26e5e73a4ad0e474960e87";
         String p2shAddressBase58 = "342ftSRCvFHfCeFFBuz4xwbeqnDw6BGUey";
 
-        LockingScript lockingScript = new LockingScript(new ByteArray(HexUtil.bytes(lockingScriptHex)));
+        LockingScript lockingScript = new LockingScript(new Bytes(HexUtil.bytes(lockingScriptHex)));
         CoinAddress p2shAddress = AddressUtil.coinAddressFromLockingScript(lockingScript);
         assertEquals("P2SH Script", p2shAddressBase58, p2shAddress.base58());
 
@@ -42,7 +42,7 @@ public class AddressUtilTestNetTest {
         String lockingScriptHex  = "76a914fe58bbf690824bdaffb0431a709c27d7bdb6105e88ac";
         String p2shAddressBase58 = "1QBrw64xj8p9RNLsjhzQtuz2NBdMqRuKzJ";
 
-        LockingScript lockingScript = new LockingScript(new ByteArray(HexUtil.bytes(lockingScriptHex)));
+        LockingScript lockingScript = new LockingScript(new Bytes(HexUtil.bytes(lockingScriptHex)));
         CoinAddress p2shAddress = AddressUtil.coinAddressFromLockingScript(lockingScript);
         assertEquals("P2SH Script", p2shAddressBase58, p2shAddress.base58());
     }

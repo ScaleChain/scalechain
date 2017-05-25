@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.transaction
 
 import io.scalechain.blockchain.proto.*
-import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 
 /**

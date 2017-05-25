@@ -1,10 +1,8 @@
 package io.scalechain.blockchain.transaction
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.TransactionVerificationException
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.storage.BlockIndex
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import org.slf4j.LoggerFactory
 

@@ -29,9 +29,9 @@ public interface IWalletInterface {
    */
   List<UnspentCoinDescriptor> listUnspent(long minConfirmations, long maxConfirmations, List<CoinAddress> addresses);
 
-  List<WalletTransactionDescriptor> listTransactions(Option<String> accountOption, int count, long skip, boolean includeWatchOly);
+  List<WalletTransactionDescriptor> listTransactions(String accountOption, int count, long skip, boolean includeWatchOly);
 
-  List<CoinAddress> getAddressesByAccount(Option<String> accountOption, boolean includeWatchOnly) throws OapException;
+  List<CoinAddress> getAddressesByAccount(String accountOption, boolean includeWatchOnly) throws OapException;
 
   CoinAddress getReceivingAddress(String account) throws OapException;
 }

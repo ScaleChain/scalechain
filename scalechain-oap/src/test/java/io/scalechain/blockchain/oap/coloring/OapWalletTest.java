@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.oap.coloring;
 
+import io.scalechain.wallet.WalletTransactionDescriptor;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.OpenAssetsProtocol;
 import io.scalechain.blockchain.oap.TestWithWalletSampleData;
@@ -13,6 +14,7 @@ import io.scalechain.blockchain.transaction.CoinAmount;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,18 +56,18 @@ public class OapWalletTest extends TestWithWalletSampleData {
     long expCoinAmountSum = IOapConstants.ONE_BTC_IN_SATOSHI.longValue() * 200 - 12 * IOapConstants.DEFAULT_FEES_IN_SATOSHI;
     int assetCount = 0, coinCount = 0;
     HashMap<AssetId, Long> expAssetQuantaties = null;
-    List<UnspentCoinDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
+    List<UnspentAssetDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
     long coinAmountSum = 0;
-    for (UnspentCoinDescriptor unspent : unspents) {
-      if (unspent instanceof UnspentAssetDescriptor) {
-        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+    for (UnspentAssetDescriptor unspent : unspents) {
+      if (unspent.isColored()) {
+        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
         UnspentAssetDescriptor assetDescrptor = (UnspentAssetDescriptor)unspent;
         expAssetQuantaties = pushAssetQuantity(expAssetQuantaties, assetDescrptor.getAssetId(), assetDescrptor.getQuantity());
         assetCount++;
-        coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+        coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
       } else {
         coinCount++;
-        coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+        coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
       }
     }
 
@@ -93,10 +95,10 @@ public class OapWalletTest extends TestWithWalletSampleData {
   @Test
   public void listUnspentAllNoAsset() throws OapException {
     int expCoinCount = 0;
-    List<UnspentCoinDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
-    for (UnspentCoinDescriptor unspent : unspents) {
-      if (unspent instanceof UnspentAssetDescriptor) {
-        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+    List<UnspentAssetDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
+    for (UnspentAssetDescriptor unspent : unspents) {
+      if (unspent.isColored()) {
+        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
       } else {
         expCoinCount++;
 
@@ -107,13 +109,13 @@ public class OapWalletTest extends TestWithWalletSampleData {
     int assetCount = 0, coinCount = 0;
     long coinAmountSum = 0;
     unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), false);
-    for (UnspentCoinDescriptor unspent : unspents) {
-      if (unspent instanceof UnspentAssetDescriptor) {
+    for (UnspentAssetDescriptor unspent : unspents) {
+      if (unspent.isColored()) {
         assetCount++;
-        coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+        coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
       } else {
         coinCount++;
-        coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+        coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
       }
     }
 
@@ -130,10 +132,10 @@ public class OapWalletTest extends TestWithWalletSampleData {
 
     int expCoinCount = 0, expAssetCount = 0;
     HashMap<AssetId, Long> expAssetQuantaties = null;
-    List<UnspentCoinDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
-    for (UnspentCoinDescriptor unspent : unspents) {
-      if (unspent instanceof UnspentAssetDescriptor) {
-        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+    List<UnspentAssetDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), true);
+    for (UnspentAssetDescriptor unspent : unspents) {
+      if (unspent.isColored()) {
+        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
         UnspentAssetDescriptor assetDescrptor = (UnspentAssetDescriptor)unspent;
         expAssetQuantaties = pushAssetQuantity(expAssetQuantaties, assetDescrptor.getAssetId(), assetDescrptor.getQuantity());
         expAssetCount++;
@@ -156,15 +158,15 @@ public class OapWalletTest extends TestWithWalletSampleData {
         list.add(a.address);
       }
       unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, list, true);
-      for (UnspentCoinDescriptor unspent : unspents) {
-        if (unspent instanceof UnspentAssetDescriptor) {
-          assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+      for (UnspentAssetDescriptor unspent : unspents) {
+        if (unspent.isColored()) {
+          assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
           assetCount++;
-          coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+          coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
 
         } else {
           coinCount++;
-          coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+          coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
         }
       }
     }
@@ -186,10 +188,10 @@ public class OapWalletTest extends TestWithWalletSampleData {
 
     int expCoinCount = 0, expAssetCount = 0;
     HashMap<AssetId, Long> expAssetQuantaties = null;
-    List<UnspentCoinDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), false);
-    for (UnspentCoinDescriptor unspent : unspents) {
-      if (unspent instanceof UnspentAssetDescriptor) {
-        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+    List<UnspentAssetDescriptor> unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, new ArrayList<CoinAddress>(), false);
+    for (UnspentAssetDescriptor unspent : unspents) {
+      if (unspent.isColored()) {
+        assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
         UnspentAssetDescriptor assetDescrptor = (UnspentAssetDescriptor)unspent;
         expAssetQuantaties = pushAssetQuantity(expAssetQuantaties, assetDescrptor.getAssetId(), assetDescrptor.getQuantity());
         expAssetCount++;
@@ -212,15 +214,15 @@ public class OapWalletTest extends TestWithWalletSampleData {
         list.add(a.address);
       }
       unspents = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, list, false);
-      for (UnspentCoinDescriptor unspent : unspents) {
-        if (unspent instanceof UnspentAssetDescriptor) {
-          assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, CoinAmount.apply(unspent.amount()).coinUnits());
+      for (UnspentAssetDescriptor unspent : unspents) {
+        if (unspent.isColored()) {
+          assertEquals("Value of uspent should be DUST", IOapConstants.DUST_IN_SATOSHI, new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits());
           assetCount++;
-          coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+          coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
 
         } else {
           coinCount++;
-          coinAmountSum += CoinAmount.apply(unspent.amount()).coinUnits();
+          coinAmountSum += new CoinAmount(unspent.getUnspentCoinDescriptor().getAmount()).coinUnits();
         }
       }
     }

@@ -1,8 +1,6 @@
 package io.scalechain.blockchain.api
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.api.domain.RpcResponse
-import io.scalechain.blockchain.api.domain.RpcParams
 import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.util.StringUtil
 
@@ -14,7 +12,7 @@ object RequestHandler : ServiceDispatcher {
 
   //implicit val implicitJsonRpcRequest = jsonFormat4(RpcRequest.apply)
 
-  val requestLog = java.io.FileWriter("./target/request-${Math.abs(Random().nextInt())}.log")
+  val requestLog = java.io.FileWriter("./build/request-${Math.abs(Random().nextInt())}.log")
   //var requestCount = 0
   fun handleRequest(requestString : String) : String {
     //requestCount += 1

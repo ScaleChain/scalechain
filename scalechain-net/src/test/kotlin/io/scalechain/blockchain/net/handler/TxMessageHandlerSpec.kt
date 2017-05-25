@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class TxMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-TransactionMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-TransactionMessageHandlerSpec/")
 
   override fun beforeEach() {
     // set-up code

@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BlockProcessorSpec : BlockchainTestTrait(), Matchers, TransactionTestInterface {
 
-  override val testPath = File("./target/unittests-BlockProcessorSpec/")
+  override val testPath = File("./build/unittests-BlockProcessorSpec/")
 
   lateinit var b : BlockProcessor
 

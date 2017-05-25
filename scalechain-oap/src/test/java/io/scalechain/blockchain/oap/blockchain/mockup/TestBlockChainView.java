@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.oap.blockchain.mockup;
 
 import io.scalechain.blockchain.chain.TestBlockIndex;
-import io.scalechain.blockchain.chain.TransactionOutputSet;
+import io.scalechain.blockchain.transaction.TransactionOutputSet;
 import io.scalechain.blockchain.proto.Hash;
 import io.scalechain.blockchain.proto.OutPoint;
 import io.scalechain.blockchain.proto.Transaction;
@@ -9,8 +9,8 @@ import io.scalechain.blockchain.proto.TransactionOutput;
 import io.scalechain.blockchain.storage.index.KeyValueDatabase;
 import io.scalechain.blockchain.transaction.BlockchainView;
 import io.scalechain.blockchain.transaction.ChainBlock;
-import scala.Option;
-import scala.collection.Iterator;
+
+import java.util.Iterator;
 
 /**
  * Created by shannon on 17. 1. 5.
@@ -53,24 +53,25 @@ public class TestBlockChainView implements BlockchainView {
   public TestBlockIndex blockIndex = new TestBlockIndex();
 
   @Override
-  public TransactionOutput getTransactionOutput(OutPoint outPoint, KeyValueDatabase db) {
-    return availableOutputs.getTransactionOutput(outPoint, db);
+  public TransactionOutput getTransactionOutput(KeyValueDatabase db, OutPoint outPoint) {
+    return availableOutputs.getTransactionOutput(db, outPoint);
   }
 
   @Override
-  public Iterator<ChainBlock> getIterator(long height, KeyValueDatabase db) {
+
+  public Iterator<ChainBlock> getIterator(KeyValueDatabase db, long height) {
     assert(false);
     return null;
   }
 
   @Override
   public long getBestBlockHeight() {
-    return blockIndex.bestBlockHeight();
+    return blockIndex.getBestBlockHeight();
   }
 
   @Override
-  public Option<Transaction> getTransaction(Hash transactionHash, KeyValueDatabase db) {
-    return blockIndex.getTransaction(transactionHash, db);
+  public Transaction getTransaction(KeyValueDatabase db, Hash transactionHash) {
+    return blockIndex.getTransaction(db, transactionHash);
   }
 
   public KeyValueDatabase db() {

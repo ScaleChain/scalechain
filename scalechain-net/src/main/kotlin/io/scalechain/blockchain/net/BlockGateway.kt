@@ -3,7 +3,6 @@ package io.scalechain.blockchain.net
 import java.util.concurrent.TimeUnit
 
 import bftsmart.tom.ServiceProxy
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec

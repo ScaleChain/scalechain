@@ -1,21 +1,14 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
 import io.netty.channel.*
-import io.netty.channel.group.ChannelGroup
-import io.netty.channel.group.DefaultChannelGroup
 import io.netty.handler.ssl.SslHandler
-import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import io.scalechain.blockchain.net.message.VersionFactory
-import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.blockchain.proto.ProtocolMessage
-import io.scalechain.util.Config
 import io.scalechain.util.ExceptionUtil
 import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
-import java.net.InetAddress
 
 /**
   * Handles a server-side channel.

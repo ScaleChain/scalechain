@@ -62,9 +62,9 @@ public class AssetDefinitionTest extends ApiTestWithSampleTransactions {
     AddressData recevingAddress = provider.receivingAddressOf(account);
 
     // DELETE ASSET DEFINITION.
-    Option<AssetDefinitionPointer> pointerOption = storage.getAssetDefinitionPointer(recevingAddress.assetId.base58());
-    if (pointerOption.isDefined()) {
-      storage.delAssetDefintion(pointerOption.get());
+    AssetDefinitionPointer pointerOption = storage.getAssetDefinitionPointer(recevingAddress.assetId.base58());
+    if (pointerOption != null) {
+      storage.delAssetDefinition(pointerOption);
       storage.delAssetDefinitionPointer(recevingAddress.assetId.base58());
     }
 

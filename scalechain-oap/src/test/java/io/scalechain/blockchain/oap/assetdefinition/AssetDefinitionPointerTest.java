@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.scalechain.blockchain.oap.helper.UnitTestHelper;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 public class AssetDefinitionPointerTest {
   @BeforeClass
   public static void setUpForClass() throws Exception {
-    ChainEnvironment$.MODULE$.create("mainnet");
+    ChainEnvironment.create("mainnet");
     UnitTestHelper.init();
   }
 
@@ -68,14 +68,14 @@ public class AssetDefinitionPointerTest {
     String s = pointer.toString();
     StringBuilder sb = new StringBuilder(AssetDefinitionPointer.class.getSimpleName());
     sb.append('(')
-      .append(HexUtil.hex(new byte[] { AssetDefinitionPointer.HASH_POINTER }, HexUtil.hex$default$2()))
+      .append(HexUtil.hex(new byte[] { AssetDefinitionPointer.HASH_POINTER }))
       .append(valueHex)
       .append(')');
     assertEquals("toString() should be equal to", sb.toString(), s);
 
     StringBuilder sb2 = new StringBuilder(AssetDefinitionPointer.class.getSimpleName());
     sb2.append('(')
-      .append(HexUtil.hex(HexUtil.bytes(pointer.pointerHex()), HexUtil.hex$default$2()))
+      .append(HexUtil.hex(HexUtil.bytes(pointer.pointerHex())))
       .append(')');
     assertEquals("toString() should contain pointerHex()", sb2.toString(), s);
 
@@ -92,25 +92,18 @@ public class AssetDefinitionPointerTest {
     );
     assertEquals("Two pointers created from same value", pointer1, pointer2);
 
-    AssetDefinitionPointer pointer3 = AssetDefinitionPointer.create(
-      AssetDefinitionPointer.URL_POINTER, value
-    );
-    assertNotEquals("Two pointers whith different prexfix", pointer1, pointer3);
-
     byte[] value2 = HexUtil.bytes("123456789012345678901234567890123456789A");
-    AssetDefinitionPointer pointer4 = AssetDefinitionPointer.create(
-      AssetDefinitionPointer.URL_POINTER, value2
+    AssetDefinitionPointer pointer3 = AssetDefinitionPointer.create(
+      AssetDefinitionPointer.HASH_POINTER, value2
     );
-    assertNotEquals("Two pointers whith different value", pointer3, pointer4);
-
-    assertNotEquals("Two pointers whith different prefix and value", pointer1, pointer4);
+    assertNotEquals("Two pointers whith different value", pointer2, pointer3);
 
     assertTrue("AssetDefinitionPointer should not be equal to null", !pointer1.equals(null));
     assertTrue("AssetDefinitionPointer should not be equal to non AsssetDefinitionPointer instance", !pointer1.equals("s"));
   }
 
   @Test
-  public void hashCoeTest() throws OapException {
+  public void hashCodeTest() throws OapException {
     byte[] value = HexUtil.bytes("1234567890123456789012345678901234567890");
     AssetDefinitionPointer pointer1 = AssetDefinitionPointer.create(
       AssetDefinitionPointer.HASH_POINTER, value
@@ -119,20 +112,15 @@ public class AssetDefinitionPointerTest {
     AssetDefinitionPointer pointer2 = AssetDefinitionPointer.create(
       AssetDefinitionPointer.HASH_POINTER, value
     );
-    assertEquals("Two pointers created from same prefix andd value", pointer1.hashCode(), pointer2.hashCode());
+    assertEquals("Two pointers created from same prefix and value", pointer1.hashCode(), pointer2.hashCode());
 
-    AssetDefinitionPointer pointer3 = AssetDefinitionPointer.create(
-      AssetDefinitionPointer.URL_POINTER, value
-    );
-    assertNotEquals("Two pointers whith different prexfix", pointer1.hashCode(), pointer3.hashCode());
 
     byte[] value2 = HexUtil.bytes("123456789012345678901234567890123456789A");
-    AssetDefinitionPointer pointer4 = AssetDefinitionPointer.create(
-      AssetDefinitionPointer.URL_POINTER, value2
+    AssetDefinitionPointer pointer3 = AssetDefinitionPointer.create(
+      AssetDefinitionPointer.HASH_POINTER, value2
     );
-    assertNotEquals("Two pointers whith different value", pointer3.hashCode(), pointer4.hashCode());
 
-    assertNotEquals("Two pointers whith different prefix and value", pointer1.hashCode(), pointer4.hashCode());
+    assertNotEquals("Two pointers whith different value", pointer2.hashCode(), pointer3.hashCode());
   }
 
   @Test

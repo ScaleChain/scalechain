@@ -12,7 +12,7 @@ import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
 import io.scalechain.blockchain.oap.transaction.OapTransaction;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.proto.Hash;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.Test;
 
@@ -77,12 +77,12 @@ public class IssueAssetApiTest extends ApiTestWithSampleTransactions {
   private void checkTx(String hashHex, String issuerAddress, String actualAssetId, String toAddress, int quantity) throws OapException {
     assertEquals("Asset Id should be", AssetId.fromCoinAddress(issuerAddress).base58(), actualAssetId);
 
-    Hash hash = Hash.apply(ByteArray.apply(HexUtil.bytes(hashHex)));
-    OapTransaction tx = (OapTransaction) OpenAssetsProtocol.get().coloringEngine().color(hash);
+    Hash hash = new Hash(new Bytes(HexUtil.bytes(hashHex)));
+    OapTransaction tx = OpenAssetsProtocol.get().coloringEngine().color(hash);
 
     // Check
-    assertTrue("Tx Output(1) should be MARKER OUPUT", (tx.outputs().apply(1) instanceof OapMarkerOutput));
-    int[] assetQuantities = ((OapMarkerOutput)tx.outputs().apply(1)).getQuantities();
+    assertTrue("Tx Output(1) should be MARKER OUPUT", (tx.getOapOutputs().get(1) instanceof OapMarkerOutput));
+    int[] assetQuantities = ((OapMarkerOutput)tx.getOapOutputs().get(1)).getQuantities();
     assertTrue("Asset Quantity Count should be  1", assetQuantities.length == 1);
     assertEquals("Asset Quantity should be  ", quantity, assetQuantities[0]);
   }

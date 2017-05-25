@@ -70,7 +70,7 @@ public class AssetDefinition {
     } catch (UnsupportedEncodingException e) {
       bytes = toString().getBytes();
     }
-    return HashFunctions.hash160(bytes).value();
+    return HashFunctions.hash160(bytes).getValue().getArray();
   }
 
   public static AssetDefinition from(String value) throws OapException {

@@ -9,12 +9,10 @@ import io.scalechain.blockchain.oap.rpc.RpcInvoker;
 import io.scalechain.blockchain.proto.Hash;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.oap.env.OpenAssetsProtocolEnv;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.WalletTransactionDescriptor;
-import scala.Option;
-import scala.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,19 +61,19 @@ public class BitcoinWalletInterface implements IWalletInterface {
     JsonArray jsonResult = response.getAsJsonArray("result");
     java.util.List<UnspentCoinDescriptor> descriptors = new java.util.ArrayList<UnspentCoinDescriptor>();
 
-    Option empty = Option.empty();
+
     for (JsonElement e : jsonResult) {
       JsonObject jo = e.getAsJsonObject();
-      Option addressOption = Option.apply(jo.get("address").getAsString());
-      Option accountOption = Option.apply(jo.get("account").getAsString());
-      UnspentCoinDescriptor ucd = UnspentCoinDescriptor.apply(
-        new Hash(new ByteArray(HexUtil.bytes(jo.get("txid").getAsString()))),
+      String addressOption = jo.get("address").getAsString();
+      String accountOption = jo.get("account").getAsString();
+      UnspentCoinDescriptor ucd = new UnspentCoinDescriptor(
+        new Hash(new Bytes(HexUtil.bytes(jo.get("txid").getAsString()))),
         jo.get("vout").getAsInt(),  //((JsNumber)fields.get("vout").get()).value().intValue(),
         addressOption,   //Option.apply(fields.get("address").get().toString()),
         accountOption,   //Option.apply(fields.get("account").get().toString()),
         jo.get("scriptPubKey").getAsString(),   //fields.get("scriptPubKey").get().toString(),
-        empty,
-        scala.math.BigDecimal.decimal(jo.get("amount").getAsBigDecimal(), BigDecimal.defaultMathContext()), // ((JsNumber)fields.get("amount").get()).value(),
+        null,
+        jo.get("amount").getAsBigDecimal(), // ((JsNumber)fields.get("amount").get()).value(),
         jo.get("confirmations").getAsLong(), //((JsNumber)fields.get("confirmations").get()).value().longValue(),
         jo.get("spendable").getAsBoolean() //((JsBoolean)fields.get("spendable").get()).value()
       );
@@ -86,14 +84,14 @@ public class BitcoinWalletInterface implements IWalletInterface {
   }
 
   @Override
-  public List<WalletTransactionDescriptor> listTransactions(Option<String> accountOption, int count, long skip, boolean includeWatchOly) {
+  public List<WalletTransactionDescriptor> listTransactions(String accountOption, int count, long skip, boolean includeWatchOly) {
     List<WalletTransactionDescriptor> result = new ArrayList<WalletTransactionDescriptor>();
     // TODO implement
     return result;
   }
 
   @Override
-  public List<CoinAddress> getAddressesByAccount(Option<String> accountOption, boolean includeWatchOnly) throws OapException {
+  public List<CoinAddress> getAddressesByAccount(String accountOption, boolean includeWatchOnly) throws OapException {
     return null;
   }
 

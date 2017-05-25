@@ -16,7 +16,7 @@ import java.io.File
 //@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
 class MapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
-  val testPath = File("./target/unittests-MapDatabaseSpec")
+  val testPath = File("./build/unittests-MapDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
 

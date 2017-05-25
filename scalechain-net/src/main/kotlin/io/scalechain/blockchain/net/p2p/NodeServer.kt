@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelOption
 import io.netty.channel.ChannelFutureListener

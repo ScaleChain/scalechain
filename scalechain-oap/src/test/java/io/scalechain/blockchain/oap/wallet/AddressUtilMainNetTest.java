@@ -2,9 +2,9 @@ package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.proto.LockingScript;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class AddressUtilMainNetTest {
     public static void setUpForClass() throws Exception {
         System.out.println(AddressUtilMainNetTest.class.getName() + ".setupForClass()");
 
-        ChainEnvironment$.MODULE$.create("mainnet");
+        ChainEnvironment.create("mainnet");
     }
 
     // String txIdHex = "9c08a4d78931342b37fd5f72900fb9983087e6f46c4a097d8a1f52c74e28eaf6";
@@ -61,7 +61,7 @@ public class AddressUtilMainNetTest {
 
         for(int i = 0;i < p2shLockingScripts.length;i++ ) {
             CoinAddress p2shAddress = AddressUtil.coinAddressFromLockingScript(
-                    new LockingScript(new ByteArray(HexUtil.bytes(p2shLockingScripts[i])))
+                    new LockingScript(new Bytes(HexUtil.bytes(p2shLockingScripts[i])))
             );
             assertEquals("P2SH Script", p2shAddresses[i], p2shAddress.base58());
         }
@@ -74,7 +74,7 @@ public class AddressUtilMainNetTest {
 
         for(int i = 0;i < p2pkhLockingScripts.length;i++ ) {
             CoinAddress p2pkhAddress = AddressUtil.coinAddressFromLockingScript(
-                    new LockingScript(new ByteArray(HexUtil.bytes(p2pkhLockingScripts[i])))
+                    new LockingScript(new Bytes(HexUtil.bytes(p2pkhLockingScripts[i])))
             );
             assertEquals("P2SH Script", p2pkhAddresses[i], p2pkhAddress.base58());
         }

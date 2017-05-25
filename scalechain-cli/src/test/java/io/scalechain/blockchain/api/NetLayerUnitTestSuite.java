@@ -14,7 +14,8 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  AssetDefinitionPointerTest.class,
+  AssetDefinitionTest.class,
+  // AssetDefinitionPointerTest.class,
   WalletApiTest.class,
   OapWalletApiTest.class,
   SendManyTest.class,

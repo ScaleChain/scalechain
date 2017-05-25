@@ -11,7 +11,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 //@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
 class TransactingMapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
-  val testPath = File("./target/unittests-TransactingMapDatabaseSpec")
+  val testPath = File("./build/unittests-TransactingMapDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
   lateinit var txDb : TransactingKeyValueDatabase

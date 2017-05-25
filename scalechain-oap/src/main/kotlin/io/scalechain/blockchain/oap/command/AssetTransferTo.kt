@@ -10,4 +10,4 @@ package io.scalechain.blockchain.oap.command
   * @param asset_id The id of asset to transer
   * @param quantity The amount of an asset to transfer
   */
-data class AssetTransferTo(to_address   : String, asset_id     : String, quantity    : Int)
+data class AssetTransferTo(val to_address : String, val asset_id : String, val quantity : Int)

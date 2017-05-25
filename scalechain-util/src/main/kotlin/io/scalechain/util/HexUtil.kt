@@ -1,7 +1,5 @@
 package io.scalechain.util
 
-import scala.Option
-
 
 /**
  * Created by kangmo on 11/3/15.
@@ -40,13 +38,18 @@ object HexUtil {
      */
     // BUGBUG : Get rid of Scala Option
     @JvmStatic
-    fun hex(data: ByteArray, sep: String? = "" ): String {
+    fun hex(data: ByteArray, sep: String? ): String {
         val separatorChar = if ( sep != null ) sep else ""
 
         return data.map{String.format("%02x", it) }.joinToString( separatorChar )
     }
 
-    /** Return a hex string in pretty format.
+    @JvmStatic
+    fun hex(data: ByteArray): String {
+        return hex(data, "")
+    }
+
+        /** Return a hex string in pretty format.
      * Ex> ca fe be be
      *
      * @param data the byte array.

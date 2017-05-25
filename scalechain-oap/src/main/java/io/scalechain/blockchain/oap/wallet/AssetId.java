@@ -6,7 +6,7 @@ import io.scalechain.crypto.Base58Check;
 import io.scalechain.crypto.HashFunctions;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.exception.OapException;
-import scala.Tuple2;
+import kotlin.Pair;
 
 /**
  * Created by shannon on 16. 11. 23.
@@ -70,8 +70,8 @@ public class AssetId {
 
     public static byte[] p2pkhScriptHash(byte[] publickeyHash) {
         return HashFunctions.hash160(
-                ParsedPubKeyScript.from(publickeyHash).lockingScript().data().array()
-        ).bytes();
+                ParsedPubKeyScript.from(publickeyHash).lockingScript().getData().getArray()
+        ).getValue().getArray();
     }
     //      Bitcoin address       : 16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM.
     //        Base58Check decoded : 010966776006953D5567439E5E39F86A0D273BEE
@@ -91,8 +91,8 @@ public class AssetId {
             CoinAddress.from(base58);
         } catch(Exception e) {
             try {
-                Tuple2<Object, byte[]> decoded = Base58Check.decode(base58);
-                return new AssetId((byte) decoded._1(), decoded._2());
+                Pair<Byte, byte[]> decoded = Base58Check.decode(base58);
+                return new AssetId( decoded.getFirst(), decoded.getSecond());
             } catch(Exception ex) {
                 throw new OapException(OapException.INVALID_ASSET_ID, "Invalid AssetId: " + base58, ex);
             }
@@ -102,17 +102,17 @@ public class AssetId {
 
     public static AssetId from(CoinAddress coinAddress) throws OapException {
         return new AssetId(
-                versionByteFromCoinVersion(coinAddress.version()),
-                p2pkhScriptHash(coinAddress.publicKeyHash().array())
+                versionByteFromCoinVersion(coinAddress.getVersion()),
+                p2pkhScriptHash(coinAddress.getPublicKeyHash().getArray())
         );
     }
 
     public static AssetId fromCoinAddress(String coinAddress) throws OapException {
         try {
-            Tuple2<Object, byte[]> decoded = Base58Check.decode(coinAddress);
+            Pair<Byte, byte[]> decoded = Base58Check.decode(coinAddress);
             return new AssetId(
-                    versionByteFromCoinVersion((byte)decoded._1()),
-                    p2pkhScriptHash(decoded._2())
+                    versionByteFromCoinVersion(decoded.getFirst()),
+                    p2pkhScriptHash(decoded.getSecond())
             );
         } catch(Exception e) {
             throw new OapException(OapException.INVALID_ADDRESS, "Cannot create AssetId from CoinAddress: " + coinAddress);

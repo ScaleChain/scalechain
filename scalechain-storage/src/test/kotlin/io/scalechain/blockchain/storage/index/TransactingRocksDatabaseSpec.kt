@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
 
 @RunWith(KTestJUnitRunner::class)
 class TransactingRocksDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
-  val testPath = File("./target/unittests-TransactingRocksDatabaseSpec")
+  val testPath = File("./build/unittests-TransactingRocksDatabaseSpec")
 
   lateinit override var db : KeyValueDatabase
   lateinit var txDb : TransactingKeyValueDatabase

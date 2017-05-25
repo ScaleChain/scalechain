@@ -1,7 +1,7 @@
 package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.util.HexUtil;
@@ -20,7 +20,7 @@ public class AssetIdMainNetTest {
     @BeforeClass
     public static void setUpForClass() throws Exception {
         System.out.println(AssetIdMainNetTest.class.getName() + ".setupForClass()");
-        ChainEnvironment$.MODULE$.create("mainnet");
+        ChainEnvironment.create("mainnet");
         coinAddresses = new String[] {
                 "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM",
                 "1Pwes7rbLb4cjQ8z4tSiS13zVaHKqtJ33U",
@@ -75,9 +75,8 @@ public class AssetIdMainNetTest {
 
         String expectedHash = HexUtil.hex(
                 AssetId.p2pkhScriptHash(
-                        CoinAddress.from(coinAddress).publicKeyHash().array()
-                ),
-                HexUtil.hex$default$2()
+                        CoinAddress.from(coinAddress).getPublicKeyHash().getArray()
+                )
         );
         assert p2shScriptHash.equals(expectedHash);
     }
@@ -87,16 +86,16 @@ public class AssetIdMainNetTest {
         for (int i = 0; i < coinAddresses.length; i++) {
             CoinAddress coinAddress = CoinAddress.from(coinAddresses[i]);
             AssetId assetId = new AssetId(
-                    AssetId.versionByteFromCoinVersion(coinAddress.version()),
-                    AssetId.p2pkhScriptHash(coinAddress.publicKeyHash().array())
+                    AssetId.versionByteFromCoinVersion(coinAddress.getVersion()),
+                    AssetId.p2pkhScriptHash(coinAddress.getPublicKeyHash().getArray())
             );
             assert !assetId.equals(coinAddress);
             assert assetId.base58().equals(assetIds[i]);
             assert assetId.base58().equals(assetId.toString());
 
             AssetId assetId2 = new AssetId(
-                    AssetId.versionByteFromCoinVersion(coinAddress.version()),
-                    AssetId.p2pkhScriptHash(coinAddress.publicKeyHash().array())
+                    AssetId.versionByteFromCoinVersion(coinAddress.getVersion()),
+                    AssetId.p2pkhScriptHash(coinAddress.getPublicKeyHash().getArray())
             );
 
             assert assetId.base58().equals(assetId.base58());
@@ -105,8 +104,8 @@ public class AssetIdMainNetTest {
 
             CoinAddress coinAddress2 = CoinAddress.from(coinAddresses[coinAddresses.length - i -1]);
             AssetId assetId3 = new AssetId(
-                    AssetId.versionByteFromCoinVersion(coinAddress2.version()),
-                    AssetId.p2pkhScriptHash(coinAddress2.publicKeyHash().array())
+                    AssetId.versionByteFromCoinVersion(coinAddress2.getVersion()),
+                    AssetId.p2pkhScriptHash(coinAddress2.getPublicKeyHash().getArray())
             );
             assert !assetId.equals(assetId3);
         }

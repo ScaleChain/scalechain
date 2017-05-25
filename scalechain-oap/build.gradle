@@ -1,5 +1,4 @@
 dependencies {
-    compile project(':scalechain-oap')
     compile project(':scalechain-wallet')
     compile project(':scalechain-chain')
     compile project(':scalechain-transaction')

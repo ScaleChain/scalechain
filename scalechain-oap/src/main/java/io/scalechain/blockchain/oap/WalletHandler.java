@@ -3,7 +3,7 @@ package io.scalechain.blockchain.oap;
 import io.scalechain.blockchain.oap.blockchain.IWalletInterface;
 import io.scalechain.blockchain.oap.blockchain.OapWallet;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.OapTransactionDescriptor;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.wallet.WalletTransactionDescriptor;
@@ -37,7 +37,7 @@ public class WalletHandler {
    * @return
    * @throws OapException
    */
-  public List<CoinAddress> getAddressesByAccount(Option<String> accountOption, boolean includeWatchOnly) throws OapException {
+  public List<CoinAddress> getAddressesByAccount(String accountOption, boolean includeWatchOnly) throws OapException {
 
     return OpenAssetsProtocol.get().wallet().getAddressesByAccount(accountOption, includeWatchOnly);
   }
@@ -70,7 +70,7 @@ public class WalletHandler {
    * @throws OapException
    */
   public List<AssetBalanceDesc> getAssetBalance(
-    Option<String> accountOption, long minConf,
+    String accountOption, long minConf,
     boolean includeWatchOnly, List<String> assetIds
   ) throws OapException {
     List<AssetBalanceDesc> result = new ArrayList<AssetBalanceDesc>();
@@ -89,7 +89,7 @@ public class WalletHandler {
     } while (readCount == count);
 
     for(Map.Entry<String, Long> entry : map.entrySet()) {
-      result.add(AssetBalanceDesc.apply(entry.getKey(),entry.getValue().longValue()));
+      result.add(new AssetBalanceDesc(entry.getKey(),entry.getValue().longValue()));
     }
     return result;
   }
@@ -118,15 +118,15 @@ public class WalletHandler {
    * @throws OapException
    *
    */
-  public BigDecimal getBalance(Option<String> accountOption, long minConf, boolean includeWatchOnly) throws OapException {
+  public BigDecimal getBalance(String accountOption, long minConf, boolean includeWatchOnly) throws OapException {
     //
     // FROM API ListTransactions that uses Wallet.listTransactionsWithAsset().
     // // None means to list transactions from all accounts in the wallet.
     // val accountOption = if (account == "*") None else Some(account)
     //
-    if (accountOption.isDefined()) {
-      if (accountOption.get().equals("*")) {
-        accountOption = Option.empty();
+    if (accountOption != null) {
+      if (accountOption.equals("*")) {
+        accountOption = null;
       }
     }
 
@@ -148,15 +148,15 @@ public class WalletHandler {
   //
   public Pair<Integer, BigDecimal> getBalance(
     BigDecimal balance,
-    Option<String> accountOption, int count, long skip, long minConf, boolean includeWatchOnly
+    String accountOption, int count, long skip, long minConf, boolean includeWatchOnly
   ) throws OapException {
     IWalletInterface walletInterface = OpenAssetsProtocol.get().wallet().walletInterface();
 
     List<WalletTransactionDescriptor> descriptors = walletInterface.listTransactions(accountOption, count, skip, includeWatchOnly);
     for(WalletTransactionDescriptor desc : descriptors) {
-      if (!desc.confirmations().isEmpty() && (long) desc.confirmations().get() < minConf) continue;
-      BigDecimal amount = desc.amount().bigDecimal();
-      balance = desc.category().equalsIgnoreCase("send") ? balance.subtract(amount) : balance.add(amount);
+      if (desc.getConfirmations() != null && (long) desc.getConfirmations() < minConf) continue;
+      BigDecimal amount = desc.getAmount();
+      balance = desc.getCategory().equalsIgnoreCase("send") ? balance.subtract(amount) : balance.add(amount);
     }
     return new Pair<Integer, BigDecimal>(descriptors.size(), balance);
   }
@@ -176,39 +176,39 @@ public class WalletHandler {
 
   public int getAssetBalance(
     HashMap<String, Long> balances,
-    Option<String> accountOption, int count, long skip, long minConf, boolean includeWatchOnly,
+    String accountOption, int count, long skip, long minConf, boolean includeWatchOnly,
     HashSet<String> assetIds
   ) throws OapException {
     OapWallet wallet = OpenAssetsProtocol.get().wallet();
     List<OapTransactionDescriptor> descriptors = wallet.listTransactionsWithAsset(accountOption, count, skip, includeWatchOnly);
 
     for (OapTransactionDescriptor desc : descriptors) {
-      if (!desc.confirmations().isEmpty() && (long) desc.confirmations().get() < minConf) continue;
-      BigDecimal amount = desc.amount().bigDecimal();
+      if (desc.getConfirmations() != null && (long) desc.getConfirmations() < minConf) continue;
+      BigDecimal amount = desc.getAmount();
       if (!(amount.equals(IOapConstants.DUST_IN_BITCOIN))) continue;
 
-      if (desc.asset_id().isEmpty()) {
+      if (desc.getAsset_id() == null) {
         throw new OapException(OapException.INTERNAL_ERROR, "Asset Id is undefined.");
       }
-      if (desc.quantity().isEmpty()) {
+      if (desc.getQuantity() == null) {
         throw new OapException(OapException.INTERNAL_ERROR, "Asset quantity is undefined.");
       }
-      String assetId = desc.asset_id().get();
+      String assetId = desc.getAsset_id();
 
       if (assetIds.size() > 0 && !assetIds.contains(assetId)) {
         continue;
       }
-      int quantity = ((Integer)(desc.quantity().get())).intValue();
+      int quantity = desc.getQuantity();
       Long assetBalance = balances.get(assetId);
       if (assetBalance == null) assetBalance = 0L;
-      assetBalance = desc.category().equalsIgnoreCase("send") ? assetBalance - quantity : assetBalance + quantity;
+      assetBalance = desc.getCategory().equalsIgnoreCase("send") ? assetBalance - quantity : assetBalance + quantity;
       balances.put(assetId, assetBalance);
     }
 
     return descriptors.size();
   }
 
-  public List<OapTransactionDescriptor> listTransactionsWithAsset(Option<String> accountOption, int count, long skip, boolean includWatchOnly) throws OapException {
+  public List<OapTransactionDescriptor> listTransactionsWithAsset(String accountOption, int count, long skip, boolean includWatchOnly) throws OapException {
     return OpenAssetsProtocol.get().wallet().listTransactionsWithAsset(accountOption, count, skip, includWatchOnly);
   }
 }

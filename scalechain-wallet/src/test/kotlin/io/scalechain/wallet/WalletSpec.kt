@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
 
-  override val testPath = File("./target/unittests-WalletSpec-storage/")
+  override val testPath = File("./build/unittests-WalletSpec-storage/")
 
   override fun beforeEach() {
 

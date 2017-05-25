@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(KTestJUnitRunner::class)
 class TimeBasedCacheSpec : FlatSpec(), Matchers {
 
-    val testPath = File("./target/unittests-IncompleteBlockCacheSpec-storage/")
+    val testPath = File("./build/unittests-IncompleteBlockCacheSpec-storage/")
 
     var cache : TimeBasedCache<Int, String>? = null
 

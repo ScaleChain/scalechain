@@ -1,6 +1,7 @@
 include 'scalechain-cli'
 include 'scalechain-api'
 include 'scalechain-net'
+include 'scalechain-oap'
 include 'scalechain-wallet'
 include 'scalechain-chain'
 include 'scalechain-transaction'

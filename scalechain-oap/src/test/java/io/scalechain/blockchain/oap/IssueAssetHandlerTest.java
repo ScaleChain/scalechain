@@ -4,9 +4,11 @@ import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointer;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.sampledata.AddressData;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import io.scalechain.blockchain.oap.transaction.OapTransaction;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
+import io.scalechain.blockchain.oap.wallet.UnspentAssetDescriptor;
 import io.scalechain.blockchain.proto.OutPoint;
 import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.proto.TransactionInput;
@@ -43,7 +45,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // GET UNSPENT OUTPUTS WITHOUT ASSETS
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(issuerAddress);
-    List<UnspentCoinDescriptor> unspent = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspent = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses,
@@ -53,7 +55,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // DO TEST
     Pair<List<UnspentCoinDescriptor>, List<CoinAmount>> inputAndOutputAmounts = issueHandler.inputAndOutputAmounts(
       issuerAddress,
-      unspent,
+      UnspentAssetDescriptor.toOriginalDescriptor(unspent),
       fees
     );
     List<CoinAmount> outputAmounts = inputAndOutputAmounts.getSecond();
@@ -62,7 +64,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // CHECK output amounts
     long inputSum = 0;
     for(UnspentCoinDescriptor d : inputAndOutputAmounts.getFirst()) {
-      inputSum += CoinAmount.apply(d.amount()).coinUnits();
+      inputSum += new CoinAmount(d.getAmount()).coinUnits();
     }
     long outputSum = fees.coinUnits();
     for(CoinAmount amount : outputAmounts) {
@@ -112,7 +114,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // GET UNSPENT OUTPUTS WITHOUT ASSETS
     List<CoinAddress> addresses = new ArrayList<CoinAddress>();
     addresses.add(issuerAddress);
-    List<UnspentCoinDescriptor> unspents = wallet.listUnspent(
+    List<UnspentAssetDescriptor> unspents = wallet.listUnspent(
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
       addresses,
@@ -122,7 +124,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // DO TEST
     Pair<List<UnspentCoinDescriptor>, List<CoinAmount>> inputAndOutputAmounts = issueHandler.inputAndOutputAmounts(
       issuerAddress,
-      unspents,
+      UnspentAssetDescriptor.toOriginalDescriptor(unspents),
       fees
     );
 
@@ -136,24 +138,24 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
     // CHECK OUTPUT AMOUNTS
     List<CoinAmount> outputAmounts = inputAndOutputAmounts.getSecond();
     for(int i = 0;i < outputAmounts.size();i++) {
-      assertEquals("Output amounts shoul be euqal to", outputAmounts.get(i).coinUnits(), tx.outputs().apply(i).value());
+      assertEquals("Output amounts shoul be euqal to", outputAmounts.get(i).coinUnits(), tx.getOutputs().get(i).getValue());
     }
     // CHEK Marker Output
-    assertEquals("Market Output should have value 0", 0, tx.outputs().apply(1).value());
+    assertEquals("Market Output should have value 0", 0, tx.getOutputs().get(1).getValue());
 
     // CHECK OutPoint OF INPUTS
     long inputSum = 0;
     List<UnspentCoinDescriptor> inputs = inputAndOutputAmounts.getFirst();
     for(int i =0;i < inputs.size();i++) {
       assertEquals("The OutPoint of each Tx input should be equal to spening output",
-        OutPoint.apply(inputs.get(i).txid(), inputs.get(i).vout()),
-        tx.inputs().apply(i).getOutPoint()
+        new OutPoint(inputs.get(i).getTxid(), inputs.get(i).getVout()),
+        tx.getInputs().get(i).getOutPoint()
       );
-      inputSum += CoinAmount.apply(inputs.get(i).amount()).coinUnits();
+      inputSum += new CoinAmount(inputs.get(i).getAmount()).coinUnits();
     }
     long outputSum = fees.coinUnits();
-    for(int i = 0;i < tx.outputs().size();i++) {
-      outputSum += tx.outputs().apply(i).value();
+    for(int i = 0;i < tx.getOutputs().size();i++) {
+      outputSum += tx.getOutputs().get(i).getValue();
     }
     assertEquals("The sum of output amount and fess should be equal to the sum of input amounts", outputSum, inputSum);
   }
@@ -179,25 +181,25 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
         issuerAddress,
         fees
       );
-      assertEquals("Size of Tx Ouputs should be equal to 3", 3, tx.outputs().size());
-      TransactionOutput issueOutput      = tx.outputs().apply(0);
-      TransactionOutput markerOutput     = tx.outputs().apply(1);
-      TransactionOutput coinChangeOutput = tx.outputs().apply(2);
+      assertEquals("Size of Tx Ouputs should be equal to 3", 3, tx.getOutputs().size());
+      TransactionOutput issueOutput      = tx.getOutputs().get(0);
+      TransactionOutput markerOutput     = tx.getOutputs().get(1);
+      TransactionOutput coinChangeOutput = tx.getOutputs().get(2);
 
-      OapMarkerOutput marker = new OapMarkerOutput(tx.outputs().apply(1), assetId);
-      assertEquals("Market Output should have value of 0", 0, markerOutput.value());
+      OapMarkerOutput marker = new OapMarkerOutput(tx.getOutputs().get(1), assetId);
+      assertEquals("Market Output should have value of 0", 0, markerOutput.getValue());
       assertEquals("Asset Quantity Count should be 1", 1, marker.getQuantities().length);
       assertEquals("Asset Quantity should be " + quantity, quantity, marker.getQuantities()[0]);
       assertArrayEquals("Asset Definition pointer should be equal to given pointer", pointer.getPointer(), marker.getMetadata());
 
-      assertEquals("Issue output should have value of DUST", IOapConstants.DUST_IN_SATOSHI, issueOutput.value());
+      assertEquals("Issue output should have value of DUST", IOapConstants.DUST_IN_SATOSHI, issueOutput.getValue());
       assertTrue("Public key hash of issue output should be that of issuer addresss", checkPublicKeyHash(issueOutput, issuerAddress));
       assertTrue("Public key hash of change output should be that of issuer addresss", checkPublicKeyHash(coinChangeOutput, issuerAddress));
 
-      long outputCoinSum = IOapConstants.DUST_IN_SATOSHI + coinChangeOutput.value() + fees;
+      long outputCoinSum = IOapConstants.DUST_IN_SATOSHI + coinChangeOutput.getValue() + fees;
       assertTrue("sum of input amounts should be equal to Sum of output amount",  sumInputAmount(tx, issuerAddress) == outputCoinSum);
 
-      TransactionOutput spendingOutput = OpenAssetsProtocol.get().chain().getRawOutput(tx.inputs().apply(0).getOutPoint());
+      TransactionOutput spendingOutput = OpenAssetsProtocol.get().chain().getRawOutput(tx.getInputs().get(0).getOutPoint());
       assertTrue("Public key hash of first input should be that of issuer addresss", checkPublicKeyHash(spendingOutput, issuerAddress));
     }
   }
@@ -323,23 +325,22 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
 
   private long sumInputAmount(Transaction tx, CoinAddress fromAddress) throws OapException {
     long sum = 0;
-    for (int i = 0; i < tx.inputs().size(); i++) {
-      TransactionInput input = tx.inputs().apply(i);
+    for (int i = 0; i < tx.getInputs().size(); i++) {
+      TransactionInput input = tx.getInputs().get(i);
       TransactionOutput prevTx = OpenAssetsProtocol.get().chain().getRawOutput(input.getOutPoint());
       if (!checkPublicKeyHash(prevTx, fromAddress)) throw new OapException(OapException.INTERNAL_ERROR, "Invalid input: " + input.getOutPoint());
-      sum += prevTx.value();
+      sum += prevTx.getValue();
     }
     return sum;
   }
 
   private boolean checkPublicKeyHash(TransactionOutput output, CoinAddress coinAddress) {
-    Collection<ScriptOp> c = JavaConverters.asJavaCollectionConverter(
-      ParsedPubKeyScript.from(output.lockingScript()).scriptOps().operations()
-    ).asJavaCollection();
+    Collection<ScriptOp> c =
+      ParsedPubKeyScript.from(output.getLockingScript()).getScriptOps().getOperations();
     for (ScriptOp op : c) {
       if (op instanceof OpPush) {
-        byte[] bytes = ((OpPush) op).inputValue().value();
-        if (comprareBytes(bytes, coinAddress.publicKeyHash().array())) return true;
+        byte[] bytes = ((OpPush) op).getInputValue().getValue();
+        if (comprareBytes(bytes, coinAddress.getPublicKeyHash().getArray())) return true;
       }
     }
     return false;

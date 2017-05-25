@@ -2,13 +2,12 @@ package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.proto.Hash;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
-import io.scalechain.util.ByteArray;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import scala.Option;
-import scala.math.BigDecimal;
+import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -20,20 +19,20 @@ public class CaseClassTest {
   @BeforeClass
   public static void setUpForClass() throws Exception {
     System.out.println(AssetAddressTestNetTest.class.getName() + ".setupForClass()");
-    ChainEnvironment$.MODULE$.create("testnet");
+    ChainEnvironment.create("testnet");
   }
 
   @Test
   public void unspentAssetDescrptorTest() throws OapException {
     String assetIdString = "ALn3aK1fSuG27N96UGYB1kUYUpGKRhBuBC";
     UnspentAssetDescriptor desc = new UnspentAssetDescriptor(
-      Hash.apply(ByteArray.apply(HexUtil.bytes("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))),
+      new Hash(new Bytes(HexUtil.bytes("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))),
       0, // vout
-      Option.apply("16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM"),
-      Option.apply("account"),
+      "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM",
+      "account",
       "srciptPubKey",
-      Option.apply("redeepScript"),
-      BigDecimal.decimal(5),
+      "redeepScript",
+      BigDecimal.valueOf(5),
       1, // confirmations
       true,
       AssetId.from(assetIdString),

@@ -1,18 +1,17 @@
 package io.scalechain.blockchain.api.command.oap
 
-import io.scalechain.blockchain.{ErrorCode, GeneralException, ScriptParseException}
+import com.google.gson.JsonObject
+import io.scalechain.blockchain.ErrorCode
+import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.oap.{AssetDefinitionHandler, OpenAssetsProtocol}
+import io.scalechain.blockchain.api.domain.*
+import io.scalechain.blockchain.oap.AssetDefinitionHandler
 import io.scalechain.blockchain.oap.exception.OapException
 import io.scalechain.blockchain.oap.wallet.AssetId
-import io.scalechain.blockchain.proto.LockingScript
-import io.scalechain.blockchain.script.ScriptParser
-import io.scalechain.blockchain.transaction.{CoinAddress, ParsedPubKeyScript}
-import io.scalechain.util.{ByteArray, HexUtil}
-import spray.json.JsObject
-import spray.json.DefaultJsonProtocol._
-
+import io.scalechain.blockchain.transaction.CoinAddress
+import io.scalechain.util.HexUtil
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 /**
   * Creates Asset Definition and returns Asset Definition and Asset Definition Pointer
   *
@@ -40,42 +39,41 @@ import spray.json.DefaultJsonProtocol._
   *
   * Created by shannon on 16. 12. 28.
   */
-object CreateAssetDefinition extends RpcCommand {
 
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val assetIdOrAddress: String           = request.params.get[String]("assetIdOrAddress", 0)
-      val metadata:         JsObject         = request.params.get[JsObject]("metadata", 1)
+data class CreateAssetDefinitionResult(val asset_id: String, val metadata_hash : String, val asset_definition : JsonObject) : RpcResult
+
+object CreateAssetDefinition : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val assetIdOrAddress: String           = request.params.get<String>("assetIdOrAddress", 0)
+      // BUGBUG : Make sure this works
+      val metadata: JsonObject               = request.params.get<JsonObject>("metadata", 1)
 
       val assetId =
         try {
           AssetId.from(CoinAddress.from(assetIdOrAddress))
-        } catch {
-          case e : GeneralException => {
-            try {
-              AssetId.from(assetIdOrAddress)
-            } catch {
-              case e : OapException => {
-                throw new GeneralException(ErrorCode.RpcInvalidAddress)
-              }
-            }
+        } catch(e : GeneralException) {
+          try {
+            AssetId.from(assetIdOrAddress)
+          } catch(e : OapException) {
+            throw GeneralException(ErrorCode.RpcInvalidAddress)
           }
         }
 
       val definition = AssetDefinitionHandler.get().createAssetDefinition(assetId, metadata.toString())
 
-      import spray.json._
-      Right(Some(JsResult(
-        JsObject(
-          ("asset_id",         JsString(assetId.base58())),
-          ("metadata_hash",             JsString(HexUtil.hex(definition.getFirst.getValue))),
-          ("asset_definition", definition.getSecond.toString.toJson)
+      // BUGBUG : OAP : Make sure the following field is serialized correctly : asset_definition : JsonObject
+      Right(
+        CreateAssetDefinitionResult(
+          assetId.base58(),
+          HexUtil.hex(definition.first.value),
+          definition.second.toJson()
         )
-      )))
+      )
     }
   }
 
-  def help() : String =
+  override fun help() : String =
     """createassetdefinition "assIdOrAddress" "metadata"
       |
       |create an asset definition file.
@@ -84,7 +82,7 @@ object CreateAssetDefinition extends RpcCommand {
       |
       |Arguments:
       |1. "assetIdOrAddress"   (string, required) Asset ID or Issuing Address
-      |3. "metadata"           (Object, required) JSON Object containing metadata.
+      |2. "metadata"           (Object, required) JSON Object containing metadata.
       |
       |Result:
       |{
@@ -101,5 +99,5 @@ object CreateAssetDefinition extends RpcCommand {
       |Examples:
       |> bitcoin-cli issueasset "issuer_address" "to_address" "quantity" "metadata" "change_address" "fees"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getassetaddress", "params": ["oWW5DyHMmNpH2P9gGwDH7kLw7mgt1iV4W8", {"name":"OAP Test Asset 7","name_short":"TestAsset7"}] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }

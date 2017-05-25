@@ -61,7 +61,7 @@ object RunScaleChainPeer {
     }
 
     // Step 4 : Storage Layer : Initialize block storage.
-    val blockStoragePath = new File(s"./target/blockstorage-${params.p2pInboundPort}")
+    val blockStoragePath = new File(s"./build/blockstorage-${params.p2pInboundPort}")
     Storage.initialize()
 
     val indexDb : RocksDatabase = new CachedRocksDatabase(blockStoragePath)
@@ -94,12 +94,12 @@ object RunScaleChainPeer {
 
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    val walletPath = new File(s"./target/wallet-${params.p2pInboundPort}")
+    val walletPath = new File(s"./build/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create()
     chain.setEventListener(wallet)
 
     // OAP Layer :
-    val cachePath = new File(s"./target/oap-cache-${params.p2pInboundPort}");
+    val cachePath = new File(s"./build/oap-cache-${params.p2pInboundPort}");
     val chainInterface = new ScalechainBlockchainInterface(chain);
     val walletInterface = new ScalechainWalletInterface(chain, wallet);
     OpenAssetsProtocol.create(chainInterface, walletInterface, cachePath);

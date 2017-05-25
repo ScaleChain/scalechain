@@ -1,18 +1,18 @@
 package io.scalechain.blockchain.api.command.oap
 
-import java.util
-
-import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import io.scalechain.blockchain.GeneralException
-import io.scalechain.blockchain.api.command.{RpcCommand, TransactionFormatter}
-import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.net.{IssueAssetResult, RpcSubSystem}
+import io.scalechain.blockchain.api.command.*
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
+
+import io.scalechain.blockchain.api.domain.*
+import io.scalechain.blockchain.net.IssueAssetResult
+import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.oap.exception.OapException
-import io.scalechain.blockchain.oap.{IOapConstants, OpenAssetsProtocol}
-import io.scalechain.blockchain.proto._
-import io.scalechain.blockchain.transaction.{PrivateKey, SigHash}
-import spray.json.DefaultJsonProtocol._
-import spray.json.{JsObject, JsValue}
+import io.scalechain.blockchain.oap.IOapConstants
+import io.scalechain.blockchain.transaction.PrivateKey
+
 /*
   CLI command :
     bitcoin-cli -testnet signrawtransaction 01000000011da9283b4ddf8d\
@@ -71,36 +71,39 @@ import spray.json.{JsObject, JsValue}
   *  > bitcoin-cli issueasset "issuer_address" "to_address" "quantity" "metadata" "change_address" "fees"
   *  > curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "issueasset", "params": ["issuer_address" "to_address" "quantity" "metadata" "change_address" "fees"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
   */
-object IssueAsset extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val issuerAddress:     String               = request.params.get[String]("issuer_address", 0)
-      val toAddress:         String               = request.params.get[String]("to_address", 1)
-      val quantity:          Int                  = request.params.get[Int]("quantity", 2)
-      val hashOption:        Option[String]       = request.params.getOption[String]("hash", 3)
-      val privateKeyStrings: Option[List[String]] = request.params.getListOption[String]("private_keys", 4)
-      val changeAddress:     String               = request.params.getOption[String]("change_address", 5).getOrElse(issuerAddress)
-      val fees: Long                              = request.params.getOption[Long]("fees", 6).getOrElse(IOapConstants.DEFAULT_FEES_IN_SATOSHI)
+object IssueAsset : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val issuerAddress:     String               = request.params.get<String>("issuer_address", 0)
+      val toAddress:         String               = request.params.get<String>("to_address", 1)
+      val quantity:          Int                  = request.params.get<Int>("quantity", 2)
+      val hashOption:        String?              = request.params.getOption<String>("hash", 3)
+      val privateKeyStrings: List<String>?        = request.params.getListOption<String>("private_keys", 4)
+      val changeAddress:     String               = request.params.getOption<String>("change_address", 5) ?: issuerAddress
+      val fees: Long                              = request.params.getOption<Long>("fees", 6) ?: IOapConstants.DEFAULT_FEES_IN_SATOSHI.toLong()
       // Moved metadata to the last of Argument.
-      val metadataOption:  Option[JsObject]       = request.params.getOption[JsObject]("metadata", 7)
+      // BUGBUG : OAP : Make sure this code works
+      val metadataOption:    JsonObject?          = request.params.getOption<JsonObject>("metadata", 7)
 
       val privateKeys =
-        if (privateKeyStrings.isDefined) {
-          if (privateKeyStrings.get.size == 0)
-            None
-          else
-            privateKeyStrings.map { keyStrings =>
+        if (privateKeyStrings != null) {
+          if (privateKeyStrings.size == 0) {
+            null
+          }
+          else {
+            privateKeyStrings.map { keyString ->
               try {
-                keyStrings.map(PrivateKey.from(_))
-              } catch {
-                case e: GeneralException => throw new OapException(OapException.INVALID_PRIVATE_KEY, "Invalid private key");
+                PrivateKey.from(keyString)
+              } catch(e: GeneralException) {
+                throw OapException(OapException.INVALID_PRIVATE_KEY, "Invalid private key");
               }
             }
+          }
         } else {
-          None
+          null
         }
 
-      val result = RpcSubSystem.get.issueAsset(
+      val result = RpcSubSystem.get().issueAsset(
                 issuerAddress,
                 toAddress,
                 quantity,
@@ -111,13 +114,12 @@ object IssueAsset extends RpcCommand {
                 metadataOption
       )
       Right(
-        Some(
-          IssueAssetResultResult(result)
-        )
+        IssueAssetResultResult(result)
       )
     }
   }
-  def help() : String =
+
+  override fun help() : String =
     """issueasset "issuer_address" "to_address" "quantity" "metadata" "change_address" "fees"
       |
       |create an unsigned transaction for issuing Asset from a bitcoin Address.
@@ -144,7 +146,7 @@ object IssueAsset extends RpcCommand {
       |Examples:
       |> bitcoin-cli issueasset "issuer_address" "to_address" "quantity" "metadata" "change_address" "fees"
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "issueasset", "params": ["n3xRLJSdJrWngv9yUYZDeepMbqU5decwbG", "n3xRLJSdJrWngv9yUYZDeepMbqU5decwbG", 10000, "f1b575b277228d97583e355951022a8ac14a12e2" "n3xRLJSdJrWngv9yUYZDeepMbqU5decwbG" 20000, {}] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
-case class IssueAssetResultResult(item : IssueAssetResult) extends RpcResult;
+data class IssueAssetResultResult(val item : IssueAssetResult) : RpcResult

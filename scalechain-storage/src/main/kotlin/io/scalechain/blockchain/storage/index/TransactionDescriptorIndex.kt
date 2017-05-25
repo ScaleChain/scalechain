@@ -1,12 +1,9 @@
 package io.scalechain.blockchain.storage.index
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.TransactionDescriptor
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.codec.TransactionDescriptorCodec
-import io.scalechain.blockchain.proto.codec.TransactionPoolEntryCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
-import org.slf4j.LoggerFactory
 
 interface TransactionDescriptorIndex {
 //  private val logger = LoggerFactory.getLogger(TransactionDescriptorIndex::class.java)

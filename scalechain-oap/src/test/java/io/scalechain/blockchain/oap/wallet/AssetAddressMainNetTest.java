@@ -2,10 +2,9 @@ package io.scalechain.blockchain.oap.wallet;
 
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.transaction.ChainEnvironment;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -25,7 +24,7 @@ public class AssetAddressMainNetTest {
     public static void setUpForClass() throws Exception {
         System.out.println(AssetAddressMainNetTest.class.getName() + ".setupForClass()");
 
-        ChainEnvironment$.MODULE$.create("mainnet");
+        ChainEnvironment.create("mainnet");
         coinAddresses = new String[] {
                 "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM",
                 "1Pwes7rbLb4cjQ8z4tSiS13zVaHKqtJ33U",
@@ -60,7 +59,7 @@ public class AssetAddressMainNetTest {
     }
     @Test
     public void isValidTest() {
-        ChainEnvironment env = ChainEnvironment$.MODULE$.get();
+        ChainEnvironment env = ChainEnvironment.get();
         for (int i = 0; i < coinAddresses.length; i++) {
             CoinAddress coinAddress = CoinAddress.from(coinAddresses[i]);
             AssetAddress assetAddress = AssetAddress.fromCoinAddress(coinAddress);
@@ -70,7 +69,7 @@ public class AssetAddressMainNetTest {
         // Address    : 16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM
         // PubKeyHash : 010966776006953d5567439e5e39f86a0d273bee
         // AssetId with a wrong PubKeyHash should be invalid.
-        AssetAddress assetAddress = new AssetAddress(env.PubkeyAddressVersion(), HexUtil.bytes("010966776006953d5567439e5e39f86a0d273bee00"));
+        AssetAddress assetAddress = new AssetAddress(env.getPubkeyAddressVersion(), HexUtil.bytes("010966776006953d5567439e5e39f86a0d273bee00"));
         assert !assetAddress.isValid();
         // AssetId with a wrong version should be invalid.
         assetAddress = new AssetAddress((byte)-1, HexUtil.bytes("010966776006953d5567439e5e39f86a0d273bee"));
@@ -97,7 +96,7 @@ public class AssetAddressMainNetTest {
         for (int i = 0; i < coinAddresses.length; i++) {
             CoinAddress coinAddress = CoinAddress.from(coinAddresses[i]);
             AssetAddress assetAddress = AssetAddress.fromCoinAddress(coinAddress);
-            assert coinAddress.publicKeyHash().equals(new ByteArray(assetAddress.getPublicKeyHash()));
+            assert coinAddress.getPublicKeyHash().equals(new Bytes(assetAddress.getPublicKeyHash()));
         }
     }
 
@@ -114,7 +113,7 @@ public class AssetAddressMainNetTest {
         for (int i = 0; i < coinAddresses.length; i++) {
             CoinAddress coinAddress = CoinAddress.from(coinAddresses[i]);
             AssetAddress assetAddress = AssetAddress.fromCoinAddress(coinAddress);
-            assert coinAddress.version() == assetAddress.getVersion();
+            assert coinAddress.getVersion() == assetAddress.getVersion();
         }
     }
 
@@ -142,6 +141,6 @@ public class AssetAddressMainNetTest {
         thrown.expectMessage(startsWith("LockingScript has no Public Key Hash"));
         // MARKER OUTPUT HAS no PublicKeyHash, AddressUtil.coinAddressFromLockingScript() sould return null
         OapMarkerOutput markerOutput = new OapMarkerOutput(null, new int[] { 100 }, new byte[0]);
-        CoinAddress coinAddress = AddressUtil.coinAddressFromLockingScript(markerOutput.lockingScript());
+        CoinAddress coinAddress = AddressUtil.coinAddressFromLockingScript(markerOutput.getTransactionOutput().getLockingScript());
     }
 }

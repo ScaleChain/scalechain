@@ -8,51 +8,51 @@ import io.scalechain.util.HexUtil
 /**
   * ChainEnvironment, which hash a list of configuration values for an environment.
   */
-interface ChainEnvironment {
+abstract class ChainEnvironment {
 
   /** The genesis block.
     *
     */
-  val GenesisBlock : Block
+  abstract val GenesisBlock : Block
 
   /** The hash of the genesis block.
     *
     */
-  val GenesisBlockHash : Hash
+  abstract val GenesisBlockHash : Hash
 
   /** The default port number for the peer to peer communication.
     *
     */
-  val DefaultPort : Int
+  abstract val DefaultPort : Int
 
   /** The version prefix of an address using PubKeyHash.
     */
-  val PubkeyAddressVersion : Byte
+  abstract val PubkeyAddressVersion : Byte
 
   /** The version prefix of an address using P2SH.
     */
-  val ScriptAddressVersion : Byte
+  abstract val ScriptAddressVersion : Byte
 
   /** The version prefix of a private key.
     */
-  val SecretKeyVersion : Byte
+  abstract val SecretKeyVersion : Byte
 
   /** The magic value used by messages for the peer to peer communication and the block data file.
     */
-  val MagicValue : ByteArray
+  abstract val MagicValue : ByteArray
 
   /** The default transaction version
     */
-  val DefaultTransactionVersion : Int
+  abstract val DefaultTransactionVersion : Int
 
   /** The default block version
     */
-  val DefaultBlockVersion : Int
+  abstract val DefaultBlockVersion : Int
 
   /** Outputs of coinbase transactions can be spent after CoinbaseMaturity confirmations.
     *
     */
-  val CoinbaseMaturity : Int
+  abstract val CoinbaseMaturity : Int
 
 
   companion object {
@@ -74,6 +74,7 @@ interface ChainEnvironment {
      * @param environmentName The name of the environment.
      * @return The environment object.
      */
+    @JvmStatic
     fun create(environmentName : String) : ChainEnvironment? {
       activeEnvironmentOption = EnvironmentByName.get(environmentName)
       return activeEnvironmentOption
@@ -83,6 +84,7 @@ interface ChainEnvironment {
      *
      * @return Some(env) if any chain environment is active. None otherwise.
      */
+    @JvmStatic
     fun get() : ChainEnvironment {
       return activeEnvironmentOption!!
     }
@@ -93,7 +95,7 @@ interface ChainEnvironment {
 /** The mainnet environment.
   *
   */
-object MainNetEnvironment : ChainEnvironment {
+object MainNetEnvironment : ChainEnvironment() {
   private val SERIALIZED_GENESIS_BLOCK =
     HexUtil.bytes(
       """
@@ -146,7 +148,7 @@ object MainNetEnvironment : ChainEnvironment {
 /** The class that has environment values for the testnet and regtest.
   *
   */
-open class TestEnvironment : ChainEnvironment {
+open class TestEnvironment : ChainEnvironment() {
   private val SERIALIZED_GENESIS_BLOCK =
     HexUtil.bytes(
       """

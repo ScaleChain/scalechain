@@ -9,18 +9,17 @@ import io.scalechain.blockchain.oap.blockchain.OapWallet;
 import io.scalechain.blockchain.oap.coloring.ColoringEngine;
 import io.scalechain.blockchain.oap.command.AssetTransferTo;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.oap.util.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.oap.wallet.OapTransactionDescriptor;
 import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.transaction.CoinAddress;
 
-import scala.Option;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
+
+import kotlin.Pair;
 
 /**
  * Hold all Open Assets Protocol related Object instance.
@@ -114,7 +113,7 @@ public abstract class OpenAssetsProtocol implements  IOapConstants {
    * @throws OapException
    */
   public List<AssetBalanceDesc> getAssetBalance(
-    Option<String> accountOption,
+    String accountOption,
     long minConf,
     boolean includeWatchOnly,
     List<String> assetIds
@@ -123,7 +122,7 @@ public abstract class OpenAssetsProtocol implements  IOapConstants {
   }
 
   public BigDecimal getBalance(
-    Option<String> accountOption,
+    String accountOption,
     long minConf,
     boolean includeWatchOnly
   ) throws OapException {
@@ -142,7 +141,7 @@ public abstract class OpenAssetsProtocol implements  IOapConstants {
    * @throws OapException
    */
   public List<OapTransactionDescriptor> listTransactions(
-    Option<String> account,
+    String account,
     int count,
     long skip,
     boolean includeWatchOnly
@@ -158,7 +157,7 @@ public abstract class OpenAssetsProtocol implements  IOapConstants {
    * @return
    * @throws OapException
    */
-  public List<CoinAddress> getAddressesByAccount(Option<String> acountOption, boolean includeWatchOnly) throws OapException {
+  public List<CoinAddress> getAddressesByAccount(String acountOption, boolean includeWatchOnly) throws OapException {
     return WalletHandler.get().getAddressesByAccount(acountOption, includeWatchOnly);
   }
 
@@ -174,8 +173,8 @@ public abstract class OpenAssetsProtocol implements  IOapConstants {
    * @return
    * @throws OapException
    */
-  public AssetDefinition getAssetDefintion(String hashOrAssetId) throws OapException {
-    return AssetDefinitionHandler.get().getAssetDefintion(hashOrAssetId);
+  public AssetDefinition getAssetDefinition(String hashOrAssetId) throws OapException {
+    return AssetDefinitionHandler.get().getAssetDefinition(hashOrAssetId);
   };
 
   /**

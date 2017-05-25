@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.oap.transaction;
 
 import io.scalechain.blockchain.proto.Transaction;
-import io.scalechain.blockchain.proto.codec.TransactionCodec$;
 import io.scalechain.util.HexUtil;
 
 /**
@@ -21,7 +20,7 @@ public class TransactionCodec {
     public static Transaction decode(String txHex) {
         if (txHex == null || txHex.length() == 0) return null;
         byte[] rawTx = HexUtil.bytes(txHex);
-        return (Transaction) TransactionCodec$.MODULE$.parse(rawTx);
+        return io.scalechain.blockchain.proto.codec.TransactionCodec.parse(rawTx);
     }
 
 //    /**

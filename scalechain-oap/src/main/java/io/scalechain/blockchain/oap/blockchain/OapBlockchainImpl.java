@@ -24,7 +24,7 @@ public class OapBlockchainImpl extends OapBlockchain {
 
     @Override
     public TransactionOutput getRawOutput(OutPoint key) {
-        return getTransactionOutput(key, db());
+        return getTransactionOutput(db(), key);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class OapBlockchainImpl extends OapBlockchain {
 
     // FOR trait CoinsView
     @Override
-    public TransactionOutput getTransactionOutput(OutPoint outPoint, KeyValueDatabase db) {
+    public TransactionOutput getTransactionOutput(KeyValueDatabase db, OutPoint outPoint) {
         return chainInterface().getTransactionOutput(outPoint);
     }
 }

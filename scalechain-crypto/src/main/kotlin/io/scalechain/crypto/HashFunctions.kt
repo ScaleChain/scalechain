@@ -28,6 +28,7 @@ object HashFunctions {
    * @param input
    * @return
    */
+  @JvmStatic
   fun sha1(input: ByteArray) : SHA1 {
     val sha1md = MessageDigest.getInstance("SHA-1")
     return SHA1( Bytes( sha1md.digest(input) ) )
@@ -38,11 +39,13 @@ object HashFunctions {
    * @param input
    * @return
    */
+  @JvmStatic
   fun sha256(input: ByteArray) : SHA256 {
     val sha256md = MessageDigest.getInstance("SHA-256")
     return SHA256( Bytes( sha256md.digest(input) ) )
   }
 
+  @JvmStatic
   fun sha256(input: ByteArray, offset : Int, length : Int) : SHA256 {
     val sha256md = MessageDigest.getInstance("SHA-256")
     sha256md.update(input, offset, length)
@@ -55,6 +58,7 @@ object HashFunctions {
    * @param input
    * @return
    */
+  @JvmStatic
   fun ripemd160(input: ByteArray) : RIPEMD160 {
     val md = RIPEMD160Digest()
     md.update(input, 0, input.size)
@@ -68,6 +72,7 @@ object HashFunctions {
    * @param input
    * @return
    */
+  @JvmStatic
   fun hash160(input: ByteArray) : Hash160 {
     return Hash160( ripemd160(sha256(input).value.array ).value )
   }
@@ -77,12 +82,13 @@ object HashFunctions {
    * @param input
    * @return
    */
+  @JvmStatic
   fun hash256(input: ByteArray) : Hash256 {
     return Hash256( sha256( sha256(input).value.array ).value )
   }
 
+  @JvmStatic
   fun hash256(input: ByteArray, offset : Int, length : Int) : Hash256 {
     return Hash256( sha256( sha256(input, offset, length).value.array ).value )
   }
-
 }

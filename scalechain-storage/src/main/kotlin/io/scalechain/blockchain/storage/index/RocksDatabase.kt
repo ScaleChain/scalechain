@@ -2,12 +2,10 @@ package io.scalechain.blockchain.storage.index
 
 import java.io.File
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb.*
-import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 

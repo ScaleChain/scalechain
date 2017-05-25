@@ -11,7 +11,6 @@ import io.scalechain.blockchain.proto.*;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.WalletTransactionDescriptor;
-import scala.Option;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +18,7 @@ import java.util.List;
 /**
  * Created by shannon on 16. 11. 29.
  */
-public class
-
-OapWalletImpl extends OapWallet implements IOapConstants {
+public class OapWalletImpl extends OapWallet implements IOapConstants {
   IWalletInterface walletInterface = null;
 
   protected OapWalletImpl(IWalletInterface walletInterface) throws OapException {
@@ -34,27 +31,22 @@ OapWalletImpl extends OapWallet implements IOapConstants {
   }
 
   @Override
-  public List<UnspentCoinDescriptor> listUnspent(long minConfirmations, long maxConfirmations, List<CoinAddress> addresses, boolean includeAssets) throws OapException {
-    List<UnspentCoinDescriptor> result = new ArrayList<UnspentCoinDescriptor>();
+  public List<UnspentAssetDescriptor> listUnspent(long minConfirmations, long maxConfirmations, List<CoinAddress> addresses, boolean includeAssets) throws OapException {
+    List<UnspentAssetDescriptor> result = new ArrayList<UnspentAssetDescriptor>();
     List<UnspentCoinDescriptor> unspents = walletInterface().listUnspent(minConfirmations, maxConfirmations, addresses);
-    // CONVERT a Scala List to a Java List
-    if (includeAssets) {
-      for (UnspentCoinDescriptor unspent : unspents) {
-        if (UnspentAssetDescriptor.amountToCoinUnit(unspent.amount()) == DUST_IN_SATOSHI) {
-          result.add(ColoringEngine.get().colorUnspentCoinDescriptor(unspent));
-        } else {
-          result.add(unspent);
+
+    for (UnspentCoinDescriptor unspent : unspents) {
+      UnspentAssetDescriptor assetDesc = ColoringEngine.get().colorUnspentCoinDescriptor(unspent);
+
+      if (assetDesc.isColored()) {
+        if (includeAssets) {
+          result.add(assetDesc);
         }
-      }
-    } else {
-      // EXCLUDE assets
-      for (UnspentCoinDescriptor unspent : unspents) {
-        long amount = unspent.amount().bigDecimal().multiply(ONE_BTC_IN_SATOSHI).longValue();
-        if (amount != DUST_IN_SATOSHI && amount != 0) {
-          result.add(unspent);
-        }
+      } else {
+        result.add(assetDesc);
       }
     }
+
     return result;
   }
 
@@ -67,8 +59,8 @@ OapWalletImpl extends OapWallet implements IOapConstants {
    * @return
    */
   protected OutPoint outPointOfSending(WalletTransactionDescriptor desc) {
-    Transaction tx = OpenAssetsProtocol.get().chain().getRawTransaction(desc.txid().get());
-    TransactionInput input = tx.inputs().apply( (Integer)(desc.vout().get()) );
+    Transaction tx = OpenAssetsProtocol.get().chain().getRawTransaction(desc.getTxid());
+    TransactionInput input = tx.getInputs().get( desc.getVout()) ;
     return input.getOutPoint();
   }
 
@@ -81,22 +73,18 @@ OapWalletImpl extends OapWallet implements IOapConstants {
    * @throws OapException
    */
   protected OapTransactionDescriptor oapTransactionDescriptor(ColoringEngine ce, WalletTransactionDescriptor d) throws OapException {
-    if (!d.amount().bigDecimal().equals(IOapConstants.DUST_IN_BITCOIN)) {
+    if (!d.getAmount().equals(IOapConstants.DUST_IN_BITCOIN)) {
       return OapTransactionDescriptor.from(d);
     } else {
       OutPoint outPoint = null;
-      if (d.category().equalsIgnoreCase("send")) {
+      if (d.getCategory().equalsIgnoreCase("send")) {
         outPoint = outPointOfSending(d);
       } else {
-        outPoint = OutPoint.apply(d.txid().get(), (Integer) (d.vout().get()));
+        outPoint = new OutPoint(d.getTxid(), d.getVout());
       }
 
-      TransactionOutput o = ce.getOutput(outPoint);
-      if (o instanceof OapTransactionOutput) {
-        return OapTransactionDescriptor.from(d, (OapTransactionOutput) o);
-      } else {
-        throw new OapException(OapException.INTERNAL_ERROR, "Not an OpenAssetsProtocol output:" + outPoint);
-      }
+      OapTransactionOutput o = ce.getOapOutput(outPoint);
+      return OapTransactionDescriptor.from(d, o);
     }
   }
 
@@ -110,7 +98,7 @@ OapWalletImpl extends OapWallet implements IOapConstants {
    * @return
    * @throws OapException
    */
-  public List<OapTransactionDescriptor> listTransactionsWithAsset(Option<String> accountOption, int count, long skip, boolean includeWatchOnly) throws OapException {
+  public List<OapTransactionDescriptor> listTransactionsWithAsset(String accountOption, int count, long skip, boolean includeWatchOnly) throws OapException {
     List<WalletTransactionDescriptor> descs = walletInterface().listTransactions(accountOption, count, skip, includeWatchOnly);
 
     // Convert WalletTransactionDescriptors to OapTransactionDescriptors
@@ -123,7 +111,7 @@ OapWalletImpl extends OapWallet implements IOapConstants {
   }
 
   @Override
-  public List<CoinAddress> getAddressesByAccount(Option<String> accountOption, boolean includeWatchOnly) throws OapException {
+  public List<CoinAddress> getAddressesByAccount(String accountOption, boolean includeWatchOnly) throws OapException {
     return walletInterface().getAddressesByAccount(accountOption, includeWatchOnly);
   }
 

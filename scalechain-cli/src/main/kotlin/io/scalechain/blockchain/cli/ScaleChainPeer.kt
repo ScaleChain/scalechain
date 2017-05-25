@@ -17,6 +17,9 @@ import org.apache.log4j.PropertyConfigurator
 import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
 import io.scalechain.blockchain.cli.command.CommandExecutor
+import io.scalechain.blockchain.oap.OpenAssetsProtocol
+import io.scalechain.blockchain.oap.blockchain.scalechain.ScalechainBlockchainInterface
+import io.scalechain.blockchain.oap.blockchain.scalechain.ScalechainWalletInterface
 import io.scalechain.blockchain.storage.index.DatabaseFactory
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
@@ -188,7 +191,9 @@ object ScaleChainPeer {
     return peerCommunicator
   }
 
-  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./target/blockstorage-${p2pInboundPort}")
+  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/blockstorage-${p2pInboundPort}")
+  fun oapCacheStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/oap-store-${p2pInboundPort}")
+
 
   /** Initialize sub-moudles from the lower layer to the upper layer.
     *
@@ -196,7 +201,7 @@ object ScaleChainPeer {
     */
   fun initializeSystem(params: Parameters) {
 
-    PropertyConfigurator.configure(this.javaClass.classLoader.getResource("log4j.properties"));
+//    PropertyConfigurator.configure(this.javaClass.classLoader.getResource("log4j.properties"));
 
     // Step 2 : Initialize the printer setter, to print script operations on transactions.
     BlockPrinterSetter.initialize()
@@ -241,12 +246,12 @@ object ScaleChainPeer {
 
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    //val walletPath = File("./target/wallet-${params.p2pInboundPort}")
+    //val walletPath = File("./build/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create()
     chain.setEventListener(wallet)
 
     // Step 7 : OAP Layer : create OAP protocol layer
-    val cachePath = File("./target/oap-store-${params.p2pInboundPort}")
+    val cachePath = oapCacheStoragePath(params.p2pInboundPort)
     val chainView = ScalechainBlockchainInterface(chain)
     val walletInterface = ScalechainWalletInterface(chain, wallet)
     OpenAssetsProtocol.create(chainView, walletInterface, cachePath)

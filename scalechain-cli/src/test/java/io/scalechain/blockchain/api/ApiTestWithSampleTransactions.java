@@ -4,7 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.scalechain.blockchain.api.sampledata.TransactionDataProvider;
 import io.scalechain.blockchain.chain.Blockchain;
-import io.scalechain.blockchain.cli.TestScaleChainPeer;
+import io.scalechain.blockchain.cli.ScaleChainPeer;
+import io.scalechain.blockchain.cli.ScaleChainStarter;
 import io.scalechain.blockchain.oap.OpenAssetsProtocol;
 import io.scalechain.wallet.Wallet;
 import org.apache.commons.io.FileUtils;
@@ -46,21 +47,23 @@ public class ApiTestWithSampleTransactions {
     //
     // Start ScaleChainPeer
     //
-    TestScaleChainPeer.main(new String[0]);
-    provider = new TransactionDataProvider(Blockchain.get(), Wallet.get());;
+    ScaleChainStarter.start();
+    if (provider == null) {
+      provider = new TransactionDataProvider(Blockchain.get(), Wallet.get());;
 
-    // Wait at least 3 blocks mined.
-    // This will make sure that transfering coins from mining acoount to each test account will succeed.
-    waitForChain(3);
+      // Wait at least 3 blocks mined.
+      // This will make sure that transfering coins from mining acoount to each test account will succeed.
+      waitForChain(3);
 
-    provider.populate();
+      provider.populate();
+    }
   }
 
   @AfterClass
   public static void tearDownClass() {
     System.out.println("TestWithSampleTransactions.tearDownClass()");
-    provider.dispose();
-    OpenAssetsProtocol.get().storage().close();
+    //provider.dispose();
+    //OpenAssetsProtocol.get().storage().close();
     //
     // Shutdown ScaleChainPeer : HOW?
     //
@@ -230,7 +233,7 @@ public class ApiTestWithSampleTransactions {
   }
 
 
-  public String transferAsset(String fromAddress, JsonArray tos, List<String> privateKeys, String changeAddress, long fees) throws RpcInvoker.RpcCallException {
+  public JsonObject transferAsset(String fromAddress, JsonArray tos, List<String> privateKeys, String changeAddress, long fees) throws RpcInvoker.RpcCallException {
     JsonArray params = new JsonArray();
     params.add(fromAddress);
     params.add(tos);
@@ -245,6 +248,6 @@ public class ApiTestWithSampleTransactions {
         params.add(fees);
       }
     }
-    return rpcInvoker.invoke("transferasset", params).get("result").getAsString();
+    return rpcInvoker.invoke("transferasset", params).get("result").getAsJsonObject();
   }
 }

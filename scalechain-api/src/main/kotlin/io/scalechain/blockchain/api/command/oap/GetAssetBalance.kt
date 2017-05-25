@@ -1,12 +1,12 @@
 package io.scalechain.blockchain.api.command.wallet
 
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.domain._
-import io.scalechain.blockchain.oap.{AssetBalanceDesc, OpenAssetsProtocol}
-import spray.json.DefaultJsonProtocol._
-
-import scala.collection.JavaConverters
-
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.*
+import io.scalechain.blockchain.oap.AssetBalanceDesc
+import io.scalechain.blockchain.oap.OpenAssetsProtocol
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /** GetBalance: gets the balance in decimal bitcoins across all accounts or for a particular account.
   *
@@ -31,31 +31,30 @@ import scala.collection.JavaConverters
   * }
   *
   */
-object GetAssetBalance extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      val account:          String       = request.params.getOption[String] ("Account", 0).getOrElse("")
-      val minconf:          Long         = request.params.getOption[Long]("minimum confirmations", 1).getOrElse(1)
-      val includeWatchOnly: Boolean      = request.params.getOption[Boolean]("include watch-only", 2).getOrElse(false)
-      val assetIds:         List[String] = request.params.getOption[List[String]]("assetIdFilter", 3).getOrElse(List.empty[String]);
+object GetAssetBalance  : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account:          String       = request.params.getOption<String> ("Account", 0) ?: ""
+      val minconf:          Long         = request.params.getOption<Long>("minimum confirmations", 1) ?: 1
+      val includeWatchOnly: Boolean      = request.params.getOption<Boolean>("include watch-only", 2) ?: false
+      val assetIds:         List<String> = request.params.getOption<List<String>>("assetIdFilter", 3) ?: listOf<String>()
 
-      val accountOption = if (account == "*") None else Some(account)
+      val accountOption = if (account == "*") null else account
 
-      import scala.collection.JavaConverters._
-      val balances : List[AssetBalanceDesc] = OpenAssetsProtocol.get().getAssetBalance(
+      val balances : List<AssetBalanceDesc> = OpenAssetsProtocol.get().getAssetBalance(
         accountOption,
         minconf,
         includeWatchOnly,
-        assetIds.asJava
-      ).asScala.toList
+        assetIds
+      )
 
-      Right(Some(
+      Right(
         ListAssetBalanceDescResult(balances)
-      ))
+      )
     }
   }
 
-  def help() : String =
+  override fun help() : String =
     """getbalance ( "account" minconf includeWatchonly )
       |
       |If account is not specified, returns the server's total available asset balance.
@@ -84,7 +83,7 @@ object GetAssetBalance extends RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getassetbalance", "params": ["SENDER", 1, true, []] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
-case class ListAssetBalanceDescResult( transactionDescs : List[AssetBalanceDesc] ) extends RpcResult
+data class ListAssetBalanceDescResult( val transactionDescs : List<AssetBalanceDesc> ) : RpcResult

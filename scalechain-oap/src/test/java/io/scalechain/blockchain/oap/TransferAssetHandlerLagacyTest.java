@@ -6,18 +6,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.scalechain.blockchain.oap.command.AssetTransferTo;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.*;
 import io.scalechain.blockchain.proto.Hash;
 import io.scalechain.blockchain.proto.Transaction;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import scala.Option;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +35,7 @@ public class TransferAssetHandlerLagacyTest {
   public static void setUpForClass() throws Exception {
     System.out.println(AddressUtilMainNetTest.class.getName() + ".setupForClass()");
 
-    ChainEnvironment$.MODULE$.create("mainnet");
+    ChainEnvironment.create("mainnet");
   }
 
 
@@ -102,7 +101,7 @@ public class TransferAssetHandlerLagacyTest {
     AssetAddress toAddress = AssetAddress.from(assetAddresses[0]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     for (int i = 0; i < assetQuantities[0].length; i++) {
-      tos.add(AssetTransferTo.apply(assetAddresses[1], assetIds[i], -1));
+      tos.add(new AssetTransferTo(assetAddresses[1], assetIds[i], -1));
     }
 
     // DO TEST
@@ -122,7 +121,7 @@ public class TransferAssetHandlerLagacyTest {
     AssetAddress toAddress = AssetAddress.from(assetAddresses[0]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     for (int i = 0; i < assetQuantities[0].length; i++) {
-      tos.add(AssetTransferTo.apply(assetAddresses[1], coinAddresses[0], 1000));
+      tos.add(new AssetTransferTo(assetAddresses[1], coinAddresses[0], 1000));
     }
     HashMap<AssetId, List<AssetTransfer>> assetTransfers = hanlder.groupAssetTransfersByAssetId(
       tos
@@ -138,7 +137,7 @@ public class TransferAssetHandlerLagacyTest {
     AssetAddress toAddress = AssetAddress.from(assetAddresses[0]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     for (int i = 0; i < assetQuantities[0].length; i++) {
-      tos.add(AssetTransferTo.apply(coinAddresses[1], assetIds[i], 1000));
+      tos.add(new AssetTransferTo(coinAddresses[1], assetIds[i], 1000));
     }
     HashMap<AssetId, List<AssetTransfer>> assetTransfers = TransferAssetHandler.get().groupAssetTransfersByAssetId(
       tos
@@ -151,7 +150,7 @@ public class TransferAssetHandlerLagacyTest {
     AssetAddress toAddress = AssetAddress.from(assetAddresses[0]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
     for (int i = 0; i < assetQuantities[0].length; i++) {
-      tos.add(AssetTransferTo.apply(assetAddresses[1], assetIds[i], 1000));
+      tos.add(new AssetTransferTo(assetAddresses[1], assetIds[i], 1000));
     }
 
     // DO TEST
@@ -168,9 +167,9 @@ public class TransferAssetHandlerLagacyTest {
       assertTrue(
         "AssetTransfer should match given AssetTransferTo",
         (
-          exp.to_address().equals(actual.getToAddress().base58()) &&
-            exp.asset_id().equals(actual.getAssetId().base58()) &&
-            exp.quantity() == actual.getQuantity()
+          exp.getTo_address().equals(actual.getToAddress().base58()) &&
+            exp.getAsset_id().equals(actual.getAssetId().base58()) &&
+            exp.getQuantity() == actual.getQuantity()
         )
       );
     }
@@ -206,17 +205,17 @@ public class TransferAssetHandlerLagacyTest {
     java.math.BigDecimal amount = java.math.BigDecimal.valueOf(json.get("value").getAsLong());
     amount = amount.divide(IOapConstants.ONE_BTC_IN_SATOSHI);
     String base58 = json.get("addresses").getAsJsonArray().get(0).getAsString();
-    Option<String> addressOption = Option.apply(base58);
-    Option<String> accountOption = Option.apply(account);
-    Option<String> redeemScriptOption = Option.empty();
+    String addressOption = base58;
+    String accountOption = account;
+    String redeemScriptOption = null;
     UnspentCoinDescriptor ucd = new UnspentCoinDescriptor(
-      new Hash(new ByteArray(HexUtil.bytes(json.get("transaction_hash").toString()))),
+      new Hash(new Bytes(HexUtil.bytes(json.get("transaction_hash").toString()))),
       json.get("output_index").getAsInt(),
       addressOption,
       accountOption,
       json.get("script_hex").getAsString(),
       redeemScriptOption,
-      scala.math.BigDecimal.javaBigDecimal2bigDecimal(amount),
+      amount,
       json.get("confirmations").getAsInt(),
       !json.get("spent").getAsBoolean()
     );
@@ -303,7 +302,7 @@ public class TransferAssetHandlerLagacyTest {
   @Test
   public void caculateAssetChangeNotEnoughAssetTest() throws OapException, Exception {
     thrown.expect(OapException.class);
-    thrown.expectMessage(startsWith("Not enoough asset"));
+    thrown.expectMessage(startsWith("Not enough asset"));
 
     JsonArray j = new JsonParser().parse(DESC).getAsJsonArray();
     List<UnspentAssetDescriptor> inputs = new ArrayList<UnspentAssetDescriptor>();
@@ -356,7 +355,7 @@ public class TransferAssetHandlerLagacyTest {
     CoinAddress fromAddress = CoinAddress.from(coinAddresses[0]);
     AssetAddress toAddress = AssetAddress.from(assetAddresses[1]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
-    tos.add(AssetTransferTo.apply(toAddress.base58(), assetIds[0], -1));
+    tos.add(new AssetTransferTo(toAddress.base58(), assetIds[0], -1));
     Transaction tx = TransferAssetHandler.get().createTransferTransaction(
       AssetAddress.fromCoinAddress(coinAddresses[0]),
       tos,
@@ -374,7 +373,7 @@ public class TransferAssetHandlerLagacyTest {
     AssetAddress fromAddress = AssetAddress.from(assetAddresses[0]);
     AssetAddress toAddress = AssetAddress.from(assetAddresses[1]);
     List<AssetTransferTo> tos = new ArrayList<AssetTransferTo>();
-    tos.add(AssetTransferTo.apply(toAddress.base58(), assetIds[0], quantity));
+    tos.add(new AssetTransferTo(toAddress.base58(), assetIds[0], quantity));
     Transaction tx = TransferAssetHandler.get().createTransferTransaction(
       fromAddress,
       tos,

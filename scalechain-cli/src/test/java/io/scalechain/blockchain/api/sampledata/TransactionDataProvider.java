@@ -9,13 +9,13 @@ import io.scalechain.blockchain.oap.sampledata.AddressDataProvider;
 import io.scalechain.blockchain.oap.sampledata.IAddressDataProvider;
 import io.scalechain.blockchain.oap.sampledata.IAddressGenerationListener;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.proto.*;
-import io.scalechain.blockchain.script.HashSupported;
+import io.scalechain.blockchain.script.HashCalculator;
 import io.scalechain.blockchain.storage.index.KeyValueDatabase;
 import io.scalechain.blockchain.transaction.*;
-import io.scalechain.util.ByteArray;
-import io.scalechain.util.Config$;
+import io.scalechain.util.Bytes;
+import io.scalechain.util.Config;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.Wallet;
 import scala.Option;
@@ -63,7 +63,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
   }
 
   public KeyValueDatabase db() {
-    return chain.db();
+    return chain.getDb();
   }
 
   AddressDataProvider addressDataProvider;
@@ -120,13 +120,13 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
   public void onAddressGeneration(String account, CoinAddress address, PrivateKey privateKey) {
     System.out.println("onAddressGeneration(" + account + ", " + address + ", " + privateKey + ")");
     if (privateKey == null) {
-      wallet.importOutputOwnership(blockChainView(), account, address, false, db());
+      wallet.importOutputOwnership( db(), blockChainView(), account, address, false);
     } else {
-      wallet.store().putOutputOwnership(account, address, db());
-      List<PrivateKey> keys = new ArrayList<>();
+      wallet.getStore().putOutputOwnership(db(), account, address);
+      List<PrivateKey> keys = new ArrayList<PrivateKey>();
       keys.add(privateKey);
-      wallet.store().putPrivateKeys(address, JavaConverters.asScalaBuffer(keys).toList(), db());
-      wallet.store().putReceivingAddress(account, address, db());
+      wallet.getStore().putPrivateKeys(db(), address, keys);
+      wallet.getStore().putReceivingAddress(db(), account, address);
     }
   }
 
@@ -135,7 +135,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     this.wallet = wallet;
 
     String miningAccount = miningAccount();
-    AddressData miningAddress = miningAddress(Wallet.get(), Blockchain.get().db(), miningAccount);
+    AddressData miningAddress = miningAddress(Wallet.get(), Blockchain.get().getDb(), miningAccount);
     this.addressDataProvider = new AddressDataProvider(miningAccount, miningAddress);
     this.addressDataProvider.addListener(this);
   }
@@ -145,12 +145,12 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
   }
 
   private static String miningAccount() {
-    String miningAccount = Config$.MODULE$.getString("scalechain.mining.account");
+    String miningAccount = Config.get().getString("scalechain.mining.account");
     return miningAccount == null ? AddressDataProvider.DEFAULT_MINING_ACCOUNT : miningAccount;
   }
 
   private static AddressData miningAddress(Wallet wallet, KeyValueDatabase db, String miningAccount) {
-    CoinAddress address = wallet.get().getReceivingAddress(miningAccount, db);
+    CoinAddress address = wallet.getReceivingAddress(db, miningAccount);
     return AddressData.from(address);
   }
 
@@ -241,7 +241,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
 
 
   private NewOutput markerOutput(int[] quantities, byte[] definitionPointer) throws OapException {
-    NewOutput markerOutput = NewOutput.apply(
+    NewOutput markerOutput = new NewOutput(
       CoinAmount.from(0L),
       ParsedPubKeyScript.from(OapMarkerOutput.lockingScriptFrom(quantities, definitionPointer))
     );
@@ -252,14 +252,14 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     List<OutputWithOutPoint> result = new ArrayList<OutputWithOutPoint>();
 
     for (Pair<OutPoint, TransactionOutput> pair : outPointsAndOutpus) {
-      result.add(OutputWithOutPoint.apply(pair.getSecond(), pair.getFirst()));
+      result.add(new OutputWithOutPoint(pair.getSecond(), pair.getFirst()));
     }
 
     return result;
   }
 
   private Hash getTxHash(Transaction tx) {
-    return HashSupported.toHashSupportedTransaction(tx).hash();
+    return HashCalculator.transactionHash(tx);
   }
 
   //
@@ -271,58 +271,51 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     return hash;
   }
 
-  public signedTx signTransaction(Transaction transaction, Option<List<PrivateKey>> privateKeysOption) {
-    Option<scala.collection.immutable.List<PrivateKey>> keysOption = Option.empty();
-    if (privateKeysOption.isDefined()) {
-      keysOption = Option.apply(JavaConverters.asScalaBuffer(privateKeysOption.get()).toList());
-    }
-    List<UnspentTransactionOutput> empty = new ArrayList<UnspentTransactionOutput>();
-    return wallet.signTransaction(transaction, blockChainView(), JavaConverters.asScalaBuffer(empty).toList(), keysOption, SigHash.ALL(), db());
+  public SignedTransaction signTransaction(Transaction transaction, List<PrivateKey> privateKeysOption) {
+    return wallet.signTransaction(db(), transaction, blockChainView(), new ArrayList(), privateKeysOption, SigHash.ALL);
   }
 
   public TransactionWithName generationTransaction(String name, CoinAmount amount, OutputOwnership generatedBy) {
     String data = "Random:" + (random.nextLong()) + ".The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.";
     TransactionBuilder builder = TransactionBuilder.newBuilder();
     Transaction transaction = builder
-      .addGenerationInput(CoinbaseData.apply(ByteArray.apply(data.getBytes())), builder.addGenerationInput$default$2())
-      .addOutput(CoinAmount.apply(scala.math.BigDecimal.valueOf(50)), generatedBy)
-      .build(builder.build$default$1(), builder.build$default$2());
-    TransactionWithName transactionWithName = TransactionWithName.apply(name, transaction);
+      .addGenerationInput(new CoinbaseData(new Bytes(data.getBytes())), 0)
+      .addOutput(new CoinAmount(BigDecimal.valueOf(50)), generatedBy)
+      .build();
+    TransactionWithName transactionWithName = new TransactionWithName(name, transaction);
     return transactionWithName;
   }
 
 
-  public signedTx signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, Option<List<PrivateKey>> privateKeysOption) throws Exception {
+  public SignedTransaction signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, List<PrivateKey> privateKeysOption) throws Exception {
     TransactionBuilder builder = TransactionBuilder.newBuilder();
 
     for (int i = 0; i < spendingOutputs.size(); i++) {
       builder.addInput(
+        db(),
         blockChainView(),
-        spendingOutputs.get(i).outPoint(),
-        builder.addInput$default$3(),
-        builder.addInput$default$4(),
-        db()
+        spendingOutputs.get(i).getOutPoint()
       );
     }
     for (int i = 0; i < newOutputs.size(); i++) {
-      builder.addOutput(newOutputs.get(i).amount(), newOutputs.get(i).outputOwnership());
+      builder.addOutput(newOutputs.get(i).getAmount(), newOutputs.get(i).getOutputOwnership());
     }
-    signedTx tx = signTransaction(builder.build(builder.build$default$1(), builder.build$default$2()), privateKeysOption);
-    if (!tx.complete()) {
+    SignedTransaction tx = signTransaction(builder.build(), privateKeysOption);
+    if (!tx.getComplete()) {
       throw new Exception("Cannot sign transaction");
     }
     return tx;
   }
 
-  public signedTx signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, PrivateKey privateKey) throws Exception {
+  public SignedTransaction signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs, PrivateKey privateKey) throws Exception {
     List<PrivateKey> keys = new ArrayList<PrivateKey>();
     keys.add(privateKey);
-    return signedNormalTransaction(name, spendingOutputs, newOutputs, Option.apply(keys));
+    return signedNormalTransaction(name, spendingOutputs, newOutputs, keys);
   }
 
-  public signedTx signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs) throws Exception {
-    List<PrivateKey> keys = new ArrayList<PrivateKey>();
-    return signedNormalTransaction(name, spendingOutputs, newOutputs, Option.empty());
+  public SignedTransaction signedNormalTransaction(String name, List<OutputWithOutPoint> spendingOutputs, List<NewOutput> newOutputs) throws Exception {
+    List<PrivateKey> keys = null;
+    return signedNormalTransaction(name, spendingOutputs, newOutputs, keys);
   }
 
 
@@ -342,18 +335,18 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     List<CoinAddress> internalAddresses = new ArrayList<CoinAddress>();
     internalAddresses.add(internalAddressData().address);
 
-    Collection<UnspentCoinDescriptor> unspents = JavaConverters.asJavaCollection(Wallet.get().listUnspent(
+    Collection<UnspentCoinDescriptor> unspents = Wallet.get().listUnspent(
+      Blockchain.get().getDb(),
       Blockchain.get(),
       IOapConstants.DEFAULT_MIN_CONFIRMATIONS,
       IOapConstants.DEFAULT_MAX_CONFIRMATIONS,
-      Option.apply(JavaConverters.asScalaBuffer(internalAddresses).toList()),
-      Blockchain.get().db()
-    ));
+      internalAddresses
+    );
 
     int index = 0;
     for (UnspentCoinDescriptor unspent : unspents) {
       if (index == result.length) break;
-      if (unspent.amount().longValue() == 50) {
+      if (unspent.getAmount().longValue() == 50) {
         result[index] = unspent;
         index++;
       }
@@ -389,28 +382,28 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     for (String account : accounts()) {
       AddressData[] data = addressesOf(account);
       AddressData lastAddress = data[data.length - 1];
-      signedTx tx = null;
+      SignedTransaction tx = null;
       tx = signedNormalTransaction(
         "S2_NORMALTX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(new Pair<OutPoint, TransactionOutput>(
-          OutPoint.apply(internalUnspents[index].txid(), internalUnspents[index].vout()),
-          TransactionOutput.apply(
-            CoinAmount.apply(internalUnspents[index].amount()).coinUnits(),
-            CoinAddress.from(internalUnspents[index].address().get()).lockingScript()
+          new OutPoint(internalUnspents[index].getTxid(), internalUnspents[index].getVout()),
+          new TransactionOutput(
+            new CoinAmount(internalUnspents[index].getAmount()).coinUnits(),
+            CoinAddress.from(internalUnspents[index].getAddress()).lockingScript()
           )
         )),
         NewOutListConveter.toList(
-          NewOutput.apply(
-            CoinAmount.apply(scala.math.BigDecimal.valueOf(49)),  // SEND 49BTC, Change will be 1BTC!
+          new NewOutput(
+            new CoinAmount(BigDecimal.valueOf(49)),  // SEND 49BTC, Change will be 1BTC!
             lastAddress.address
           )
         )
       );
       if (tx == null) throw new Exception(internalAccount() + "does not have enough coins.");
-      Hash hash = sendTransaction(tx.transaction());
+      Hash hash = sendTransaction(tx.getTransaction());
       // Save the tx hash
-      outputs[index] = tx.transaction().outputs().apply(0);
-      outPoints[index] = OutPoint.apply(hash, 0);
+      outputs[index] = tx.getTransaction().getOutputs().get(0);
+      outPoints[index] = new OutPoint(hash, 0);
       // ADD balance to account
       addBalance(account, lastAddress.address.base58(), BigDecimal.valueOf(49));
       transactionCounts[index][1]++;  // increase receiving transactions.
@@ -433,34 +426,34 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       AddressData firstAddress = data[0];
 
       long amount = IOapConstants.ONE_BTC_IN_SATOSHI.longValue() * ((1 + index) * 5);
-      long changeAmount = outputs[index].value() - amount - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
+      long changeAmount = outputs[index].getValue() - amount - IOapConstants.DEFAULT_FEES_IN_SATOSHI;
 
-      signedTx tx = signedNormalTransaction(
+      SignedTransaction tx = signedNormalTransaction(
         "S3_NORMALTX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(new Pair<OutPoint, TransactionOutput>(outPoints[index], outputs[index])),
         NewOutListConveter.toList(
-          NewOutput.apply(
+          new NewOutput(
             CoinAmount.from(amount),
             firstAddress.address
           ),
-          NewOutput.apply(
+          new NewOutput(
             CoinAmount.from(changeAmount),
             lastAddress.address
           )    //CHANGE
         )
       );
       // Send signed transaction
-      Hash hash = sendTransaction(tx.transaction());
+      Hash hash = sendTransaction(tx.getTransaction());
       s3NormalTxHashes[index] = hash;
-      s3Outputs[index] = tx.transaction().outputs().apply(0);
-      s3OOutPoints[index] = OutPoint.apply(hash, 0);
-      changeOutputs[index] = tx.transaction().outputs().apply(1);
-      changeOutPoints[index] = OutPoint.apply(hash, 1);
+      s3Outputs[index] = tx.getTransaction().getOutputs().get(0);
+      s3OOutPoints[index] = new OutPoint(hash, 0);
+      changeOutputs[index] = tx.getTransaction().getOutputs().get(1);
+      changeOutPoints[index] = new OutPoint(hash, 1);
 
       // substract the tx fee
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
-      substractBalance(account, lastAddress.address.base58(), CoinAmount.from(amount).value().bigDecimal());
-      addBalance(account, firstAddress.address.base58(), CoinAmount.from(amount).value().bigDecimal());
+      substractBalance(account, lastAddress.address.base58(), CoinAmount.from(amount).getValue());
+      addBalance(account, firstAddress.address.base58(), CoinAmount.from(amount).getValue());
 
       transactionCounts[index][1] += 2;  // increase receiving transactions.
       transactionCounts[index][0]++;  // increase sending transactions.
@@ -477,36 +470,36 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       AddressData[] data = addressesOf(account);
       AddressData lastAddress = data[data.length - 1];
 
-      long changeAmount = changeOutputs[index].value() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = changeOutputs[index].getValue() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
       // CREATE ISSUE TRANSACTION.
-      signedTx tx = signedNormalTransaction(
+      SignedTransaction tx = signedNormalTransaction(
         "S4_ISSUETX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(
           new Pair<OutPoint, TransactionOutput>(changeOutPoints[index], changeOutputs[index])
         ),
         NewOutListConveter.toList(
-          NewOutput.apply( // INDEX : 0 ISSUE OUTPUT
+          new NewOutput( // INDEX : 0 ISSUE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
           markerOutput( // INDEX : 1MARKER OUTPUT
             new int[]{assetQuntity}, lastAddress.assetDefinitionPointer.getPointer()
           ),
-          NewOutput.apply( // INDEX : 2 COIN CHANGE
+          new NewOutput( // INDEX : 2 COIN CHANGE
             CoinAmount.from(changeAmount),
             lastAddress.address
           )
         )
       );
       // Send signed Tx
-      Hash hash = sendTransaction(tx.transaction());
+      Hash hash = sendTransaction(tx.getTransaction());
       s4IssueTxHashes[index] = hash;
       // Store the issue output into outputs
-      outputs[index] = tx.transaction().outputs().apply(0);
-      outPoints[index] = OutPoint.apply(hash, 0);
+      outputs[index] = tx.getTransaction().getOutputs().get(0);
+      outPoints[index] = new OutPoint(hash, 0);
       // Store the coin change output into change output
-      changeOutputs[index] = tx.transaction().outputs().apply(2);
-      changeOutPoints[index] = OutPoint.apply(hash, 2);
+      changeOutputs[index] = tx.getTransaction().getOutputs().get(2);
+      changeOutPoints[index] = new OutPoint(hash, 2);
 
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
 //      substractBalance(account, lastAddress.address.base58(), IOapConstants.DUST_IN_BITCOIN);
@@ -531,13 +524,13 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       AddressData lastAddress = data[data.length - 1];
       AddressData firstAddress = data[0];
 
-      long changeAmount = (outputs[index].value() + changeOutputs[index].value()) - (IOapConstants.DUST_IN_SATOSHI * 2 + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = (outputs[index].getValue() + changeOutputs[index].getValue()) - (IOapConstants.DUST_IN_SATOSHI * 2 + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
 
       int transferQuantity = 2000 * (index + 1);
       int changeQuantity = assetQuntity - transferQuantity;
 
       // CREATE TRANSFER
-      signedTx tx = signedNormalTransaction(
+      SignedTransaction tx = signedNormalTransaction(
         "S5_TRANSFERTX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(
           // outPoints/outputs : ISSUE OUTPUT, changeoutPoints/changeOutputs : COIN CHANGE OUTPUT
@@ -548,22 +541,22 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
           markerOutput( // MARKER OUTPUT
             new int[]{transferQuantity, changeQuantity}, new byte[0]
           ),
-          NewOutput.apply( // TRANSFER ASSET
+          new NewOutput( // TRANSFER ASSET
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             firstAddress.address
           ),
-          NewOutput.apply( // ASSET CHANGE OUTPUT
+          new NewOutput( // ASSET CHANGE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
-          NewOutput.apply( // COIN CHANGE
+          new NewOutput( // COIN CHANGE
             CoinAmount.from(changeAmount),
             lastAddress.address
           )
         )
       );
       // Send signed Tx
-      Hash hash = sendTransaction(tx.transaction());
+      Hash hash = sendTransaction(tx.getTransaction());
       s5TransferTxHashes[index] = hash;
 
       substractBalance(account, lastAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);
@@ -589,22 +582,22 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       AddressData firstAddress = data[0];
       AddressData lastAddress = data[data.length - 1];
 
-      long changeAmount = s3Outputs[index].value() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
+      long changeAmount = s3Outputs[index].getValue() - (IOapConstants.DUST_IN_SATOSHI + IOapConstants.DEFAULT_FEES_IN_SATOSHI);
       // CREATE ISSUE TRANSACTION.
-      signedTx tx = signedNormalTransaction(
+      SignedTransaction tx = signedNormalTransaction(
         "S6_ISSUETX-" + account + "-" + (System.currentTimeMillis() / 1000),
         toOuputWithOutPointList(
           new Pair<OutPoint, TransactionOutput>(s3OOutPoints[index], s3Outputs[index])
         ),
         NewOutListConveter.toList(
-          NewOutput.apply( // INDEX : 0 ISSUE OUTPUT
+          new NewOutput( // INDEX : 0 ISSUE OUTPUT
             CoinAmount.from(IOapConstants.DUST_IN_SATOSHI),
             lastAddress.address
           ),
           markerOutput( // INDEX : 1MARKER OUTPUT
             new int[]{assetQuntity}, lastAddress.assetDefinitionPointer.getPointer()
           ),
-          NewOutput.apply( // INDEX : 2 COIN CHANGE
+          new NewOutput( // INDEX : 2 COIN CHANGE
             CoinAmount.from(changeAmount),
             firstAddress.address
           )
@@ -613,7 +606,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       );
 
       // Send signed Tx
-      Hash hash = sendTransaction(tx.transaction());
+      Hash hash = sendTransaction(tx.getTransaction());
       s6IssueTxHashes[index] = hash;
 
       substractBalance(account, firstAddress.address.base58(), IOapConstants.DEFAULT_FEES_IN_BITCOIN);

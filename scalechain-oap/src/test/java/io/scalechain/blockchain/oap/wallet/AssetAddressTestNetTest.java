@@ -1,6 +1,6 @@
 package io.scalechain.blockchain.oap.wallet;
 
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import org.junit.BeforeClass;
 
 /**
@@ -11,7 +11,7 @@ public class AssetAddressTestNetTest extends AssetAddressMainNetTest {
     @BeforeClass
     public static void setUpForClass() throws Exception {
         System.out.println(AssetAddressTestNetTest.class.getName() + ".setupForClass()");
-        ChainEnvironment$.MODULE$.create("testnet");
+        ChainEnvironment.create("testnet");
         coinAddresses = new String[] {
                 "mzhdcviYb4gyPQLzrSqhC38vnMBUGescmG",
                 "n3BTwZ2pP3gB39Nu8Q9eUhgpUYS7c1P3gB",

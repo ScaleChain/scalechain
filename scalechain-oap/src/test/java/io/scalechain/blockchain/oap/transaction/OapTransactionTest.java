@@ -3,9 +3,9 @@ package io.scalechain.blockchain.oap.transaction;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.proto.*;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.blockchain.transaction.CoinAddress;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertArrayEquals;
 public class OapTransactionTest {
     @BeforeClass
     public static void setUpForClass() {
-        ChainEnvironment$.MODULE$.create("mainnet");
+        ChainEnvironment.create("mainnet");
     }
 
     @Test
@@ -34,38 +34,39 @@ public class OapTransactionTest {
 
         CoinAddress address = CoinAddress.from("17KGX72xM71xV99FvYWCekabF5aFWx78US");
         LockingScript lockingScript = address.lockingScript();
-        List<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
+        List<OapTransactionOutput> outputs = new ArrayList<OapTransactionOutput>();
         List<TransactionInput> inputs = new ArrayList<TransactionInput>();
         outputs.add(new OapTransactionOutput(
                 AssetId.from(address),
                 1000,
-                TransactionOutput.apply(600, lockingScript)
+                new TransactionOutput(600, lockingScript)
         ));
         outputs.add(new OapMarkerOutput(AssetId.from(address), assetQuantities, metadata));
-        inputs.add(NormalTransactionInput.apply(
-                    new Hash(new ByteArray(HexUtil.bytes("00a65162187e76037fa6170bcdc558cd8115c12743243142cd9111df67db9d00"))),
+        inputs.add(new NormalTransactionInput(
+                    new Hash(new Bytes(HexUtil.bytes("00a65162187e76037fa6170bcdc558cd8115c12743243142cd9111df67db9d00"))),
                     0,
-                    new UnlockingScript(new ByteArray(new byte[] { (byte)0} )),
+                    new UnlockingScript(new Bytes(new byte[] { (byte)0} )),
                     0
             )
         );
 
         OapTransaction tx = new OapTransaction(
                 1,
-                JavaConverters.asScalaBuffer(inputs).toList(),
-                JavaConverters.asScalaBuffer(outputs).toList(),
+                inputs,
+                outputs,
                 0
         );
 
-        assertEquals("TX OUTPUTS COUNT", 2, tx.outputs().size());
+        assertEquals("TX OUTPUTS COUNT", 2, tx.getOapOutputs().size());
         assertEquals("MARKER OUPUT INDEX SHOULD BE 1", 1, tx.getMarkerOutputIndex());
-        assertEquals("MARKER OUTPUT VALUE", 0, tx.getMarkerOutput().value());
+        assertEquals("MARKER OUTPUT VALUE", 0, tx.getMarkerOutput().getTransactionOutput().getValue());
         assertArrayEquals("MARKER OUTPUT ASSET QUANTITIES", assetQuantities, tx.getMarkerOutput().getQuantities());
         assertArrayEquals("MARKER OUTPUT ASSET METADATA", metadata, tx.getMarkerOutput().getMetadata());
 
-        assertTrue("TX OUTPUT[0] SOULD BE OapTransactionOutput", tx.outputs().apply(0) instanceof OapTransactionOutput);
-        OapTransactionOutput o = (OapTransactionOutput)tx.outputs().apply(0);
-        assertEquals("OapTransactionOutput SHOULD HAVE VALUE", 600, o.value());
+        assertTrue("TX OUTPUT[0] SOULD BE colored", tx.getOapOutputs().get(0).isColored());
+        assertTrue("TX OUTPUT[0] SOULD BE OapTransactionOutput", tx.getOapOutputs().get(0) instanceof OapTransactionOutput);
+        OapTransactionOutput o = (OapTransactionOutput)tx.getOapOutputs().get(0);
+        assertEquals("OapTransactionOutput SHOULD HAVE VALUE", 600, o.getTransactionOutput().getValue());
         assertEquals("ASSET ID", AssetId.from(address), o.getAssetId());
         assertEquals("ASSET QUANTITY", 1000, o.getQuantity());
     }
@@ -77,32 +78,33 @@ public class OapTransactionTest {
 
         CoinAddress address = CoinAddress.from("17KGX72xM71xV99FvYWCekabF5aFWx78US");
         LockingScript lockingScript = address.lockingScript();
-        List<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
+        List<OapTransactionOutput> outputs = new ArrayList<OapTransactionOutput>();
         List<TransactionInput> inputs = new ArrayList<TransactionInput>();
         outputs.add(new OapTransactionOutput(
           AssetId.from(address),
           1000,
-          TransactionOutput.apply(600, lockingScript)
+          new TransactionOutput(600, lockingScript)
         ));
         outputs.add(new OapMarkerOutput(AssetId.from(address), assetQuantities, metadata));
-        inputs.add(NormalTransactionInput.apply(
-          new Hash(new ByteArray(HexUtil.bytes("00a65162187e76037fa6170bcdc558cd8115c12743243142cd9111df67db9d00"))),
+        inputs.add(new NormalTransactionInput(
+          new Hash(new Bytes(HexUtil.bytes("00a65162187e76037fa6170bcdc558cd8115c12743243142cd9111df67db9d00"))),
           0,
-          new UnlockingScript(new ByteArray(new byte[] { (byte)0} )),
+          new UnlockingScript(new Bytes(new byte[] { (byte)0} )),
           0
           )
         );
 
         OapTransaction tx = new OapTransaction(
           1,
-          JavaConverters.asScalaBuffer(inputs).toList(),
-          JavaConverters.asScalaBuffer(outputs).toList(),
+          inputs,
+          outputs,
           0
         );
 
         String txString = tx.toString();
-        for(TransactionOutput output: outputs) {
-            assertTrue("Tx.toSting() should cointain TxOuput.toString()", txString.contains(output.toString()));
+        System.out.println(txString);
+        for(OapTransactionOutput output: outputs) {
+            assertTrue("OapTransaction should contain Output", txString.contains(output.getTransactionOutput().toString()));
         }
     }
 }

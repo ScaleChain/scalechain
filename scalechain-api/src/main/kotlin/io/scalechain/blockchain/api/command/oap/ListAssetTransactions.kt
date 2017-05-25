@@ -1,16 +1,13 @@
 package io.scalechain.blockchain.api.command.oap
 
-import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.{ErrorCode, UnsupportedFeature}
 import io.scalechain.blockchain.api.command.RpcCommand
-import io.scalechain.blockchain.api.command.rawtx.GetRawTransaction._
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult, StringResult}
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.oap.OpenAssetsProtocol
 import io.scalechain.blockchain.oap.wallet.OapTransactionDescriptor
-import io.scalechain.blockchain.proto.{Hash, HashFormat, Transaction}
-import io.scalechain.wallet.Wallet
-import io.scalechain.wallet.WalletTransactionDescriptor
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -49,7 +46,7 @@ import spray.json.DefaultJsonProtocol._
     }
 */
 
-case class ListAssetTransactionsResult( transactionDescs : List[OapTransactionDescriptor] ) extends RpcResult
+data class ListAssetTransactionsResult( val transactionDescs : List<OapTransactionDescriptor> ) : RpcResult
 
 
 /** ListTransactions: returns the most recent transactions that affect the wallet.
@@ -81,26 +78,27 @@ case class ListAssetTransactionsResult( transactionDescs : List[OapTransactionDe
   *
   * https://bitcoin.org/en/developer-reference#listtransactions
   */
-object ListAssetTransactions extends RpcCommand {
-  def invoke(request : RpcRequest) : Either[RpcError, Option[RpcResult]] = {
-
-    handlingException {
-      val account         : String  = request.params.getOption[String] ("Account", 0).getOrElse("")
-      val count           : Int     = request.params.getOption[Int]    ("Count", 1).getOrElse(10)
-      val skip            : Long    = request.params.getOption[Long]   ("Skip", 2).getOrElse(0)
-      val includeWatchOnly: Boolean = request.params.getOption[Boolean]("Include WatchOnly", 3).getOrElse(false)
+object ListAssetTransactions  : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val account         : String  = request.params.getOption<String> ("Account", 0) ?: ""
+      val count           : Int     = request.params.getOption<Int>    ("Count", 1) ?: 10
+      val skip            : Long    = request.params.getOption<Long>   ("Skip", 2) ?: 0
+      val includeWatchOnly: Boolean = request.params.getOption<Boolean>("Include WatchOnly", 3) ?: false
 
       // None means to list transactions from all accounts in the wallet.
-      val accountOption = if (account == "*") None else Some(account)
-      import scala.collection.JavaConverters
-      val transactionDescs : List[OapTransactionDescriptor] = JavaConverters.asScalaBuffer(
-        OpenAssetsProtocol.get().listTransactions(accountOption, count, skip, includeWatchOnly)
-      ).toList
+      val accountOption = if (account == "*") null else account
 
-      Right(Some(ListAssetTransactionsResult(transactionDescs)))
+
+      val transactionDescs : List<OapTransactionDescriptor> =
+        OpenAssetsProtocol.get().listTransactions(accountOption, count, skip, includeWatchOnly)
+
+      Right(ListAssetTransactionsResult(transactionDescs))
     }
   }
-  def help() : String =
+
+
+  override fun help() : String =
     """listtransactions ( "account" count from includeWatchonly)
       |
       |Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.
@@ -161,7 +159,7 @@ object ListAssetTransactions extends RpcCommand {
       |
       |As a json rpc call
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "listtransactions", "params": ["*", 20, 100] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 
 

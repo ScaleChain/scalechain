@@ -4,6 +4,7 @@ import io.scalechain.blockchain.api.command.blockchain.*
 import io.scalechain.blockchain.api.command.wallet.*
 import io.scalechain.blockchain.api.command.control.*
 import io.scalechain.blockchain.api.command.generating.*
+import io.scalechain.blockchain.api.command.oap.*
 import io.scalechain.blockchain.api.command.help.*
 import io.scalechain.blockchain.api.command.mining.*
 import io.scalechain.blockchain.api.command.network.*
@@ -33,7 +34,7 @@ object Services {
     GetReceivedByAddress,
     ListTransactions,
     ListUnspent,
-    SignRawTransaction
+    SignRawTransaction,
 
     /*
         GetTransaction,

@@ -1,16 +1,10 @@
 package io.scalechain.blockchain.chain.processor
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.ChainException
-import io.scalechain.blockchain.proto.BlockHeader
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.Block
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.ArrayBuffer
 
 /** Process a received block.
   *

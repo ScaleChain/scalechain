@@ -10,8 +10,7 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase;
 import io.scalechain.blockchain.transaction.BlockchainView;
 import io.scalechain.blockchain.transaction.ChainBlock;
 import io.scalechain.blockchain.transaction.CoinsView;
-import scala.Option;
-import scala.collection.Iterator;
+import java.util.Iterator;
 
 /**
  * Created by shannon on 16. 12. 8.
@@ -34,14 +33,13 @@ public class TestBlockchainInterface implements IBlockchainInterface, Blockchain
 
   @Override
   public Transaction getTransation(Hash hash) {
-    Option<Transaction> txOption = chainView.getTransaction(hash, chainView.db());
-    if (txOption.isDefined()) return txOption.get();
-    else return null;
+    Transaction txOption = chainView.getTransaction(chainView.db(), hash);
+    return txOption;
   }
 
   @Override
   public TransactionOutput getTransactionOutput(OutPoint outPoint) {
-    return chainView.getTransactionOutput(outPoint, chainView.db());
+    return chainView.getTransactionOutput(chainView.db(), outPoint);
   }
 
   @Override
@@ -50,13 +48,13 @@ public class TestBlockchainInterface implements IBlockchainInterface, Blockchain
   }
 
   @Override
-  public TransactionOutput getTransactionOutput(OutPoint outPoint, KeyValueDatabase db) {
-    return chainView.getTransactionOutput(outPoint, db);
+  public TransactionOutput getTransactionOutput(KeyValueDatabase db, OutPoint outPoint) {
+    return chainView.getTransactionOutput(db, outPoint);
   }
 
   @Override
-  public Iterator<ChainBlock> getIterator(long height, KeyValueDatabase db) {
-    return chainView.getIterator(height, chainView.db());
+  public Iterator<ChainBlock> getIterator(KeyValueDatabase db, long height) {
+    return chainView.getIterator(chainView.db(), height);
   }
 
   @Override
@@ -65,7 +63,7 @@ public class TestBlockchainInterface implements IBlockchainInterface, Blockchain
   }
 
   @Override
-  public Option<Transaction> getTransaction(Hash transactionHash, KeyValueDatabase db) {
-    return chainView.getTransaction(transactionHash, db);
+  public Transaction getTransaction(KeyValueDatabase db, Hash transactionHash) {
+    return chainView.getTransaction(db, transactionHash);
   }
 }

@@ -3,7 +3,7 @@ package io.scalechain.blockchain.oap.transaction;
 import io.scalechain.blockchain.proto.LockingScript;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.wallet.AssetId;
-import io.scalechain.util.ByteArray;
+import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.Test;
 
@@ -44,11 +44,10 @@ public class OapMarkerOutputTest {
             );
             assert hex[i].equals(
                     HexUtil.hex(
-                            markerOutput.lockingScript().data().array(),
-                            HexUtil.hex$default$2()
+                            markerOutput.getTransactionOutput().getLockingScript().getData().getArray()
                     )
             );
-            assertEquals("Value of Marker Ouput should be 0", 0, markerOutput.value());
+            assertEquals("Value of Marker Ouput should be 0", 0, markerOutput.getTransactionOutput().getValue());
             assertArrayEquals("Metadata should be eqaul", HexUtil.bytes(metadata[i]), markerOutput.getMetadata());
             assertArrayEquals("Asset Quantities should be equal", quantities[i], markerOutput.getQuantities());
         }
@@ -76,12 +75,11 @@ public class OapMarkerOutputTest {
             );
             assert hex[i].equals(
                     HexUtil.hex(
-                            markerOutput.lockingScript().data().array(),
-                            HexUtil.hex$default$2()
+                            markerOutput.getTransactionOutput().getLockingScript().getData().getArray()
                     )
             );
             String s = markerOutput.toString();
-            assertEquals("Value of Marker Ouput should be 0", 0, markerOutput.value());
+            assertEquals("Value of Marker Ouput should be 0", 0, markerOutput.getTransactionOutput().getValue());
             assertEquals("Metadata should be eqaul", 0, markerOutput.getMetadata().length);
             assertArrayEquals("Asset Quantities should be equal", quantities[i], markerOutput.getQuantities() );
         }
@@ -136,16 +134,15 @@ public class OapMarkerOutputTest {
             );
             assertEquals("STRIPED LOCKING SCRIPT", expectedhex[i],
                     HexUtil.hex(
-                            OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.lockingScript()),
-                            HexUtil.hex$default$2()
+                            OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.getTransactionOutput().getLockingScript())
                     )
             );
         }
         // ADDRESS         : 17KGX72xM71xV99FvYWCekabF5aFWx78US
         // PUBLIC KEY HASH : 45453257d7fb46d6eb3683d0dd062dfa793bc5a8
         // LOCKING SCRIPT  : 76a91445453257d7fb46d6eb3683d0dd062dfa793bc5a888ac
-        LockingScript lockingScript = new LockingScript(new ByteArray(HexUtil.bytes("76a91445453257d7fb46d6eb3683d0dd062dfa793bc5a888ac")));
-        byte[] expected = lockingScript.data().array();
+        LockingScript lockingScript = new LockingScript(new Bytes(HexUtil.bytes("76a91445453257d7fb46d6eb3683d0dd062dfa793bc5a888ac")));
+        byte[] expected = lockingScript.getData().getArray();
         byte[] actual = OapMarkerOutput.stripOpReturnFromLockScript(lockingScript);
         assertArrayEquals("NON MARKER OUTPUT LockingScipt", expected, actual);
     }

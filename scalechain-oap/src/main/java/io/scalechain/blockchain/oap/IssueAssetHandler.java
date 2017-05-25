@@ -4,7 +4,7 @@ import io.scalechain.blockchain.chain.TransactionBuilder;
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointer;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetAddress;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.blockchain.oap.wallet.UnspentAssetDescriptor;
@@ -38,7 +38,7 @@ public class IssueAssetHandler implements IOapConstants {
     long sum = 0;
     for (UnspentCoinDescriptor unspent : unspentCoinDescriptors) {
       // amount() returns BigDecimal value in SATOSHI.
-      sum += UnspentAssetDescriptor.amountToCoinUnit(unspent.amount());
+      sum += UnspentAssetDescriptor.amountToCoinUnit(unspent.getAmount());
       coinsToBeSpents.add(unspent);
       if (sum >= amountRequired) {
         break;
@@ -80,9 +80,11 @@ public class IssueAssetHandler implements IOapConstants {
     TransactionBuilder builder = new TransactionBuilder();
     // ADD inputs
     for (UnspentCoinDescriptor unpent : unspents) {
-      builder.addInput(OpenAssetsProtocol.get().chain(),
-        new OutPoint(unpent.txid(), unpent.vout()),
-        builder.addInput$default$3(), builder.addInput$default$4(), OpenAssetsProtocol.get().chain().db()
+      builder.addInput(
+        OpenAssetsProtocol.get().chain().db(),
+        OpenAssetsProtocol.get().chain(),
+        new OutPoint(unpent.getTxid(), unpent.getVout())
+
       );
     }
 
@@ -90,16 +92,16 @@ public class IssueAssetHandler implements IOapConstants {
     for (CoinAmount amount : amounts) {
       if (amount.coinUnits() == 0L) {
         // MarkerOutput :
-        builder.addOutput(OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.lockingScript()));
+        builder.addOutput(OapMarkerOutput.stripOpReturnFromLockScript(markerOutput.getTransactionOutput().getLockingScript()));
       } else if (amount.coinUnits() == DUST_IN_SATOSHI) {
         // Asset Issue/Transfer Output
-        builder.addOutput(CoinAmount.from(DUST_IN_SATOSHI), new Hash(toAddress.coinAddress().publicKeyHash()));
+        builder.addOutput(CoinAmount.from(DUST_IN_SATOSHI), new Hash(toAddress.coinAddress().getPublicKeyHash()));
       } else {
         // Coin Transfer Output
-        builder.addOutput(amount, new Hash(changeAddress.publicKeyHash()));
+        builder.addOutput(amount, new Hash(changeAddress.getPublicKeyHash()));
       }
     }
-    return builder.build(builder.build$default$1(), builder.build$default$2());
+    return builder.build();
 
   }
 
@@ -135,9 +137,9 @@ public class IssueAssetHandler implements IOapConstants {
     List<CoinAddress> issuerAddresses = new ArrayList<CoinAddress>();
     issuerAddresses.add(issuerAddress);
     // GET Unspent Outputs of isserAddress
-    List<UnspentCoinDescriptor> unspentCoinDescriptors = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, issuerAddresses, false);
+    List<UnspentAssetDescriptor> unspentCoinDescriptors = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, issuerAddresses, false);
     // Cacluate coin amounts and change
-    Pair<List<UnspentCoinDescriptor>, List<CoinAmount>> inputsAndOutputAmounts = inputAndOutputAmounts(issuerAddress, unspentCoinDescriptors, fees);
+    Pair<List<UnspentCoinDescriptor>, List<CoinAmount>> inputsAndOutputAmounts = inputAndOutputAmounts(issuerAddress, UnspentAssetDescriptor.toOriginalDescriptor(unspentCoinDescriptors), fees);
 
     return buildTransaction(
       inputsAndOutputAmounts.getFirst(),

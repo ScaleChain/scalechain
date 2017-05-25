@@ -1,7 +1,5 @@
 package io.scalechain.wallet
 
-import java.io.File
-
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.WalletException
 import io.scalechain.blockchain.chain.ChainEventListener
@@ -283,7 +281,8 @@ class Wallet() : ChainEventListener {
           blockindex = walletTransaction.blockIndex,
           blocktime = walletTransaction.blockTime,
           txid = walletTransaction.transactionId,
-          time = walletTransaction.addedTime
+          time = walletTransaction.addedTime,
+          walletTransaction = walletTransaction
         )
       }
     }
@@ -319,6 +318,7 @@ class Wallet() : ChainEventListener {
                         skip            : Long,
                         includeWatchOnly: Boolean
                       ) : List<WalletTransactionDescriptor> {
+
     // TODO : Use RocksDB Snapshot to see consistent data.
     // 1. Get transactions
     val transactions: List<WalletTransaction> = getWalletTransactions(db, accountOption)
@@ -930,11 +930,14 @@ class Wallet() : ChainEventListener {
   }
   companion object {
     private var theWallet : Wallet? = null
+
+    @JvmStatic
     fun create() : Wallet {
       theWallet = Wallet()
       return theWallet!!
     }
 
+    @JvmStatic
     fun get() : Wallet {
       return theWallet!!
     }

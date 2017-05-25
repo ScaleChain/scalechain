@@ -13,19 +13,20 @@ import io.scalechain.blockchain.oap.wallet.AssetId
   * @param assetId
   * @param quantity
   */
-case class OutputCacheItem(output : TransactionOutput, assetId : String, quantity : Int) extends ProtocolMessage
-
-object OutputCacheItem {
-  /**
-    *  Create CacheItem from assetId, quantity
-    * @param assetId
-    * @param quantity
-    * @return
-    */
-  def from(output : TransactionOutput, assetId : AssetId, quantity : Int)  : OutputCacheItem = {
-    OutputCacheItem(output, assetId.base58(), quantity);
-  }
-  def from(output: OapTransactionOutput) : OutputCacheItem = {
-    OutputCacheItem(output, output.getAssetId.base58(), output.getQuantity)
+data class OutputCacheItem(val output : TransactionOutput, val assetId : String, val quantity : Int) : ProtocolMessage {
+  companion object {
+    /**
+     *  Create CacheItem from assetId, quantity
+     * @param assetId
+     * @param quantity
+     * @return
+     */
+    fun from(output : TransactionOutput, assetId : AssetId, quantity : Int)  : OutputCacheItem {
+      return OutputCacheItem(output, assetId.base58(), quantity);
+    }
+    fun from(output: OapTransactionOutput) : OutputCacheItem {
+      return OutputCacheItem(output.getTransactionOutput(), output.assetId.base58(), output.quantity)
+    }
   }
 }
+

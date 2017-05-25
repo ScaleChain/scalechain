@@ -25,6 +25,7 @@ data class CoinAmount(val value : java.math.BigDecimal) {
      * @param coinUnits
      * @return
      */
+    @JvmStatic
     fun from(coinUnits : Long) : CoinAmount {
       return CoinAmount( java.math.BigDecimal.valueOf(coinUnits).divide( ONE_COIN_IN_UNITS ) )
     }

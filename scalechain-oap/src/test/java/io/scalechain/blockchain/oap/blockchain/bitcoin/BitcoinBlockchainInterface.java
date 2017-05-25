@@ -28,7 +28,7 @@ public class BitcoinBlockchainInterface implements IBlockchainInterface {
          *
          */
     JsonArray params = new JsonArray();
-    params.add(HexUtil.hex(txId.value().array(), HexUtil.hex$default$2()));
+    params.add(HexUtil.hex(txId.getValue().getArray()));
 
     JsonObject response = RpcInvoker.invoke(
       OpenAssetsProtocolEnv.getHost(),
@@ -48,9 +48,9 @@ public class BitcoinBlockchainInterface implements IBlockchainInterface {
 
   @Override
   public TransactionOutput getTransactionOutput(OutPoint outPoint) {
-    Transaction tx = getTransation(outPoint.transactionHash());
+    Transaction tx = getTransation(outPoint.getTransactionHash());
     if (tx == null) return null;
-    return tx.outputs().apply(outPoint.outputIndex());
+    return tx.getOutputs().get(outPoint.getOutputIndex());
   }
 
   @Override

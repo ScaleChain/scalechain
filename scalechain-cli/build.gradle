@@ -4,6 +4,7 @@ dependencies {
     compile project(':scalechain-api')
     compile project(':scalechain-net')
     compile project(':scalechain-oap')
+    testCompile project(':scalechain-oap').sourceSets.test.output
     compile project(':scalechain-wallet')
     compile project(':scalechain-chain')
     compile project(':scalechain-transaction')
@@ -18,14 +19,14 @@ dependencies {
 
 mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'
 
-    jar {
-        zip64 true
-        from {
-            (configurations.runtime).collect {
-                it.isDirectory() ? it : zipTree(it)
-            }
-        }
-        manifest {
-            attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
+jar {
+    zip64 true
+    from {
+        (configurations.runtime).collect {
+            it.isDirectory() ? it : zipTree(it)
         }
     }
+    manifest {
+        attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
+    }
+}

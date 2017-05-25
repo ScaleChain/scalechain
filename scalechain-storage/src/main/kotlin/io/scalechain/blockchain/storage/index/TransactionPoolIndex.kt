@@ -1,20 +1,9 @@
 package io.scalechain.blockchain.storage.index
 
-import com.typesafe.scalalogging.Logger
-import io.scalechain.blockchain.proto.CStringPrefixed
 import io.scalechain.blockchain.proto.codec.TransactionPoolEntryCodec
-import io.scalechain.blockchain.proto.codec.TransactionCodec
-import io.scalechain.blockchain.proto.codec.OneByteCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
 import io.scalechain.blockchain.proto.TransactionPoolEntry
-import io.scalechain.blockchain.proto.Transaction
-import io.scalechain.blockchain.proto.OneByte
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.storage.index.DB
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.util.HexUtil
-//import io.scalechain.util.Using.*
-import org.slf4j.LoggerFactory
 
 /**
   * Provides index operations for disk-pool, which keeps transactions on-disk instead of mempool.

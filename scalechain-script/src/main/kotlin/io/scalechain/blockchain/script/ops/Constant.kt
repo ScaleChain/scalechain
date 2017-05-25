@@ -7,8 +7,6 @@ import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.script.ScriptValue
 import io.scalechain.blockchain.script.ScriptEnvironment
 
-import scala.collection.mutable.ArrayBuffer
-
 interface Constant : ScriptOp
 
 /** OP_0 or OP_FALSE(0x00) : An empty array is pushed onto the stack

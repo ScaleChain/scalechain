@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.api.command
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.util.StackUtil
 import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.ErrorCode

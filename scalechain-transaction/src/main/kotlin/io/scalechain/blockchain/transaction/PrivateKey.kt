@@ -29,6 +29,7 @@ data class PrivateKey(val version:Byte, val value:BigInteger, val isForCompresse
      * @param walletImportFormat A private key in the wallet import format.
      * @return The translated private key.
      */
+    @JvmStatic
     fun from(walletImportFormat : String) : PrivateKey {
       val (versionPrefix, rawPrivateKeyBytes) = Base58Check.decode(walletImportFormat)
       // TODO : Investigate : Bitcoin allows the private keys whose lengths are not 32
@@ -49,6 +50,7 @@ data class PrivateKey(val version:Byte, val value:BigInteger, val isForCompresse
      *
      * @return The generated private key.
      */
+    @JvmStatic
     fun generate() : PrivateKey {
       // Step 1 : Generate Random number. The random number is 32 bytes, and the range is [0 ~ 2^256)
       val random = SecureRandom()

@@ -1,16 +1,20 @@
 package io.scalechain.blockchain.api.command.oap
 
 import io.scalechain.blockchain.GeneralException
-import io.scalechain.blockchain.api.command.{RpcCommand, TransactionFormatter}
-import io.scalechain.blockchain.api.domain.{RpcError, RpcRequest, RpcResult, StringResult}
+import io.scalechain.blockchain.api.command.RpcCommand
+import io.scalechain.blockchain.api.domain.RpcError
+import io.scalechain.blockchain.api.domain.RpcRequest
+import io.scalechain.blockchain.api.domain.RpcResult
+import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.oap.command.AssetTransferTo
 import io.scalechain.blockchain.oap.exception.OapException
-import io.scalechain.blockchain.oap.{IOapConstants, OpenAssetsProtocol}
-import io.scalechain.blockchain.proto._
+import io.scalechain.blockchain.oap.IOapConstants
+import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.transaction.PrivateKey
 import io.scalechain.util.HexUtil
-import spray.json.DefaultJsonProtocol._
+import io.scalechain.util.Either
+import io.scalechain.util.Either.Right
 
 /*
   CLI command :
@@ -65,38 +69,40 @@ import spray.json.DefaultJsonProtocol._
   * The seirialied transaction in hex.
   *
   */
-object TransferAsset extends RpcCommand {
-  def invoke(request: RpcRequest): Either[RpcError, Option[RpcResult]] = {
-    handlingException {
-      implicit val implicitAssetTransferTo        = jsonFormat3(AssetTransferTo.apply)
-      val fromAddress: String                     = request.params.get[String]("from_address", 0)
-      val tos: List[AssetTransferTo]              = request.params.getList[AssetTransferTo]("tos", 1)
-      val privateKeyStrings: Option[List[String]] = request.params.getListOption[String]("private_keys", 2)
-      val changeAddress: String                   = request.params.getOption[String]("change_address", 3).getOrElse(fromAddress)
-      val fees: Long                              = request.params.getOption[Long]("fees", 4).getOrElse(IOapConstants.DEFAULT_FEES_IN_SATOSHI)
+object TransferAsset  : RpcCommand() {
+  override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
+    return handlingException {
+      val fromAddress: String                     = request.params.get<String>("from_address", 0)
+      // BUGBUG : OAP : Make sure this works
+      val tos: List<AssetTransferTo>              = request.params.getList<AssetTransferTo>("tos", 1)
+      val privateKeyStrings: List<String>?        = request.params.getListOption<String>("private_keys", 2)
+      val changeAddress: String                   = request.params.getOption<String>("change_address", 3) ?: fromAddress
+      val fees: Long                              = request.params.getOption<Long>("fees", 4) ?: IOapConstants.DEFAULT_FEES_IN_SATOSHI.toLong()
 
-      val privateKeys: Option[List[PrivateKey]] =
-      if (privateKeyStrings.isDefined) {
-        if (privateKeyStrings.get.size == 0)
-          None
-        else
-          privateKeyStrings.map { keyStrings =>
+      val privateKeys: List<PrivateKey>? =
+      if (privateKeyStrings != null) {
+        if (privateKeyStrings.size == 0) {
+          null
+        }
+        else {
+          privateKeyStrings.map { keyString ->
             try {
-              keyStrings.map(PrivateKey.from(_))
-            } catch {
-              case e: GeneralException => throw new OapException(OapException.INVALID_PRIVATE_KEY, "Invalid private key");
+              PrivateKey.from(keyString)
+            } catch(e: GeneralException) {
+              throw OapException(OapException.INVALID_PRIVATE_KEY, "Invalid private key");
             }
           }
+        }
       } else {
-        None
+        null
       }
 
-      val hash: Hash = RpcSubSystem.get.transferAsset(
+      val hash: Hash = RpcSubSystem.get().transferAsset(
         fromAddress, tos, privateKeys, changeAddress, fees
       )
-      Right(Some(StringResult(
+      Right(StringResult(
         HexUtil.hex(hash.value.array)
-      )))
+      ))
     }
     /*
           {
@@ -107,7 +113,7 @@ object TransferAsset extends RpcCommand {
     */
   }
 
-  def help(): String =
+  override fun help() : String =
     """transferasset "fromAddress" [{"to_address":"to_address","asset_id": "asset_id, "quantity":quantity },...] "changeAddress", fees  )
       |
       |Sign inputs for raw transaction (serialized, hex-encoded).
@@ -140,6 +146,6 @@ object TransferAsset extends RpcCommand {
       |Examples:
       |> bitcoin-cli transferasset "fromAddress" "[ { "asset_address" : "asset_address", "asset_id":"asset_id", "quantity" : quntity} ]" "changeAddress" fees
       |> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "transferasset", "params": ["fromAddress" "[ { "asset_address" : "asset_address", "asset_id":"asset_id", "quantity" : quntity} ]" "changeAddress" fees] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
-    """.stripMargin
+    """.trimMargin()
 }
 

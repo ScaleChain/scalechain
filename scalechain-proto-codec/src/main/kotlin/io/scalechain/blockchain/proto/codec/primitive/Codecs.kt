@@ -29,6 +29,7 @@ object Codecs {
 
     val CString = CStringCodec(Charset.forName("UTF-8"))
     val CByteArray = CByteArrayCodec()
+    val CHexByteArray = CHexByteArrayCodec()
     fun<T> cstringPrefixed(valueCodec : Codec<T>) = CStringPrefixedCodec<T>(valueCodec)
 
     fun fixedByteBuf(length : Int )

@@ -12,7 +12,7 @@ public class OapException extends Exception {
   public static final int NOT_ENOUGH_COIN = ERROR_CODE_BASE - 3;
 
   public static final int NO_ASSET = ERROR_CODE_BASE - 4;    // "Address has no asset "
-  public static final int NOT_ENOUGH_ASSET = ERROR_CODE_BASE - 5;    // "Not enoough asset " + assetId.base58() + " for transfer"
+  public static final int NOT_ENOUGH_ASSET = ERROR_CODE_BASE - 5;    // "Not enough asset " + assetId.base58() + " for transfer"
   public static final int FEES_TOO_SMALL = ERROR_CODE_BASE - 6;
   ;   // "Fees are too small"
   public static final int INVALID_QUANTITY = ERROR_CODE_BASE - 7;
@@ -29,6 +29,7 @@ public class OapException extends Exception {
   // OapException(OapException.COLORING_ERROR, "Invalid TX ID: " + outPoint.transactionHash().toHex());
   // OapException(OapException.COLORING_ERROR, "Not a LEB128 encoded data");
   public static final int INVALID_ASSET_ID = ERROR_CODE_BASE - 15;    // OapException(OapException.INVALID_ASSET_ID, "Invalid AssetId: " + base58, e);
+  public static final int UNSUPPORTED_FEATURE = ERROR_CODE_BASE -16; // OapException(OapException.UNSUPPORTED_FEATURE, "URL asset pointer is not supported yet");
 
   int errorCode;
 

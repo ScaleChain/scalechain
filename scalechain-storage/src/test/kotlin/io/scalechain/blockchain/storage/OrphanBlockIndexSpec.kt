@@ -39,7 +39,7 @@ class OrphanBlockIndexSpec : FlatSpec(), Matchers {
   )
 
 
-  val testPath = File("./target/unittests-OrphanBlockIndexSpec")
+  val testPath = File("./build/unittests-OrphanBlockIndexSpec")
 
   lateinit var index : OrphanBlockIndex
   lateinit var db : KeyValueDatabase

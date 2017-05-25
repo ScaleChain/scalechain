@@ -3,7 +3,7 @@ package io.scalechain.blockchain.oap;
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinition;
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointer;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.util.HexUtil;
 import scala.Option;
@@ -36,7 +36,7 @@ public class AssetDefinitionHandler {
 
     AssetDefinition definition = AssetDefinition.from(assetId.base58(), metadata);
     AssetDefinitionPointer pointer = AssetDefinitionPointer.create(AssetDefinitionPointer.HASH_POINTER, definition.hash());
-    if (storage.getAssetDefinition(pointer).isDefined()) {
+    if (storage.getAssetDefinition(pointer) != null) {
       throw new OapException(OapException.DEFINITION_EXISTS, "Asset Definition for " + assetId + " already exists");
     }
     storage.putAssetDefinition(pointer, definition.toString());
@@ -53,7 +53,7 @@ public class AssetDefinitionHandler {
    * @return
    * @throws OapException
    */
-  public AssetDefinition getAssetDefintion(String hashOrAssetId) throws OapException {
+  public AssetDefinition getAssetDefinition(String hashOrAssetId) throws OapException {
     OapStorage storage = OpenAssetsProtocol.get().storage();
 
     AssetDefinitionPointer pointer = null;
@@ -63,17 +63,17 @@ public class AssetDefinitionHandler {
     } catch (OapException ex) {
     }
     if (assetId != null) {
-      Option<AssetDefinitionPointer> pointerOption = storage.getAssetDefinitionPointer(hashOrAssetId);
-      if (pointerOption.isDefined()) pointer = pointerOption.get();
+      AssetDefinitionPointer pointerOption = storage.getAssetDefinitionPointer(hashOrAssetId);
+      if (pointerOption != null ) pointer = pointerOption;
     } else {
       pointer = AssetDefinitionPointer.from(HexUtil.bytes(hashOrAssetId));
     }
     if (pointer == null) {
       throw new OapException(OapException.DEFINITIO_NOT_EXIST, "Asset Definition for " + hashOrAssetId + " does not exist");
     }
-    Option<String> assetDefinitionOption = storage.getAssetDefinition(pointer);
-    if (assetDefinitionOption.isDefined()) {
-      return AssetDefinition.from(assetDefinitionOption.get());
+    String assetDefinitionOption = storage.getAssetDefinition(pointer);
+    if (assetDefinitionOption != null) {
+      return AssetDefinition.from(assetDefinitionOption);
     } else {
       throw new OapException(OapException.DEFINITIO_NOT_EXIST, "Asset Definition File for " + hashOrAssetId + " does not exist");
     }
@@ -82,14 +82,14 @@ public class AssetDefinitionHandler {
   //
   // Internal Methods
   //
-  public Option<AssetDefinition> getAssetDefintion(AssetDefinitionPointer pointer) throws OapException {
+  public AssetDefinition getAssetDefinition(AssetDefinitionPointer pointer) throws OapException {
     OapStorage storage = OpenAssetsProtocol.get().storage();
 
-    Option<String> assetDefinitionOption = storage.getAssetDefinition(pointer);
-    if (assetDefinitionOption.isDefined()) {
-      return Option.apply(AssetDefinition.from(assetDefinitionOption.get()));
+    String assetDefinitionOption = storage.getAssetDefinition(pointer);
+    if (assetDefinitionOption != null) {
+      return AssetDefinition.from(assetDefinitionOption);
     } else {
-      return Option.empty();
+      return null;
     }
   }
 
@@ -104,9 +104,9 @@ public class AssetDefinitionHandler {
     OapStorage storage = OpenAssetsProtocol.get().storage();
 
     // GET pointer for assetId
-    Option<AssetDefinitionPointer> pointerOption = storage.getAssetDefinitionPointer(assetId.base58());
-    if (pointerOption.isDefined()) {
-      return pointerOption.get();
+    AssetDefinitionPointer pointerOption = storage.getAssetDefinitionPointer(assetId.base58());
+    if (pointerOption != null) {
+      return pointerOption;
     }
     return null;
   }

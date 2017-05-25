@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.helper.UnitTestHelper;
-import io.scalechain.blockchain.transaction.ChainEnvironment$;
+import io.scalechain.blockchain.transaction.ChainEnvironment;
 import io.scalechain.crypto.HashFunctions;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -21,10 +21,10 @@ import static org.junit.Assert.*;
 /**
  * Created by shannon on 16. 12. 29.
  */
-public class AssetDefintionTest {
+public class AssetDefinitionTest {
   @BeforeClass
   public static void setUpForClass() throws Exception {
-    ChainEnvironment$.MODULE$.create("mainnet");
+    ChainEnvironment.create("mainnet");
     UnitTestHelper.init();
   }
 
@@ -44,7 +44,7 @@ public class AssetDefintionTest {
     assertTrue("Asset Definitin sould have json array asset_ids", definition.toJson().has("asset_ids"));
     assertTrue("Asset Definitin sould have name", definition.toJson().has("name"));
     assertTrue("Asset Definitin sould have name_short", definition.toJson().has("name_short"));
-    assertEquals("Asset Defintion should match", expectedAssetDefinition, definition.toJson());
+    assertEquals("Asset Definition should match", expectedAssetDefinition, definition.toJson());
     assertTrue("asset_id should contain Asset Id", definition.getAssetIds().contains(
       UnitTestHelper.getAssetId(UnitTestHelper.getBitcoinAddressAt(UnitTestHelper.SEND_MANY_SEND_ADDRESS_INDEX))
     ));
@@ -251,7 +251,7 @@ public class AssetDefintionTest {
     }
     json.remove(AssetDefinition.ASSET_IDS);
     AssetDefinition definition = AssetDefinition.from(UnitTestHelper.getAssetId(coinAddress), json.toString());
-    byte[] hash = HashFunctions.hash160(definition.toJson().toString().getBytes("UTF-8")).value();
+    byte[] hash = HashFunctions.hash160(definition.toJson().toString().getBytes("UTF-8")).getValue().getArray();
     assertArrayEquals("Hash sould be equal to hash of JSON String", hash, definition.hash());
   }
 }

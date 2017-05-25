@@ -7,13 +7,12 @@ import io.scalechain.blockchain.oap.assetdefinition.AssetDefinition;
 import io.scalechain.blockchain.oap.assetdefinition.AssetDefinitionPointer;
 import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.sampledata.AddressData;
-import io.scalechain.blockchain.oap.util.Pair;
+import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import scala.Option;
 
 import java.util.Map;
 
@@ -54,7 +53,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      OapStorage.get().delAssetDefintion(pointer);
+      OapStorage.get().delAssetDefinition(pointer);
       OapStorage.get().delAssetDefinitionPointer(assetId.base58());
     }
 
@@ -87,7 +86,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
 
@@ -100,7 +99,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     assertEquals("Metadata", expectedMetadata, pair.getSecond().toJson());
   }
 
-  // TEST : public String getAssetDefintion(String hashOrAssetId) throws OapException;
+  // TEST : public String getAssetDefinition(String hashOrAssetId) throws OapException;
   //  public AssetDefinitionPointer getAssetDefinitionPointer(AssetId assetId) throws OapException {
   @Test
   public void getAssetDefinitionPointerTest() throws OapException {
@@ -117,7 +116,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
 
@@ -131,7 +130,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
   }
 
   @Test
-  public void getAssetDefinitionPointerNoAssetDefintionTest() throws OapException {
+  public void getAssetDefinitionPointerNoAssetDefinitionTest() throws OapException {
     AddressData addressData = provider.receivingAddressOf(provider.accounts()[1]); // ""SENDER"
     String address = addressData.address.base58();
     AssetId assetId = addressData.assetId;
@@ -145,7 +144,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // POINT SHOLUD NOT EXIST
@@ -154,8 +153,8 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
   }
 
   //
-  //  TESTS for getAssetDefintion()
-  //  AssetDefinition getAssetDefintion(String hashOrAssetId) throws OapException {
+  //  TESTS for getAssetDefinition()
+  //  AssetDefinition getAssetDefinition(String hashOrAssetId) throws OapException {
   //
   @Test
   public void getAssetDefinitionAssetIdTest() throws OapException {
@@ -174,7 +173,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT POINTER AND DEFINITION
@@ -183,14 +182,12 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    AssetDefinition actual = definitionHandler.getAssetDefintion(assetId.base58());
+    AssetDefinition actual = definitionHandler.getAssetDefinition(assetId.base58());
     assertNotNull("Asset definition should be not null", actual);
   }
 
   @Test
   public void getAssetDefinitionHashTest() throws OapException {
-    thrown.expect(OapException.class);
-    thrown.expectMessage(startsWith("Invalid hash value"));
 
     AddressData addressData = provider.receivingAddressOf(provider.accounts()[1]); // ""SENDER"
     String address = addressData.address.base58();
@@ -207,7 +204,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT POINTER AND DEFINITION
@@ -216,7 +213,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    AssetDefinition actual = definitionHandler.getAssetDefintion(pointer.pointerHex());
+    AssetDefinition actual = definitionHandler.getAssetDefinition(pointer.pointerHex());
     assertNotNull("Asset definition should be not null", actual);
   }
 
@@ -224,7 +221,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
   @Test
   public void getAssetDefinitionInalidInputTest() throws OapException {
     thrown.expect(OapException.class);
-    thrown.expectMessage(startsWith("Invalid hash value"));
+    thrown.expectMessage(startsWith("Asset Definition File for"));
 
     AddressData addressData = provider.receivingAddressOf(provider.accounts()[1]); // ""SENDER"
     String address = addressData.address.base58();
@@ -241,7 +238,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT POINTER AND DEFINITION
@@ -250,7 +247,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    AssetDefinition actual = definitionHandler.getAssetDefintion("INVALID_DATA");
+    AssetDefinition actual = definitionHandler.getAssetDefinition("INVALID_DATA");
     assertNull("Asset definition should be null", actual);
   }
 
@@ -274,7 +271,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT POINTER AND DEFINITION
@@ -283,12 +280,12 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    AssetDefinition actual = definitionHandler.getAssetDefintion("0000000000000000000000000000000000000000");
+    AssetDefinition actual = definitionHandler.getAssetDefinition("0000000000000000000000000000000000000000");
     assertNull("Asset definition should be null", actual);
   }
 
   //
-  // public Option<AssetDefinition> getAssetDefintion(AssetDefinitionPointer pointer) throws OapException {
+  // public Option<AssetDefinition> getAssetDefinition(AssetDefinitionPointer pointer) throws OapException {
   //
 
   @Test
@@ -308,7 +305,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT POINTER AND DEFINITION
@@ -317,9 +314,9 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    Option<AssetDefinition> actual = definitionHandler.getAssetDefintion(pointer);
-    assertTrue("Asset Definition File should be defined", actual.isDefined());
-    assertEquals("Asset Definition should be equal to", definition.toJson(), actual.get().toJson());
+    AssetDefinition actual = definitionHandler.getAssetDefinition(pointer);
+    assertTrue("Asset Definition File should be defined", actual != null);
+    assertEquals("Asset Definition should be equal to", definition.toJson(), actual.toJson());
   }
 
   @Test
@@ -339,7 +336,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     // DELETE pointer if exists.
     AssetDefinitionPointer pointer = definitionHandler.getAssetDefinitionPointer(assetId);
     if (pointer != null) {
-      storage.delAssetDefintion(pointer);
+      storage.delAssetDefinition(pointer);
       storage.delAssetDefinitionPointer(assetId.base58());
     }
     // PUT THE POINTER ONLY
@@ -347,7 +344,7 @@ public class AssetDefinitionHandlerTest extends TestWithWalletSampleData {
     storage.putAssetDefinitionPointer(assetId.base58(), pointer);
 
     // DO TEST
-    Option<AssetDefinition> actual = definitionHandler.getAssetDefintion(pointer);
-    assertTrue("Asset Definition sould not exist", actual.isEmpty());
+    AssetDefinition actual = definitionHandler.getAssetDefinition(pointer);
+    assertNull("Asset Definition should not exist", actual);
   }
 }

@@ -1,10 +1,6 @@
 package io.scalechain.blockchain.script
 
-import java.nio.ByteBuffer
-
 import io.scalechain.blockchain.script.ops.ScriptOp
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created by kangmo on 11/12/15.

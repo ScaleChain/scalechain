@@ -14,27 +14,42 @@ import io.scalechain.crypto.HashFunctions
 import io.scalechain.util.toByteArray
 import io.scalechain.util.Bytes
 
+object HashCalculator {
+  @JvmStatic
+  fun transactionHash(tx : Transaction) : Hash {
+    val io = CodecInputOutputStream(Unpooled.buffer(), isInput = false)
+    TransactionCodec.transcode(io, tx)
+
+    // Run SHA256 twice and reverse bytes.
+    assert(io.byteBuf.hasArray())
+    val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
+
+    // BUGBUG : Rethink if using ByteBuf in Hash is a correct apporach.
+    return Hash(Bytes(hash.value.array.reversed().toByteArray()))
+
+  }
+
+  @JvmStatic
+  fun blockHeaderHash(blockHeader : BlockHeader) : Hash {
+    val io = CodecInputOutputStream(Unpooled.buffer(), isInput = false)
+    BlockHeaderCodec.transcode(io, blockHeader)
+
+    // Run SHA256 twice and reverse bytes.
+    assert(io.byteBuf.hasArray())
+    val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
+
+    return Hash(Bytes(hash.value.array.reversed().toByteArray()))
+
+  }
+}
+
+
 fun Transaction.hash() : Hash {
-  val io = CodecInputOutputStream(Unpooled.buffer(), isInput = false)
-  TransactionCodec.transcode(io, this)
-
-  // Run SHA256 twice and reverse bytes.
-  assert(io.byteBuf.hasArray())
-  val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
-
-  // BUGBUG : Rethink if using ByteBuf in Hash is a correct apporach.
-  return Hash(Bytes(hash.value.array.reversed().toByteArray()))
+  return HashCalculator.transactionHash(this);
 }
 
 fun BlockHeader.hash() : Hash {
-  val io = CodecInputOutputStream(Unpooled.buffer(), isInput = false)
-  BlockHeaderCodec.transcode(io, this)
-
-  // Run SHA256 twice and reverse bytes.
-  assert(io.byteBuf.hasArray())
-  val hash = HashFunctions.hash256( io.byteBuf.toByteArray() )
-
-  return Hash(Bytes(hash.value.array.reversed().toByteArray()))
+  return HashCalculator.blockHeaderHash(this);
 }
 
 /*

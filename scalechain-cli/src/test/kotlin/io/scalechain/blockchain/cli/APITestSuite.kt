@@ -64,29 +64,15 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
     super.beforeAll()
 
 
+
     // This class is used by many test suites in cli layer.
     // Not to start scalechain node more than twice, check if it was already started.
-    if (CoinMiner.theCoinMiner == null) { // If the coin miner is not null, it is already started.
-      val BITCOIND_PORT = 8333
+    ScaleChainStarter.start();
 
-      /*
-      // Unit test runs under scalechain/scalechain-cli/, and the configuration files are in scalechain/scalechain-cli/unittest/config
-      // So we need to set the ScaleChainHome variable to ./unittest/ to make sure config/scalechain.conf and configuration files for bftsmart in config folder are loaded correctly.
-      */
-      //println("ABSPATH:${File("").getAbsoluteFile().absolutePath}")
-      GlobalEnvironemnt.ScaleChainHome = "./unittest/"
-      // Remove previous files
-      ScaleChainPeer.blockStoragePath().deleteRecursively()
-      ScaleChainPeer.blockStoragePath().mkdir()
-
-      // Disable miner, to make the test result deterministic. Miner mines blocks randomly resulting in different test results whenever we run test cases.
-      ScaleChainPeer.main( arrayOf("-a", "localhost", "-x", "$BITCOIND_PORT", "-disableMiner") )
-
-      // Create test data.
-      // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.
-      // ( Transactions should be signed to test sendrawtransaction, which verifies the sent transaction by executing the unlocking script and the locking script. )
-      Data = TransactionSampleData(Blockchain.get().db, TransactionGeneratorBlockchainView())
-    }
+    // Create test data.
+    // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.
+    // ( Transactions should be signed to test sendrawtransaction, which verifies the sent transaction by executing the unlocking script and the locking script. )
+    Data = TransactionSampleData(Blockchain.get().db, TransactionGeneratorBlockchainView())
   }
   override fun afterAll() {
     super.afterAll()

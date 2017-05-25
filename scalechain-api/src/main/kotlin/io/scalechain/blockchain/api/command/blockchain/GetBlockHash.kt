@@ -45,6 +45,8 @@ object GetBlockHash : RpcCommand() {
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     return handlingException {
 
+
+
       // Convert request.params.paramValues, which List<JsValue> to SignRawTransactionParams instance.
       val blockHeight : Long = request.params.get<Long>("Block Height", 0)
 

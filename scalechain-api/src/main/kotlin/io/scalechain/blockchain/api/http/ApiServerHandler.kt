@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.api.http
 
-import com.typesafe.scalalogging.Logger
 import io.netty.buffer.Unpooled
 import io.netty.buffer.ByteBuf
 import io.netty.channel.SimpleChannelInboundHandler
