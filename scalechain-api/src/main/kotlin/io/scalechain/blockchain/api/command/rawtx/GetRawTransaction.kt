@@ -197,6 +197,7 @@ object GetRawTransaction : RpcCommand() {
       }
   }
 
+  // TODO: Change help message since Scalechain does not utilize txindex option
   override fun help() : String =
     """getrawtransaction "txid" ( verbose )
       |

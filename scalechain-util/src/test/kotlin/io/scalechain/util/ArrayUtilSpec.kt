@@ -80,5 +80,41 @@ class ArrayUtilSpec : FlatSpec(), Matchers {
             ArrayUtil.isEqual(byteArrayOf(1, 2, 3), byteArrayOf(1, 2, 4)) shouldBe false
             ArrayUtil.isEqual(byteArrayOf(1, 2, 3), byteArrayOf(1, 2, 3, 4)) shouldBe false
         }
+
+        "compare" should "return 0 if two arrays are equal" {
+            ArrayUtil.compare(byteArrayOf(), byteArrayOf()) shouldBe 0
+            ArrayUtil.compare(byteArrayOf(1), byteArrayOf(1)) shouldBe 0
+            ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(1,1)) shouldBe 0
+            ArrayUtil.compare(byteArrayOf(1,2), byteArrayOf(1,2)) shouldBe 0
+        }
+
+        "compare" should "return negative value if the left arrays is less than the right array" {
+            (ArrayUtil.compare(byteArrayOf(1), byteArrayOf(2)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1), byteArrayOf(1,1)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1), byteArrayOf(2,1)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(1,2)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(1,1,1)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(1,2,1)) < 0) shouldBe true
+
+            (ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(2)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1,1), byteArrayOf(1,2)) < 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1,1), byteArrayOf(2,1)) < 0) shouldBe true
+
+        }
+
+
+        "compare" should "return positive value if the left arrays is greater than the right array" {
+            (ArrayUtil.compare(byteArrayOf(2), byteArrayOf(1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1), byteArrayOf(1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(2,1), byteArrayOf(1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,2), byteArrayOf(1,1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,1,1), byteArrayOf(1,1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,2,1), byteArrayOf(1,1)) > 0) shouldBe true
+
+            (ArrayUtil.compare(byteArrayOf(2), byteArrayOf(1,1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(1,2), byteArrayOf(1,1,1)) > 0) shouldBe true
+            (ArrayUtil.compare(byteArrayOf(2,1), byteArrayOf(1,1,1)) > 0) shouldBe true
+
+        }
     }
 }

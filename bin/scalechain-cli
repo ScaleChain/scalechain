@@ -19,12 +19,18 @@ getaccount)
 getaccountaddress)
 	getaccountaddress.sh $2
 	;;
+getaddressesbyaccount)
+  getaddressesbyaccount.sh $2
+  ;;
 getblock)
 	getblock.sh $2
 	;;
 getblockhash)
 	getblockhash.sh $2
 	;;
+getblockcount)
+  getblockcount.sh
+  ;;
 getpeerinfo)
 	getpeerinfo.sh 
 	;;

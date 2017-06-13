@@ -15,6 +15,7 @@ object Services {
   val all = listOf(
     GetBestBlockHash,
     GetBlock,
+    GetBlockCount,
     GetBlockHash,
     Help,
     SubmitBlock,
@@ -25,6 +26,7 @@ object Services {
     ImportAddress,
     GetAccount,
     GetAccountAddress,
+    GetAddressesByAccount,
     GetNewAddress,
     GetReceivedByAddress,
     ListTransactions,

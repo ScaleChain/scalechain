@@ -172,6 +172,7 @@ object Json {
                 .registerTypeAdapter(ListTransactionsResult::class.java, RpcResultSerializer())
                 .registerTypeAdapter(ListUnspentResult::class.java, RpcResultSerializer())
                 .setPrettyPrinting()
+                .serializeNulls()
                 .create()
     }
     return gson!!

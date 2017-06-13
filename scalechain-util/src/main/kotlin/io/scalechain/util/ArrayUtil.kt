@@ -39,4 +39,23 @@ object ArrayUtil {
     fun isEqual(left : ByteArray, right : ByteArray) : Boolean {
         return Arrays.equals(left, right)
     }
+
+    @JvmStatic
+    fun compare(left : ByteArray, right : ByteArray) : Int {
+        // get the minimum length of the two arrays.
+        var minLength = if ( left.size < right.size ) left.size else right.size
+        for ( i in 0 until minLength) {
+            if ( left[i] == right[i] ) {
+                continue
+            }
+            return left[i] - right[i]
+        }
+        // If one array starts with the contents of another array, the logner one is greater.
+        if ( left.size < right.size )
+            return -1
+        else if (left.size > right.size)
+            return 1
+        else
+            return 0
+    }
 }
