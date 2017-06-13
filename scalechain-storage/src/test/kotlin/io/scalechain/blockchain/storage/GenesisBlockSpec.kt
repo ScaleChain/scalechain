@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.storage
 
-import com.sun.tools.javac.jvm.Gen
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec

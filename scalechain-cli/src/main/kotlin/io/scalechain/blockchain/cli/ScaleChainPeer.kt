@@ -13,10 +13,8 @@ import io.scalechain.util.PeerAddress
 import io.scalechain.util.NetUtil
 import io.scalechain.util.Config
 import io.scalechain.wallet.Wallet
-import org.apache.log4j.PropertyConfigurator
 import io.scalechain.blockchain.net.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
-import io.scalechain.blockchain.cli.command.CommandExecutor
 import io.scalechain.blockchain.oap.OpenAssetsProtocol
 import io.scalechain.blockchain.oap.blockchain.scalechain.ScalechainBlockchainInterface
 import io.scalechain.blockchain.oap.blockchain.scalechain.ScalechainWalletInterface
@@ -194,7 +192,6 @@ object ScaleChainPeer {
   fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/blockstorage-${p2pInboundPort}")
   fun oapCacheStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/oap-store-${p2pInboundPort}")
 
-
   /** Initialize sub-moudles from the lower layer to the upper layer.
     *
     * @param params The command line parameter of ScaleChain.
@@ -229,6 +226,7 @@ object ScaleChainPeer {
         // Initialize the block storage.
         // TODO : Investigate when to call storage.close.
         DiskBlockStorage.create(blockStoragePath, db)
+//        SpannerBlockStorage.create(db, "scalechain", "blockchain")
       }
 
 

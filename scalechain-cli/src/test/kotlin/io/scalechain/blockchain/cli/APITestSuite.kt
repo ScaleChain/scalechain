@@ -22,6 +22,7 @@ import io.scalechain.util.Bytes
 import io.scalechain.util.GlobalEnvironemnt
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil.bytes
+import io.scalechain.wallet.Wallet
 import jdk.nashorn.internal.objects.Global
 import java.io.File
 
@@ -73,7 +74,11 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
     // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.
     // ( Transactions should be signed to test sendrawtransaction, which verifies the sent transaction by executing the unlocking script and the locking script. )
     Data = TransactionSampleData(Blockchain.get().db, TransactionGeneratorBlockchainView())
+
+    chain = Blockchain.get()
+    wallet = Wallet.get()
   }
+
   override fun afterAll() {
     super.afterAll()
   }
@@ -85,5 +90,7 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
 
   companion object {
     lateinit var Data : TransactionSampleData
+    lateinit var chain : Blockchain
+    lateinit var wallet : Wallet
   }
 }

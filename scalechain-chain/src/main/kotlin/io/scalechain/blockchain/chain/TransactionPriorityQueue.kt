@@ -11,7 +11,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.CoinAmount
 import io.scalechain.blockchain.transaction.CoinsView
 import java.math.BigDecimal
-import java.math.BigInteger
 
 data class TransactionWithFee(val transaction : Transaction, val fee : CoinAmount)
 

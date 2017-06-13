@@ -4,6 +4,7 @@ import java.io.File
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
+import io.scalechain.blockchain.StorageException
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb.*
 import org.slf4j.LoggerFactory
@@ -15,7 +16,7 @@ class RocksDatabaseIterator(private val rocksIterator : RocksIterator) : Closabl
     assert( !isClosed )
 
     if (!rocksIterator.isValid()) {
-      throw GeneralException(ErrorCode.NoMoreKeys)
+      throw StorageException(ErrorCode.NoMoreKeys)
     }
 
     val rawKey = rocksIterator.key()
@@ -55,7 +56,8 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
       .setCreateIfMissing(true)
       .setCreateMissingColumnFamilies(true)
       //.setStatsDumpPeriodSec(3)
-      .setAllowOsBuffer(true)
+      // in RocksDB 5.1, setAllowOsBuffer no longer exists.
+      //.setAllowOsBuffer(true)
       .setWriteBufferSize(256 * 1024 * 1024)
       .setMaxWriteBufferNumber(4)
       .setMinWriteBufferNumberToMerge(2)

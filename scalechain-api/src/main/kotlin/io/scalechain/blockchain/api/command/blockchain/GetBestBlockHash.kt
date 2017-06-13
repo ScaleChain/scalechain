@@ -46,7 +46,7 @@ import io.scalechain.util.HexUtil
   */
 object GetBestBlockHash : RpcCommand() {
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
-    return return handlingException {
+    return handlingException {
       val hashOption : Hash? = RpcSubSystem.get().getBestBlockHash()
       Right(
         if (hashOption == null) null

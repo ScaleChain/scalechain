@@ -7,7 +7,6 @@ import io.scalechain.blockchain.proto.OutPoint;
 import io.scalechain.blockchain.proto.Transaction;
 import io.scalechain.blockchain.proto.TransactionOutput;
 import io.scalechain.blockchain.storage.index.KeyValueDatabase;
-import scala.Option;
 
 /**
  * Created by shannon on 16. 11. 21.

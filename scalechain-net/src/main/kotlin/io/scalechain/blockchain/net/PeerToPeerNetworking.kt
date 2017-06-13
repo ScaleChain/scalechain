@@ -1,7 +1,5 @@
 package io.scalechain.blockchain.net
 
-import java.net.InetSocketAddress
-
 import io.netty.channel.ChannelFuture
 import io.scalechain.blockchain.net.p2p.RetryingConnector
 import io.scalechain.util.PeerAddress

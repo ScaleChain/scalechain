@@ -13,7 +13,6 @@ class BlockDatabaseWithRocks : BlockDatabaseTestTrait() {
 
   init {
     Storage.initialize()
-    addTests()
   }
 
   val testPath = File("./build/unittests-BlockDatabaseWithRocks")

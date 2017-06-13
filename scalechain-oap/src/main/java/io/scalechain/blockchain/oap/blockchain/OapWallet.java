@@ -5,8 +5,6 @@ import io.scalechain.blockchain.oap.wallet.UnspentAssetDescriptor;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.blockchain.oap.IOapConstants;
 import io.scalechain.blockchain.oap.exception.OapException;
-import io.scalechain.wallet.UnspentCoinDescriptor;
-import scala.Option;
 
 import java.util.List;
 

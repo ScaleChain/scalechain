@@ -5,7 +5,6 @@ import io.netty.channel.ChannelPipeline
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.HttpResponseEncoder
 import io.netty.handler.codec.http.HttpRequestDecoder
-import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.ssl.SslContext
 
 class ApiServerInitializer(private val sslCtx: SslContext?)  : ChannelInitializer<SocketChannel>() {

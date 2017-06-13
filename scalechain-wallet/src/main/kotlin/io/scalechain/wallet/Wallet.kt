@@ -40,7 +40,7 @@ class Wallet() : ChainEventListener {
     * TODO : Need to connect inputs before signing.
     *
     * @param transaction The transaction to sign.
-    * @param chainView The view of blockchain required to get the outputs poined by inputs in this transaction.
+    * @param chainView The view of blockchain required to get the outputs pointed by inputs in this transaction.
     * @param dependencies  Unspent transaction output details. The previous outputs being spent by this transaction.
     * @param privateKeys An array holding private keys.
     * @param sigHash The type of signature hash to use for all of the signatures performed.
@@ -139,8 +139,8 @@ class Wallet() : ChainEventListener {
    *
    * This method is used to sort transactions by recency in descending order.
    *
-   * @param a The first transaction to compre.
-   * @param b The second transaction to compre.
+   * @param a The first transaction to compare.
+   * @param b The second transaction to compare.
    * @return true if the first one is more recent. false otherwise.
    */
   internal fun isMoreRecentThan(a : WalletTransaction, b : WalletTransaction) : Boolean {

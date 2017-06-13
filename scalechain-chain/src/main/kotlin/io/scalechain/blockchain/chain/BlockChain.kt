@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.chain
 
-import io.scalechain.blockchain.storage.index.TransactingRocksDatabase
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.TransactionDescriptorIndex
 import io.scalechain.blockchain.ChainException
@@ -8,7 +7,6 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.*
-import io.scalechain.blockchain.storage.index.ClosableIterator
 
 import io.scalechain.blockchain.transaction.*
 import org.slf4j.LoggerFactory

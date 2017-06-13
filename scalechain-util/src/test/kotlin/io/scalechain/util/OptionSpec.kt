@@ -32,7 +32,11 @@ class OptionSpec : FlatSpec(), Matchers {
       Option.Some("1").equals( Option.Some("1") ) shouldBe true
       Option.Some("1").equals( Option.None<String>() ) shouldBe false
     }
-
+/*
+    "Some.empty" should "return false" {
+      Option.Some("").empty() shouldBe false
+    }
+*/
     "None.toNullable" should "return null" {
       assertTrue(Option.None<String>().toNullable() == null)
     }
@@ -43,6 +47,9 @@ class OptionSpec : FlatSpec(), Matchers {
       Option.None<String>().equals( Option.None<String>() ) shouldBe true
       Option.None<String>().equals( Option.None<Int>() ) shouldBe true
       Option.None<String>().equals( Option.Some("") ) shouldBe false
+    }
+    "None.empty" should "create a None object" {
+      assertTrue(Option.empty<String>().toNullable() == null)
     }
   }
 }

@@ -11,7 +11,6 @@ import io.scalechain.blockchain.proto.Hash
 import io.scalechain.util.Bytes
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Left
-import io.scalechain.util.Either.Right
 import org.slf4j.LoggerFactory
 
 interface ParameterConverter {

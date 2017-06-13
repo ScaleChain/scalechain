@@ -8,7 +8,6 @@ import io.scalechain.blockchain.FatalException
 import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 import io.scalechain.blockchain.proto.codec.primitive.Codecs
-import java.nio.ByteBuffer
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 

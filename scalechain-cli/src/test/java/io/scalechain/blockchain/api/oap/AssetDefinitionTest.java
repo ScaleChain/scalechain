@@ -13,7 +13,6 @@ import io.scalechain.blockchain.oap.exception.OapException;
 import io.scalechain.blockchain.oap.sampledata.AddressData;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import scala.Option;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

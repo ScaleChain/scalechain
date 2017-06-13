@@ -7,7 +7,6 @@ import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.OapTransactionDescriptor;
 import io.scalechain.blockchain.transaction.CoinAddress;
 import io.scalechain.wallet.WalletTransactionDescriptor;
-import scala.Option;
 
 import java.math.BigDecimal;
 import java.util.*;

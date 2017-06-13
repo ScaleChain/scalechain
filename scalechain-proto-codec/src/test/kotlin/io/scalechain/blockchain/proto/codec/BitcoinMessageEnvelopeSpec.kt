@@ -36,7 +36,8 @@ class BitcoinMessageEnvelopeSpec : FlatSpec(), Matchers {
 
   init {
     "toString" should "return a string that represents the given bitcoin envelope" {
-      envelope.toString() shouldBe """BitcoinMessageEnvelope(Magic("d9b4bef9"), "ping", 8, Checksum("2467f11d"), UnpooledUnsafeHeapByteBuf(ridx: 0, widx: 8, cap: 256))"""
+      println( "envelope.toString()->" + envelope.toString() )
+      envelope.toString() shouldBe """BitcoinMessageEnvelope(Magic("d9b4bef9"), "ping", 8, Checksum("2467f11d"), 256)"""
     }
 
     "checksum" should "calculate the checksum of a byte array" {

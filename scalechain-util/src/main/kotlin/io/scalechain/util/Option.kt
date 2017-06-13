@@ -4,6 +4,7 @@ sealed class Option<T>() {
     class Some<T>(val value : T) : Option<T>() {
         override fun toNullable() : T? = value
         override fun hashCode() : Int = value?.hashCode() ?: 0
+
         override fun equals(other: Any?): Boolean {
             if (other is Some<*>) {
                 return value == other.value
@@ -33,5 +34,7 @@ sealed class Option<T>() {
                 return Some(value)
             }
         }
+        @JvmStatic
+        fun<T> empty() : Option<T> = None<T>()
     }
 }

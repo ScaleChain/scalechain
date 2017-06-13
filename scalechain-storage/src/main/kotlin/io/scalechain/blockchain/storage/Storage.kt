@@ -13,7 +13,7 @@ object Storage {
 
   @JvmStatic
   fun initialize() : Unit {
-    //RocksDB.loadLibrary()
+    RocksDB.loadLibrary()
     isInitialized = true
   }
 }

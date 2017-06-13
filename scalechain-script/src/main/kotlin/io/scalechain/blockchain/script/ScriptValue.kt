@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.script
 
-import io.netty.buffer.ByteBuf
 import java.math.BigInteger
 
 import io.scalechain.blockchain.ErrorCode

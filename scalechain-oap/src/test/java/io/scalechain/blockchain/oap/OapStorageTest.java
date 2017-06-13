@@ -20,7 +20,6 @@ import kotlin.Pair;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import scala.Option;
 
 import java.io.File;
 import java.io.IOException;

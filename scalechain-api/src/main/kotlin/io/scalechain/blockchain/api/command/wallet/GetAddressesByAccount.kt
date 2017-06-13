@@ -6,8 +6,11 @@ import io.scalechain.blockchain.api.domain.RpcRequest
 import io.scalechain.blockchain.api.domain.RpcResult
 import io.scalechain.blockchain.api.domain.StringListResult
 import io.scalechain.blockchain.oap.OpenAssetsProtocol
+import io.scalechain.blockchain.chain.Blockchain
+
 import io.scalechain.util.Either
 import io.scalechain.util.Either.Right
+import io.scalechain.wallet.Wallet
 
 /*
   CLI command :
@@ -44,6 +47,10 @@ object GetAddressesByAccount  : RpcCommand() {
 
       val addresses : List<String> =
         OpenAssetsProtocol.get().getAddressesByAccount(accountOption, true).map{ it.base58() }
+
+      // Code by kevin
+      //val account: String = request.params.get<String>("Account", 0)
+      //val addresses : List<String> = Wallet.get().store.getOutputOwnerships(Blockchain.get().db, account).map { it.stringKey() }
 
       Right(StringListResult(addresses))
     }

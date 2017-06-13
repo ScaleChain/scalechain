@@ -2,8 +2,6 @@ package io.scalechain.blockchain.net.message
 
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.GetHeaders
-import io.scalechain.blockchain.proto.GetData
-import io.scalechain.blockchain.proto.InvVector
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 /**

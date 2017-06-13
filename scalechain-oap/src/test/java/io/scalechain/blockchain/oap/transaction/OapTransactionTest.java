@@ -9,7 +9,6 @@ import io.scalechain.util.Bytes;
 import io.scalechain.util.HexUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import scala.collection.JavaConverters;
 
 import java.util.ArrayList;
 import java.util.List;

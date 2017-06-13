@@ -87,7 +87,7 @@ import kotlin.io.use
 /** A storage for the wallet.
   *
   *   The wallet store stores transactions and unspent outputs for a given output ownership.
-  *   An example an output ownership is coin address. A coin address owns an output.
+  *   An example of an output ownership is coin address. A coin address owns an output.
   *   Also a public key script can be an output ownership.
   *
   *   The wallet store also stores a list of accounts. Each account has a list of output ownership.

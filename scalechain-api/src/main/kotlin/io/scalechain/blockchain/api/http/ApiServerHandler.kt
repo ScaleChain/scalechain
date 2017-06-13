@@ -5,19 +5,16 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelFutureListener
-import io.netty.handler.codec.DecoderResult
 import io.netty.handler.codec.http.HttpHeaders.Names.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.handler.codec.http.*
-import io.netty.util.ReferenceCountUtil
 import io.netty.util.CharsetUtil
 import io.scalechain.blockchain.api.RequestHandler
 import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.util.StackUtil
 import io.scalechain.util.ExceptionUtil
 import org.slf4j.LoggerFactory
-import java.util.*
 
 class ApiServerHandler : SimpleChannelInboundHandler<Any>() {
   private val logger = LoggerFactory.getLogger(ApiServerHandler::class.java)

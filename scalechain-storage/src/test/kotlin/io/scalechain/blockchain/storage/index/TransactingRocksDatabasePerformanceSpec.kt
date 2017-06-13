@@ -14,16 +14,14 @@ class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDa
 
   lateinit var transactingDB : TransactingKeyValueDatabase
   lateinit override var db : KeyValueDatabase
-  lateinit var rocksDB : RocksDatabase
 
   override fun beforeEach() {
     testPath.deleteRecursively()
     testPath.mkdir()
 
-    rocksDB = RocksDatabase( testPath )
-    transactingDB = rocksDB.transacting()
+    db = RocksDatabase( testPath )
+    transactingDB = db.transacting()
     transactingDB.beginTransaction()
-    db = transactingDB
 
     super.beforeEach()
   }
@@ -32,7 +30,7 @@ class TransactingRocksDatabasePerformanceSpec : FlatSpec(), Matchers, KeyValueDa
     super.afterEach()
 
     transactingDB.commitTransaction()
-    rocksDB.close()
+    db.close()
   }
 
   init {

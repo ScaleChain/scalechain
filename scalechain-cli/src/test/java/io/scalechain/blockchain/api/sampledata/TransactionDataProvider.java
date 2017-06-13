@@ -9,6 +9,7 @@ import io.scalechain.blockchain.oap.sampledata.AddressDataProvider;
 import io.scalechain.blockchain.oap.sampledata.IAddressDataProvider;
 import io.scalechain.blockchain.oap.sampledata.IAddressGenerationListener;
 import io.scalechain.blockchain.oap.transaction.OapMarkerOutput;
+import io.scalechain.util.Option;
 import kotlin.Pair;
 import io.scalechain.blockchain.proto.*;
 import io.scalechain.blockchain.script.HashCalculator;
@@ -18,8 +19,6 @@ import io.scalechain.util.Bytes;
 import io.scalechain.util.Config;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.Wallet;
-import scala.Option;
-import scala.collection.JavaConverters;
 
 import java.math.BigDecimal;
 import java.util.*;

@@ -9,8 +9,6 @@ import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.BlockStorageException
 import io.scalechain.blockchain.proto.OneByte
 import io.scalechain.blockchain.proto.FileNumber
-import io.scalechain.blockchain.proto.FileRecordLocator
-import io.scalechain.blockchain.proto.RecordLocator
 import io.scalechain.blockchain.proto.codec.OneByteCodec
 import io.scalechain.blockchain.proto.codec.FileNumberCodec
 import io.scalechain.blockchain.storage.Storage
@@ -55,23 +53,6 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
   init {
     Storage.initialize()
-
-    "readRecord" should "throw an exception if the file number is incorrect " {
-      val R = FileNumberCodec
-      val thrown1 = shouldThrow<BlockStorageException> {
-        // fileIndex = -1 should throw an exception
-        rs.readRecord(R, FileRecordLocator(fileIndex = -1, recordLocator = RecordLocator(offset=0, size=10)))
-      }
-      thrown1.code shouldBe ErrorCode.InvalidFileNumber
-
-      val thrown2 = shouldThrow<BlockStorageException> {
-        // fileIndex out of bounds(0, as there is only one file in the beginning) should throw an exception
-        rs.readRecord(R, FileRecordLocator(fileIndex = 1, recordLocator = RecordLocator(offset=0, size=10)))
-      }
-      thrown2.code shouldBe ErrorCode.InvalidFileNumber
-
-    }
-
     "readRecord" should "read existing records when the storage opens with existing files" {
       val R = FileNumberCodec
 
@@ -82,7 +63,6 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
       expectFileCount(2)
 
-      rs.flush()
       rs.close()
 
       rs = openRecordStorage()
@@ -102,7 +82,6 @@ class RecordStorageSpec : FlatSpec(), Matchers {
       val locator3 = rs.appendRecord(R, FileNumber(3))
       val locator4 = rs.appendRecord(R, FileNumber(4))
 
-      rs.flush()
       rs.close()
 
       rs = openRecordStorage()

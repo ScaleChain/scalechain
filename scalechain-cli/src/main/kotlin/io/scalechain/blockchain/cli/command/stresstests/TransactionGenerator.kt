@@ -12,7 +12,6 @@ import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.wallet.Wallet
-import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
 import java.util.Random
 import java.io.Closeable

@@ -13,8 +13,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import scala.Option;
-import scala.collection.JavaConverters;
 
 import java.util.ArrayList;
 import java.util.List;

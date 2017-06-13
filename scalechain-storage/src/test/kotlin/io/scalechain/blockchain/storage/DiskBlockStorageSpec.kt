@@ -101,7 +101,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
     "getBlock" should "read a block correctly on the file boundary" {
       diskBlockStorage.putBlock(db, block1)
       var prevBlockHash = block1.header.hash()
-      while (diskBlockStorage.blockRecordStorage.files.size < 2) {
+      while( diskBlockStorage.blockRecordStorage.files.size < 2) {
         val newBlock = block1.copy(
           header = block1.header.copy(
             hashPrevBlock = prevBlockHash

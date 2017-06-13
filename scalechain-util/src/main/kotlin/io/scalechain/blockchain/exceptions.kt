@@ -71,6 +71,8 @@ data class ErrorCode(val code:String) {
     // RocksDadatabase errors
     val NoMoreKeys = ErrorCode("no_more_keys")
 
+    // SpannerDatabase errors
+    val InvalidProject = ErrorCode("invalid_project")
 
     // Wallet Exceptions
     val OwnershipNotFound = ErrorCode("ownership_not_found")
@@ -129,6 +131,8 @@ class HttpRequestException(override val code:ErrorCode, httpCode : Int, reponse 
 class TransactionStorageException(override val code : ErrorCode) : ExceptionWithErrorCode()
 
 class BlockStorageException(override val code : ErrorCode) : ExceptionWithErrorCode()
+
+class StorageException(override val code : ErrorCode, override val message : String = "") : ExceptionWithErrorCode()
 
 class ChainException(override val code : ErrorCode, override val message : String = "") : ExceptionWithErrorCode()
 

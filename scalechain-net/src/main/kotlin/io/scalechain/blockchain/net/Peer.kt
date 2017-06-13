@@ -8,7 +8,6 @@ import io.netty.channel.Channel
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.Version
 import io.scalechain.util.StackUtil
-//import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
 
 

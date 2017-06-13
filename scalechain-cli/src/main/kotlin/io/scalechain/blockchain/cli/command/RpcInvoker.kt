@@ -1,9 +1,5 @@
 package io.scalechain.blockchain.cli.command
 
-import java.io.IOException
-
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.HttpRequestException
 import io.scalechain.blockchain.api.Json
 import io.scalechain.util.HttpRequester
 

@@ -7,9 +7,6 @@ import io.scalechain.blockchain.transaction.OutputOwnership;
 import io.scalechain.wallet.UnspentCoinDescriptor;
 import io.scalechain.wallet.Wallet;
 import io.scalechain.wallet.WalletTransactionDescriptor;
-import scala.Option;
-import scala.Some;
-import scala.collection.JavaConverters;
 
 import java.util.ArrayList;
 import java.util.Collection;

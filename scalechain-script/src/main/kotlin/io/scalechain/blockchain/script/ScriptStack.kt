@@ -2,8 +2,6 @@ package io.scalechain.blockchain.script
 
 import java.math.BigInteger
 
-import io.scalechain.util.Utils
-
 /** Script Execution Stack. It holds data that Bitcoin Scripts push and pop.
  * Ex> OP_ADD pops two integer values from the stack, and pushes the result, which is an integer value that adds the two integers on to the stack.
  */

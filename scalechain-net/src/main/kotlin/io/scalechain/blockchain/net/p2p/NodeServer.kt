@@ -12,8 +12,6 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
-import io.scalechain.util.ExceptionUtil
-import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 class NodeServer(private val peerSet : PeerSet) {

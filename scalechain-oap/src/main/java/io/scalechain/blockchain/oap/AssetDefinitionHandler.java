@@ -6,7 +6,6 @@ import io.scalechain.blockchain.oap.exception.OapException;
 import kotlin.Pair;
 import io.scalechain.blockchain.oap.wallet.AssetId;
 import io.scalechain.util.HexUtil;
-import scala.Option;
 
 /**
  * Created by shannon on 17. 1. 3.

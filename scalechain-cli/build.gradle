@@ -14,7 +14,7 @@ dependencies {
     compile project(':scalechain-proto')
     compile project(':scalechain-consensus')
     compile project(':scalechain-util')
-    compile "commons-cli:commons-cli:1.3.1"
+    compile "commons-cli:commons-cli:1.4"
 }
 
 mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'

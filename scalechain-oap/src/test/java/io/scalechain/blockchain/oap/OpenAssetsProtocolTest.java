@@ -13,7 +13,6 @@ import io.scalechain.wallet.Wallet;
 import io.scalechain.wallet.WalletTransactionDescriptor;
 import org.junit.Ignore;
 import org.junit.Test;
-import scala.Option;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

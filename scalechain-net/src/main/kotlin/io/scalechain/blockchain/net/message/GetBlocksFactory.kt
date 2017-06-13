@@ -2,11 +2,8 @@ package io.scalechain.blockchain.net.message
 
 import io.scalechain.blockchain.chain.BlockLocator
 import io.scalechain.blockchain.chain.Blockchain
-import io.scalechain.blockchain.chain.BlockLocatorHashes
 import io.scalechain.blockchain.proto.GetBlocks
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.BlockInfo
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
 /**

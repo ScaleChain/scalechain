@@ -3,7 +3,6 @@ package io.scalechain.blockchain.storage
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.TransactionCountCodec
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
-import io.scalechain.blockchain.proto.codec.BlockCodec
 
 import io.scalechain.blockchain.proto.TransactionCount
 import io.scalechain.blockchain.proto.Hash

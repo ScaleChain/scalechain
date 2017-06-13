@@ -10,7 +10,6 @@ import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 
-
 import io.scalechain.util.ExceptionUtil
 import org.slf4j.LoggerFactory
 

@@ -5,15 +5,14 @@ import io.kotlintest.matchers.Matchers
 import java.io.File
 
 import io.scalechain.blockchain.chain.BlockSampleData
-import io.scalechain.blockchain.chain.TransactionSampleData
 import io.scalechain.blockchain.chain.BlockchainTestTrait
 import io.scalechain.blockchain.proto.InvVector
 import io.scalechain.blockchain.proto.InvType
-import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionTestInterface
 import org.junit.runner.RunWith
+
+import java.util.Random
 
 @RunWith(KTestJUnitRunner::class)
 class InventoryProcessorSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {

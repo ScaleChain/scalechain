@@ -2,8 +2,7 @@ package io.scalechain.test
 
 import java.math.BigInteger
 import java.security.MessageDigest
-
-import java.util.Random
+import java.util.*
 
 // Create one when we write a performance testing case using Kotlin.
 interface PerformanceTestTrait {

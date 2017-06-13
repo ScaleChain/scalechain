@@ -3,7 +3,6 @@ package io.scalechain.blockchain.script
 import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.script.ops.*
 
-
 object ScriptOperations {
   val SCRIPT_OPS : Map<Short, ScriptOp> = mapOf(
     0x00.toShort() to Op0(),

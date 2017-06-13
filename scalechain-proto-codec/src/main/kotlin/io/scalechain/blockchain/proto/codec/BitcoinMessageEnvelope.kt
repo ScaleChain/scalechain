@@ -36,7 +36,7 @@ data class BitcoinMessageEnvelope(
     val payload  : ByteBuf) {
     //   override fun toString = s"Ping(BigInt(${scalaHex(nonce.toByteArray)}))"
 
-    override fun toString() = """BitcoinMessageEnvelope($magic, "$command", $length, $checksum, $payload)"""
+    override fun toString() = """BitcoinMessageEnvelope($magic, "$command", $length, $checksum, ${payload.capacity()})"""
 
     companion object {
       /**

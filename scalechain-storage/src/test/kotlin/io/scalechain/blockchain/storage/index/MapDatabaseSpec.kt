@@ -13,7 +13,7 @@ import java.io.File
  */
 
 @RunWith(KTestJUnitRunner::class)
-//@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
+@Ignore // MapDatabase is too slow. Will enable this case after optimizing MapDatabase.
 class MapDatabaseSpec : FlatSpec(), Matchers, DatabaseTestTraits {
 
   val testPath = File("./build/unittests-MapDatabaseSpec")

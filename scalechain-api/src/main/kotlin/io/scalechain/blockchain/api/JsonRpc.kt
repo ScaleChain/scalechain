@@ -179,6 +179,7 @@ object Json {
                 .registerTypeAdapter(IssueAssetResultResult::class.java, RpcResultSerializer())
                 .registerTypeAdapter(ListAssetBalanceDescResult::class.java, RpcResultSerializer())
                 .setPrettyPrinting()
+                .serializeNulls()
                 .create()
     }
     return gson!!
