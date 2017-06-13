@@ -4,10 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.Cache
-import io.scalechain.blockchain.proto.BlockHeader
 import io.scalechain.blockchain.proto.Hash
-import io.scalechain.blockchain.proto.Block
-import io.scalechain.blockchain.proto.Transaction
 
 
 /**

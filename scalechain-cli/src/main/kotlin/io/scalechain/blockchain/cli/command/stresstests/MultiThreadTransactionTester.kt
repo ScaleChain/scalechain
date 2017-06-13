@@ -4,7 +4,6 @@ import java.io.File
 
 import io.scalechain.blockchain.proto.Transaction
 
-import io.scalechain.blockchain.cli.command.stresstests.RawTransactionListener
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.util.HexUtil
 import io.scalechain.util.ListExt

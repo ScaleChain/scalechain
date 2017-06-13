@@ -6,8 +6,6 @@ import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.BlockHeader
 import io.scalechain.blockchain.transaction.ChainEnvironment
 
-import scala.collection.mutable.ListBuffer
-
 
 /**
   * Builds a block with a list of transactions.

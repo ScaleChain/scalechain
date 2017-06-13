@@ -116,7 +116,7 @@ object DumpChain {
   val DISK_BLOCK_FILE_SIZE = 1024 * 1024 * 128
   fun verifyBlocks(blocksPath: String) : Unit {
 
-    val blockStoragePath = File("./target/tempblockstorage/")
+    val blockStoragePath = File("./build/tempblockstorage/")
     blockStoragePath.mkdir()
 
     val db = DatabaseFactory.create(blockStoragePath)

@@ -2,14 +2,10 @@ package io.scalechain.blockchain.api
 
 import io.scalechain.blockchain.api.command.blockchain.*
 import io.scalechain.blockchain.api.command.wallet.*
-import io.scalechain.blockchain.api.command.control.*
-import io.scalechain.blockchain.api.command.generating.*
 import io.scalechain.blockchain.api.command.help.*
 import io.scalechain.blockchain.api.command.mining.*
 import io.scalechain.blockchain.api.command.network.*
 import io.scalechain.blockchain.api.command.rawtx.*
-import io.scalechain.blockchain.api.command.utility.*
-import io.scalechain.blockchain.api.command.wallet.p3.GetTransaction
 
 /** Services has a list of all services currently supported.
   * The list is used for creating a map from the service command (such as "getblock")

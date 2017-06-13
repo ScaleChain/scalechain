@@ -12,9 +12,8 @@ import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.wallet.Wallet
-import org.eclipse.collections.impl.map.mutable.ConcurrentHashMap
 
-import scala.util.Random
+import java.util.Random
 import java.io.Closeable
 
 
@@ -83,7 +82,7 @@ class TransactionGenerator(private val db : KeyValueDatabase, private val wallet
 
     init {
       Storage.initialize()
-      val walletDbPath = File("./target/transaction-generator-${Random().nextLong()}")
+      val walletDbPath = File("./build/transaction-generator-${Random().nextLong()}")
       walletDbPath.deleteRecursively()
       walletDbPath.mkdir()
 

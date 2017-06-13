@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.script
 
 import io.netty.buffer.Unpooled
-import java.io.ByteArrayOutputStream
 
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.*

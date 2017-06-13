@@ -2,12 +2,10 @@ package io.scalechain.blockchain.storage.index
 
 import java.io.File
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.storage.Storage
 import org.rocksdb.*
-import org.rocksdb.util.SizeUnit
 import org.slf4j.LoggerFactory
 
 
@@ -57,7 +55,8 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
       .setCreateIfMissing(true)
       .setCreateMissingColumnFamilies(true)
       //.setStatsDumpPeriodSec(3)
-      .setAllowOsBuffer(true)
+      // in RocksDB 5.1, setAllowOsBuffer no longer exists.
+      //.setAllowOsBuffer(true)
       .setWriteBufferSize(256 * 1024 * 1024)
       .setMaxWriteBufferNumber(4)
       .setMinWriteBufferNumberToMerge(2)

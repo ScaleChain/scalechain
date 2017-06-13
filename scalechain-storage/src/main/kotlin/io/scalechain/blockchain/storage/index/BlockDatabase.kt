@@ -1,11 +1,7 @@
 package io.scalechain.blockchain.storage.index
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.proto.codec.*
-import io.scalechain.blockchain.storage.TransactionLocator
-import org.slf4j.LoggerFactory
-import io.scalechain.blockchain.script.*
 import io.scalechain.util.ByteArrayExt
 
 object DB {

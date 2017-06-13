@@ -30,7 +30,7 @@ class OrphanTransactionIndexSpec  : FlatSpec(), Matchers {
   lateinit var index : OrphanTransactionIndex
   lateinit var db : KeyValueDatabase
 
-  val testPath = File("./target/unittests-OrphanTransactionIndexSpec")
+  val testPath = File("./build/unittests-OrphanTransactionIndexSpec")
   override fun beforeEach() {
 
     testPath.deleteRecursively()

@@ -27,7 +27,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
 
   lateinit var diskBlockStorage : DiskBlockStorage
   override lateinit var storage : BlockStorage
-  val testPath = File("./target/unittests-DiskBlockStorageSpec/")
+  val testPath = File("./build/unittests-DiskBlockStorageSpec/")
   override fun beforeEach() {
 
     testPath.deleteRecursively()
@@ -196,7 +196,7 @@ class DiskBlockStorageSpec : BlockStorageTestTrait()  {
     }
 
     "get" should "return the object created by create method" {
-      val testPath = File("./target/unittests-DiskBlockStorageSpec-for-create-test/")
+      val testPath = File("./build/unittests-DiskBlockStorageSpec-for-create-test/")
       val storage = DiskBlockStorage.create(testPath, db);
       assertTrue( DiskBlockStorage.get() === storage )
     }

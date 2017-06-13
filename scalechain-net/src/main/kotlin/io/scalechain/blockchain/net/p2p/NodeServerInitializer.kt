@@ -3,10 +3,6 @@ package io.scalechain.blockchain.net
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelPipeline
 import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.DelimiterBasedFrameDecoder
-import io.netty.handler.codec.Delimiters
-import io.netty.handler.codec.string.StringDecoder
-import io.netty.handler.codec.string.StringEncoder
 import io.netty.handler.ssl.SslContext
 import io.scalechain.blockchain.net.p2p.BitcoinProtocolEncoder
 import io.scalechain.blockchain.net.p2p.BitcoinProtocolDecoder

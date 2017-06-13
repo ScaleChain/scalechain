@@ -2,15 +2,9 @@ package io.scalechain.blockchain.storage.index
 
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.GeneralException
-import io.scalechain.util.Bytes
 import org.mapdb.*
 import org.mapdb.DB
 import java.io.File
-import org.mapdb.serializer.GroupSerializer
-import org.mapdb.serializer.SerializerCompressionDeflateWrapper
-import org.mapdb.serializer.SerializerCompressionWrapper
-import org.rocksdb.RocksIterator
-import java.util.*
 
 class MapDatabaseIterator(private val mapDbIterator : MutableIterator<MutableMap.MutableEntry<ByteArray, ByteArray?>>) : ClosableIterator<Pair<ByteArray,ByteArray>> {
   private var isClosed = false

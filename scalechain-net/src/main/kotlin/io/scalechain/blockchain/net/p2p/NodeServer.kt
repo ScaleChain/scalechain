@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelOption
 import io.netty.channel.ChannelFutureListener
@@ -13,8 +12,6 @@ import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
-import io.scalechain.util.ExceptionUtil
-import io.scalechain.util.StackUtil
 import org.slf4j.LoggerFactory
 
 class NodeServer(private val peerSet : PeerSet) {

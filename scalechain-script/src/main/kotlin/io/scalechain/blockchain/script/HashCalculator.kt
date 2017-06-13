@@ -1,13 +1,10 @@
 package io.scalechain.blockchain.script
 
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.BlockHeader
-import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
-import io.scalechain.blockchain.proto.codec.BlockCodec
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 import io.scalechain.crypto.HashFunctions

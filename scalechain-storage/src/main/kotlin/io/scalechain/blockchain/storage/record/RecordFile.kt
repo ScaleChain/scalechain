@@ -5,7 +5,6 @@ import java.nio.ByteBuffer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import io.scalechain.blockchain.proto.codec.Codec
-import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.RecordLocator
 import io.scalechain.blockchain.BlockStorageException
 import io.scalechain.blockchain.ErrorCode

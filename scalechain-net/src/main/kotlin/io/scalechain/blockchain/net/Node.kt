@@ -1,6 +1,5 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.net.message.GetBlocksFactory
 import io.scalechain.blockchain.proto.Hash

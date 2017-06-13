@@ -9,7 +9,7 @@ object Storage {
   var isInitialized : Boolean = false
   fun initialized() = isInitialized
   fun initialize() : Unit {
-    //RocksDB.loadLibrary()
+    RocksDB.loadLibrary()
     isInitialized = true
   }
 }

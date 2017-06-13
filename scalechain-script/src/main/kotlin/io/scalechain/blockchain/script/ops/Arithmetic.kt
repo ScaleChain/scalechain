@@ -1,13 +1,9 @@
 package io.scalechain.blockchain.script.ops
 
-import java.math.BigInteger
-
 import io.scalechain.blockchain.script.ScriptValue
 import io.scalechain.blockchain.script.ScriptEnvironment
 import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.FatalException
-import io.scalechain.util.Utils
 
 interface Arithmetic : ScriptOp
 {

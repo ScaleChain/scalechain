@@ -1,7 +1,5 @@
 package io.scalechain.blockchain.storage
 
-import io.scalechain.blockchain.proto.CStringPrefixed
-import io.scalechain.blockchain.proto.codec.primitive.CStringPrefixedCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
 import io.scalechain.blockchain.proto.codec.OneByteCodec
 import io.scalechain.blockchain.proto.codec.OrphanBlockDescriptorCodec
@@ -11,7 +9,6 @@ import io.scalechain.blockchain.proto.OrphanBlockDescriptor
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.storage.index.DB
 import io.scalechain.util.HexUtil
-//import io.scalechain.util.Using.*
 
 /**
   * Provides index operations for orphan blocks.

@@ -1,17 +1,9 @@
 package io.scalechain.blockchain.net
 
-import java.net.InetSocketAddress
-
 import io.netty.channel.ChannelFuture
 import io.scalechain.blockchain.net.p2p.RetryingConnector
-import io.scalechain.blockchain.proto.IPv6Address
-import io.scalechain.blockchain.proto.NetworkAddress
-import io.scalechain.blockchain.proto.Version
-import io.scalechain.util.HexUtil
 import io.scalechain.util.PeerAddress
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 
 object PeerToPeerNetworking {
   lateinit private var thePeerCommunicator : PeerCommunicator

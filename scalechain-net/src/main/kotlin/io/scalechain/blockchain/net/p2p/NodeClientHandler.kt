@@ -1,14 +1,7 @@
 package io.scalechain.blockchain.net
 
-import com.typesafe.scalalogging.Logger
-import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import io.netty.handler.ssl.SslHandler
-import io.netty.util.ReferenceCountUtil
-import io.netty.util.concurrent.Future
-import io.netty.util.concurrent.GenericFutureListener
-import io.scalechain.blockchain.net.p2p.NodeThrottle
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.util.StackUtil
 import io.scalechain.util.ExceptionUtil

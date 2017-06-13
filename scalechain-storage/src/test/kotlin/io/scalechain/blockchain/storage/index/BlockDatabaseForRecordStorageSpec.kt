@@ -22,7 +22,7 @@ class BlockDatabaseForRecordStorageSpec : FlatSpec(), Matchers {
   lateinit var db : KeyValueDatabase
   lateinit var blockDb : BlockDatabaseForRecordStorage
 
-  val testPath = File("./target/unittests-BlockDatabaseSpec")
+  val testPath = File("./build/unittests-BlockDatabaseSpec")
 
   override fun beforeEach() {
     testPath.deleteRecursively()

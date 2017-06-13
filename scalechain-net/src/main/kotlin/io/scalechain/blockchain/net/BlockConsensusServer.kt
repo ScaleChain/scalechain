@@ -2,13 +2,10 @@ package io.scalechain.blockchain.net
 
 import java.io.*
 
-import bftsmart.consensus.messages.ConsensusMessage
 import bftsmart.tom.MessageContext
 import bftsmart.tom.ServiceReplica
-import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable
 import bftsmart.tom.server.defaultservices.DefaultRecoverable
 import bftsmart.tom.server.defaultservices.DefaultReplier
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.codec.BlockHeaderCodec
 import io.scalechain.blockchain.proto.codec.HashCodec

@@ -8,7 +8,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 class GetHeadersMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-GetHeadersMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-GetHeadersMessageHandlerSpec/")
 
   init {
     "handle" should "" {

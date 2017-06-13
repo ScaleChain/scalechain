@@ -8,7 +8,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 class PingMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-PingMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-PingMessageHandlerSpec/")
 
   init {
     "handle" should "" {

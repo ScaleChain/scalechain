@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class BlockMiningSpec : BlockchainTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-BlockMiningSpec/")
+  override val testPath = File("./build/unittests-BlockMiningSpec/")
 
   lateinit var bm : BlockMining
   lateinit var data : TransactionSampleData

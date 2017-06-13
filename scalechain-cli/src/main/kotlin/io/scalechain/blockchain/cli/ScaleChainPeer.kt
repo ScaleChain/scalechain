@@ -16,7 +16,6 @@ import io.scalechain.wallet.Wallet
 import org.apache.log4j.PropertyConfigurator
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
-import io.scalechain.blockchain.cli.command.CommandExecutor
 import io.scalechain.blockchain.storage.index.DatabaseFactory
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
@@ -188,7 +187,7 @@ object ScaleChainPeer {
     return peerCommunicator
   }
 
-  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./target/blockstorage-${p2pInboundPort}")
+  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/blockstorage-${p2pInboundPort}")
 
   /** Initialize sub-moudles from the lower layer to the upper layer.
     *
@@ -241,7 +240,7 @@ object ScaleChainPeer {
 
     // Step 6 : Wallet Layer : set the wallet as an event listener of the blockchain.
     // Currently Wallet is a singleton, no need to initialize it.
-    //val walletPath = File("./target/wallet-${params.p2pInboundPort}")
+    //val walletPath = File("./build/wallet-${params.p2pInboundPort}")
     val wallet = Wallet.create()
     chain.setEventListener(wallet)
 

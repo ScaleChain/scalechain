@@ -8,7 +8,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 class PongMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-PongMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-PongMessageHandlerSpec/")
 
   init {
     "handle" should "" {

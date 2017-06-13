@@ -4,7 +4,6 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.util.Bytes
-import io.scalechain.util.HexUtil
 import java.math.BigInteger
 
 /**

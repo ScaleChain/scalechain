@@ -9,12 +9,8 @@ import io.scalechain.blockchain.GeneralException
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.util.Bytes
-import io.scalechain.util.HexUtil
 
-import scala.collection.mutable.ListBuffer
 import java.math.BigDecimal
-import java.math.BigInteger
-
 
 /**
   * Build a transaction by using inputs and outputs provided.

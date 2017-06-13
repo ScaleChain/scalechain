@@ -6,13 +6,10 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.proto.*
 import io.scalechain.blockchain.script.hash
-import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.TransactionVerifier
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.scalechain.blockchain.net.*
-import io.scalechain.blockchain.net.handler.BlockMessageHandler
 
 /** List of responses for submitblock RPC.
  */

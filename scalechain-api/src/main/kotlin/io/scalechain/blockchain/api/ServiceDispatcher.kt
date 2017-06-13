@@ -1,14 +1,9 @@
 package io.scalechain.blockchain.api
 
-import io.scalechain.blockchain.api.command.*
-import io.scalechain.blockchain.api.command.blockchain.p1.GetTxOut
-import io.scalechain.blockchain.api.command.control.p1.GetInfo
 import io.scalechain.blockchain.api.domain.RpcError
 import io.scalechain.blockchain.api.domain.RpcResponse
 import io.scalechain.blockchain.api.domain.RpcRequest
 import org.slf4j.LoggerFactory
-import org.slf4j.Logger
-import io.scalechain.util.Either
 import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
 

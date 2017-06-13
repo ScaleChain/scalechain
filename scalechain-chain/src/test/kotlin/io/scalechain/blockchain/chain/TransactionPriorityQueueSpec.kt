@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(KTestJUnitRunner::class)
 class TransactionPriorityQueueSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers {
 
-  override val testPath = File("./target/unittests-TransactionPriorityQueueSpec/")
+  override val testPath = File("./build/unittests-TransactionPriorityQueueSpec/")
 
   lateinit var q : TransactionPriorityQueue
 

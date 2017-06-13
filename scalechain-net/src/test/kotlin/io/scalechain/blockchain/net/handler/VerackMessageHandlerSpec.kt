@@ -8,7 +8,7 @@ import java.io.File
 @RunWith(KTestJUnitRunner::class)
 class VerackMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
 
-  override val testPath = File("./target/unittests-VerackMessageHandlerSpec/")
+  override val testPath = File("./build/unittests-VerackMessageHandlerSpec/")
 
   init {
     "handle" should "" {

@@ -2,11 +2,6 @@ package io.scalechain.blockchain.script
 
 import io.scalechain.blockchain.proto.Transaction
 import io.scalechain.blockchain.script.ops.*
-import io.scalechain.blockchain.ScriptEvalException
-import io.scalechain.blockchain.FatalException
-import io.scalechain.blockchain.ErrorCode
-
-import scala.collection.immutable.HashMap
 
 object ScriptOperations {
   val SCRIPT_OPS : Map<Short, ScriptOp> = mapOf(

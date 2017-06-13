@@ -8,7 +8,7 @@ import io.scalechain.blockchain.chain.NewOutput
 import io.scalechain.blockchain.chain.TransactionWithName
 import io.scalechain.blockchain.proto.codec.TransactionCodec
 import io.scalechain.blockchain.proto.codec.HashCodec
-import io.scalechain.blockchain.storage.TransactionPoolIndex
+import io.scalechain.blockchain.storage.index.TransactionPoolIndex
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.test.PerformanceTestTrait
 import io.scalechain.util.StopWatch
@@ -27,7 +27,7 @@ import java.util.*
 class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, TransactionTestInterface, Matchers {
   val TEST_LOOP_COUNT = 1000
 
-  override val testPath = File("./target/unittests-WalletPerformanceSpec-storage/")
+  override val testPath = File("./build/unittests-WalletPerformanceSpec-storage/")
 
   override fun beforeEach() {
 

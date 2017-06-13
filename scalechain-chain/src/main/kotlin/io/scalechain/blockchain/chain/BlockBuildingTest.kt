@@ -6,7 +6,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.*
 import io.scalechain.blockchain.script.hash
 import io.scalechain.crypto.HashEstimation
-import io.scalechain.util.ByteBufExt
 import io.scalechain.util.Bytes
 import java.util.*
 

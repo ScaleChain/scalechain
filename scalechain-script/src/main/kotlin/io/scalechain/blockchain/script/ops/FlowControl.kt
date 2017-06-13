@@ -1,13 +1,9 @@
 package io.scalechain.blockchain.script.ops
 
 import io.scalechain.blockchain.proto.Script
-import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.script.ParseResult
-import io.scalechain.blockchain.script.ScriptOpList
 import io.scalechain.blockchain.script.ScriptParser
 import io.scalechain.blockchain.script.ScriptEnvironment
-import io.scalechain.util.Utils
 
 interface FlowControl : ScriptOp
 

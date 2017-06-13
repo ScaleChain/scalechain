@@ -1,7 +1,5 @@
 package io.scalechain.util
 
-import scala.Option
-
 
 /**
  * Created by kangmo on 11/3/15.

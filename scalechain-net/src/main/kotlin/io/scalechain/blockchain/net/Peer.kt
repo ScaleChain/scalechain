@@ -1,17 +1,12 @@
 package io.scalechain.blockchain.net
 
 import java.net.InetSocketAddress
-import java.util.concurrent.LinkedBlockingQueue
-
-import com.typesafe.scalalogging.Logger
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.Channel
-import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.ProtocolMessage
 import io.scalechain.blockchain.proto.Version
 import io.scalechain.util.StackUtil
-//import org.apache.commons.collections4.map.LRUMap
 import org.slf4j.LoggerFactory
 
 

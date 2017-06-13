@@ -8,7 +8,6 @@ import io.scalechain.blockchain.proto.Block
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
-import io.scalechain.blockchain.storage.index.RocksDatabase
 import io.scalechain.blockchain.storage.DiskBlockStorage
 import io.scalechain.blockchain.storage.Storage
 import io.scalechain.blockchain.storage.index.DatabaseFactory

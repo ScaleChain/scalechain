@@ -1,17 +1,13 @@
 package io.scalechain.blockchain.script
 
-import com.typesafe.scalalogging.Logger
 import io.scalechain.blockchain.proto.Script
 import io.scalechain.blockchain.script.ops.ScriptOpWithoutCode
-import io.scalechain.blockchain.script.ops.OpCond
 import io.scalechain.blockchain.script.ops.ScriptOp
 import io.scalechain.blockchain.ErrorCode
-import io.scalechain.blockchain.ScriptEvalException
 import io.scalechain.blockchain.ScriptParseException
 import io.scalechain.util.HexUtil
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.ListBuffer
 import java.util.*
 
 
