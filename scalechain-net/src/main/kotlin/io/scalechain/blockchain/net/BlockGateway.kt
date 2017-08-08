@@ -84,7 +84,7 @@ object PeerIndexCalculator {
     * @return The peer index from <0, peer count-1)
     */
   fun getPeerIndex(p2pPort : Int) : Int? {
-    val peerAddresses : List<PeerAddress> = Config.peerAddresses()
+    val peerAddresses : List<PeerAddress> = Config.get().peerAddresses()
     return getPeerIndexInternal(p2pPort, 0, peerAddresses)
   }
 }

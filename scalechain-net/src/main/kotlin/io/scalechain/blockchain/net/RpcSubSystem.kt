@@ -222,28 +222,40 @@ class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockc
     return builder.build()
   }
 
-  fun sendMany(account: String, outputs: List<Pair<String, BigDecimal>>, comment: String, subtractFees: List<String>): Hash {
+  // BUGBUG : Need to investigate why comment and subtractFees are not used.
+  fun sendMany(account: String, outputs: List<Pair<String, BigDecimal>>, comment: String?, subtractFees: List<String>?): Hash {
     if (outputs.size == 0) {
       throw OapException(OapException.INVALID_ARGUMENT, "No outputs.");
     }
     // TODO WE SOULD CHECK OUTPUT
     val transfers: List<Pair<CoinAddress, CoinAmount>> = outputs.map { tuple ->
-      try {
-        if (tuple.second < BigDecimal(0))
-          throw OapException(OapException.INVALID_ARGUMENT, "Negative amount " + tuple.second)
+      if (tuple.second.compareTo(BigDecimal.ZERO) < 0)
+        throw OapException(OapException.INVALID_ARGUMENT, "Negative amount " + tuple.second)
 
-        Pair(CoinAddress.from(tuple.first), CoinAmount(tuple.second))
-      } catch(e: Throwable) {
+      val coinAddress = try {
+        CoinAddress.from(tuple.first)
+      } catch(e : Throwable) { // BUGBUG : Need to see if e raised because of address conversion failure.
         throw OapException(OapException.INVALID_ARGUMENT, "Cannot convert address " + tuple.first, e);
       }
+
+      Pair(coinAddress, CoinAmount(tuple.second))
+
+      /*
+      catch(e: GeneralException) { // BUGBUG : Need to see if e raised because of address conversion failure.
+        if (e.code == ErrorCode.RpcInvalidAddress) {
+          throw OapException(OapException.INVALID_ARGUMENT, "Cannot convert address " + tuple.first, e);
+        } else {
+          throw e
+        }
+      }*/
     }
 
     val addressesOption = nonWatchOnlyAddressesOf(account);
     val inputsAndChange = calculateInputsAndChange(addressesOption, transfers)
 
-    if (inputsAndChange.second.value < BigDecimal(0)) { // NOT ENOUGH COIN
+    if (inputsAndChange.second.value.compareTo( BigDecimal.ZERO ) < 0) { // NOT ENOUGH COIN
 
-      throw OapException(OapException.NOT_ENOUGH_COIN, "Account " + account + " has not enought coins");
+      throw OapException(OapException.NOT_ENOUGH_COIN, "Account " + account + " has not enough coins");
     }
 
     val rawTx = buildSendManyTransaction(inputsAndChange, transfers, account)

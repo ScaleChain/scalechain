@@ -95,7 +95,7 @@ public class IssueAssetApiTest extends ApiTestWithSampleTransactions {
     String issuerAddress = addressData.address.base58();
     AssetId assetId = addressData.assetId;
 
-    // GET ASSET DEFITION AND REMOVE asset_ids
+    // GET ASSET DEFINITION AND REMOVE asset_ids
     String definitionString = addressData.assetDefinition;
     JsonObject gsonObject = new com.google.gson.JsonParser().parse(definitionString).getAsJsonObject();
     JsonObject in = new com.google.gson.JsonParser().parse(gsonObject.toString()).getAsJsonObject();
@@ -104,15 +104,17 @@ public class IssueAssetApiTest extends ApiTestWithSampleTransactions {
     //CHECK UNSPENT
 
     // MAKE PrivateKeys TO SIGN TRANSACTION
-    List<String> list = new ArrayList<String>();
-    list.add(addressData.privateKey.base58());
+    List<String> privateKeys = new ArrayList<String>();
+    privateKeys.add(addressData.privateKey.base58());
+
+    System.out.println("DEBUG:issuing assets using address " + issuerAddress);
 
     JsonObject result = issueAsset(
-      addressData.address.base58(),
+      issuerAddress,
       addressData.assetAddress.base58(),
       quantity,
       "",
-      list,
+      privateKeys,
       addressData.address.base58(),
       IOapConstants.DEFAULT_FEES_IN_SATOSHI,
       metadata

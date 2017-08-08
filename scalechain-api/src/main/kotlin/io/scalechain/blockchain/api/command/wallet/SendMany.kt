@@ -56,8 +56,10 @@ object SendMany : RpcCommand() {
   override fun invoke(request : RpcRequest) : Either<RpcError, RpcResult?> {
     return handlingException {
       val account: String = request.params.get<String>("From Account", 0)
-      // BUGBUG : OAP : Make sure that this code works.
-      val outputs: Map<String, BigDecimal> = request.params.get<Map<String, BigDecimal>>("outputs", 1)
+      // BUGBUG : OAP : See if we can register a deserializer for Gson so that we read BigDecimal instead of Double.
+      val outputsWithDouble = request.params.get<Map<String, Double>>("outputs", 1)
+      // Convert Map<String, Double> to Map<String, BigDecimal>
+      val outputs: Map<String, BigDecimal> =  outputsWithDouble.map{ entry -> entry.key to BigDecimal(entry.value) }.toMap()
       val comment: String = request.params.getOption<String>("Comment", 2) ?: ""
       val subtractFees: List<String> = request.params.getListOption<String>("Subtract Fees From Amount", 3) ?: listOf()
 

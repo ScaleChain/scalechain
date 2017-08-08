@@ -4,9 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.scalechain.blockchain.api.sampledata.TransactionDataProvider;
 import io.scalechain.blockchain.chain.Blockchain;
-import io.scalechain.blockchain.cli.ScaleChainPeer;
 import io.scalechain.blockchain.cli.ScaleChainStarter;
-import io.scalechain.blockchain.oap.OpenAssetsProtocol;
 import io.scalechain.wallet.Wallet;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
@@ -16,13 +14,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Created by shannon on 17. 1. 9.
  */
 public class ApiTestWithSampleTransactions {
-  static File storagePath = new File("./target");
+  static File storagePath = new File("./build");
   public static RpcInvoker rpcInvoker = new RpcInvoker("localhost", 8080, "user", "pleasechangethispassword123@.@");
   public static TransactionDataProvider provider = null;
   @Rule
@@ -31,24 +31,22 @@ public class ApiTestWithSampleTransactions {
   @BeforeClass
   public static void setUpForClass() throws Exception {
     System.out.println("TestWithSampleTransactions.setUpForClass()");
-    //
-    // Remove storage files
-    //
-    storagePath = new File("./target");
-    if (clearStorage(storagePath) == 0) {
-      if (!storagePath.exists()) {
-        storagePath.mkdir();
-        System.out.println("setUpForClass(): " + storagePath + " created.");
-      } else {
-        System.out.println("setUpForClass(): " + storagePath + " exists.");
-      }
-    }
-    reigsterShutdownHook();
-    //
     // Start ScaleChainPeer
     //
-    ScaleChainStarter.start();
     if (provider == null) {
+      if (clearStorage(storagePath) == 0) {
+        if (!storagePath.exists()) {
+          storagePath.mkdir();
+          System.out.println("setUpForClass(): " + storagePath + " created.");
+        } else {
+          System.out.println("setUpForClass(): " + storagePath + " exists.");
+        }
+      }
+
+      ArrayList<String> args = new ArrayList<String>(Arrays.asList("--network", "testnet", "--minerInitialDelayMS", "1000","--minerHashDelayMS", "500"));
+      ScaleChainStarter.start( args );
+
+      System.out.println("DEBUG:The provider was null. Waiting for blocks to be mined.");
       provider = new TransactionDataProvider(Blockchain.get(), Wallet.get());;
 
       // Wait at least 3 blocks mined.
@@ -56,12 +54,21 @@ public class ApiTestWithSampleTransactions {
       waitForChain(3);
 
       provider.populate();
+    } else {
+      System.out.println("DEBUG:The provider was not null. No need to wait.");
     }
   }
 
   @AfterClass
   public static void tearDownClass() {
+/*
     System.out.println("TestWithSampleTransactions.tearDownClass()");
+    try {
+      clearStorage(storagePath);
+    }catch(Exception e) {
+      // BUGBUG : Is it ok to ignore exception?
+    }
+*/
     //provider.dispose();
     //OpenAssetsProtocol.get().storage().close();
     //
@@ -87,7 +94,6 @@ public class ApiTestWithSampleTransactions {
             FileUtils.deleteDirectory(file);
             count++;
           } catch(IOException ioe) {
-
           }
         }
       }
@@ -95,18 +101,19 @@ public class ApiTestWithSampleTransactions {
     return count;
   }
 
-
+/*
   private static void reigsterShutdownHook() {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       public void run() {
         try {
           clearStorage(storagePath);
         }catch(Exception e) {
+          // BUGBUG : Is it ok to ignore exception?
         }
       }
     });
   }
-
+*/
   protected static void waitForChain(int h) {
     long blockHeight = Blockchain.get().getBestBlockHeight();
     while(true) {

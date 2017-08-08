@@ -30,7 +30,7 @@ public class AddressDataProvider implements IAddressDataProvider {
     } else {
       try {
         this.internalAccount = DEFAULT_MINING_ACCOUNT;
-        this.internalAddressData = getnerateAccount(DEFAULT_MINING_ACCOUNT, 1)[0];
+        this.internalAddressData = createAccountAddresses(DEFAULT_MINING_ACCOUNT, 1)[0];
       }catch(OapException e) {
       }
     }
@@ -43,7 +43,7 @@ public class AddressDataProvider implements IAddressDataProvider {
   };
 
   private Map<String, AddressData[]> accountAddressData = new HashMap<String, AddressData[]>();
-  private HashMap<String, AddressData> addressAndaddressData = new HashMap<String, AddressData>();
+  private HashMap<String, AddressData> addressAndAddressData = new HashMap<String, AddressData>();
 
   public String internalAccount() {
     return internalAccount;
@@ -59,10 +59,10 @@ public class AddressDataProvider implements IAddressDataProvider {
     return accountAddressData.get(account);
   }
   public AddressData addressDataOf(String coinaddressOrAssetAddressOrAssetId) {
-    return addressAndaddressData.get(coinaddressOrAssetAddressOrAssetId);
+    return addressAndAddressData.get(coinaddressOrAssetAddressOrAssetId);
   }
 
-  public AddressData[] getnerateAccount(String account, int size) throws OapException {
+  public AddressData[] createAccountAddresses(String account, int size) throws OapException {
     AddressData[] result = new AddressData[size];
     for (int i = 0; i < size; i++) {
       result[i] = generateAddress();
@@ -94,12 +94,12 @@ public class AddressDataProvider implements IAddressDataProvider {
 
   public void generateAccountsAndAddresses() throws OapException {
     for (String account : accounts) {
-      AddressData[] data = getnerateAccount(account, 2);
+      AddressData[] data = createAccountAddresses(account, 2);
       accountAddressData.put(account, data);
       for(AddressData d : data) {
-        addressAndaddressData.put(d.address.base58(), d);
-        addressAndaddressData.put(d.assetAddress.base58(), d);
-        addressAndaddressData.put(d.assetId.base58(), d);
+        addressAndAddressData.put(d.address.base58(), d);
+        addressAndAddressData.put(d.assetAddress.base58(), d);
+        addressAndAddressData.put(d.assetId.base58(), d);
       }
     }
   }

@@ -270,7 +270,7 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
       System.out.println(unspents.get(i).getConfirmations()+"==>" +unspents.get(i).toString());
     }
     System.out.println("ACCOUNT==>" + provider.accounts()[1]);
-    System.out.println("RECEVING ADDRESS=" + provider.receivingAddressOf(provider.accounts()[1]).address + " > " + provider.receivingAddressOf(provider.accounts()[1]).address.base58());
+    System.out.println("RECEIVING ADDRESS=" + provider.receivingAddressOf(provider.accounts()[1]).address + " > " + provider.receivingAddressOf(provider.accounts()[1]).address.base58());
     System.out.println("WATCHONLY ADDRESS=" + provider.watchOnlyAddressesOf(provider.accounts()[1])[0].address + " > " + provider.watchOnlyAddressesOf(provider.accounts()[1])[0].address.base58());
 
     List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(
@@ -329,7 +329,7 @@ public class SendManyTest extends ApiTestWithSampleTransactions {
   @Test
   public void sendManyNotEnoughCoinTest() {
     thrown.expect(OapException.class);
-    thrown.expectMessage("not enought coins");
+    thrown.expectMessage("not enough coins");
 
     List<Pair<String, BigDecimal>> outputs = makeOutputsForSendManyAPI(receiverAddressData,
       2,

@@ -38,9 +38,9 @@ open class Config(val config : com.typesafe.config.Config) {
     val InitialSetupBlocks = 32L
 
     // BUGBUG : Need to change to config/scalechain.conf before the integration tests.
-    companion object : Config(ConfigFactory.parseFile( File(ScaleChainHome + "config/scalechain.conf"))) {
+    companion object {
         @JvmStatic
-        fun get() = this
+        fun get() = Config(ConfigFactory.parseFile( File(ScaleChainHome + "config/scalechain.conf")))
     }
 }
 

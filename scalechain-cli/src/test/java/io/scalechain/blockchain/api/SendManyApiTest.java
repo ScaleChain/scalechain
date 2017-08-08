@@ -194,7 +194,7 @@ public class SendManyApiTest extends ApiTestWithSampleTransactions {
       );
       String hashHex = sendMany(senderAccount, outputs, null, null);
     } catch (RpcInvoker.RpcCallException e) {
-      assertTrue("RPC error data should contain \"not enought coins\"", e.getData().contains("not enought coins"));
+      assertTrue("RPC error data should contain \"not enough coins\"", e.getData().contains("not enough coins"));
     }
     // TODO : OAP : ASK to Shannon : If the exception is not thrown, the test passes. Need to make sure the exception is thrown.
   }

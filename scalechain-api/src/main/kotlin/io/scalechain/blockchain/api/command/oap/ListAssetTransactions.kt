@@ -97,9 +97,9 @@ object ListAssetTransactions  : RpcCommand() {
     }
   }
 
-
+  // BUGBUG : Check if this is correct. Should have additional fields on asset type, asset amount, etc.
   override fun help() : String =
-    """listtransactions ( "account" count from includeWatchonly)
+    """listassettransactions ( "account" count from includeWatchonly)
       |
       |Returns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.
       |

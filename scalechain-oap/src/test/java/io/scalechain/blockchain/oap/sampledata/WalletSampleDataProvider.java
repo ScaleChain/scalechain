@@ -544,7 +544,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
     ChainEnvironment.create(envName);
 
     if (path == null) {
-      targetPath = new File("./target");
+      targetPath = new File("./build");
     } else {
       targetPath = path;
     }
@@ -572,7 +572,7 @@ public class WalletSampleDataProvider extends ChainSampleDataProvider {
 
 //  // TEST RUN...
 //  public static void main(String[] args) throws Exception {
-//    WalletSampleDataProvider.init("testnet", new File("./target"));
+//    WalletSampleDataProvider.init("testnet", new File("./build"));
 //
 //    WalletSampleDataProvider provider = WalletSampleDataProvider.create("mock");
 //    String account = "IMPORTER";

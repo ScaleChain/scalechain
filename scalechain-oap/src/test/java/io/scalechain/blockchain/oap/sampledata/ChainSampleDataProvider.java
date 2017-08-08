@@ -310,7 +310,7 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
 //    System.out.println("Address generated: account=" + account + ", address=" + address.base58());
   }
 //
-//  public AddressData[] getnerateAccount(String account, int size) throws OapException {
+//  public AddressData[] createAccountAddresses(String account, int size) throws OapException {
 //    AddressData[] result = new AddressData[size];
 //    for (int i = 0; i < size; i++) {
 //      result[i] = generateAddress();
@@ -360,9 +360,9 @@ public class ChainSampleDataProvider implements IAddressGenerationListener, IAdd
 //  }
 //
 //  public void generateAccountsAndAddresses() throws OapException {
-//    internalAddressData = getnerateAccount(internalAccount, 1)[0];
+//    internalAddressData = createAccountAddresses(internalAccount, 1)[0];
 //    for (String account : accounts) {
-//      AddressData[] data = getnerateAccount(account, 2);
+//      AddressData[] data = createAccountAddresses(account, 2);
 //      accountAddressData.put(account, data);
 //      for(AddressData d : data) {
 //        addressAndaddressData.put(d.address.base58(), d);

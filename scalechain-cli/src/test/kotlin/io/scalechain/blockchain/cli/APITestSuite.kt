@@ -64,11 +64,11 @@ abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
   override fun beforeAll() {
     super.beforeAll()
 
-
-
     // This class is used by many test suites in cli layer.
     // Not to start scalechain node more than twice, check if it was already started.
-    ScaleChainStarter.start();
+
+    // disable miner while testing APITestSuite
+    ScaleChainStarter.start(listOf("-disableMiner"));
 
     // Create test data.
     // TransactionSampleData should be created after Blockchain.theBlockChain is created to sign transactions.

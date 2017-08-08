@@ -332,7 +332,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
   @Test
   public void allInputsAndCoinChangeForTransferNotEnoughCoinTest() throws OapException {
     thrown.expect(OapException.class);
-    thrown.expectMessage("has not enought coins");
+    thrown.expectMessage("does not have enough coins");
 
     // GET "SENDER" ACCOUNT
     int senderIndex = 1;
@@ -719,7 +719,7 @@ public class TransferAssetHandlerTest extends TestWithWalletSampleData {
   @Test
   public void transferNotEnoughCoinTest() throws OapException {
     thrown.expect(OapException.class);
-    thrown.expectMessage("has not enought coins");
+    thrown.expectMessage("does not have enough coins");
 
     // GET "SENDER" ACCOUNT
     int senderIndex = 1;

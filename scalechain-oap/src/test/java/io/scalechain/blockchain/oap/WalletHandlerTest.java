@@ -48,7 +48,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
       int skip = 0;
       int readCount;
       do {
-        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 1, true);
+        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 0, true);
         readCount = pair.getFirst();
         balance = pair.getSecond();
         skip += readCount;
@@ -83,7 +83,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
       long skip = 0;
       int readCount;
       do {
-        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 1, true);
+        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 0, true);
         readCount = pair.getFirst();
         balance = balance.add(pair.getSecond());
         skip += readCount;
@@ -113,7 +113,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
       int skip = 0;
       int readCount;
       do {
-        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 1, false);
+        Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, account, count, skip, 0, false);
         readCount = pair.getFirst();
         balance = pair.getSecond();
         skip += readCount;
@@ -130,7 +130,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     int count = 1000;
     int skip = 0;
     int readCount;
-    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, "A", count, skip, 1, false);
+    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, "A", count, skip, 0, false);
     assertEquals("Read count should be 0", 0, pair.getFirst().intValue());
   }
 
@@ -160,7 +160,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal balance = new BigDecimal(0);
     int count = 1000;
     int skip = 0;
-    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, null, count, skip, 1, true);
+    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, null, count, skip, 0, true);
     balance = pair.getSecond();
 
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
@@ -183,7 +183,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal balance = new BigDecimal(0);
     int count = 1000;
     int skip = 0;
-    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, null, count, skip, 1, false);
+    Pair<Integer, BigDecimal> pair = walletHandler.getBalance(balance, null, count, skip, 0, false);
     balance = pair.getSecond();
 
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
@@ -476,7 +476,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal exp = BigDecimal.valueOf(50)
       .subtract(CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI * 4).getValue());
     for (String account : provider.accounts()) {
-      BigDecimal balance = walletHandler.getBalance(account, 1, true);
+      BigDecimal balance = walletHandler.getBalance(account, 0, true);
       assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
     }
   }
@@ -490,7 +490,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
           .subtract(CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI * 3).getValue())
           .subtract(BigDecimal.valueOf(5 * (index + 1)));
 
-      BigDecimal balance = walletHandler.getBalance(account, 1, false);
+      BigDecimal balance = walletHandler.getBalance(account, 0, false);
       assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
       index++;
     }
@@ -502,7 +502,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal exp = BigDecimal.valueOf(0);
     String account = getDataProvider().accounts()[0];
 
-    BigDecimal balance = walletHandler.getBalance(account + account, 1, true);
+    BigDecimal balance = walletHandler.getBalance(account + account, 0, true);
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
   }
 
@@ -511,7 +511,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal exp = BigDecimal.valueOf(0);
     String account = getDataProvider().accounts()[0];
 
-    BigDecimal balance = walletHandler.getBalance("", 1, true);
+    BigDecimal balance = walletHandler.getBalance("", 0, true);
 
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
   }
@@ -521,7 +521,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
     BigDecimal exp =
       BigDecimal.valueOf(200)
         .subtract(BigDecimal.valueOf(12).multiply(IOapConstants.DEFAULT_FEES_IN_BITCOIN));
-    BigDecimal balance = walletHandler.getBalance("*", 1, true);
+    BigDecimal balance = walletHandler.getBalance("*", 0, true);
     System.out.println(exp);
     System.out.println(balance);
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
@@ -533,7 +533,7 @@ public class WalletHandlerTest extends TestWithWalletSampleData {
       BigDecimal.valueOf(170)
         .subtract(BigDecimal.valueOf(9).multiply(IOapConstants.DEFAULT_FEES_IN_BITCOIN));
 
-    BigDecimal balance = walletHandler.getBalance("*", 1, false);
+    BigDecimal balance = walletHandler.getBalance("*", 0, false);
     System.out.println(exp);
     System.out.println(balance);
     assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);

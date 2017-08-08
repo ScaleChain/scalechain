@@ -31,13 +31,13 @@ object ScaleChainPeer {
   data class Parameters(
                          val peerAddress: String? = null, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          val peerPort: Int? = null, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         val cassandraAddress: String? = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.address")) io.scalechain.util.Config.getString("scalechain.storage.cassandra.address") else null,
-                         val cassandraPort: Int? = if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.port")) io.scalechain.util.Config.getInt("scalechain.storage.cassandra.port") else null,
-                         val p2pInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.p2p.port"),
-                         val apiInboundPort: Int = io.scalechain.util.Config.getInt("scalechain.api.port"),
-                         val miningAccount: String = io.scalechain.util.Config.getString("scalechain.mining.account"),
-                         val network: String = io.scalechain.util.Config.getString("scalechain.network.name"),
-                         val maxBlockSize: Int = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
+                         val cassandraAddress: String? = if (io.scalechain.util.Config.get().hasPath("scalechain.storage.cassandra.address")) io.scalechain.util.Config.get().getString("scalechain.storage.cassandra.address") else null,
+                         val cassandraPort: Int? = if (io.scalechain.util.Config.get().hasPath("scalechain.storage.cassandra.port")) io.scalechain.util.Config.get().getInt("scalechain.storage.cassandra.port") else null,
+                         val p2pInboundPort: Int = io.scalechain.util.Config.get().getInt("scalechain.p2p.port"),
+                         val apiInboundPort: Int = io.scalechain.util.Config.get().getInt("scalechain.api.port"),
+                         val miningAccount: String = io.scalechain.util.Config.get().getString("scalechain.mining.account"),
+                         val network: String = io.scalechain.util.Config.get().getString("scalechain.network.name"),
+                         val maxBlockSize: Int = io.scalechain.util.Config.get().getInt("scalechain.mining.max_block_size"),
                          val minerInitialDelayMS: Int = 10000,
                          val minerHashDelayMS : Int = 200000,
                          val disableMiner : Boolean = false
@@ -131,13 +131,13 @@ object ScaleChainPeer {
       val params = Parameters(
           peerAddress = line.getOptionValue("peerAddress", null), // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
           peerPort = CommandArgumentConverter.toInt( "peerPort", line.getOptionValue("peerPort", null)), // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-          cassandraAddress = line.getOptionValue("cassandraAddress", null) ?: if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.address")) io.scalechain.util.Config.getString("scalechain.storage.cassandra.address") else null,
-          cassandraPort = CommandArgumentConverter.toInt( "cassandraPort", line.getOptionValue("cassandraPort", null) ) ?: if (io.scalechain.util.Config.hasPath("scalechain.storage.cassandra.port")) io.scalechain.util.Config.getInt("scalechain.storage.cassandra.port") else null,
-          p2pInboundPort = CommandArgumentConverter.toInt( "p2pPort", line.getOptionValue("p2pPort", null) ) ?: io.scalechain.util.Config.getInt("scalechain.p2p.port"),
-          apiInboundPort = CommandArgumentConverter.toInt( "apiPort", line.getOptionValue("apiPort", null) ) ?: io.scalechain.util.Config.getInt("scalechain.api.port"),
-          miningAccount = line.getOptionValue("miningAccount", null) ?: io.scalechain.util.Config.getString("scalechain.mining.account"),
-          network = line.getOptionValue("network", null) ?: io.scalechain.util.Config.getString("scalechain.network.name"),
-          maxBlockSize = io.scalechain.util.Config.getInt("scalechain.mining.max_block_size"),
+          cassandraAddress = line.getOptionValue("cassandraAddress", null) ?: if (io.scalechain.util.Config.get().hasPath("scalechain.storage.cassandra.address")) io.scalechain.util.Config.get().getString("scalechain.storage.cassandra.address") else null,
+          cassandraPort = CommandArgumentConverter.toInt( "cassandraPort", line.getOptionValue("cassandraPort", null) ) ?: if (io.scalechain.util.Config.get().hasPath("scalechain.storage.cassandra.port")) io.scalechain.util.Config.get().getInt("scalechain.storage.cassandra.port") else null,
+          p2pInboundPort = CommandArgumentConverter.toInt( "p2pPort", line.getOptionValue("p2pPort", null) ) ?: io.scalechain.util.Config.get().getInt("scalechain.p2p.port"),
+          apiInboundPort = CommandArgumentConverter.toInt( "apiPort", line.getOptionValue("apiPort", null) ) ?: io.scalechain.util.Config.get().getInt("scalechain.api.port"),
+          miningAccount = line.getOptionValue("miningAccount", null) ?: io.scalechain.util.Config.get().getString("scalechain.mining.account"),
+          network = line.getOptionValue("network", null) ?: io.scalechain.util.Config.get().getString("scalechain.network.name"),
+          maxBlockSize = io.scalechain.util.Config.get().getInt("scalechain.mining.max_block_size"),
           minerInitialDelayMS = CommandArgumentConverter.toInt( "minerInitialDelayMS", line.getOptionValue("minerInitialDelayMS", null), minValue = 0 ) ?: 10000,
           minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200000,
           disableMiner = line.getOptionValue("disableMiner", "false").toBoolean()
@@ -174,7 +174,7 @@ object ScaleChainPeer {
         listOf(PeerAddress(params.peerAddress, params.peerPort))
       } else {
         // Otherwise, connect to peers listed in the configuration file.
-        Config.peerAddresses()
+        Config.get().peerAddresses()
       }
 
     val peerCommunicator = PeerToPeerNetworking.createPeerCommunicator(
@@ -189,8 +189,8 @@ object ScaleChainPeer {
     return peerCommunicator
   }
 
-  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/blockstorage-${p2pInboundPort}")
-  fun oapCacheStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.getInt("scalechain.p2p.port")) = File("./build/oap-store-${p2pInboundPort}")
+  fun blockStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.get().getInt("scalechain.p2p.port")) = File("./build/blockstorage-${p2pInboundPort}")
+  fun oapCacheStoragePath(p2pInboundPort : Int = io.scalechain.util.Config.get().getInt("scalechain.p2p.port")) = File("./build/oap-store-${p2pInboundPort}")
 
   /** Initialize sub-moudles from the lower layer to the upper layer.
     *

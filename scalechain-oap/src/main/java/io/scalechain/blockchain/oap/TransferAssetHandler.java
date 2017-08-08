@@ -195,7 +195,7 @@ public class TransferAssetHandler implements  IOapConstants {
       coinInputAmount -= UnspentAssetDescriptor.amountToCoinUnit(descriptor.getAmount());
       if (coinInputAmount <= 0) break;
     }
-    if (coinInputAmount > 0) throw new OapException(OapException.NOT_ENOUGH_COIN, "from_address(" + fromAddress.base58() + ") has not enought coins");
+    if (coinInputAmount > 0) throw new OapException(OapException.NOT_ENOUGH_COIN, "from_address(" + fromAddress.base58() + ") does not have enough coins");
     CoinAmount coinChange = CoinAmount.from(Math.abs(coinInputAmount));
     return new Pair<List<UnspentAssetDescriptor>, CoinAmount>(txInputs, coinChange);
   }

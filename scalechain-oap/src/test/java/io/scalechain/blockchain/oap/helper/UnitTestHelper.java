@@ -56,6 +56,8 @@ public class  UnitTestHelper {
         TEST_ADDRESSES.put(address.get("bitcoinAddress").getAsString(), address);
       }
     } catch (Exception e) {
+      // BUGBUG : Looks like Shannons codes are not checking types of exceptions.
+      // Also some exceptions are ignored.
       e.printStackTrace();
     }
   }

@@ -142,6 +142,7 @@ class SubmitBlockSpec : APITestSuite() {
 
     "SendRawTransaction" should "return an error if no parameter was specified." {
       val response = invoke(SendRawTransaction)
+      println("response.right() => " + response.right())
       val result = response.left()!!
       result.code shouldBe RpcError.RPC_INVALID_REQUEST.code
     }

@@ -113,7 +113,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
   //
   //  Process Address Generation Event
   //
-  //  Regiter genrated address to Wallet.
+  //  Regiter generated address to Wallet.
   //
   @Override
   public void onAddressGeneration(String account, CoinAddress address, PrivateKey privateKey) {
@@ -375,7 +375,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
     TransactionOutput[] changeOutputs = new TransactionOutput[accounts().length];
     OutPoint[] changeOutPoints = new OutPoint[accounts().length];
 
-    // SEND 49BTC TO RECEVING ADDRESS OF EACH ACOUNT
+    // SEND 49BTC TO RECEIVING ADDRESS OF EACH ACOUNT
     UnspentCoinDescriptor[] internalUnspents = getInternalUnspents();
     int index = 0;
     for (String account : accounts()) {
@@ -407,16 +407,19 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
       addBalance(account, lastAddress.address.base58(), BigDecimal.valueOf(49));
       transactionCounts[index][1]++;  // increase receiving transactions.
 
+      System.out.println("DEBUG:49 coins sent to " + lastAddress.address.base58());
       index++;
     }
 
+    System.out.println("DEBUG:Wait for a block");
     // Wait for transaction included in chain.
     waitForChain(1);
+    System.out.println("DEBUG:Found block");
 
     TransactionOutput[] s3Outputs = new TransactionOutput[accounts().length];
     OutPoint[] s3OOutPoints = new OutPoint[accounts().length];
 
-    // STEP 3 : Transfer coins from last receving address to first watch-only address
+    // STEP 3 : Transfer coins from last receiving address to first watch-only address
     index = 0;
     Option<List<PrivateKey>> privateKeyNone = Option.empty();
     for (String account : accounts()) {
@@ -510,6 +513,7 @@ public class TransactionDataProvider implements IAddressGenerationListener, IAdd
 
       index++;
     }
+
 
     // Wait for transaction included in chain.
     waitForChain(1);

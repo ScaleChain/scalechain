@@ -69,7 +69,7 @@ object GetAssetBalance  : RpcCommand() {
       |4. asset id filter (string, optional, default=[]) include balacne of assets in this list
       |
       |Result:
-      |Asset Balacne List
+      |Asset Balance List
       |  asset_id (String) the asset id
       |  quantity (numeric) total quantity of the asset
       |

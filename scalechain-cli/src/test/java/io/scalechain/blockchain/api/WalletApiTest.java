@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
  * Do RPC level tests here.
  * Test 2 APIs
  *     GetAddressBtAccount
- *     GetBalacne
+ *     GetBalance
  *
  * Created by shannon on 17. 1. 9.
  */
@@ -63,7 +63,7 @@ public class WalletApiTest extends ApiTestWithSampleTransactions {
   public void getBalanceTest() throws RpcInvoker.RpcCallException {
     for(String account : provider.accounts()) {
       BigDecimal expected = provider.balanceOf(account);
-      BigDecimal actual = getBalance(account, 1, true);
+      BigDecimal actual = getBalance(account, 0, true);
 
       assertTrue("Balance of account " + account + " shoud be euqal to", expected.compareTo(actual) == 0);
     }
@@ -74,7 +74,7 @@ public class WalletApiTest extends ApiTestWithSampleTransactions {
     for(String account : provider.accounts()) {
       AddressData receivingAddress = provider.receivingAddressOf(account);
       BigDecimal expected = provider.balanceOf(receivingAddress.address.base58());
-      BigDecimal actual = getBalance(account, 1, false);
+      BigDecimal actual = getBalance(account, 0, false);
 
       assertTrue("Balance of account " + account + " shoud be euqal to", expected.compareTo(actual) == 0);
     }
@@ -83,7 +83,7 @@ public class WalletApiTest extends ApiTestWithSampleTransactions {
   @Test
   public void getBalanceNotExistingAccountTest() throws RpcInvoker.RpcCallException {
     String account = "NOT_EXSITING_ACCOUNT";
-    BigDecimal actual = getBalance(account, 1, true);
+    BigDecimal actual = getBalance(account, 0, true);
     assertTrue("Balance of non-exsisting account shlud be", BigDecimal.valueOf(0).compareTo(actual) == 0);
   }
 
@@ -92,16 +92,16 @@ public class WalletApiTest extends ApiTestWithSampleTransactions {
     String[] accounts = provider.accounts();
 
     waitForChain(1);
-    BigDecimal actualBalance = getBalance("*", 1, true);
+    BigDecimal actualBalance = getBalance("*", 0, true);
 
-    BigDecimal expectedBalance = getBalance(provider.internalAccount(), 1, true);
+    BigDecimal expectedBalance = getBalance(provider.internalAccount(), 0, true);
     for(String account : accounts) {
       BigDecimal expectedBalanceWatchOnlyTrue = provider.balanceOf(account);
 
-      BigDecimal balance = getBalance(account, 1, true);
-      assertTrue("Balacne should be", expectedBalanceWatchOnlyTrue.compareTo(balance) == 0);
+      BigDecimal balance = getBalance(account, 0, true);
+      assertTrue("Balance should be", expectedBalanceWatchOnlyTrue.compareTo(balance) == 0);
       expectedBalance = expectedBalance.add(balance);
     }
-    assertTrue("Balacne of accounts should be sum of three accounts and internal account", expectedBalance.compareTo(actualBalance) == 0);
+    assertTrue("Balance of accounts should be sum of three accounts and internal account", expectedBalance.compareTo(actualBalance) == 0);
   }
 }

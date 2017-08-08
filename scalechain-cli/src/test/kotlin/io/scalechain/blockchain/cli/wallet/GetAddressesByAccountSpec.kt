@@ -26,11 +26,9 @@ class GetAddressesByAccountSpec : APITestSuite() {
 
     val accounts = listOf(defaultAccount, account1, account2)
 
-    "GetAddressesByAccount" should "return RPC_INVALID_REQUEST when no account parameter" {
+    "GetAddressesByAccount" should "return an empty list(address from the default account \"\") when no account parameter" {
       val result = invoke(GetAddressesByAccount, listOf())
-      val error = result.left()!!
-
-      error.code shouldBe RpcError.RPC_INVALID_REQUEST.code
+      result.right().toString() shouldBe "StringListResult(value=[])"
     }
 
     "GetAddressesByAccount" should "return empty list each for each account" {

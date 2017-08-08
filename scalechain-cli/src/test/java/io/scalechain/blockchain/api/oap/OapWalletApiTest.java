@@ -51,8 +51,8 @@ public class OapWalletApiTest extends ApiTestWithSampleTransactions {
     for(String account : accounts) {
       BigDecimal expectedBalance = provider.balanceOf(account);
 
-      BigDecimal balanceWithWatchOlny = getBalance(account, 1, true);
-      assertTrue("Balacne including watch-only address should be", expectedBalance.compareTo(balanceWithWatchOlny) == 0);
+      BigDecimal balanceWithWatchOlny = getBalance(account, 0, true);
+      assertTrue("Balance including watch-only address should be", expectedBalance.compareTo(balanceWithWatchOlny) == 0);
 
       index++;
     }
@@ -65,8 +65,10 @@ public class OapWalletApiTest extends ApiTestWithSampleTransactions {
     for(String account : accounts) {
       BigDecimal expectedBalanceWatchOnlyFalse = provider.balanceOf(provider.receivingAddressOf(account).address.base58());
 
-      BigDecimal balanceWithoutWatchOnly = getBalance(account, 1, false);
-      assertTrue("Balacne excluding watch-only address should be", expectedBalanceWatchOnlyFalse.compareTo(balanceWithoutWatchOnly) == 0);
+      BigDecimal balanceWithoutWatchOnly = getBalance(account, 0, false);
+      System.out.println("DEBUG:expectedBalanceWatchOnlyFalse"+expectedBalanceWatchOnlyFalse.toString());
+      System.out.println("DEBUG:balanceWithoutWatchOnly:"+balanceWithoutWatchOnly.toString());
+      assertTrue("Balance excluding watch-only address should be", expectedBalanceWatchOnlyFalse.compareTo(balanceWithoutWatchOnly) == 0);
 
       index++;
     }
@@ -81,7 +83,7 @@ public class OapWalletApiTest extends ApiTestWithSampleTransactions {
       JsonObject blanceDescriptor = e.getAsJsonObject();
       String assetId = blanceDescriptor.getAsJsonObject().get("assetId").getAsString();
       long actualBalance = blanceDescriptor.getAsJsonObject().get("quantity").getAsLong();
-      assertEquals("Balacne of each asset should be ", assetBalances.get(assetId).longValue(), actualBalance);
+      assertEquals("Balance of each asset should be ", assetBalances.get(assetId).longValue(), actualBalance);
     }
   }
   @Test

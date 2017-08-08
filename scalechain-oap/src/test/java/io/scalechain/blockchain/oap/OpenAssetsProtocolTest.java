@@ -125,7 +125,7 @@ public class OpenAssetsProtocolTest extends TestWithWalletSampleData {
       .subtract(CoinAmount.from(IOapConstants.DEFAULT_FEES_IN_SATOSHI * 4).getValue());
 
     for (String account : provider.accounts()) {
-      BigDecimal balance = OpenAssetsProtocol.get().getBalance(account, 1, true);
+      BigDecimal balance = OpenAssetsProtocol.get().getBalance(account, 0, true);
       assertTrue("Balance should be equal to " + exp.toString(), exp.compareTo(balance) == 0);
     }
   }

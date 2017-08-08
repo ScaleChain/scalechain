@@ -18,7 +18,8 @@ public interface IOapConstants {
     public static final BigDecimal DEFAULT_FEES_IN_BITCOIN = new BigDecimal("0.0002");
     public static final BigDecimal ONE_BTC_IN_SATOSHI      = new BigDecimal("100000000");
 
-    public static final long DEFAULT_MIN_CONFIRMATIONS     = 1;
+    public static final long DEFAULT_MIN_CONFIRMATIONS     = 0;
+    // BUGBUG Can this code make an issue when there is an old transaction holding the output to spend? (Below the block depth 999999)
     public static final long DEFAULT_MAX_CONFIRMATIONS     = 999999;
 
     public static final byte NAMESPACE_BYTE                = (byte)0x13;

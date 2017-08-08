@@ -79,9 +79,9 @@ object CommandExecutor {
 
         val rpcParams = RpcParameters(
             host = line.getOptionValue("host", "localhost"),
-            port = CommandArgumentConverter.toInt( "port", line.getOptionValue("port", null ) ) ?: Config.getInt("scalechain.api.port"),
-            user = line.getOptionValue("user", Config.getString("scalechain.api.user")),
-            password = line.getOptionValue("password", Config.getString("scalechain.api.password"))
+            port = CommandArgumentConverter.toInt( "port", line.getOptionValue("port", null ) ) ?: Config.get().getInt("scalechain.api.port"),
+            user = line.getOptionValue("user", Config.get().getString("scalechain.api.user")),
+            password = line.getOptionValue("password", Config.get().getString("scalechain.api.password"))
         )
 
         val command = Commands.all.filter{ line.hasOption(it.descriptor.command) }.map{ it.descriptor.command }.firstOrNull()

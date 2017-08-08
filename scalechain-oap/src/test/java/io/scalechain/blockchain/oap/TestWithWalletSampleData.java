@@ -24,7 +24,7 @@ public class TestWithWalletSampleData {
   public static TransferAssetHandler   transferHandler;
   public static AssetDefinitionHandler definitionHandler;
   public static WalletSampleDataProvider provider;
-  public static File storagePath = new File("./target");
+  public static File storagePath = new File("./build");
   public static ColoringEngine coloringEngine;
 
 
@@ -80,7 +80,7 @@ public class TestWithWalletSampleData {
     //
     // Remove storage files
     //
-    storagePath = new File("./target");
+    storagePath = new File("./build");
     if (clearStorage(storagePath) == 0) {
       if (!storagePath.exists()) {
         storagePath.mkdir();

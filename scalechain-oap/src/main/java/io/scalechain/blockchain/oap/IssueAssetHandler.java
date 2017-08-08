@@ -45,7 +45,7 @@ public class IssueAssetHandler implements IOapConstants {
       }
     }
     if (sum < amountRequired) {
-      throw new OapException(OapException.NOT_ENOUGH_COIN, "from_address(" + issuerAddress.base58() + ") has not enought coins to issue an asset");
+      throw new OapException(OapException.NOT_ENOUGH_COIN, "from_address(" + issuerAddress.base58() + ") does not have enough coins to issue an asset");
     }
     outputAmounts.add(CoinAmount.from(DUST_IN_SATOSHI));  // For Issuance output
     outputAmounts.add(CoinAmount.from(0L));                      // For MarkerOutput
@@ -137,7 +137,13 @@ public class IssueAssetHandler implements IOapConstants {
     List<CoinAddress> issuerAddresses = new ArrayList<CoinAddress>();
     issuerAddresses.add(issuerAddress);
     // GET Unspent Outputs of isserAddress
-    List<UnspentAssetDescriptor> unspentCoinDescriptors = OpenAssetsProtocol.get().wallet().listUnspent(1, 999999, issuerAddresses, false);
+    List<UnspentAssetDescriptor> unspentCoinDescriptors = OpenAssetsProtocol.get().wallet().listUnspent(DEFAULT_MIN_CONFIRMATIONS, DEFAULT_MAX_CONFIRMATIONS, issuerAddresses, false);
+
+    System.out.println("DEBUG:createIssuanceTransaction:issuerAddresses=>"+issuerAddress.base58());
+    System.out.println("DEBUG:UTXOcount=>"+unspentCoinDescriptors.size());
+    for (UnspentAssetDescriptor utxo : unspentCoinDescriptors) {
+      System.out.println("DEBUG:UTXO=>"+utxo);
+    }
     // Cacluate coin amounts and change
     Pair<List<UnspentCoinDescriptor>, List<CoinAmount>> inputsAndOutputAmounts = inputAndOutputAmounts(issuerAddress, UnspentAssetDescriptor.toOriginalDescriptor(unspentCoinDescriptors), fees);
 

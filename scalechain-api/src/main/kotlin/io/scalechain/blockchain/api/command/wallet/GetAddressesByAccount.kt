@@ -48,10 +48,6 @@ object GetAddressesByAccount  : RpcCommand() {
       val addresses : List<String> =
         OpenAssetsProtocol.get().getAddressesByAccount(accountOption, true).map{ it.base58() }
 
-      // Code by kevin
-      //val account: String = request.params.get<String>("Account", 0)
-      //val addresses : List<String> = Wallet.get().store.getOutputOwnerships(Blockchain.get().db, account).map { it.stringKey() }
-
       Right(StringListResult(addresses))
     }
   }

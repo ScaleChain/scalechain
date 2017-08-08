@@ -11,9 +11,6 @@ import java.util.List;
 
 /**
  * Class for hold unspent asset description.
- *   extends scala case class UnspentCoinDescriptor
- *
- * FIXME: Remove "bad extends".
  *
  * Created by shannon on 16. 11. 25.
  */
@@ -88,10 +85,13 @@ public class UnspentAssetDescriptor {
   }
 
   public String toString() {
-    StringBuilder sb = new StringBuilder(UnspentAssetDescriptor.class.getSimpleName()).append('(');
-    sb.append("assetId=").append(assetId.base58());
+    StringBuilder sb = new StringBuilder(UnspentAssetDescriptor.class.getSimpleName());
+
+    sb.append('(');
+    sb.append("assetId=").append(assetId == null ? "null" : assetId.base58());
     sb.append(", quantity=").append(quantity);
-    sb.append(", super=(").append(super.toString()).append(')');
-    return sb.append(')').toString();
+    sb.append(", super=(").append(unspentCoinDescriptor.toString()).append(')');
+    sb.append(')');
+    return sb.toString();
   }
 }

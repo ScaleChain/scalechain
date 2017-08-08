@@ -78,7 +78,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
   @Test
   public void inputAndOutputAmountNoEnoughCoinTest() throws OapException {
     thrown.expect(OapException.class);
-    thrown.expectMessage("not enought coins");
+    thrown.expectMessage("does not have enough coins");
 
     // GET "SENDER" ACCOUNT
     String account = provider.accounts()[1];
@@ -209,7 +209,7 @@ public class IssueAssetHandlerTest extends TestWithWalletSampleData {
   @Test
   public void issueNotEnoughCoinTest() throws Exception {
     thrown.expect(OapException.class);
-    thrown.expectMessage(" has not enought coins");
+    thrown.expectMessage(" does not have enough coins");
 
     // GET "SENDER" ACCOUNT
     String account = provider.accounts()[1];

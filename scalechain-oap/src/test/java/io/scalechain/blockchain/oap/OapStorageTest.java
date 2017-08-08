@@ -38,7 +38,7 @@ public class OapStorageTest {
   public static void setUpForClass() throws OapException {
     ChainEnvironment.create("mainnet");
     Storage.initialize();
-    File targetPath = new File("./target");
+    File targetPath = new File("./build");
     if (!targetPath.exists()) {
         targetPath.mkdir();
     }
