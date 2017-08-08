@@ -38,58 +38,6 @@ public class Utils {
         return new BigInteger(1, bytes);
     }
 
-
-    public static long readUint32(InputStream stream) throws IOException {
-        return (stream.read() & 0xFFL) |
-                ((stream.read() & 0xFFL) << 8) |
-                ((stream.read() & 0xFFL) << 16) |
-                ((stream.read() & 0xFFL) << 24);
-    }
-
-    public static long readInt64(InputStream stream) throws IOException {
-        return (stream.read() & 0xFFL) |
-                ((stream.read() & 0xFFL) << 8) |
-                ((stream.read() & 0xFFL) << 16) |
-                ((stream.read() & 0xFFL) << 24) |
-                ((stream.read() & 0xFFL) << 32) |
-                ((stream.read() & 0xFFL) << 40) |
-                ((stream.read() & 0xFFL) << 48) |
-                ((stream.read() & 0xFFL) << 56);
-    }
-
-    public static void uint32ToByteStreamLE(long val, OutputStream stream) throws IOException {
-        stream.write((int) (0xFF & val));
-        stream.write((int) (0xFF & (val >> 8)));
-        stream.write((int) (0xFF & (val >> 16)));
-        stream.write((int) (0xFF & (val >> 24)));
-    }
-
-    public static void int64ToByteStreamLE(long val, OutputStream stream) throws IOException {
-        stream.write((int) (0xFF & val));
-        stream.write((int) (0xFF & (val >> 8)));
-        stream.write((int) (0xFF & (val >> 16)));
-        stream.write((int) (0xFF & (val >> 24)));
-        stream.write((int) (0xFF & (val >> 32)));
-        stream.write((int) (0xFF & (val >> 40)));
-        stream.write((int) (0xFF & (val >> 48)));
-        stream.write((int) (0xFF & (val >> 56)));
-    }
-
-    /**
-     * Returns the minimum encoded size of the given unsigned long value.
-     *
-     * @param value the unsigned long value (beware widening conversion of negatives!)
-     */
-    public static int sizeOf(long value) {
-        // if negative, it's actually a very large unsigned long value
-        if (value < 0) return 9; // 1 marker + 8 data bytes
-        if (value < 253) return 1; // 1 data byte
-        if (value <= 0xFFFFL) return 3; // 1 marker + 2 data bytes
-        if (value <= 0xFFFFFFFFL) return 5; // 1 marker + 4 data bytes
-        return 9; // 1 marker + 8 data bytes
-    }
-
-
     public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)
         {
@@ -161,7 +109,7 @@ public class Utils {
             length++;
         if (includeLength) {
             byte[] result = new byte[length + 4];
-            System.arraycopy(array, 0, result, length - array.length + 3, array.length);
+            System.arraycopy(array, 0, result, length - array.length + 4, array.length);
             uint32ToByteArrayBE(length, result, 0);
             if (isNegative)
                 result[4] |= 0x80;
@@ -179,21 +127,21 @@ public class Utils {
         }
     }
 
-    private static void uint32ToByteArrayBE(long val, byte[] out, int offset) {
+    protected static void uint32ToByteArrayBE(long val, byte[] out, int offset) {
         out[offset] = (byte) (0xFF & (val >> 24));
         out[offset + 1] = (byte) (0xFF & (val >> 16));
         out[offset + 2] = (byte) (0xFF & (val >> 8));
         out[offset + 3] = (byte) (0xFF & val);
     }
 
-    private static long readUint32BE(byte[] bytes, int offset) {
+    protected static long readUint32BE(byte[] bytes, int offset) {
         return ((bytes[offset] & 0xFFL) << 24) |
                 ((bytes[offset + 1] & 0xFFL) << 16) |
                 ((bytes[offset + 2] & 0xFFL) << 8) |
                 (bytes[offset + 3] & 0xFFL);
     }
 
-    private static boolean equalsRange(byte[] a, int start, byte[] b) {
+    protected static boolean equalsRange(byte[] a, int start, byte[] b) {
         if (start + b.length > a.length)
             return false;
         for (int i = 0; i < b.length; i++)
@@ -233,8 +181,8 @@ public class Utils {
             } else if (opcode == OP_PUSHDATA4) {
                 additionalBytes = ((0xFF & inputScript[cursor]) |
                         ((0xFF & inputScript[cursor+1]) << 8) |
-                        ((0xFF & inputScript[cursor+1]) << 16) |
-                        ((0xFF & inputScript[cursor+1]) << 24)) + 4;
+                        ((0xFF & inputScript[cursor+2]) << 16) |
+                        ((0xFF & inputScript[cursor+3]) << 24)) + 4;
             }
             if (!skip) {
                 bos.write(opcode);

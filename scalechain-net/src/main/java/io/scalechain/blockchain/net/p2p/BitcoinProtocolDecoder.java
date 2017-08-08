@@ -23,8 +23,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.scalechain.blockchain.proto.ProtocolMessage;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocol;
 import io.scalechain.blockchain.proto.codec.BitcoinProtocolCodec;
-import scodec.bits.BitVector;
-import scodec.bits.BitVector$;
+
 import java.util.List;
 import java.util.Vector;
 
@@ -33,6 +32,7 @@ import java.util.Vector;
  */
 @Sharable
 public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
+
     /**
      * An incomplete message, which needs to receive more data to construct a complete message.
      *
@@ -40,7 +40,8 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
      * (1) when the data received is less than 24 bytes, which is the length for the header of bitcoin message.
      * (2) when we received less than the length specified at the payload length( BitcoinMessageEnvelope.length ).
      */
-    private BitVector incompleteMessage = null;
+//    private BitVector incompleteMessage = null;
+
     /**
      * Creates a new instance with the current system character set.
      */
@@ -51,28 +52,11 @@ public class BitcoinProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-        BitVector inputMessage = null;
-/*
-        if (msg.hasArray()) { // view as a byte array if possible.
-            inputMessage = BitVector$.MODULE$.view(msg.array());
-        } else if (msg.nioBufferCount() > 0) { // view as nio buffer if possible.
-            inputMessage = BitVector$.MODULE$.view(msg.nioBuffer());
-        } else*/ { // last resort, allocate a new byte array.
-            byte[] bytes = new byte[msg.readableBytes()];
-            msg.readBytes(bytes);
-            inputMessage = BitVector$.MODULE$.view(bytes);
-        }
-
-        Vector<ProtocolMessage> messages = new Vector<ProtocolMessage>();
-
-        if (incompleteMessage != null) { // If we have any incomplete message, prepend it to the current message.
-            inputMessage = incompleteMessage.$plus$plus(inputMessage);
-        }
-
-        // In case there is any remaining bits, we keep it in incompleteMessage
-        incompleteMessage = codec.decode(inputMessage, messages);
-        for (ProtocolMessage message : messages) {
-            out.add(message);
+        codec.decode(msg, out);
+        if (out.size() > 0) {
+            System.out.println("decoded : " + out.size());
+        } else {
+            System.out.println("nothing decoded.");
         }
     }
 }

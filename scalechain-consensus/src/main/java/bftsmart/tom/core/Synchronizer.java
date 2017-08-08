@@ -93,7 +93,7 @@ public class Synchronizer {
         this.acceptor = this.tom.acceptor;
         this.md = this.tom.md;
         
-        this.outOfContextLC = new HashSet<>();
+        this.outOfContextLC = new HashSet<LCMessage>();
 	this.lcManager = new LCManager(this.tom,this.controller, this.md);
     }
 
@@ -329,7 +329,7 @@ public class Synchronizer {
     // because they were ahead of the replica's expected regency
     private Set<LCMessage> getOutOfContextLC(int type, int regency) {
 
-        HashSet<LCMessage> result = new HashSet<>();
+        HashSet<LCMessage> result = new HashSet<LCMessage>();
 
         for (LCMessage m : outOfContextLC) {
 
@@ -392,7 +392,7 @@ public class Synchronizer {
 
         if (messages == null) {
 
-            messages = new LinkedList<>();
+            messages = new LinkedList<TOMMessage>();
         }
 
         // Include requests from STOP messages in my own STOP message
@@ -731,7 +731,7 @@ public class Synchronizer {
                     lastDec = new CertifiedDecision(this.controller.getStaticConf().getProcessId(), last, decision, proof);
                     // TODO: WILL BE NECESSARY TO ADD A PROOF!!!??
 
-                } else {
+                } else {                    
                     lastDec = new CertifiedDecision(this.controller.getStaticConf().getProcessId(), last, null, null);
 
                     ////// THIS IS TO CATCH A BUG!!!!!
@@ -1077,8 +1077,11 @@ public class Synchronizer {
         // install proof of the last decided consensus
         cons = execManager.getConsensus(lastHighestCID.getCID());
         e = null;
+                
+        Set<ConsensusMessage> consMsgs = lastHighestCID.getConsMessages();
+        if (consMsgs == null) consMsgs = new HashSet();
         
-        for (ConsensusMessage cm : lastHighestCID.getConsMessages()) {
+        for (ConsensusMessage cm : consMsgs) {
             
             if (e == null) e = cons.getEpoch(cm.getEpoch(), true, controller);
             if (e.getTimestamp() != cm.getEpoch()) {

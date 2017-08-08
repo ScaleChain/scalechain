@@ -1,0 +1,17 @@
+dependencies {
+    compile "org.rocksdb:rocksdbjni:5.4.5"
+    // By using the leveldbjni-all then the Java driver of leveldb is being used.
+    compile "org.fusesource.leveldbjni:leveldbjni-all:1.8"
+
+    // If you want to use the native drivers, then uncomment the following line instead of the above line to use the os specific dependency
+    //compile "org.fusesource.leveldbjni:leveldbjni-osx:1.8"
+
+    compile "org.mapdb:mapdb:3.0.4"
+    compile "org.fusesource:sigar:1.6.4"
+    compile "com.google.cloud:google-cloud-spanner:0.9.2-beta"
+
+    compile project(':scalechain-script')
+    compile project(':scalechain-proto-codec')
+    compile project(':scalechain-proto')
+    compile project(':scalechain-util')
+}

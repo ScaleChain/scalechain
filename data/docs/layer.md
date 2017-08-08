@@ -21,17 +21,18 @@ The followings are list of sub-modules from the top layer to the bottom layer.
 |                   Storage                      |
 +------------------------------------------------+
 |                   Script                       |
-+----------------+----------------+--------------+
-|           Proto|Codec           |              |
-+---------------------------------+    Crypto    |
-|              Proto              |              |
-+----------------+----------------+--------------+
++------------------------------------------------+
+|                   Proto|Codec                  |
++------------------------------------------------+
+|                   Proto                        |
++------------------------------------------------+
+|                   Crypto                       |
++------------------------------------------------+
 |      Util Layer        |       Consensus       |
 +------------------------------------------------+
 ```
 ## Cli
 A jar package containing all CLI(command line interface) utilities such as DumpChain.
-
 
 ## API
 The Json-RPC API layer. 100% Compatible with Bitcoin.
@@ -57,15 +58,9 @@ The storage layer. Knows how to store blocks and transactions. It knows how to s
 ## Script
 The script layer. Implements all bitcoin script commands.
 
-## Codec-Proto
+## Proto-Codec
 The codec layer of protocols. Knows how to read/write case classes for P2P networking to/from disk or network.
-
-## Codec-Block
-The codec layer of blocks. Knows how to read/write transaction/block data to/from disk or network.
-
-## Crypto 
-The crypto layer. Implements ECC for signing and verifying transactions.
-Also implements various hash functions.
+Also, has the codecs of blocks. Knows how to read/write transaction/block data to/from disk or network.
 
 ## Proto
 Defines all case classes for communicating with another P2P node.
@@ -73,12 +68,15 @@ Defines all case classes for communicating with another P2P node.
 ## Block
 Defines all case classes about blocks and transactions.
 
-## Util
-The utility layer. Implements utility functions that can be used by other modules.
+## Crypto 
+The crypto layer. Implements ECC for signing and verifying transactions.
+Also implements various hash functions.
 
 ## Consensus
 The consensus layer. Implements consensus alogrithms that satisfies Byzantine Fault Tolerance.
 
+## Util
+The utility layer. Implements utility functions that can be used by other modules.
 
 # Communication Channels
 ## RPC(Remote Procedure Call)s

@@ -58,11 +58,11 @@ public class ServerViewController extends ViewController {
         View cv = getViewStore().readView();
         if(cv == null){
             
-            System.out.println("#Creating current view from configuration file");
+            System.out.println("-- Creating current view from configuration file");
             reconfigureTo(new View(0, getStaticConf().getInitialView(), 
                 getStaticConf().getF(), getInitAdddresses()));
         }else{
-            System.out.println("#Using view stored on disk");
+            System.out.println("-- Using view stored on disk");
             reconfigureTo(cv);
         }
        
@@ -144,11 +144,11 @@ public class ServerViewController extends ViewController {
     public byte[] executeUpdates(int cid) {
 
 
-        List<Integer> jSet = new LinkedList<>();
-        List<Integer> rSet = new LinkedList<>();
+        List<Integer> jSet = new LinkedList<Integer>();
+        List<Integer> rSet = new LinkedList<Integer>();
         int f = -1;
         
-        List<String> jSetInfo = new LinkedList<>();
+        List<String> jSetInfo = new LinkedList<String>();
         
         
         for (int i = 0; i < updates.size(); i++) {
@@ -295,7 +295,7 @@ public class ServerViewController extends ViewController {
         this.currentView = newView;
         getViewStore().storeView(this.currentView);
         if (newView.isMember(getStaticConf().getProcessId())) {
-            //É membro da view atual
+            //membro da view atual
             otherProcesses = new int[currentView.getProcesses().length - 1];
             int c = 0;
             for (int i = 0; i < currentView.getProcesses().length; i++) {

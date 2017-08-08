@@ -11,7 +11,7 @@ ScaleChain implements command line interface using bash scripts. data/scripts/js
 
 # Peer to Peer Networking
 ## Peer Discovery
-The list of peers is in scalechain.conf. ScaleChainPeer.initializeNetLayer reads them and passes to PeerToPeerNetworking.getPeerCommunicator, which connects to each peer listed in the conf file.
+The list of peers is in scalechain.conf. ScaleChainPeer.initializeNetLayer reads them and passes to PeerToPeerNetworking.createPeerCommunicator, which connects to each peer listed in the conf file.
 
 ## Block Signing
 Each node creates a special transaction that has OP_RETURN with the block header hash that the node wants to sign. The outpoint of the input 0 should have a locking script that matches one of the public key hashes in the scalechain.conf.

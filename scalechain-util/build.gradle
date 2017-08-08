@@ -1,0 +1,5 @@
+dependencies {
+    // Java 6 support until 1.2.1 for typesafe:config
+    compile 'com.typesafe:config:1.3.1'
+    compile 'com.google.guava:guava:22.0'
+}

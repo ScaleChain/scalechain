@@ -1,0 +1,5 @@
+dependencies {
+    compile project(':scalechain-proto')
+    compile project(':scalechain-crypto')
+    compile project(':scalechain-util')
+}

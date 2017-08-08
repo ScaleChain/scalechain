@@ -1,0 +1,5 @@
+dependencies {
+    compile "commons-codec:commons-codec:1.10"
+    compile files('lib/core-0.1.4.jar')
+    //compile "com.yahoo.ycsb:core:0.1.4"
+}

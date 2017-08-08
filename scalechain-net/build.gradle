@@ -1,0 +1,11 @@
+dependencies {
+    compile project(':scalechain-wallet')
+    compile project(':scalechain-chain')
+    compile project(':scalechain-transaction')
+    compile project(':scalechain-storage')
+    compile project(':scalechain-script')
+    compile project(':scalechain-proto-codec')
+    compile project(':scalechain-proto')
+    compile project(':scalechain-consensus')
+    compile project(':scalechain-util')
+}
