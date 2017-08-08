@@ -57,7 +57,7 @@ class TransactionGenerator(private val db : KeyValueDatabase, private val wallet
   }
 
   fun newAddresses(addressCount : Int) : List<CoinAddress> {
-    return (0 until addressCount).map { i ->
+    return (0 until addressCount).map { _ ->
       wallet.newAddress(db, "")
     }
   }

@@ -33,7 +33,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
     * @return true if we can mine; false otherwise.
     */
   fun canMine() : Boolean {
-    val maxPeerCount = Config.peerAddresses().size
+    val maxPeerCount = Config.get().peerAddresses().size
     val node = Node.get()
     if (maxPeerCount == 1) {
       // regression test mode with only one node.
@@ -78,11 +78,11 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
         // Step 1 : Set the minder's coin address to receive block mining reward.
         // The mined coin goes to minerAccount if the best block height is less than INITIAL_SETUP_BLOCKS.
         val minerAddress =
-          if (bestBlockHeight < Config.InitialSetupBlocks) {
+          if (bestBlockHeight < Config.get().InitialSetupBlocks) {
             val receivingAddress = wallet.getReceivingAddress(db, minerAccount)
-            if (Config.hasPath("scalechain.mining.address") ) {
+            if (Config.get().hasPath("scalechain.mining.address") ) {
               //println("TEST : has path : scalechain.mining.address")
-              val miningAddressString = Config.getString("scalechain.mining.address")
+              val miningAddressString = Config.get().getString("scalechain.mining.address")
               //println("TEST : mining address string : miningAddressString")
               if (receivingAddress.base58() != miningAddressString) {
                 val miningAddress = CoinAddress.from(miningAddressString)

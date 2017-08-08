@@ -26,7 +26,7 @@ class Node(private val peerCommunicator: PeerCommunicator, private val chain : B
      * @return Some(best Peer) that has the highest Version.startHeight if we received version message more than two thirds of total nodes. None otherwise.
      */
     fun getBestPeer() : Peer? {
-        val maxPeerCount = Config.peerAddresses().size
+        val maxPeerCount = Config.get().peerAddresses().size
         val peerInfos = peerCommunicator.getPeerInfos()
 
         // We have two way communication channels for each peer.

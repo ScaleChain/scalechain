@@ -15,7 +15,7 @@ object BlockMessageHandler {
   private val logger = LoggerFactory.getLogger(BlockMessageHandler.javaClass)
 
   // More than half of the peers should sign the block.
-  val RequiredSigningTransactions = Config.peerAddresses().size / 2 + 1
+  val RequiredSigningTransactions = Config.get().peerAddresses().size / 2 + 1
 
 
   /** Handle Block message.

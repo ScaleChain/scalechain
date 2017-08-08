@@ -76,9 +76,3 @@ We need to be able to detect the TCP disconnection using the Akka Streams.
 Once it happens for a peer, all subscribers should be notified. 
 For example the IBD process should continue even though the TCP connection closes with a peer.
 
-# Examples
-
-The followings are akka streams examples.
-
-### Word count
-https://github.com/pkinsky/akka-streams-example/blob/master/src/main/scala/WordCount.scala

@@ -83,7 +83,7 @@ The script executor passes ScriptEnvironment to ScriptOp.execute, so that each o
 ## Pay to Public Key Hash 
 ### Unlocking Script
 The unlocking script has two OP_PUSH operations, one has a signature, the another has a public key.
-OP_PUSH is implemented by OpPush(in Constant.scala)
+OP_PUSH is implemented by OpPush(in Constant.kt)
 ```
 <sig> <pubKey> 
 ```
@@ -93,16 +93,16 @@ The locking script has five script operations.
 OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
 ```
 
-1. OP_DUP is implmented by OpDup(in Stack.scala)
-2. OP_HASH160 is implemented by OpHash160(in Crypto.scala)
-3. <pubKeyHash> pushes the public key hash on top of the stack, and it is implemented by OpPush(in Constant.scala).
-4. OP_EQUALVERIFY pops two items from the stack and continues the execution if they are same. Implemented by OpEqualVerify( in BitwiseLogic.scala)
-5. CheckSig(in Crypto.scala) implements signature verification, OP_CHECKSIG.
+1. OP_DUP is implmented by OpDup(in Stack.kt)
+2. OP_HASH160 is implemented by OpHash160(in Crypto.kt)
+3. <pubKeyHash> pushes the public key hash on top of the stack, and it is implemented by OpPush(in Constant.kt).
+4. OP_EQUALVERIFY pops two items from the stack and continues the execution if they are same. Implemented by OpEqualVerify( in BitwiseLogic.kt)
+5. CheckSig(in Crypto.kt) implements signature verification, OP_CHECKSIG.
 
 ## Pay to Public Key
 ### Unlocking Script
 The unlocking script has one OP_PUSH operations, which is the signature.
-OP_PUSH is implemented by OpPush(in Constant.scala)
+OP_PUSH is implemented by OpPush(in Constant.kt)
 ```
 <sig> 
 ```
@@ -110,7 +110,7 @@ OP_PUSH is implemented by OpPush(in Constant.scala)
 The locking script has two script operations.
 
 1. OP_PUSH with the public key.
-2. CheckSig(in Crypto.scala) implements signature verification, OP_CHECKSIG.
+2. CheckSig(in Crypto.kt) implements signature verification, OP_CHECKSIG.
 ```
 <pubKey> OP_CHECKSIG
 ```
@@ -150,4 +150,4 @@ OP_2 <pubKey1> <pubKey2> <pubKey3> OP_3 OP_CHECKMULTISIG
 ```
 
 Related code : 
-OpCheckMultiSig(Crypto.scala) executes OP_CHECKMULTISIG, and it checks the multi-sig by using CheckSig.checkMultiSig. 
+OpCheckMultiSig(Crypto.kt) executes OP_CHECKMULTISIG, and it checks the multi-sig by using CheckSig.checkMultiSig. 
