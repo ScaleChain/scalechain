@@ -28,8 +28,10 @@ object TxMessageHandler {
     val transactionHash = transaction.hash()
     logger.trace("<P2P> Received a transaction. Hash : ${transactionHash}")
 
-    // Do not process the message during initial block download.
-    if ( ! Node.get().isInitialBlockDownload() ) {
+    // BUGBUG : Do not process the message during initial block download.
+    //
+    //if ( ! Node.get().isInitialBlockDownload() ) {
+    {
       // TODO : Step 0 : Add the inventory as a known inventory to the node that sent the "tx" message.
       try {
         if (TransactionProcessor.exists(db, transactionHash)) {

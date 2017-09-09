@@ -33,8 +33,9 @@ class TxMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
   }
 
   init {
-
     // TODO : Block Mining : Rewrite test case
+    // BUGBUG : ignored option does not work.
+/*
     "transaction message handler".config(ignored=true) should "be able to filter incomplete transaction while mining" {
       val data = TransactionSampleData(db)
       val T = data.Tx
@@ -83,5 +84,6 @@ class TxMessageHandlerSpec : MessageHandlerTestTrait(), Matchers {
         T.TX04_05_05.transaction
       )
     }
+*/
   }
 }

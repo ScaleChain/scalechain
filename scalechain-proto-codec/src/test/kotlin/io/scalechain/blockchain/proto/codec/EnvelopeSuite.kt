@@ -84,7 +84,7 @@ abstract class MultiplePayloadTestSuite<T> : FlatSpec(), Matchers, CodecTestUtil
     }
 
     "payloads" should "be correctly decoded and encoded" {
-      forAll(payloads) { message: T, payload: ByteArray ->
+      forAll(payloads) { _ : T, payload: ByteArray ->
         val obj = decodeFully(codec, payload)
         encode(codec, obj).toList() shouldBe payload.toList()
       }

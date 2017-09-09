@@ -183,9 +183,6 @@ object ScaleChainPeer {
 
     Node.create(peerCommunicator, chain)
 
-    val nodeIndex = PeerIndexCalculator.getPeerIndex(params.p2pInboundPort)!!
-    BlockBroadcaster.create(nodeIndex)
-
     return peerCommunicator
   }
 

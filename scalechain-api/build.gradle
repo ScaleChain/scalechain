@@ -7,6 +7,5 @@ dependencies {
     compile project(':scalechain-script')
     compile project(':scalechain-proto-codec')
     compile project(':scalechain-proto')
-    compile project(':scalechain-consensus')
     compile project(':scalechain-util')
 }

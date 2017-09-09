@@ -149,7 +149,7 @@ class TransactionPoolSpec : BlockchainTestTrait(), TransactionTestInterface, Mat
 
       val candidateTransactions: List<Pair<Hash, Transaction>> = p.getOldestTransactions(db, 100)
 
-      candidateTransactions.filter { pair ->
+      candidateTransactions.filter { _ ->
         // Because we are concurrently putting transactions into the pool while putting blocks,
         // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
         // Skip all transactions that has the transaction descriptor.

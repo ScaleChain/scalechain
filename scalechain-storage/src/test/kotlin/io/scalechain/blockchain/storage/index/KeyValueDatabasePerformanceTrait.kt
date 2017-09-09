@@ -16,13 +16,13 @@ interface KeyValueDatabasePerformanceTrait : ShouldSpec, PerformanceTestTrait {
       }
 
       measure(TEST_COUNT, "get perf(single)") {
-        for ((key, value) in kv) {
+        for ((key, _) in kv) {
           db.get(key)
         }
       }
 
       measure(TEST_COUNT, "del perf(single)") {
-        for ((key, value) in kv) {
+        for ((key, _) in kv) {
           db.del(key)
         }
       }

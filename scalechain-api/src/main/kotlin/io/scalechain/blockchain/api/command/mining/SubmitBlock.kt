@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.api.command.mining
 
 import com.google.gson.JsonObject
-import io.scalechain.blockchain.UnsupportedFeature
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.RpcException
 import io.scalechain.blockchain.api.RpcSubSystem
@@ -15,7 +14,6 @@ import io.scalechain.blockchain.api.domain.StringResult
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.transaction.BlockVerifier
 import io.scalechain.util.Either
-import io.scalechain.util.Either.Left
 import io.scalechain.util.Either.Right
 
 
