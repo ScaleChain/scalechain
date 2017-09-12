@@ -23,5 +23,4 @@ rm $EXCEPTION_FILE
 #java -classpath /Users/kangmo/crypto/scalechain/scalechain-cli/build/libs/scalechain-cli.jar io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
 #java $JAVA_OPTIONS -classpath ./tmp io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
 
-
-gradle run -PappArgs="['-p', $P2P_PORT, '-c', $RPC_PORT]" -PrunWorkingDir=`pwd`
+gradle run -PappArgs="['-p', $P2P_PORT, '-c', $RPC_PORT]" -PrunWorkingDir=`pwd` | tee $LOG_FILE
