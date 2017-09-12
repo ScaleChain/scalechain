@@ -71,7 +71,7 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
   ) : TransactionWithName {
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
-      .addGenerationInput( CoinbaseData(Bytes("Random:${Random().nextLong()}.The scalable crypto-currency, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray())))
+      .addGenerationInput( CoinbaseData(Bytes("Random:${Random().nextLong()}.ScaleChain by Kunwoo, Kwanho, Chanwoo, Kangmo.".toByteArray())))
       .addOutput(CoinAmount(50L), generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
@@ -171,7 +171,7 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
   fun mineBlock(db : KeyValueDatabase, chain : Blockchain) : Block {
 
     val blockMining = BlockMining(db, chain.txDescIndex(), chain.txPool, chain)
-    val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
+    val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kunwoo, Kwanho, Chanwoo, Kangmo.".toByteArray()))
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)
     val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash(db)!! ), nonce = 0 )

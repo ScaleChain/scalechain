@@ -151,9 +151,5 @@ class ConfigSpec : FlatSpec(), Matchers {
                 PeerAddress("127.0.0.1", 7644)
             )
         }
-        "InitialSetupBlocks" should "be 32" {
-            config?.InitialSetupBlocks shouldBe 32L
-        }
-
     }
 }

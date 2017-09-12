@@ -157,8 +157,9 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
 
   override fun close() : Unit {
 //    logger.info("Closing RocksDB.")
+/*
     fun getHistogram(histogramType : HistogramType) : String {
-      val histo = options.statisticsPtr().getHistogramData(histogramType)
+      val histo = options.statistics().getHistogramData(histogramType)
       return "Average: ${histo.getAverage()}, Median: ${histo.getMedian()}, 95%: ${histo.getPercentile95()}, 99%: ${histo.getPercentile99()}, Standard Deviation: ${histo.getStandardDeviation()}"
     }
 
@@ -168,7 +169,7 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
     logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_SLOWDOWN_COUNT : ${getHistogram(HistogramType.STALL_L0_SLOWDOWN_COUNT)}")
     logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_MEMTABLE_COMPACTION_COUNT : ${getHistogram(HistogramType.STALL_MEMTABLE_COMPACTION_COUNT)}")
     logger.info("RocksDB statistics. Path : ${dbAbsolutePath}, STALL_L0_NUM_FILES_COUNT : ${getHistogram(HistogramType.STALL_L0_NUM_FILES_COUNT)}")
-
+*/
     if (db != null) {
 
       db!!.close()

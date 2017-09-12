@@ -10,11 +10,12 @@ import io.scalechain.blockchain.proto.CoinbaseData
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.script.hash
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
+import io.scalechain.crypto.HashEstimation
 import io.scalechain.wallet.Wallet
 import org.slf4j.LoggerFactory
 import java.util.*
 
-data class CoinMinerParams(val P2PPort : Int, val InitialDelayMS : Int, val HashDelayMS : Int, val MaxBlockSize : Int )
+data class CoinMinerParams(val P2PPort : Int, val MaxBlockSize : Int )
 
 interface CoinMinerListener {
   // Called when the coin miner thread starts
@@ -59,10 +60,6 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
       logger.info("Miner started. Params : ${params}")
       val random = Random(System.currentTimeMillis())
 
-      // TODO : Need to eliminate this code.
-      // Sleep for one minute to wait for each peer to start.
-      Thread.sleep(params.InitialDelayMS.toLong())
-
       var nonce : Int = 1
 
       listener?.onStart()
@@ -75,49 +72,12 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
 
         val bestBlockHeight = chain.getBestBlockHeight()
 
-        // Step 1 : Set the minder's coin address to receive block mining reward.
-        // The mined coin goes to minerAccount if the best block height is less than INITIAL_SETUP_BLOCKS.
-        val minerAddress =
-          if (bestBlockHeight < Config.get().InitialSetupBlocks) {
-            val receivingAddress = wallet.getReceivingAddress(db, minerAccount)
-            if (Config.get().hasPath("scalechain.mining.address") ) {
-              //println("TEST : has path : scalechain.mining.address")
-              val miningAddressString = Config.get().getString("scalechain.mining.address")
-              //println("TEST : mining address string : miningAddressString")
-              if (receivingAddress.base58() != miningAddressString) {
-                val miningAddress = CoinAddress.from(miningAddressString)
-                //println("TEST : loading mining address : ${miningAddress.base58()}")
-                // Import the given address, and set it as the receiving address of the mining account
-                wallet.importOutputOwnership(db, chain, minerAccount, miningAddress, false)
-
-                // If the scalechain.mining.address is specified, do not sleep for the initial setup blocks.
-                // This is to create the first block on top of the genesis block to have a generation transaction
-                // with an output spendable by the scalechain.mining.address.
-                // To generate raw transactions deterministically for performance tests, we need to have the same generation transaction hash for the block with height 1.
-                miningAddress
-              } else {
-                //println("TEST : mining address loaded")
-
-                // After the first block, sleep like other nodes.
-                Thread.sleep( (params.HashDelayMS + random.nextInt(params.HashDelayMS)).toLong() )
-                receivingAddress
-              }
-            } else {
-              // To give the node that has 'scalechain.mining.address' to mine the first block, sleep at least params.HashDelayMS.
-              Thread.sleep( (params.HashDelayMS + random.nextInt(params.HashDelayMS)).toLong() )
-              receivingAddress
-            }
-          } else {
-            Thread.sleep(random.nextInt(params.HashDelayMS).toLong())
-            wallet.getReceivingAddress(db, "internal")
-          }
-
-
         //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 
         if (canMine()) {
           //chain.synchronized {
           // Step 2 : Create the block template
+          val minerAddress = wallet.getReceivingAddress(db, minerAccount)
           val bestBlockHash = chain.getBestBlockHash(db)
           if (bestBlockHash != null) {
             val blockHeight = chain.getBlockInfo(db, bestBlockHash)!!.height
@@ -127,30 +87,43 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
             val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress, params.MaxBlockSize)
 
             // Step 3 : Get block header
-            val blockHeader = blockTemplate.getBlockHeader(Hash(bestBlockHash.value))
+            val blockHeaderTemplate = blockTemplate.getBlockHeader(Hash(bestBlockHash.value))
             val startTime = System.currentTimeMillis()
             var blockFound = false;
 
-            // Step 3 : Loop until we find a block header hash less than the threshold.
-            //            do {
             // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
+            val requiredHashCalulcations = 1024L
 
-            // TODO : BUGBUG : Remove scalechain.mining.header_hash_threshold configuration after the temporary project finishes
+            // Try mining with the block template for five seconds.
+            val MINING_TRYAL_MILLIS=1000
+            // Step 3 : Loop until we find a block header hash less than the threshold.
+            var nonceValue = 0L
+            do {
+              val miningBlockHeader = blockHeaderTemplate.copy(nonce = nonceValue)
 
-            // Check the best block hash once more.
-            if ( bestBlockHash.value == chain.getBestBlockHash(db)!!.value ) {
-              // Step 5 : When a block is found, create the block and put it on the blockchain.
-              // Also propate the block to the peer to peer network.
-              val block = blockTemplate.createBlock(blockHeader, blockHeader.nonce)
-              val blockHeaderHash = block.header.hash()
 
-              BlockPropagator.propagate(blockHeaderHash, block)
+              if (HashEstimation.getHashCalculations(miningBlockHeader.hash().value.array) == requiredHashCalulcations) {
 
-              blockFound = true
-              logger.trace("Block Mined.\n hash : ${blockHeaderHash}\n\n")
+                // Check the best block hash once more.
+                if (bestBlockHash.value == chain.getBestBlockHash(db)!!.value) {
+                  // Step 5 : When a block is found, create the block and put it on the blockchain.
+                  // Also propate the block to the peer to peer network.
+                  val block = blockTemplate.createBlock(miningBlockHeader, miningBlockHeader.nonce)
+                  val blockHeaderHash = block.header.hash()
 
-              listener?.onCoinMined(block, minerAddress)
-            }
+                  BlockPropagator.propagate(blockHeaderHash, block)
+
+                  blockFound = true
+                  logger.trace("Block Mined.\n hash : ${blockHeaderHash}\n\n")
+
+                  listener?.onCoinMined(block, minerAddress)
+                }
+              }
+
+              nonceValue ++
+
+            } while( !blockFound &&
+                     System.currentTimeMillis() - startTime < MINING_TRYAL_MILLIS)
           } else {
             logger.error("The best block hash is not defined yet.")
           }

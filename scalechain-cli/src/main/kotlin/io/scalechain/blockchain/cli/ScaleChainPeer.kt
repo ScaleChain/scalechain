@@ -16,7 +16,6 @@ import org.apache.log4j.PropertyConfigurator
 import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.api.JsonRpcMicroservice
 import io.scalechain.blockchain.storage.index.DatabaseFactory
-import io.scalechain.blockchain.storage.index.SpannerDatabase
 import io.scalechain.util.Config
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
@@ -38,8 +37,6 @@ object ScaleChainPeer {
                          val miningAccount: String = Config.get().getString("scalechain.mining.account"),
                          val network: String = Config.get().getString("scalechain.network.name"),
                          val maxBlockSize: Int = Config.get().getInt("scalechain.mining.max_block_size"),
-                         val minerInitialDelayMS: Int = 10000,
-                         val minerHashDelayMS : Int = 200000,
                          val disableMiner : Boolean = false
                        )
 
@@ -138,9 +135,7 @@ object ScaleChainPeer {
           miningAccount = line.getOptionValue("miningAccount", null) ?: Config.get().getString("scalechain.mining.account"),
           network = line.getOptionValue("network", null) ?: Config.get().getString("scalechain.network.name"),
           maxBlockSize = Config.get().getInt("scalechain.mining.max_block_size"),
-          minerInitialDelayMS = CommandArgumentConverter.toInt( "minerInitialDelayMS", line.getOptionValue("minerInitialDelayMS", null), minValue = 0 ) ?: 10000,
-          minerHashDelayMS = CommandArgumentConverter.toInt( "minerHashDelayMS", line.getOptionValue("minerHashDelayMS", null), minValue = 0 ) ?: 200000,
-          disableMiner = line.getOptionValue("disableMiner", "false").toBoolean()
+          disableMiner = line.hasOption("disableMiner")
       )
 
       initializeSystem(params)
@@ -255,7 +250,7 @@ object ScaleChainPeer {
     JsonRpcMicroservice.runService(params.apiInboundPort)
 
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
-    val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, InitialDelayMS = params.minerInitialDelayMS, HashDelayMS = params.minerHashDelayMS, MaxBlockSize = params.maxBlockSize)
+    val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, MaxBlockSize = params.maxBlockSize)
 
     val miner = CoinMiner.create(db, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
     if (!params.disableMiner) {

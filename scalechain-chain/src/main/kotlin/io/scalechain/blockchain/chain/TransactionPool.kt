@@ -21,7 +21,7 @@ class TransactionPool(private val storage : BlockStorage, private val txMagnet :
       val txOption = storage.getTransactionFromPool(db, txHash)
       if (txOption != null) {
         Pair(txHash, txOption.transaction)
-      } else {
+      } else { // TransactionTime exists, but no transaction exists matching the tx hash.
         // When two threads add transaction, remove transaction at the same time,
         // a garbage on the Transaction Time Index can exist. we need to remove them.
         storage.delTransactionTime(db, cstringPrefixedKey)

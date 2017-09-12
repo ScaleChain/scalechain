@@ -34,9 +34,6 @@ open class Config(val config : com.typesafe.config.Config) {
         }
     }
 
-    // reaching InitialSetupBlocks height, a node in the private blockchain take turns to mine coins to use for block signing.
-    val InitialSetupBlocks = 32L
-
     // BUGBUG : Need to change to config/scalechain.conf before the integration tests.
     companion object {
         val theConfig : Config = Config(ConfigFactory.parseFile( File(ScaleChainHome + "config/scalechain.conf")))

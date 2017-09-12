@@ -137,6 +137,8 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
     * (1) During initialization, we call putBlock for each block we received until now.
     * (2) During IBD(Initial Block Download), we call putBlock for blocks we downloaded.
     * (3) When a new block was received from a peer.
+    * (4) A new block was submitted by SubmitBlock
+    * (5) A block was mined by the miner thread.
     *
     * Caller of this method should check if the bestBlock was changed.
     * If changed, we need to update the best block on the storage layer.

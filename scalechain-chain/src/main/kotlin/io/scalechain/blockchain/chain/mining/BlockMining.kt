@@ -52,7 +52,7 @@ class TemporaryCoinsView(private val coinsView : CoinsView) : CoinsView {
 class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : TransactionDescriptorIndex, private val transactionPool : TransactionPool, private val coinsView : CoinsView) {
   private val logger = LoggerFactory.getLogger(BlockMining::class.java)
 
-  val watch = StopWatch()
+  //val watch = StopWatch()
   /*
     /** Calculate the (encoded) difficulty bits that should be in the block header.
       *
@@ -89,17 +89,17 @@ class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : Tr
     val bytesPerTransaction = 128
     val estimatedTransactionCount = maxBlockSize / bytesPerTransaction
 
-    watch.start("candidateTransactions")
+//    watch.start("candidateTransactions")
 
     val candidateTransactions : List<Pair<Hash, Transaction>> = transactionPool.getOldestTransactions(db, estimatedTransactionCount)
 
-    watch.stop("candidateTransactions")
+//    watch.stop("candidateTransactions")
 
 //    val newCandidates0 = transactionPool.storage.getOldestTransactionHashes(1)(db)
 //    val newFirstCandidateHash0 = if (newCandidates0.isEmpty) None else Some(newCandidates0.head)
 
 
-    watch.start("validTransactions")
+//    watch.start("validTransactions")
 
     var candidateTxCount = 0
     var validTxCount = 0
@@ -123,8 +123,8 @@ class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : Tr
       transaction
     }
 
-
     // Remove transactions from the pool if it is in a block as well.
+    // BUGBUG : Can we make sure that a transaction is not in the pool if it is in a block?
     candidateTransactions.filter{ pair ->
       val txHash = pair.first
       //val transaction = pair.second
@@ -133,7 +133,7 @@ class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : Tr
       // There can be some transactions in the pool as well as on txDescIndex, where only transactions in a block is stored.
       // Skip all transactions that has the transaction descriptor.
 
-        // If the transaction descriptor exists, it means the transaction is in a block.
+      // If the transaction descriptor exists, it means the transaction is in a block.
       txDescIndex.getTransactionDescriptor(db, txHash) != null
     }.forEach { pair ->
       val txHash = pair.first
@@ -149,19 +149,20 @@ class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : Tr
 
     val generationTransaction =
       TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
-    watch.stop("validTransactions")
+//    watch.stop("validTransactions")
 
 
-    watch.start("selectTx")
+//    watch.start("selectTx")
     // Select transactions by priority and fee. Also, sort them.
     val (txCount, sortedTransactions) = selectTransactions(generationTransaction, validTransactions, maxBlockSize)
-    watch.stop("selectTx")
+//    watch.stop("selectTx")
 
 //    val firstCandidateHash = if (candidateTransactions.isEmpty) None else Some(candidateTransactions.head.*1)
 //    val newCandidates2 = transactionPool.storage.getOldestTransactionHashes(1)(db)
  //   val newFirstCandidateHash2 = if (newCandidates2.isEmpty) None else Some(newCandidates2.head)
 
-    logger.info("Coin Miner stats : ${watch.toString()}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
+//    logger.info("Coin Miner stats : ${watch.toString()}, Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
+    logger.info("Coin Miner stats : Candidate Tx Count : ${candidateTxCount}, Valid Tx Count : ${validTxCount}, Attachable Tx Count : ${txCount}")
     return BlockTemplate(difficultyBits.toLong(), sortedTransactions)
   }
 
