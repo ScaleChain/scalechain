@@ -27,3 +27,14 @@ jar {
         attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
     }
 }
+
+
+run {
+    if (project.hasProperty("appArgs")) {
+        args Eval.me(appArgs)
+    }
+
+    if (project.hasProperty('runWorkingDir')) {
+        workingDir = new File(project.runWorkingDir)
+    }
+}
