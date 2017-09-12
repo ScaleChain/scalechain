@@ -36,6 +36,7 @@ open class Config(val config : com.typesafe.config.Config) {
 
     // BUGBUG : Need to change to config/scalechain.conf before the integration tests.
     companion object {
+        val MAX_BLOCK_SIZE = 1024 * 1024; // The maxium block size is hard coded as 1M.
         val theConfig : Config = Config(ConfigFactory.parseFile( File(ScaleChainHome + "config/scalechain.conf")))
         fun get() : Config {
             return theConfig

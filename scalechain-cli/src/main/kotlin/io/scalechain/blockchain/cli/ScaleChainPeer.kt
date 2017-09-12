@@ -36,7 +36,7 @@ object ScaleChainPeer {
                          val apiInboundPort: Int = Config.get().getInt("scalechain.api.port"),
                          val miningAccount: String = Config.get().getString("scalechain.mining.account"),
                          val network: String = Config.get().getString("scalechain.network.name"),
-                         val maxBlockSize: Int = Config.get().getInt("scalechain.mining.max_block_size"),
+                         val maxBlockSize: Int = Config.MAX_BLOCK_SIZE,
                          val disableMiner : Boolean = false
                        )
 
@@ -49,19 +49,6 @@ object ScaleChainPeer {
             .longOpt("p2pPort")
             .hasArg()
             .desc("The P2P inbound port to use to accept connection from other peers.")
-            .build())
-
-
-        options.addOption(Option.builder()
-            .longOpt("cassandraAddress")
-            .hasArg()
-            .desc("The address of the cassandra instance for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
-            .build())
-
-        options.addOption(Option.builder()
-            .longOpt("cassandraPort")
-            .hasArg()
-            .desc("The port of the cassandra instance  for block storage. If not provided in both scalechain.conf and the command line arguments, use RocksDB.")
             .build())
 
 
@@ -100,19 +87,6 @@ object ScaleChainPeer {
 
 
         options.addOption(Option.builder()
-            .longOpt("minerInitialDelayMS")
-            .hasArg()
-            .desc("Seconds to sleep before starting the miner.")
-            .build())
-
-
-        options.addOption(Option.builder()
-            .longOpt("minerHashDelayMS")
-            .hasArg()
-            .desc("Maximum seconds to sleep for each hash calculation.")
-            .build())
-
-        options.addOption(Option.builder()
           .longOpt("disableMiner")
           .desc("Disable coin miner.")
           .build())
@@ -134,7 +108,7 @@ object ScaleChainPeer {
           apiInboundPort = CommandArgumentConverter.toInt( "apiPort", line.getOptionValue("apiPort", null) ) ?: Config.get().getInt("scalechain.api.port"),
           miningAccount = line.getOptionValue("miningAccount", null) ?: Config.get().getString("scalechain.mining.account"),
           network = line.getOptionValue("network", null) ?: Config.get().getString("scalechain.network.name"),
-          maxBlockSize = Config.get().getInt("scalechain.mining.max_block_size"),
+          maxBlockSize = Config.MAX_BLOCK_SIZE,
           disableMiner = line.hasOption("disableMiner")
       )
 
