@@ -6,6 +6,9 @@ import java.util.Timer
 import io.scalechain.blockchain.chain.processor.InventoryProcessor
 import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.net.MessageSummarizer
+import io.scalechain.blockchain.net.controller.ChainedHandlers
+import io.scalechain.blockchain.net.controller.InitialBlockDownloadController
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.net.message.GetDataFactory
 import io.scalechain.blockchain.net.message.GetBlocksFactory
 import io.scalechain.blockchain.proto.InvType
@@ -16,7 +19,7 @@ import org.slf4j.LoggerFactory
 /**
   * The message handler for Inv message.
   */
-object InvMessageHandler {
+object InvMessageHandler : MessageHandler<Inv> {
   private val logger = LoggerFactory.getLogger(InvMessageHandler.javaClass)
 
   /** Handle Inv message.
@@ -25,8 +28,7 @@ object InvMessageHandler {
     * @param inv The Inv message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, inv : Inv ) : Unit {
-
+  override fun handle( context : MessageHandlerContext, inv : Inv ) : Boolean {
     // TODO : Step 1 : Return an error if the number of inventories is more than 50,000
 
     // TODO : Step 2 : Add the inventory as a known inventory to the node that sent the "inv" message.
@@ -87,5 +89,6 @@ object InvMessageHandler {
         }
       }
 //    }
+    return false
   }
 }

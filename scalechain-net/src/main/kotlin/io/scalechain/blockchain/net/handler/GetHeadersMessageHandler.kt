@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.*
 import org.slf4j.LoggerFactory
 
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory
   * 4. getheaders sends the hashStop, whereas getblocks does not send the hashStop.
   *
   */
-object GetHeadersMessageHandler {
+object GetHeadersMessageHandler : MessageHandler<GetHeaders> {
   private val logger = LoggerFactory.getLogger(GetHeadersMessageHandler.javaClass)
 
   /** Handle GetHeaders message.
@@ -22,7 +23,7 @@ object GetHeadersMessageHandler {
     * @param getHeaders The GetHeaders message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit {
+  override fun handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Boolean {
     // We don't support the headers first approach yet.
     logger.warn("GetHeaders message is not supported yet.")
 
@@ -68,5 +69,6 @@ object GetHeadersMessageHandler {
         context.peer.send(headersMessage)
       }
     */
+    return false
   }
 }

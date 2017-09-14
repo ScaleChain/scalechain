@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.net.handler
 
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.Verack
 import org.slf4j.LoggerFactory
 
 /**
   * The message handler for Verack message.
   */
-object VerackMessageHandler {
+object VerackMessageHandler : MessageHandler<Verack> {
   private val logger = LoggerFactory.getLogger(VerackMessageHandler.javaClass)
 
   /** Handle Verack message.
@@ -15,7 +16,8 @@ object VerackMessageHandler {
     * @param message The message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, message : Verack ) : Unit {
+  override fun handle( context : MessageHandlerContext, message : Verack ) : Boolean {
     // TODO : Implement
+    return false
   }
 }

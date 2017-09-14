@@ -1,5 +1,6 @@
 package io.scalechain.blockchain.net.handler
 
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.Headers
 import org.slf4j.LoggerFactory
 
@@ -7,7 +8,7 @@ import org.slf4j.LoggerFactory
 /**
   * The message handler for Headers message.
   */
-object HeadersMessageHandler {
+object HeadersMessageHandler : MessageHandler<Headers> {
   private val logger = LoggerFactory.getLogger(HeadersMessageHandler.javaClass)
 
   /** Handle Headers message.
@@ -16,7 +17,7 @@ object HeadersMessageHandler {
     * @param headers The Headers message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, headers : Headers ) : Unit {
+  override fun handle( context : MessageHandlerContext, headers : Headers ) : Boolean {
     // We don't support the headers first approach yet.
     logger.warn("Headers message is not supported yet.")
 
@@ -62,5 +63,6 @@ object HeadersMessageHandler {
 
 
 */
+    return false
   }
 }

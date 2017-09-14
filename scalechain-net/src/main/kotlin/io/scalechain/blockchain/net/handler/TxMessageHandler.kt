@@ -5,6 +5,9 @@ import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.ErrorCode
 import io.scalechain.blockchain.ChainException
 import io.scalechain.blockchain.chain.Blockchain
+import io.scalechain.blockchain.net.controller.ChainedHandlers
+import io.scalechain.blockchain.net.controller.InitialBlockDownloadController
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.Transaction
 import org.slf4j.LoggerFactory
@@ -13,7 +16,7 @@ import io.scalechain.blockchain.script.hash
 /**
   * The message handler for Tx message.
   */
-object TxMessageHandler {
+object TxMessageHandler : MessageHandler<Transaction> {
   private val logger = LoggerFactory.getLogger(TxMessageHandler.javaClass)
 
   /** Handle Transaction message.
@@ -22,7 +25,7 @@ object TxMessageHandler {
     * @param transaction The Transaction message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, transaction : Transaction ) : Unit {
+  override fun handle( context : MessageHandlerContext, transaction : Transaction ) : Boolean {
     val db = Blockchain.get().db
 
     val transactionHash = transaction.hash()
@@ -94,6 +97,6 @@ object TxMessageHandler {
         - Add the orphan transaction to mapOrphanTransactions and mapOrphanTransactionsByPrev.
     }
  */
+    return false
   }
-
 }

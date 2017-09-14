@@ -3,6 +3,9 @@ package io.scalechain.blockchain.net.handler
 import io.scalechain.blockchain.net.Node
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
+import io.scalechain.blockchain.net.controller.ChainedHandlers
+import io.scalechain.blockchain.net.controller.InitialBlockDownloadController
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.net.message.GetBlocksFactory
 import io.scalechain.blockchain.net.message.InvFactory
 import io.scalechain.blockchain.proto.*
@@ -13,7 +16,7 @@ import io.scalechain.blockchain.script.hash
 /**
   * The message handler for Block message.
   */
-object BlockMessageHandler {
+object BlockMessageHandler : MessageHandler<Block> {
   private val logger = LoggerFactory.getLogger(BlockMessageHandler.javaClass)
 
   // More than half of the peers should sign the block.
@@ -26,7 +29,7 @@ object BlockMessageHandler {
     * @param block The Block message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, block : Block ) : Unit {
+  override fun handle( context : MessageHandlerContext, block : Block ) : Boolean {
     // TODO : Revert the adoption of PBFT. The change to PBFT was by this commit: https://github.com/ScaleChain/scalechain/commit/5e58696f337042067cb895196dc388ad94251321
 
     // TODO : Need to apply patch for synchronization : https://github.com/ScaleChain/scalechain/commit/6ba24918e50f5ef8a1293d75b812032211a46824
@@ -97,5 +100,6 @@ object BlockMessageHandler {
         }
       }
     }*/
+    return false
   }
 }

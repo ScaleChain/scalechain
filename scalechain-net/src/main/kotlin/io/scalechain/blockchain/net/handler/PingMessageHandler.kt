@@ -1,12 +1,13 @@
 package io.scalechain.blockchain.net.handler
 
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.Ping
 import org.slf4j.LoggerFactory
 
 /**
   * The message handler for Ping message.
   */
-object PingMessageHandler {
+object PingMessageHandler : MessageHandler<Ping> {
   private val logger = LoggerFactory.getLogger(PingMessageHandler.javaClass)
 
   /** Handle Ping message.
@@ -15,7 +16,8 @@ object PingMessageHandler {
     * @param ping The ping message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, ping : Ping ) : Unit {
+  override fun handle( context : MessageHandlerContext, ping : Ping ) : Boolean {
     // TODO : Implement
+    return false
   }
 }

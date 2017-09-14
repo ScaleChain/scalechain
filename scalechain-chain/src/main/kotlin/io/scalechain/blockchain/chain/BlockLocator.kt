@@ -41,7 +41,7 @@ class BlockLocator(private val chain : Blockchain) {
 
         // Step 2 : Exponentially move backwards to get a summarizing list of block hashes.
         if (addedHashes >= 10) {
-          // Multiply heightSteps.
+          // Multiply heightSteps by two
           heightSteps = heightSteps shl 1
         }
 //println(s"heightSteps=${heightSteps}")

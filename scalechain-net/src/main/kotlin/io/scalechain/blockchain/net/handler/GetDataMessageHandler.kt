@@ -4,6 +4,7 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.chain.processor.TransactionProcessor
 import io.scalechain.blockchain.net.MessageSummarizer
+import io.scalechain.blockchain.net.controller.MessageHandler
 import io.scalechain.blockchain.proto.InvType
 import io.scalechain.blockchain.proto.*
 import org.slf4j.LoggerFactory
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory
 /**
   * The message handler for GetData message.
   */
-object GetDataMessageHandler {
+object GetDataMessageHandler : MessageHandler<GetData> {
   private val logger = LoggerFactory.getLogger(GetDataMessageHandler.javaClass)
 
   /** Handle GetData message.
@@ -20,7 +21,7 @@ object GetDataMessageHandler {
     * @param getData The GetData message to handle.
     * @return Some(message) if we need to respond to the peer with the message.
     */
-  fun handle( context : MessageHandlerContext, getData : GetData ) : Unit {
+  override fun handle( context : MessageHandlerContext, getData : GetData ) : Boolean {
     val db = Blockchain.get().db
     // TODO : Step 1 : Return an error if the number of inventories is greater than 50,000.
     // Step 2 : For each inventory, send data for it.
@@ -56,5 +57,6 @@ object GetDataMessageHandler {
 
     // TODO : Step 4 : Need to send NotFound message for not found block or transaction.
     // This is necessary for the SPV clients. We will implement this feature when we support SPV clients.
+    return false
   }
 }
