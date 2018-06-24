@@ -5,23 +5,10 @@
 *.iws
 *.iml
 
-# sbt specific
-.cache
-.history
-.lib/
-dist/*
-lib/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
-
 # gradle specific
 .gradle
-gradle/
-build/
 out/
+build/
 gradlew
 gradlew.bat
 
@@ -31,6 +18,5 @@ gradlew.bat
 .DS_Store
 .idea/
 
-config/currentView
 initial-split-transaction.txt
 transaction-group-*.txt

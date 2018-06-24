@@ -2,7 +2,7 @@ group 'io.scalechain'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.4'
+    ext.kotlin_version = '1.2.50'
 
     repositories {
         mavenCentral()
@@ -28,14 +28,14 @@ subprojects {
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-        compile "io.netty:netty-all:4.1.14.Final"
-        compile "com.google.code.gson:gson:2.8.1"
+        compile "io.netty:netty-all:4.1.25.Final"
+        compile "com.google.code.gson:gson:2.8.5"
         compile "ch.qos.logback:logback-classic:1.2.3"
         // For unit tests, we need apache commons-io to remove a directory that has data files created while testing.
         // TODO : use java.io.File.rmdir to remove files instead of commons-io
-        compile "commons-io:commons-io:2.5"
-        compile "org.eclipse.collections:eclipse-collections:8.1.0"
-        compile "org.eclipse.collections:eclipse-collections-api:8.1.0"
+        compile "commons-io:commons-io:2.6"
+        compile "org.eclipse.collections:eclipse-collections:9.2.0"
+        compile "org.eclipse.collections:eclipse-collections-api:9.2.0"
 
         // We have abstract classes that use kotlintest classes or interfaces in main folder, not in test folder.
         compile "io.kotlintest:kotlintest:1.3.7"

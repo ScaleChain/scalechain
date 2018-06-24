@@ -56,22 +56,22 @@ class HexFileLoaderSpec : FlatSpec(), Matchers {
 
         "load" should "load a hex file" {
 
-            File("hextest").mkdir()
-            FileOutputStream("hextest/test.hex").write(HEX_FILE_CONTENT.toByteArray())
+            File("./build/hextest").mkdir()
+            FileOutputStream("./build/hextest/test.hex").write(HEX_FILE_CONTENT.toByteArray())
 
             var index = 0
-            for ( (x,y) in HexFileLoader.load("hextest/test.hex").zip(HexUtil.bytes( EXPECTED_CONTENT ))) {
+            for ( (x,y) in HexFileLoader.load("./build/hextest/test.hex").zip(HexUtil.bytes( EXPECTED_CONTENT ))) {
                 println("[${index++}] $x == $y")
             }
 
             assert(
                 Arrays.equals(
                     HexUtil.bytes( EXPECTED_CONTENT ),
-                    HexFileLoader.load("hextest/test.hex")
+                    HexFileLoader.load("./build/hextest/test.hex")
                 )
             )
 
-            File("hextest").deleteRecursively()
+            File("./build/hextest").deleteRecursively()
         }
     }
 }

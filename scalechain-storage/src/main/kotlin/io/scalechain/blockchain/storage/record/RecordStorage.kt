@@ -38,7 +38,9 @@ open class RecordStorage(private val directoryPath : File, private val filePrefi
               if (files.size == decodedFileName.fileNumber) {
                 files.add( newFile(file) )
               } else {
-                logger.error("Invalid Block File Number. Expected : ${files.size}, Actual : ${decodedFileName.fileNumber}")
+                val fileNames = fileList.toList().joinToString(",")
+
+                logger.error("Invalid Block File Number. Expected : ${files.size}, Actual : ${decodedFileName.fileNumber}, File Names: $fileNames")
                 throw BlockStorageException(ErrorCode.InvalidFileNumber)
               }
             }
