@@ -15,7 +15,6 @@ import org.junit.runner.RunWith
 /**
  * Created by kangmo on 15/12/2016.
  */
-@RunWith(KTestJUnitRunner::class)
 interface TransactionDescriptorIndexTestTrait : ShouldSpec, KeyValueCommonTrait, ProtoTestData {
   var db : KeyValueDatabase
 

@@ -54,13 +54,13 @@ class ConfigSpec : FlatSpec(), Matchers {
             }
         """
 
-    val CONFIG_FILE = "testconfig/scalechain.conf"
+    val CONFIG_FILE = "./build/testconfig/scalechain.conf"
     var config : Config? = null
 
     override fun beforeEach() {
         // set-up code
         //
-        File("testconfig").mkdir()
+        File("./build/testconfig").mkdir()
         FileOutputStream(CONFIG_FILE).write(PRIVATE_CONFIG_DATA.toByteArray())
         config = Config(ConfigFactory.parseFile( File(CONFIG_FILE)))
 
@@ -72,7 +72,7 @@ class ConfigSpec : FlatSpec(), Matchers {
 
         // tear-down code
         //
-        File("testconfig").deleteRecursively()
+        File("./build/testconfig").deleteRecursively()
         config = null
     }
 
@@ -136,13 +136,13 @@ class ConfigSpec : FlatSpec(), Matchers {
                     }
                 """
 
-            File("publicconfig").mkdir()
-            FileOutputStream("publicconfig/public.conf").write(PUBLIC_CONFIG_DATA.toByteArray())
-            val publicConfig = Config(ConfigFactory.parseFile( File("publicconfig/public.conf")))
+            File("./build/publicconfig").mkdir()
+            FileOutputStream("./build/publicconfig/public.conf").write(PUBLIC_CONFIG_DATA.toByteArray())
+            val publicConfig = Config(ConfigFactory.parseFile( File("./build/publicconfig/public.conf")))
 
             publicConfig.isPrivate() shouldBe false
 
-            File("publicconfig").deleteRecursively()
+            File("./build/publicconfig").deleteRecursively()
         }
 
         "peerAddresses" should "" {
