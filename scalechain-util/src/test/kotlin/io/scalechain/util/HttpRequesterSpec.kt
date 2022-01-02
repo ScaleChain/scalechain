@@ -1,6 +1,7 @@
 package io.scalechain.util
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
+import java.io.ByteArrayInputStream
+
 import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.matchers.Matchers
 import io.kotlintest.specs.FlatSpec
@@ -33,7 +34,7 @@ class HttpRequesterSpec : FlatSpec(), Matchers {
     init {
         "inputStreamAsString" should "return the string representation of the stream in the HttpRequester" {
             val INPUT = "HelloWord"
-            val istream = ByteInputStream(INPUT.toByteArray(), INPUT.length)
+            val istream = ByteArrayInputStream(INPUT.toByteArray())
 
             HttpRequester.inputStreamAsString(istream) shouldBe INPUT
         }

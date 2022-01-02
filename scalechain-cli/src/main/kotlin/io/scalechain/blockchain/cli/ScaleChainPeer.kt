@@ -1,27 +1,29 @@
 package io.scalechain.blockchain.cli
 
-import java.io.File
-
+import io.scalechain.blockchain.api.JsonRpcMicroservice
+import io.scalechain.blockchain.api.RpcSubSystem
 import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.chain.processor.BlockProcessor
 import io.scalechain.blockchain.net.*
 import io.scalechain.blockchain.script.BlockPrinterSetter
 import io.scalechain.blockchain.storage.*
+import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
-import io.scalechain.util.PeerAddress
-import io.scalechain.util.NetUtil
-import io.scalechain.wallet.Wallet
-import org.apache.log4j.PropertyConfigurator
-import io.scalechain.blockchain.api.RpcSubSystem
-import io.scalechain.blockchain.api.JsonRpcMicroservice
-import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.util.Config
+import io.scalechain.util.NetUtil
+import io.scalechain.util.PeerAddress
+import io.scalechain.wallet.Wallet
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
+import java.io.File
 import kotlin.system.exitProcess
 
+/*
+import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.LogManager
+*/
 
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
@@ -163,7 +165,15 @@ object ScaleChainPeer {
     */
   fun initializeSystem(params: Parameters) {
 
-    PropertyConfigurator.configure(this.javaClass.classLoader.getResource("log4j.properties"));
+
+      // BUGBUG need to initialize logger with a configuration file
+    /*
+    val context: LoggerContext = LogManager.getContext(false) as org.apache.logging.log4j.core.LoggerContext
+
+    val propertyURL = this.javaClass.classLoader.getResource("log4j.properties")
+
+    context.setConfigLocation(propertyURL.toURI())
+    */
 
     // Step 2 : Initialize the printer setter, to print script operations on transactions.
     BlockPrinterSetter.initialize()

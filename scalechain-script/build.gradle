@@ -1,6 +1,6 @@
 dependencies {
-    compile project(':scalechain-crypto')
-    compile project(':scalechain-proto-codec')
-    compile project(':scalechain-proto')
-    compile project(':scalechain-util')
+    implementation project(':scalechain-crypto')
+    implementation project(':scalechain-proto-codec')
+    implementation project(':scalechain-proto')
+    implementation project(':scalechain-util')
 }

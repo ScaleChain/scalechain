@@ -14,9 +14,18 @@ object NodeThrottle {
     * @param logger The logger of the module that is calling this method.
     */
   fun throttle(logger : Logger): Unit {
+
+    // BUGBUG : Update the code to log direct memory.
+
+    var maxMemory : Long = Runtime.getRuntime().totalMemory()
+    var freeMemory : Long = Runtime.getRuntime().freeMemory()
+    logger.trace("Checking Memory Usage. Max memory : ${maxMemory}, Free memory : ${freeMemory}")
+
+  /*
     var maxDiectMemory : Long = sun.misc.VM.maxDirectMemory()
     var directMemoryUsed : Long = sun.misc.SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed()
     logger.trace("Checking Direct Memory Usage. Max memory : ${maxDiectMemory}, Used memory : ${directMemoryUsed}")
+ */
     // http://stackoverflow.com/questions/20058489/is-there-a-way-to-measure-direct-memory-usage-in-java
 
     /*

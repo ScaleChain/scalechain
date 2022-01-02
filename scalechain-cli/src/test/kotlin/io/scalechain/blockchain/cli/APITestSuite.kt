@@ -23,7 +23,6 @@ import io.scalechain.util.GlobalEnvironemnt
 import io.scalechain.util.HexUtil
 import io.scalechain.util.HexUtil.bytes
 import io.scalechain.wallet.Wallet
-import jdk.nashorn.internal.objects.Global
 import java.io.File
 
 /** Start the peer and connect to the local bitcoind node.

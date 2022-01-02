@@ -1,5 +1,5 @@
 dependencies {
   // def inetAddress = com.google.common.net.InetAddresses.fromLittleEndianByteArray(address.array.reverse)
-    compile "com.google.guava:guava:22.0"
-    compile project(':scalechain-util')
+    implementation "com.google.guava:guava:31.0.1-jre"
+    implementation project(':scalechain-util')
 }

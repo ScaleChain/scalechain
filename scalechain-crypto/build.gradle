@@ -1,5 +1,3 @@
 dependencies {
-//    compile project(':scalechain-proto')
-    compile "com.madgag.spongycastle:core:1.56.0.0"
-    compile project(':scalechain-util')
+    implementation project(':scalechain-util')
 }

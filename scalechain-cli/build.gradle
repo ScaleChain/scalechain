@@ -1,28 +1,32 @@
 apply plugin: 'application'
 
 dependencies {
-    compile project(':scalechain-api')
-    compile project(':scalechain-net')
-    compile project(':scalechain-wallet')
-    compile project(':scalechain-chain')
-    compile project(':scalechain-transaction')
-    compile project(':scalechain-storage')
-    compile project(':scalechain-script')
-    compile project(':scalechain-proto-codec')
-    compile project(':scalechain-proto')
-    compile project(':scalechain-util')
-    compile "commons-cli:commons-cli:1.4"
+    implementation project(':scalechain-api')
+    implementation project(':scalechain-net')
+    implementation project(':scalechain-wallet')
+    implementation project(':scalechain-chain')
+    implementation project(':scalechain-transaction')
+    implementation project(':scalechain-storage')
+    implementation project(':scalechain-script')
+    implementation project(':scalechain-proto-codec')
+    implementation project(':scalechain-proto')
+    implementation project(':scalechain-crypto')
+    implementation project(':scalechain-util')
 }
 
 mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'
 
 jar {
 //    zip64 true
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     from {
-        (configurations.runtime).collect {
+        (configurations.runtimeClasspath).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+
     manifest {
         attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
     }

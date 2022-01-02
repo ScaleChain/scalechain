@@ -92,8 +92,11 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
 
   init {
     assert( Storage.initialized() )
-    options.getEnv().setBackgroundThreads(3, Env.COMPACTION_POOL)
-        .setBackgroundThreads(1, Env.FLUSH_POOL)
+    /* BUGBUG : Find out how to port this code.
+    options.getEnv().setBackgroundThreads(3, RocksEnv.COMPACTION_POOL)
+        .setBackgroundThreads(1, RocksEnv.FLUSH_POOL)
+
+     */
   }
 
 

@@ -171,7 +171,7 @@ open class SpannerDatabase(instanceId : String, databaseId : String, val tableNa
   }
 
   override fun close() : Unit {
-    spanner!!.closeAsync().get();
+    spanner!!.close();
     spanner = null
   }
 
