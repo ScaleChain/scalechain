@@ -3,6 +3,10 @@ Under construction
 ScaleChain source code is under construction. Big changes are to come to integrate distributed neural network.
 The latest release does not include the integration of distributed neural network yet.
 
+Current project status
+======================
+Unit tests passed.
+
 Introduction
 ============
 ScaleChain is an altcoin that realizes distributed neural networks on blockchain.
