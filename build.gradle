@@ -51,21 +51,6 @@ subprojects {
     test {
         maxHeapSize = "4096m"
     }
-
-// https://newfivefour.com/gradle-hello-world-java-fat-jar.html
-/*
-    jar {
-        zip64 true
-        from {
-            (configurations.runtime).collect {
-                it.isDirectory() ? it : zipTree(it)
-            }
-        }
-        manifest {
-            attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
-        }
-    }
-*/
 }
 // Multiproject example from 
 // https://github.com/pkainulainen/gradle-examples/tree/master/multi-project-build 

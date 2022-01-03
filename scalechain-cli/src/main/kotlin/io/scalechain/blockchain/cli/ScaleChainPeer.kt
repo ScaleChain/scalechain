@@ -25,6 +25,8 @@ import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.LogManager
 */
 
+
+
 /** A ScaleChainPeer that connects to other peers and accepts connection from other peers.
   */
 object ScaleChainPeer {
@@ -94,28 +96,6 @@ object ScaleChainPeer {
           .build())
 
     }
-
-  @JvmStatic
-  fun main(args: Array<String>) {
-    val parser = DefaultParser()
-
-    val line = parser.parse(options, args)
-
-      val params = Parameters(
-          peerAddress = line.getOptionValue("peerAddress", null), // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-          peerPort = CommandArgumentConverter.toInt( "peerPort", line.getOptionValue("peerPort", null)), // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-          cassandraAddress = line.getOptionValue("cassandraAddress", null) ?: if (Config.get().hasPath("scalechain.storage.cassandra.address")) Config.get().getString("scalechain.storage.cassandra.address") else null,
-          cassandraPort = CommandArgumentConverter.toInt( "cassandraPort", line.getOptionValue("cassandraPort", null) ) ?: if (Config.get().hasPath("scalechain.storage.cassandra.port")) Config.get().getInt("scalechain.storage.cassandra.port") else null,
-          p2pInboundPort = CommandArgumentConverter.toInt( "p2pPort", line.getOptionValue("p2pPort", null) ) ?: Config.get().getInt("scalechain.p2p.port"),
-          apiInboundPort = CommandArgumentConverter.toInt( "apiPort", line.getOptionValue("apiPort", null) ) ?: Config.get().getInt("scalechain.api.port"),
-          miningAccount = line.getOptionValue("miningAccount", null) ?: Config.get().getString("scalechain.mining.account"),
-          network = line.getOptionValue("network", null) ?: Config.get().getString("scalechain.network.name"),
-          maxBlockSize = Config.MAX_BLOCK_SIZE,
-          disableMiner = line.hasOption("disableMiner")
-      )
-
-      initializeSystem(params)
-  }
 
   fun initializeNetLayer(params: Parameters, chain : Blockchain) : PeerCommunicator {
 
@@ -241,5 +221,40 @@ object ScaleChainPeer {
       miner.start()
     }
   }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val parser = DefaultParser()
+
+        val line = parser.parse(ScaleChainPeer.options, args)
+
+        val params = ScaleChainPeer.Parameters(
+            peerAddress = line.getOptionValue(
+                "peerAddress",
+                null
+            ), // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+            peerPort = CommandArgumentConverter.toInt(
+                "peerPort",
+                line.getOptionValue("peerPort", null)
+            ), // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
+            cassandraAddress = line.getOptionValue("cassandraAddress", null) ?: if (Config.get()
+                    .hasPath("scalechain.storage.cassandra.address")
+            ) Config.get().getString("scalechain.storage.cassandra.address") else null,
+            cassandraPort = CommandArgumentConverter.toInt("cassandraPort", line.getOptionValue("cassandraPort", null))
+                ?: if (Config.get().hasPath("scalechain.storage.cassandra.port")) Config.get()
+                    .getInt("scalechain.storage.cassandra.port") else null,
+            p2pInboundPort = CommandArgumentConverter.toInt("p2pPort", line.getOptionValue("p2pPort", null)) ?: Config.get()
+                .getInt("scalechain.p2p.port"),
+            apiInboundPort = CommandArgumentConverter.toInt("apiPort", line.getOptionValue("apiPort", null)) ?: Config.get()
+                .getInt("scalechain.api.port"),
+            miningAccount = line.getOptionValue("miningAccount", null) ?: Config.get()
+                .getString("scalechain.mining.account"),
+            network = line.getOptionValue("network", null) ?: Config.get().getString("scalechain.network.name"),
+            maxBlockSize = Config.MAX_BLOCK_SIZE,
+            disableMiner = line.hasOption("disableMiner")
+        )
+
+        ScaleChainPeer.initializeSystem(params)
+    }
 
 }

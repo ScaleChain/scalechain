@@ -1,4 +1,7 @@
-apply plugin: 'application'
+plugins {
+    id 'application' // enabling the plugin here
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+}
 
 dependencies {
     implementation project(':scalechain-api')
@@ -14,6 +17,8 @@ dependencies {
     implementation project(':scalechain-util')
 }
 
+
+/*
 mainClassName = 'io.scalechain.blockchain.cli.ScaleChainPeer'
 
 jar {
@@ -23,11 +28,23 @@ jar {
 
     from {
         (configurations.runtimeClasspath).collect {
+//        (configurations.compileClasspath).collect {
             it.isDirectory() ? it : zipTree(it)
         }
     }
 
     manifest {
         attributes("Main-Class": "io.scalechain.blockchain.cli.ScaleChainPeer" )
+    }
+}
+*/
+
+application {
+    mainClass.set("io.scalechain.blockchain.cli.ScaleChainPeer")
+}
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'io.scalechain.blockchain.cli.ScaleChainPeer'
     }
 }

@@ -20,5 +20,6 @@ EXCEPTION_FILE="build/ex$1.log"
 rm $LOG_FILE
 rm $EXCEPTION_FILE
 
-#java -classpath /Users/kangmo/crypto/scalechain/scalechain-cli/build/libs/scalechain-cli.jar io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
-java $JAVA_OPTIONS -classpath ./tmp io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
+java -cp ./scalechain-cli/build/libs/scalechain-cli-all.jar io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
+#java -jar `pwd`/scalechain-cli/build/libs/scalechain-cli.jar -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
+#java $JAVA_OPTIONS -classpath ./tmp io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
