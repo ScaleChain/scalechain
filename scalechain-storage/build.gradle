@@ -1,5 +1,5 @@
 dependencies {
-    implementation "org.rocksdb:rocksdbjni:6.27.3"
+    implementation "org.rocksdb:rocksdbjni:6.29.5"
     // By using the leveldbjni-all then the Java driver of leveldb is being used.
     implementation "org.fusesource.leveldbjni:leveldbjni-all:1.8"
 
