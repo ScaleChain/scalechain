@@ -141,6 +141,17 @@ interface KeyValueDatabase {
     return PrefetchingIterator(rawIterator)
   }
 
+  // BUGBUG : Write unittest
+  fun hasObject( rawKey: ByteArray) : Boolean {
+    val rawValue = get(rawKey)
+    return rawValue != null
+  }
+
+  // BUGBUG : Write unittest
+  fun<K> hasObject(keyCodec : Codec<K>, prefix : Byte, key : K) : Boolean {
+    val rawKey = prefixedKey(prefix, keyCodec.encode(key))
+    return hasObject(rawKey)
+  }
 
 
   fun<V> getObject(valueCodec : Codec<V>, rawKey : ByteArray) : V? {

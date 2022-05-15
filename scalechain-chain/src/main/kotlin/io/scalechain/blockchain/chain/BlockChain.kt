@@ -150,6 +150,8 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
     *
     */
   fun putBlock(db : KeyValueDatabase, blockHash : Hash, block:Block) : Boolean {
+    assert(blockHash != null)
+    assert(block != null)
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
 

@@ -114,6 +114,9 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
     * @return true if the newly accepted block became the new best block.
     */
   fun acceptBlock(blockHash : Hash, block : Block) : Boolean {
+    assert(blockHash != null)
+    assert(block != null)
+
     // Step 1. Need to check if the same blockheader hash exists by looking up mapBlockIndex
     // Step 2. Need to increase DoS score if an orphan block was received.
     // Step 3. Need to increase DoS score if the block hash does not meet the required difficulty.
@@ -125,8 +128,13 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
     //  chain.putBlock(blockHash, block)(transactingDB)
     //}
 
-    // TODO : BUGBUG : Change to record level locking with atomic update.
-    return chain.putBlock(db, blockHash, block)
+    if (chain.hasBlock(db, block.header.hashPrevBlock)) { // The parent block exists
+      // TODO : BUGBUG : Change to record level locking with atomic update.
+      return chain.putBlock(db, blockHash, block)
+    } else { // The parent block does not exist, the block is an orphan.
+      chain.blockOrphanage.putOrphan(db, block)
+      return false // The new block is not the best block
+    }
   }
 
   /** Recursively accept orphan children blocks of the given block, if any.

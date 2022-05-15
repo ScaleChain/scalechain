@@ -1,4 +1,5 @@
-sbt compile
+# ./run-prepare.sh
+
 rm target/run-multi.log
 rm target/sc*.log
 
@@ -6,9 +7,9 @@ rm target/sc*.log
 
 ./run.sh 1 &
 
-./run.sh 2 &
+#./run.sh 2 &
 
-./run.sh 3 &
+#./run.sh 3 &
 
 while [ `grep "Height : " target/sc0.log | wc -l` -lt 1 ]
 do

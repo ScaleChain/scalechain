@@ -19,5 +19,8 @@ gradlew.bat
 .DS_Store
 .idea/
 
+# temporary files
+tmp/
+
 initial-split-transaction.txt
 transaction-group-*.txt

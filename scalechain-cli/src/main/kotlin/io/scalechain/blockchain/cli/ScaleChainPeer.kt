@@ -34,8 +34,6 @@ object ScaleChainPeer {
   data class Parameters(
                          val peerAddress: String? = null, // The address of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          val peerPort: Int? = null, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-                         val cassandraAddress: String? = if (Config.get().hasPath("scalechain.storage.cassandra.address")) Config.get().getString("scalechain.storage.cassandra.address") else null,
-                         val cassandraPort: Int? = if (Config.get().hasPath("scalechain.storage.cassandra.port")) Config.get().getInt("scalechain.storage.cassandra.port") else null,
                          val p2pInboundPort: Int = Config.get().getInt("scalechain.p2p.port"),
                          val apiInboundPort: Int = Config.get().getInt("scalechain.api.port"),
                          val miningAccount: String = Config.get().getString("scalechain.mining.account"),
@@ -173,16 +171,10 @@ object ScaleChainPeer {
 
 
     val storage: BlockStorage =
-      if (params.cassandraAddress != null && params.cassandraPort != null) {
-        // Cassandra is not supported.
-        throw UnsupportedOperationException()
-//        CassandraBlockStorage.create(blockStoragePath, params.cassandraAddress.get, params.cassandraPort.get)
-      } else {
         // Initialize the block storage.
         // TODO : Investigate when to call storage.close.
         DiskBlockStorage.create(blockStoragePath, db)
 //        SpannerBlockStorage.create(db, "scalechain", "blockchain")
-      }
 
 
     // Step 5 : Chain Layer : Initialize blockchain.
@@ -237,12 +229,6 @@ object ScaleChainPeer {
                 "peerPort",
                 line.getOptionValue("peerPort", null)
             ), // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
-            cassandraAddress = line.getOptionValue("cassandraAddress", null) ?: if (Config.get()
-                    .hasPath("scalechain.storage.cassandra.address")
-            ) Config.get().getString("scalechain.storage.cassandra.address") else null,
-            cassandraPort = CommandArgumentConverter.toInt("cassandraPort", line.getOptionValue("cassandraPort", null))
-                ?: if (Config.get().hasPath("scalechain.storage.cassandra.port")) Config.get()
-                    .getInt("scalechain.storage.cassandra.port") else null,
             p2pInboundPort = CommandArgumentConverter.toInt("p2pPort", line.getOptionValue("p2pPort", null)) ?: Config.get()
                 .getInt("scalechain.p2p.port"),
             apiInboundPort = CommandArgumentConverter.toInt("apiPort", line.getOptionValue("apiPort", null)) ?: Config.get()
