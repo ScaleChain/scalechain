@@ -146,21 +146,21 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
    * Mine a block whose estimated hash calculation is the given one.
    *
    * @param block The block to mine. We will change nonce of the block for each iteration.
-   * @param requiredHashCalulcations The estimated hash calculations of the block should be this value.
+   * @param requiredHashCalculations The estimated hash calculations of the block should be this value.
    * @param nonce The nonce value.
    * @return The mined block.
    */
 
-  tailrec fun doMining(block : Block, requiredHashCalulcations : Int, nonce : Int = 0) : Block {
+  tailrec fun doMining(block : Block, requiredHashCalculations : Int, nonce : Int = 0) : Block {
     val newBlockHeader = block.header.copy(nonce = nonce.toLong())
     val newBlockHash = newBlockHeader.hash()
 
-    if (HashEstimation.getHashCalculations(newBlockHash.value.array) == requiredHashCalulcations.toLong()) {
+    if (HashEstimation.getHashCalculations(newBlockHash.value.array) == requiredHashCalculations.toLong()) {
       val newBlock = block.copy( header = newBlockHeader )
 
       return newBlock
     } else {
-      return doMining(block, requiredHashCalulcations, nonce + 1)
+      return doMining(block, requiredHashCalculations, nonce + 1)
     }
   }
 
@@ -171,11 +171,11 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
   fun mineBlock(db : KeyValueDatabase, chain : Blockchain) : Block {
 
     val blockMining = BlockMining(db, chain.txDescIndex(), chain.txPool, chain)
-    val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kunwoo, Kwanho, Chanwoo, Kangmo.".toByteArray()))
+    val COINBASE_MESSAGE = CoinbaseData(Bytes("height:${chain.getBestBlockHeight() + 1}, ScaleChain by Kangmo.".toByteArray()))
     // Step 2 : Create the block template
     val blockTemplate = blockMining.getBlockTemplate(COINBASE_MESSAGE, minerAddress(), 1024*1024)
     val block = blockTemplate.createBlock( blockTemplate.getBlockHeader( chain.getBestBlockHash(db)!! ), nonce = 0 )
-    return doMining( block, requiredHashCalulcations = 4)
+    return doMining( block, requiredHashCalculations = 4)
   }
 
 }

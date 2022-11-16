@@ -40,10 +40,12 @@ interface BlockDatabase {
     return db.getObject(HashCodec, BlockInfoCodec, DB.BLOCK_INFO, hash)
   }
 
+  /*
   // BUGBUG : Write unittest
   fun hasBlock(db : KeyValueDatabase, hash : Hash) : Boolean {
     return db.hasObject(HashCodec, DB.BLOCK_INFO, hash )
   }
+  */
 
   /** Get the block hash at the given height on the best blockchain.
     *

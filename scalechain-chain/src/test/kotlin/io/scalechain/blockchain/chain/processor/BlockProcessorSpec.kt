@@ -26,9 +26,10 @@ class BlockProcessorSpec : BlockchainTestTrait(), Matchers, TransactionTestInter
     super.beforeEach()
 
     b = BlockProcessor(db, chain)
-    // Put the genesis block for testing.
-    b.acceptBlock(env().GenesisBlockHash, env().GenesisBlock)
 
+    // Put the genesis block for testing.
+    // Never pass the genesis block to acceptBlock. it should be passed to chain.putBlock.
+    chain.putBlock(db, env().GenesisBlockHash, env().GenesisBlock)
   }
 
   override fun afterEach() {

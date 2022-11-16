@@ -4,6 +4,7 @@ import io.scalechain.blockchain.chain.Blockchain
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.proto.Hash
 import io.scalechain.blockchain.proto.Block
+import io.scalechain.blockchain.script.hash
 import org.slf4j.LoggerFactory
 
 /** Process a received block.
@@ -114,8 +115,6 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
     * @return true if the newly accepted block became the new best block.
     */
   fun acceptBlock(blockHash : Hash, block : Block) : Boolean {
-    assert(blockHash != null)
-    assert(block != null)
 
     // Step 1. Need to check if the same blockheader hash exists by looking up mapBlockIndex
     // Step 2. Need to increase DoS score if an orphan block was received.
@@ -128,9 +127,16 @@ class BlockProcessor(private val db : KeyValueDatabase, val chain : Blockchain) 
     //  chain.putBlock(blockHash, block)(transactingDB)
     //}
 
+    //return chain.putBlock(db, blockHash, block)
+
+    // Genesis block is never passed to acceptBlock, so no need to check if the block is genesis block.
+    // It is passed to chain.putBlock upon startup of ScaleChainCli.
+    assert( ! block.header.hashPrevBlock.isAllZero() )
+
     if (chain.hasBlock(db, block.header.hashPrevBlock)) { // The parent block exists
       // TODO : BUGBUG : Change to record level locking with atomic update.
       return chain.putBlock(db, blockHash, block)
+
     } else { // The parent block does not exist, the block is an orphan.
       chain.blockOrphanage.putOrphan(db, block)
       return false // The new block is not the best block

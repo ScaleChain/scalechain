@@ -150,11 +150,10 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
     *
     */
   fun putBlock(db : KeyValueDatabase, blockHash : Hash, block:Block) : Boolean {
-    assert(blockHash != null)
-    assert(block != null)
 
     // TODO : BUGBUG : Need to think about RocksDB transactions.
-
+    // TODO : BUGBUG : Need to improve locking by using locks named by block hash.
+    //                 Consider two threads are putting the same block at the same time.
     synchronized(this) {
       if (storage.hasBlock(db, blockHash)) {
         logger.trace("Duplicate block was ignored. Block hash : ${blockHash}")
@@ -186,6 +185,9 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
 
           val prevBlockHash = prevBlockDesc.blockHeader.hash()
 
+          // BUGBUG Critical ; if two Block messages are accepted from two different peers, there is a chance
+          // that the same block is put into the blockchain.
+          // Need to have a lock based on the blockhash while putting a block into the blockchain.
           storage.putBlock(db, block)
           val blockInfo = storage.getBlockInfo(db, blockHash)!!
 
@@ -279,7 +281,6 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
       txPool.addTransactionToPool(db, txHash, transaction)
 
       // TODO : BUGBUG : Need to commit the RocksDB transaction.
-
     } finally {
       // TODO : BUGBUG : Need to rollback the RocksDB transaction if any exception raised.
       // Only some of inputs might be connected. We need to revert the connection if any error happens.

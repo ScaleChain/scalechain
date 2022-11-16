@@ -27,7 +27,6 @@ object BlockMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   fun handle( context : MessageHandlerContext, block : Block ) : Unit {
-    assert(block != null);
 
     // TODO : Revert the adoption of PBFT. The change to PBFT was by this commit: https://github.com/ScaleChain/scalechain/commit/5e58696f337042067cb895196dc388ad94251321
 

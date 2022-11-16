@@ -32,12 +32,10 @@ interface BlockStorage : BlockDatabase, BlockIndex, TransactionDescriptorIndex, 
     putBlockHeader(db, blockHeader.hash(), blockHeader)
   }
 
-/*
   fun hasBlock(db : KeyValueDatabase, blockHash : Hash) : Boolean {
     val blockInfo = getBlockInfo(db, blockHash)
     return blockInfo?.blockLocatorOption != null
   }
-*/
 
   fun hasTransaction(db : KeyValueDatabase, transactionHash : Hash) : Boolean {
     // TODO : Optimize : We don't need to deserialize a transaction to see if it exists on our database.
