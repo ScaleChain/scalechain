@@ -38,13 +38,12 @@ abstract class RpcCommand : ParameterConverter {
         logger.error("ExceptionWithErrorCode, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
       }
       val rpcError = RpcCommand.ERROR_MAP.get(e.code)
-      if (rpcError == null) {
-        val rpcError = RpcError.RPC_INTERNAL_ERROR
+      return if (rpcError == null) {
+        val rpcInternalError = RpcError.RPC_INTERNAL_ERROR
         logger.error("No mapping to RPC error for exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")
-        return Left(RpcError( rpcError.code, rpcError.messagePrefix, "[" + e.code.code + "] " + e.message ?: "" ))
+        Left(RpcError( rpcInternalError.code, rpcInternalError.messagePrefix, "[" + e.code.code + "] " + e.message ))
       } else {
-        return Left(RpcError(rpcError.code, rpcError.messagePrefix, "[" + e.code.code + "] " + e.message ?: ""))
-
+        Left(RpcError(rpcError.code, rpcError.messagePrefix, "[" + e.code.code + "] " + e.message ))
       }
     } catch ( e : Exception )  { // In case any error happens, return as RpcError.
       logger.error("Internal Error, while executing a command. exception : $e, message : ${e.message}, occurred at : ${StackUtil.getStackTrace(e)}")

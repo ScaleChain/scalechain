@@ -85,7 +85,7 @@ object SendFrom : RpcCommand() {
       val comment:       String?               = request.params.getOption<String>("Comment", 4)
       val commentTo:     String?               = request.params.getOption<String>("Comment To", 5)
 /*
-      // TODO : Implement
+      // TODO : BUGBUG Implement
       val transactionHash = Hash("f14ee5368c339644d3037d929bbe1f1544a532f8826c7b7288cb994b0b0ff5d8")
 
       Right(Some(StringResult(ByteArray.byteArrayToString(transactionHash.value))))

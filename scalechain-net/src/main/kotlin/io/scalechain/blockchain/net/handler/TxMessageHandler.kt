@@ -28,7 +28,7 @@ object TxMessageHandler {
     val transactionHash = transaction.hash()
     logger.trace("<P2P> Received a transaction. Hash : ${transactionHash}")
 
-    // BUGBUG : Do not process the message during initial block download.
+    // TODO : BUGBUG Do not process the message during initial block download.
     //
     //if ( ! Node.get().isInitialBlockDownload() ) {
     {

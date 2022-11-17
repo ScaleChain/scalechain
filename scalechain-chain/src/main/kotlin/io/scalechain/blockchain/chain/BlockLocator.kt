@@ -103,7 +103,7 @@ class BlockLocator(private val chain : Blockchain) {
       }
 
       var addedHashes = 0
-      var lastHash : Hash? = null
+      var lastHash : Hash?
 
       do {
         // TODO : BUGBUG : Make sure that getBlockHash returns a block hash even though the blockchain has the header of the block only without any transaction data.

@@ -48,18 +48,18 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
 
 
     "isValid" should "return true if it is valid" {
-      CoinAddress(env().PubkeyAddressVersion, Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe true
-      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe true
+      CoinAddress(env().PubkeyAddressVersion, Bytes.from(filledString(40, '0'.code.toByte()))).isValid() shouldBe true
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(40, '0'.code.toByte()))).isValid() shouldBe true
 
     }
 
     "isValid" should "return false if it is invalid" {
       // invalid version
-      CoinAddress('X'.toByte(), Bytes.from(filledString(40, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress('X'.code.toByte(), Bytes.from(filledString(40, '0'.code.toByte()))).isValid() shouldBe false
       // invalid length
-      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.code.toByte()))).isValid() shouldBe false
       // invalid length
-      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(42, '0'.toByte()))).isValid() shouldBe false
+      CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(42, '0'.code.toByte()))).isValid() shouldBe false
     }
 
     "base58" should "return base58 representation of the address" {
@@ -92,7 +92,7 @@ class CoinAddressSpec : FlatSpec(), Matchers, TransactionTestInterface, ChainTes
 
     "base58" should "hit an assertion if it is not valid" {
       // invalid length
-      val invalidAddress = CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.toByte())))
+      val invalidAddress = CoinAddress(env().ScriptAddressVersion, Bytes.from(filledString(38, '0'.code.toByte())))
 
       shouldThrow <AssertionError> {
         invalidAddress.base58()

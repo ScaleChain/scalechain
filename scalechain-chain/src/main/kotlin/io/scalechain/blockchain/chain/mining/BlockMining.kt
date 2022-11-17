@@ -236,7 +236,7 @@ class BlockMining(private val db: KeyValueDatabase, private val txDescIndex : Tr
       val txMagnet = TransactionMagnet(txDescIndex, tempCoinsView.tempTranasctionPoolIndex, tempCoinsView.tempTranasctionTimeIndex )
 
       var txCount = 0
-      var newlySelectedTransaction : Transaction? = null
+      var newlySelectedTransaction : Transaction?
       do {
         val iter = candidateTransactions.listIterator()
         var consequentNonAttachableTx = 0

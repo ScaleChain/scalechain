@@ -11,7 +11,6 @@ import java.math.BigInteger
   */
 object VersionFactory {
   fun create() : Version {
-    val db : KeyValueDatabase = Blockchain.get().db
 
     // ScaleChain uses Long type for the block height, but the Version.startHeight is encoded in 32bit little endian integer.
     // If we create two blocks a second, it takes about 15 years to fill up

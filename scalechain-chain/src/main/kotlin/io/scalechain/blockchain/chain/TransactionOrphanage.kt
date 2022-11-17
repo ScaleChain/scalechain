@@ -32,8 +32,8 @@ class TransactionOrphanage(private val storage : BlockStorage) {
     storage.putOrphanTransaction(db, txHash, OrphanTransactionDescriptor(transaction))
 
     // Step 2 : Find all inputs that depend on a missing parent transaction.
-    val missingTransactions = transaction.inputs.map{ it.outputTransactionHash }.filterNot { txHash : Hash ->
-      storage.hasTransaction(db, txHash)
+    val missingTransactions = transaction.inputs.map{ it.outputTransactionHash }.filterNot { outputTxHash : Hash ->
+      storage.hasTransaction(db, outputTxHash)
     }
 
     // Step 3 : Add the orphan transaction indexed by the missing parent transactions.

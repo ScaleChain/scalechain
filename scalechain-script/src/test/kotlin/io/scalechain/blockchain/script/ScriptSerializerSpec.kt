@@ -44,11 +44,12 @@ class ScriptSerializerSpec : OperationTestTrait() {
     }
 
     "serialize" should "produce byte arrays that can be parsed into the original script" {
-      val expectedPublicKeyHash = HexUtil.bytes( filledString(40, '1'.toByte() ) )
+      val expectedPublicKeyHash = HexUtil.bytes( filledString(40, '1'.code.toByte() ) )
       assert(expectedPublicKeyHash.size == 20)
       val expectedOperations = listOf( OpDup(), OpHash160(), OpPush(20, ScriptValue.valueOf(expectedPublicKeyHash)), OpEqualVerify(), OpCheckSig() )
       val serializedBytes = ScriptSerializer.serialize(expectedOperations)
 
+      // TODO : BUGBUG check actualOperations
       val actualOperations = ScriptParser.parse(LockingScript(Bytes(serializedBytes))).operations
 
       // The expected operations should match the original one.

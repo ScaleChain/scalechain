@@ -148,9 +148,8 @@ class NormalTransactionVerifier(private val db : KeyValueDatabase?, private val 
     // which has an unlocking script and a locking script into a log file.
     // We can use it to debug why the transaction failed.
     val mergedScript = MergedScript(transaction, inputIndex, transactionInput.unlockingScript, lockingScript)
-    throwingTransactionVerificationException(mergedScript) {
-      val lockingScript : LockingScript = getLockingScript(chainView)
 
+    throwingTransactionVerificationException(mergedScript) {
       verify(env, lockingScript)
     }
   }
@@ -304,7 +303,7 @@ class GenerationTransactionVerifier(db : KeyValueDatabase?, transaction : Genera
     //assert(env == null)
     //assert(chainView == null)
     // Do nothing.
-    // TODO : Verify that 100 blocks are created after the generation transaction was created.
+    // TODO : BUGBUG Verify that 100 blocks are created after the generation transaction was created.
   }
 }
 

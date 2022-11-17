@@ -22,7 +22,7 @@ class TransactionDescriptorCodecSpec : PayloadTestSuite<TransactionDescriptor>()
       """0100000002000000000000000300000000000000000004d203000111111111111111111111111111111111111111111111111111111111111111110100000000
       """)
 
-  val DUMMY_HASH1 = Hash ( Bytes.from( filledString(64, '1'.toByte() )) )
+  val DUMMY_HASH1 = Hash ( Bytes.from( filledString(64, '1'.code.toByte() )) )
 
   override val message = TransactionDescriptor(
       transactionLocator = FileRecordLocator( 1, RecordLocator(2,3)  ),

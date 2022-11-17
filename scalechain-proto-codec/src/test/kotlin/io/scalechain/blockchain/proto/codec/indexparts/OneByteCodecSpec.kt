@@ -17,5 +17,5 @@ class OneByteCodecSpec : PayloadTestSuite<OneByte>()  {
        61
     """)
 
-  override val message = OneByte('a'.toByte())
+  override val message = OneByte('a'.code.toByte())
 }

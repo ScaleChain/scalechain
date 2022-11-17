@@ -17,6 +17,8 @@ object HeadersMessageHandler {
     * @return Some(message) if we need to respond to the peer with the message.
     */
   fun handle( context : MessageHandlerContext, headers : Headers ) : Unit {
+    // TODO : BUGBUG Implement
+
     // We don't support the headers first approach yet.
     logger.warn("Headers message is not supported yet.")
 

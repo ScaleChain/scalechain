@@ -30,7 +30,7 @@ class BlockchainSpec : BlockchainTestTrait(), TransactionTestInterface, Matchers
   init {
     "putBlock" should "put the genesis block" {
       chain.putBlock(db, Hash( env().GenesisBlockHash.value) , env().GenesisBlock)
-      val (blockInfo, block) = chain.getBlock(db, env().GenesisBlockHash)!!
+      val (blockInfo, _) = chain.getBlock(db, env().GenesisBlockHash)!!
       blockInfo.height shouldBe 0L
       blockInfo.blockHeader shouldBe env().GenesisBlock.header
       blockInfo.transactionCount shouldBe env().GenesisBlock.transactions.size

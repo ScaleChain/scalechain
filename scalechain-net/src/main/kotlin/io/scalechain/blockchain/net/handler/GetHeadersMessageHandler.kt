@@ -24,6 +24,7 @@ object GetHeadersMessageHandler {
     */
   fun handle( context : MessageHandlerContext, getHeaders : GetHeaders ) : Unit {
     // We don't support the headers first approach yet.
+    // TODO : BUGBUG Implement
     logger.warn("GetHeaders message is not supported yet.")
 
 

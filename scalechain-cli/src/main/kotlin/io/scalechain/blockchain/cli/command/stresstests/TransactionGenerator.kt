@@ -96,7 +96,7 @@ class TransactionGenerator(private val db : KeyValueDatabase, private val wallet
 
     fun generationTransaction( height : Long, privateKey: PrivateKey) : Transaction {
       val minerAddress = CoinAddress.from(privateKey)
-      val coinbaseData = CoinMiner.coinbaseData(1)
+      val coinbaseData = CoinMiner.coinbaseData( height )
       return TransactionBuilder.newGenerationTransaction(coinbaseData, minerAddress)
     }
   }

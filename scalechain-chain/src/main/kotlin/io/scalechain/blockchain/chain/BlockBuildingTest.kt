@@ -29,7 +29,6 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
   abstract val db : KeyValueDatabase
 
   open fun generateAccountAddress(account:String) : AddressData {
-    assert( db != null )
     val addressData = generateAddress()
     onAddressGeneration(account, addressData.address)
     return addressData
@@ -72,7 +71,7 @@ abstract class AbstractBlockBuildingTest(private val chainView : BlockchainView?
     val transaction = TransactionBuilder.newBuilder()
       // Need to put a random number so that we have different transaction id for the generation transaction.
       .addGenerationInput( CoinbaseData(Bytes("Random:${Random().nextLong()}.ScaleChain by Kunwoo, Kwanho, Chanwoo, Kangmo.".toByteArray())))
-      .addOutput(CoinAmount(50L), generatedBy)
+      .addOutput(amount, generatedBy)
       .build()
     val transactionWithName = TransactionWithName(name, transaction)
     addTransaction( availableOutputs, transactionWithName)

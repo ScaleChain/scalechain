@@ -87,7 +87,7 @@ class BlockMagnet(private val storage : BlockStorage, private val txPool : Trans
     }
 */
     val chainBlockOption = ChainBlock(blockInfo.height, block)
-    val blockHeightOption = blockInfo.height
+
     var transactionIndex = -1
     for ( ( txLocator : TransactionLocator, transaction: Transaction) in (txLocators zip block.transactions)) {
       transactionIndex += 1

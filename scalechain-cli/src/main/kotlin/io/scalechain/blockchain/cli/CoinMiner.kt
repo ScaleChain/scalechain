@@ -57,8 +57,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
   }
   val thread = object : Thread() {
     override fun run() : Unit {
-      logger.info("Miner started. Params : ${params}")
-      val random = Random(System.currentTimeMillis())
+      logger.info("Miner started. Params : $params")
 
       var nonce : Int = 1
 
@@ -69,8 +68,6 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
         // Randomly sleep from 100 to 200 milli seconds. On average, sleep 60 seconds.
         // Because current difficulty(max hash : 00F0.. ) is to find a block at the probability 1/256,
         // We will get a block in (100ms * 256 = 25 seconds) ~ (200 ms * 256 = 52 seconds)
-
-        val bestBlockHeight = chain.getBestBlockHeight()
 
         //println(s"canMine=${canMine}, isMyTurn=${isMyTurn}")
 

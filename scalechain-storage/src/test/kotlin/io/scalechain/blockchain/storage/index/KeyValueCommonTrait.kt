@@ -24,6 +24,6 @@ interface KeyValueCommonTrait : Matchers {
   fun L(arrayOption : ByteArray?) =
     arrayOption?.toList()
 
-  fun PREFIX1() : Byte = '1'.toByte()
-  fun PREFIX2() : Byte = '2'.toByte()
+  fun PREFIX1() : Byte = '1'.code.toByte()
+  fun PREFIX2() : Byte = '2'.code.toByte()
 }

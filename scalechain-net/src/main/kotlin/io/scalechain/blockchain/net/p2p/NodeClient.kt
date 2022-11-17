@@ -49,8 +49,6 @@ class NodeClient(private val peerSet : PeerSet) : AutoCloseable {
         }
 
         if (future.cause() != null) { // completed with failure
-          val causeDescription = ExceptionUtil.describe( future.cause().cause )
-
           logger.info("Failed to connect to ${address}:${port}. Exception : ${future.cause().message}")
         }
 

@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelFutureListener
-import io.netty.handler.codec.http.HttpHeaders.Names.*
+import io.netty.handler.codec.http.HttpHeaderNames.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.handler.codec.http.*
@@ -31,8 +31,8 @@ class ApiServerHandler : SimpleChannelInboundHandler<Any>() {
     if (msg is HttpRequest) {
       val request: HttpRequest = msg
       this.request = request
-      if (HttpHeaders.is100ContinueExpected(request)) {
-        ApiServerHandler.send100Continue(ctx)
+      if (HttpUtil.is100ContinueExpected(request)) {
+        send100Continue(ctx)
       }
       requestData.setLength(0)
     }
@@ -57,12 +57,12 @@ class ApiServerHandler : SimpleChannelInboundHandler<Any>() {
   }
 
   private fun writeResponse(currentObj: HttpObject, ctx: ChannelHandlerContext, responseString : String): Boolean {
-    val keepAlive: Boolean = HttpHeaders.isKeepAlive(request)
-    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, if (currentObj.getDecoderResult().isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
+    val keepAlive: Boolean = HttpUtil.isKeepAlive(request)
+    val response: FullHttpResponse = DefaultFullHttpResponse(HTTP_1_1, if (currentObj.decoderResult().isSuccess) OK else BAD_REQUEST, Unpooled.copiedBuffer(responseString, CharsetUtil.UTF_8))
     response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8")
     if (keepAlive) {
       response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
-      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
+      response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
     }
     /*
     val cookieString: String = request.headers.get(COOKIE)

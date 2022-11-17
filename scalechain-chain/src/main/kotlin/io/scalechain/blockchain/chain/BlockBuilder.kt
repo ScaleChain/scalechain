@@ -32,7 +32,7 @@ open class BlockBuilder {
     * @param block The block to use to calculate the serialized size of it.
     */
   protected fun checkValidity(block : Block) : Unit {
-    // TODO : Implement it.
+    // TODO : BUGBUG Implement it.
   }
 
   /** Get the block.

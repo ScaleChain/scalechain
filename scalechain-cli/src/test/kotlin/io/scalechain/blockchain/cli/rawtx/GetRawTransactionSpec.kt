@@ -39,6 +39,7 @@ class GetRawTransactionSpec : APITestSuite() {
     "GetRawTransaction" should "return a serialized transaction if the Verose(2nd) parameter was 0" {
       val response = invoke(GetRawTransaction, listOf(TRANSACTION_ID, JsonPrimitive(0)))
       val result = response.right()!! as StringResult
+      // TODO : BUGBUG Check result
     }
 
 // This test fails in our docker environment. Not sure why.

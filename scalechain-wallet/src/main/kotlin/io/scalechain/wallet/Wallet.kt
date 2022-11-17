@@ -89,7 +89,7 @@ class Wallet() : ChainEventListener {
 //        println(s"sum=${sum}, walletOutput=${walletOutput}")
         val confirmations =
             if (walletOutput.walletOutput.blockindex == null) 0L
-            else getConfirmations(db, blockchainView, walletOutput.walletOutput.blockindex!!)
+            else getConfirmations(blockchainView, walletOutput.walletOutput.blockindex!!)
 
 //        println(s"confirmations=${confirmations}, minConfirmations=${minConfirmations}")
 
@@ -130,9 +130,9 @@ class Wallet() : ChainEventListener {
 
   internal val WalletTransactionComparatorInDescendingOrder = object : Comparator<WalletTransaction> {
     override fun compare(o1: WalletTransaction?, o2: WalletTransaction?): Int {
-      if (isMoreRecentThan(o1!!, o2!!)) return -1
-      else if (isMoreRecentThan(o2!!, o1!!)) return 1
-      else return 0
+      return if (isMoreRecentThan(o1!!, o2!!)) -1
+        else if (isMoreRecentThan(o2, o1)) 1
+        else 0
     }
   }
 
@@ -228,7 +228,7 @@ class Wallet() : ChainEventListener {
         val category = if (walletTransaction.transaction.inputs.first().isCoinBaseInput()) {
           val confirmations =
             if (walletTransaction.blockIndex == null) 0L
-            else getConfirmations(db, blockchainView, walletTransaction.blockIndex!!)
+            else getConfirmations(blockchainView, walletTransaction.blockIndex!!)
 
           if (confirmations >= env.CoinbaseMaturity) {
             "generate"
@@ -248,7 +248,7 @@ class Wallet() : ChainEventListener {
     val isCoinbase = walletTransaction.transaction.inputs[0].isCoinBaseInput()
     val confirmationsOption =
         if (walletTransaction.blockIndex == null) null // BUGBUG : should we return 0L instead of null?
-        else getConfirmations(db, blockchainView, walletTransaction.blockIndex!! )
+        else getConfirmations(blockchainView, walletTransaction.blockIndex!! )
 
     val accountOption : String? = store.getAccount(db, ownership)
     if (accountOption == null || (outputOwnershipsFilterOption != null && !outputOwnershipsFilterOption.contains(ownership) ) ) {
@@ -268,7 +268,7 @@ class Wallet() : ChainEventListener {
       } else {
         return WalletTransactionDescriptor(
           involvesWatchonly = involvesWatchonly,
-          account = accountOption!!,
+          account = accountOption,
           // TODO : BUGBUG : According to the specification, this should be the "paying" address.
           address = addressOption?.base58(),
           //address           = payingAddressOption.map(_.base58),
@@ -452,7 +452,7 @@ class Wallet() : ChainEventListener {
 
       val confirmations =
         if (walletOutput.walletOutput.blockindex == null) 0L
-        else getConfirmations(db, blockchainView, walletOutput.walletOutput.blockindex!!, walletOutput.outPoint)
+        else getConfirmations(blockchainView, walletOutput.walletOutput.blockindex!!, walletOutput.outPoint)
 
       val env = ChainEnvironment.get()
 
@@ -476,7 +476,7 @@ class Wallet() : ChainEventListener {
     * @param blockHeight The height of a block, where the transaction exists.
     * @return
     */
-  internal fun getConfirmations( db : KeyValueDatabase, blockchainView : BlockchainView, blockHeight : Long, outPointOption : OutPoint? = null) : Long {
+  internal fun getConfirmations(blockchainView : BlockchainView, blockHeight : Long, outPointOption : OutPoint? = null) : Long {
     val confirmations = blockchainView.getBestBlockHeight() - blockHeight + 1
 
     if (confirmations < 0 ) {
@@ -569,7 +569,7 @@ class Wallet() : ChainEventListener {
     // Step 3 : Rescan blockchain
     if (rescanBlockchain) {
       // BUGBUG : Need to check if block reorg happened. If happened, need to cancel the current rescan, and run it again.
-      blockchainView.getIterator(db, height = 0L).forEach { chainBlock: ChainBlock ->
+      blockchainView.getIterator(db, fromHeight = 0L).forEach { chainBlock: ChainBlock ->
         chainBlock.block.transactions.forEach { transaction ->
           transactionIndex += 1
           // registerTransaction is an expensive operation. Call this only when the transaction is related to the given output ownership.
@@ -851,7 +851,6 @@ class Wallet() : ChainEventListener {
     */
   internal fun unregisterTransaction(db : KeyValueDatabase, transactionHash : Hash, transaction : Transaction) : Unit {
     synchronized(this) { // threads can compete : (1) block attach/detach (2) putTransaction.
-      val currentTime = System.currentTimeMillis()
 
       logger.trace("<Wallet unregister tx:${transactionHash}> started.")
 

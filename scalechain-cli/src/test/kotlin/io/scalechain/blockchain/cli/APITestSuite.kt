@@ -55,10 +55,7 @@ object RunnablePeer : Runnable {
 abstract class APITestSuite : FlatSpec(), Matchers, ChainTestTrait {
   val GENESIS_BLOCK_HEIGHT = 0
   val GENESIS_BLOCK_HASH = HexUtil.hex(env().GenesisBlockHash.value.array)
-  val ALL_ZERO_HASH = Hash(Bytes.from(filledString(64, '0'.toByte())))
-
-  val RPC_USER = "user"
-  val RPC_PASSWORD = "pleasechangethispassword123@.@"
+  val ALL_ZERO_HASH = Hash(Bytes.from(filledString(64, '0'.code.toByte())))
 
   override fun beforeAll() {
     super.beforeAll()

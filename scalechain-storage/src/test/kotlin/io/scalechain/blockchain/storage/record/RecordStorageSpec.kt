@@ -170,7 +170,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
       val locator1 = rs.appendRecord(R, FileNumber(1))
       val locator2 = rs.appendRecord(R, FileNumber(2))
-      val locator3 = rs.appendRecord(OneByteCodec, OneByte('a'.toByte()))
+      val locator3 = rs.appendRecord(OneByteCodec, OneByte('a'.code.toByte()))
 
       expectFileCount(1)
 
@@ -182,7 +182,7 @@ class RecordStorageSpec : FlatSpec(), Matchers {
 
       rs.readRecord(R,locator1) shouldBe FileNumber(1)
       rs.readRecord(R,locator2) shouldBe FileNumber(2)
-      rs.readRecord(OneByteCodec,locator3) shouldBe OneByte('a'.toByte())
+      rs.readRecord(OneByteCodec,locator3) shouldBe OneByte('a'.code.toByte())
       rs.readRecord(R,locator4) shouldBe FileNumber(4)
     }
 
@@ -240,11 +240,11 @@ class RecordStorageSpec : FlatSpec(), Matchers {
       val newFile = rs.newFile(f)
       val locator1 = newFile.appendRecord(R, FileNumber(1))
       val locator2 = newFile.appendRecord(R, FileNumber(2))
-      val locator3 = newFile.appendRecord(OneByteCodec, OneByte('a'.toByte()))
+      val locator3 = newFile.appendRecord(OneByteCodec, OneByte('a'.code.toByte()))
 
       newFile.readRecord(R, locator1) shouldBe FileNumber(1)
       newFile.readRecord(R, locator2) shouldBe FileNumber(2)
-      newFile.readRecord(OneByteCodec, locator3) shouldBe OneByte('a'.toByte())
+      newFile.readRecord(OneByteCodec, locator3) shouldBe OneByte('a'.code.toByte())
 
       val thrown = shouldThrow<BlockStorageException> {
         newFile.appendRecord(R, FileNumber(4))

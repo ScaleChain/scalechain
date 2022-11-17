@@ -37,7 +37,7 @@ interface BlockchainView : CoinsView {
     * @param height Specifies where we start the iteration. The height 0 means the genesis block.
     * @return The iterator that iterates each ChainBlock.
     */
-  fun getIterator(db : KeyValueDatabase, height : Long) : Iterator<ChainBlock>
+  fun getIterator(db : KeyValueDatabase, fromHeight : Long) : Iterator<ChainBlock>
 
   /** Return the block height of the best block.
     *

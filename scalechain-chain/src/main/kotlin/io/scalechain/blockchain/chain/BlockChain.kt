@@ -300,7 +300,7 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
 
     val chainBlockSequence = (fromHeight .. bestBlockHeight).asSequence().map { height ->
       val blockHash = storage.getBlockHashByHeight(db, height)!!
-      val (unused, block) = storage.getBlock(db, blockHash)!!
+      val (_, block) = storage.getBlock(db, blockHash)!!
       ChainBlock(height, block)
     }
     return chainBlockSequence.iterator()

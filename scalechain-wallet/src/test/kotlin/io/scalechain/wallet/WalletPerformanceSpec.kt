@@ -127,7 +127,7 @@ class WalletPerformanceSpec : WalletTestTrait(), PerformanceTestTrait, Transacti
           //val tx = pair.second
 
           val rawHash: ByteArray = HashCodec.encode(txHash)
-          val prefixedRawHash = byteArrayOf('A'.toByte()) + rawHash
+          val prefixedRawHash = byteArrayOf('A'.code.toByte()) + rawHash
           hashes.add(prefixedRawHash)
           totalSize += rawHash.size
         }

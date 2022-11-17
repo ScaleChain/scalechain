@@ -34,14 +34,13 @@ class BlockFileReader(val blockListener : BlockReadListener) {
     * @param blockFile the file to read.
    */
   fun readFully(blockFile : File): Unit {
-    val raf = RandomAccessFile(blockFile, "r")
-    raf.use { raf ->
-      val channel = raf.getChannel()
+    RandomAccessFile(blockFile, "r").use { raf ->
+      val channel = raf.channel
       val byteBuffer : MappedByteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())
       byteBuffer.load()
       val wrappedBuffer = Unpooled.wrappedBuffer(byteBuffer)
       val stream = CodecInputOutputStream(wrappedBuffer, isInput = true)
-      while( readBlock(stream) ) ;
+      while( readBlock(stream) );
     }
   }
 

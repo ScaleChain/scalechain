@@ -153,12 +153,12 @@ class PeerSet {
       // Note : nothing to do for the channels.
       // when a channel is disconnected, the channel is removed from channels group.
 
-      when {
-        remoteAddress is InetSocketAddress -> {
+      when (remoteAddress) {
+        is InetSocketAddress -> {
           peerByAddress.remove(remoteAddress)
         }
         // For unit tests. We need to accept a socket whose toString method returns "embedded"
-        remoteAddress is SocketAddress -> {
+        else -> {
           if ( remoteAddress.toString() == "embedded") {
             peerByAddress.remove(InetSocketAddress(1000) )
           } else {
@@ -166,11 +166,6 @@ class PeerSet {
             logger.error(message)
             throw ChainException(ErrorCode.InternalError, message )
           }
-        }
-        else -> {
-          val message = "The remote address of the channel to remove was not the type InetSocketAddress or EmbeddedSocketAddress. Remote Address : ${remoteAddress}"
-          logger.error(message)
-          throw ChainException(ErrorCode.InternalError, message )
         }
       }
     }

@@ -9,8 +9,6 @@ import io.scalechain.blockchain.storage.index.KeyValueDatabase
  * Used by importaddress to check if a currently existing transaction has to be registered to the wallet when the rescan parameter is set to true.
  */
 fun Transaction.isRelatedWith(db : KeyValueDatabase, coinsView : CoinsView, ownership: OutputOwnership) : Boolean {
-    // If the transaction is related to the output
-    var isTransactionRelated = false
 
     this.outputs.forEach { transactionOutput ->
       if (LockingScriptAnalyzer.extractPossibleOutputOwnerships(transactionOutput.lockingScript).contains(ownership)) {

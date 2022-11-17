@@ -26,8 +26,6 @@ object GetBlocksMessageHandler {
   fun handle(context: MessageHandlerContext, getBlocks: GetBlocks): Unit {
     // TODO : Investigate : Need to understand : GetDistanceBack returns the depth(in terms of the sender's blockchain) of the block that is in our main chain. It returns 0 if the tip of sender's branch is in our main chain. We will send up to 500 more blocks from the tip height of the sender's chain.
 
-    val db : KeyValueDatabase = Blockchain.get().db
-
     // Step 1 : Get the list of block hashes to send.
     val locator = BlockLocator(Blockchain.get())
 

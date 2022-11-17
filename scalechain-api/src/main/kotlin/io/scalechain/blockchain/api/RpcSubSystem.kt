@@ -94,7 +94,8 @@ class RpcSubSystem(private val db : KeyValueDatabase, private val chain : Blockc
     * @return Some(SubmitBlockResult) if any error happend; None otherwise.
     */
   fun submitBlock(block : Block, parameters : JsonObject) : SubmitBlockResult? {
-    // TODO : BUGBUG : parameters is not used.
+    // TODO : BUGBUG parameters is not used.
+
     val blockHash = block.header.hash()
     if (chain.hasBlock(db, blockHash)) {
       return SubmitBlockResult.DUPLICATE

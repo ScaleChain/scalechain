@@ -46,6 +46,6 @@ object Services {
   //
   // getSimpleName => GetBestBlockHash
   // toLowerCase   => getbestblockhash
-  val serviceByCommand = (all.map{it.javaClass.getSimpleName().toLowerCase()} zip all).toMap()
+  val serviceByCommand = (all.map{it.javaClass.simpleName.lowercase()} zip all).toMap()
 }
 

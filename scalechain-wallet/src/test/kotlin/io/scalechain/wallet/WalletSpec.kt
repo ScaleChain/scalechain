@@ -725,24 +725,24 @@ class WalletSpec : WalletTestTrait(), TransactionTestInterface, Matchers {
         override fun onStepFinish(stepNumber : Int): Unit {
           when(stepNumber) {
             1 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 2L
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 1L
+              wallet.getConfirmations(TestBlockchainView, 0) shouldBe 2L
+              wallet.getConfirmations(TestBlockchainView, 1) shouldBe 1L
             }
             2 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 3L
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 2L
+              wallet.getConfirmations(TestBlockchainView, 0) shouldBe 3L
+              wallet.getConfirmations(TestBlockchainView, 1) shouldBe 2L
             }
             3 -> {
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
+              wallet.getConfirmations(TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(TestBlockchainView, 1) shouldBe 3L
             }
             4 -> { // no block is created for step 4
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
+              wallet.getConfirmations(TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(TestBlockchainView, 1) shouldBe 3L
             }
             5 -> { // no block is created for step 4
-              wallet.getConfirmations(db, TestBlockchainView, 0) shouldBe 4L
-              wallet.getConfirmations(db, TestBlockchainView, 1) shouldBe 3L
+              wallet.getConfirmations(TestBlockchainView, 0) shouldBe 4L
+              wallet.getConfirmations(TestBlockchainView, 1) shouldBe 3L
             }
           }
         }

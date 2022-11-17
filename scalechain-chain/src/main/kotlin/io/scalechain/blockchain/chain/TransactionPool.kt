@@ -15,7 +15,6 @@ class TransactionPool(private val storage : BlockStorage, private val txMagnet :
 
   fun getOldestTransactions(db : KeyValueDatabase, count:Int) : List<Pair<Hash, Transaction>> {
     return storage.getOldestTransactionHashes(db, count).map{ cstringPrefixedKey ->
-      val createdAtString = cstringPrefixedKey.prefix
       val txHash = cstringPrefixedKey.data
 
       val txOption = storage.getTransactionFromPool(db, txHash)

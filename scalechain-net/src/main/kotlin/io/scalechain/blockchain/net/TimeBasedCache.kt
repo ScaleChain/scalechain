@@ -16,17 +16,12 @@ class TimeBasedCache<T>(duration: Long, unit: TimeUnit) {
     CacheBuilder.newBuilder().expireAfterWrite(duration, unit).concurrencyLevel(processors).build<Hash, T>()
 
   fun put(hashKey : Hash, block : T) : Unit  {
-    // Assumption : cache accepts concurrent put/get
-    val incompleteBlock = cache.getIfPresent(hashKey)
-
     cache.put(hashKey, block)
   }
 
   fun get(hashKey : Hash) : T? {
     // Assumption : cache accepts concurrent put/get
-
     val block = cache.getIfPresent(hashKey)
-    if (block == null) return null
-    else return block
+    return block
   }
 }
