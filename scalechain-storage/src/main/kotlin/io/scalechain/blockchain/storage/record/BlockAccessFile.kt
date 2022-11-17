@@ -2,13 +2,14 @@ package io.scalechain.blockchain.storage.record
 
 import java.io.*
 import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 
 /**
   * Created by kangmo on 3/12/16.
   */
 open class BlockAccessFile(path : File, maxFileSize : Long) {
   val file = RandomAccessFile(path, "rw")
-  val fileChannel = file.getChannel()
+  val fileChannel: FileChannel = file.getChannel()
 
   fun size()   : Long = fileChannel.size()
 

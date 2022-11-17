@@ -11,7 +11,7 @@ object HttpRequester {
         val sb: StringBuilder = StringBuilder();
         val br: BufferedReader = BufferedReader(InputStreamReader(istream));
 
-        var read: String? = null
+        var read: String?
 
         do {
             read = br.readLine()

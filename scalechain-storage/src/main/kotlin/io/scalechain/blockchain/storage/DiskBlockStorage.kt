@@ -102,7 +102,6 @@ class DiskBlockStorage(private val db : KeyValueDatabase, private val directoryP
     */
   override fun putBlock(db : KeyValueDatabase, blockHash : Hash, block : Block) : Unit {
     val blockInfo : BlockInfo? = getBlockInfo(db, blockHash)
-    var isNewBlock = false
 
     if (blockInfo != null) {
       // case 1 : block info was found
@@ -132,7 +131,7 @@ class DiskBlockStorage(private val db : KeyValueDatabase, private val directoryP
         // case 2.1 : no block info was found, previous block header exists.
         val appendResult = blockWriter.appendBlock(block)
 
-        val blockInfo = BlockInfoFactory.create(
+        val newBlockInfo = BlockInfoFactory.create(
           // For the genesis block, the prevBlockInfoOption is None.
           prevBlockInfoOption,
           block.header,
@@ -141,13 +140,11 @@ class DiskBlockStorage(private val db : KeyValueDatabase, private val directoryP
           appendResult.blockLocator // block locator
         )
 
-        putBlockInfo(db, blockHash, blockInfo)
+        putBlockInfo(db, blockHash, newBlockInfo)
 
-        val blockHeight = blockInfo.height
         val fileSize = blockRecordStorage.files[appendResult.headerLocator.fileIndex].size()
-        updateFileInfo(appendResult.headerLocator, fileSize, blockInfo.height, block.header.timestamp)
+        updateFileInfo(appendResult.headerLocator, fileSize, newBlockInfo.height, block.header.timestamp)
 
-        isNewBlock = true
         //logger.info("The block was put. block hash : {}", blockHash)
       } else {
         // case 2.2 : no block info was found, previous block header does not exists.

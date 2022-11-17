@@ -18,7 +18,7 @@ object HexUtil {
         //assert(hexString.length % 2 == 0)
         // BUGBUG : this extention function was copied from Internet. Need to make sure that this works.
         fun <T> List<T>.sliding(windowSize: Int): List<List<T>> {
-            return this.dropLast(windowSize - 1).mapIndexed { i, s -> Pair(i, this.subList(i, i + windowSize)) }.filter{ it.first % windowSize == 0}.map {it.second}
+            return this.dropLast(windowSize - 1).mapIndexed { i, _ -> Pair(i, this.subList(i, i + windowSize)) }.filter{ it.first % windowSize == 0}.map {it.second}
         }
 
         // Remove all non-hex chars

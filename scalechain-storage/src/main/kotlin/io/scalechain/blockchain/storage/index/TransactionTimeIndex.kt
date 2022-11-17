@@ -42,7 +42,7 @@ interface TransactionTimeIndex {
       val buffer = arrayListOf<CStringPrefixed<Hash>>()
       var copied = 0
       while(copied < count && iterator.hasNext()) {
-        val (key, value) = iterator.next()
+        val (key, _) = iterator.next()
         buffer.add(key)
         copied += 1
       }
@@ -82,7 +82,7 @@ interface TransactionTimeIndex {
       } else {
         // Prefix the base58 encoded string with "1", to make the encoded string take the MaxBase58EncodedLength bytes.
         // This is necessary to sort transactions by transaction time.
-        val prefix = String(ByteArray(MaxBase58EncodedLength - encodedString.length, {'1'.toByte()}))
+        val prefix = String(ByteArray(MaxBase58EncodedLength - encodedString.length) { '1'.code.toByte() })
         return prefix + encodedString
       }
     }

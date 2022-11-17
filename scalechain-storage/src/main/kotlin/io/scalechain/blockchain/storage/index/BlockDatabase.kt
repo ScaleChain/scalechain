@@ -5,27 +5,27 @@ import io.scalechain.blockchain.proto.codec.*
 import io.scalechain.util.ByteArrayExt
 
 object DB {
-  val BLOCK_INFO = 'b'.toByte()
-  val TRANSACTION = 't'.toByte()
-  val BLOCK_FILE_INFO = 'f'.toByte()
-  val LAST_BLOCK_FILE = 'l'.toByte()
-  val BEST_BLOCK_HASH = 'B'.toByte()
-  val BLOCK_HEIGHT = 'h'.toByte()
+  const val BLOCK_INFO = 'b'.code.toByte()
+  const val TRANSACTION = 't'.code.toByte()
+  const val BLOCK_FILE_INFO = 'f'.code.toByte()
+  const val LAST_BLOCK_FILE = 'l'.code.toByte()
+  const val BEST_BLOCK_HASH = 'B'.code.toByte()
+  const val BLOCK_HEIGHT = 'h'.code.toByte()
 
   // The disk-pool, which keeps transactions on disk instead of mempool.
-  val TRANSACTION_POOL = 'd'.toByte()
+  const val TRANSACTION_POOL = 'd'.code.toByte()
   // The index from transaction creation time to the transaction hash.
-  val TRANSACTION_TIME = 'e'.toByte()
+  const val TRANSACTION_TIME = 'e'.code.toByte()
 
   // A temporary transaction pool for checking transaction attach-ability while creating blocks.
-  val TEMP_TRANSACTION_POOL = 'y'.toByte()
+  const val TEMP_TRANSACTION_POOL = 'y'.code.toByte()
   // A temporary transaction time index for checking transaction attach-ability while creating blocks.
-  val TEMP_TRANSACTION_TIME = 'z'.toByte()
+  const val TEMP_TRANSACTION_TIME = 'z'.code.toByte()
 
-  val ORPHAN_BLOCK = '1'.toByte()
-  val ORPHAN_TRANSACTION = '2'.toByte()
-  val ORPHAN_BLOCKS_BY_PARENT = '3'.toByte()
-  val ORPHAN_TRANSACTIONS_BY_DEPENDENCY = '4'.toByte()
+  const val ORPHAN_BLOCK = '1'.code.toByte()
+  const val ORPHAN_TRANSACTION = '2'.code.toByte()
+  const val ORPHAN_BLOCKS_BY_PARENT = '3'.code.toByte()
+  const val ORPHAN_TRANSACTIONS_BY_DEPENDENCY = '4'.code.toByte()
 }
 
 /** Maintains block chains with different height, it knows which one is the best one.

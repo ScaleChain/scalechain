@@ -98,9 +98,8 @@ object ScriptParser {
       programCounter += 1
 
       // Get the script operation that matches the op code.
-      val scriptOp = ScriptOperations.get(opCode)
-      if (scriptOp != null) {
-        val scriptOpTemplate = scriptOp
+      val scriptOpTemplate = ScriptOperations.get(opCode)
+      if (scriptOpTemplate != null) {
 
         // A script operation can consume bytes in the script chunk.
         // Copy a chunk of bytes of

@@ -68,7 +68,6 @@ class MapDatabase(path : File) : KeyValueDatabase {
 
   override fun get(key: ByteArray): ByteArray? {
     return treeMap.get(key)
-    db.commit()
   }
 
   override fun del(key: ByteArray) {

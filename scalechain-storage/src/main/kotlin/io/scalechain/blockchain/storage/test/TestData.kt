@@ -54,6 +54,6 @@ object TestData : ProtoTestData, CodecTestUtil {
    */
   fun dummyHash(num: Int) : Hash {
     assert(num >= 0 && num <= 9)
-    return Hash(Bytes.from(filledString(64, ('0'+num).toByte() )))
+    return Hash(Bytes.from(filledString(64, ('0'+num).code.toByte() )))
   }
 }

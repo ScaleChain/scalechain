@@ -16,11 +16,11 @@ open class InputOutputStream( open val byteBuf : ByteBuf, open val isInput : Boo
     fun fixedBytes(length : Int, bytes : ByteBuf?) : ByteBuf {
         assert(length >= 0)
 
-        if (isInput) {
-            return byteBuf.readBytes(length)
+        return if (isInput) {
+            byteBuf.readBytes(length)
         } else {
             assert(bytes != null)
-            return byteBuf.writeBytes(bytes!!, length)
+            byteBuf.writeBytes(bytes!!, length)
         }
     }
 }

@@ -83,16 +83,16 @@ data class ScriptInteger(val bigIntValue:BigInteger) : ScriptValue {
 
   fun canEqual(a: Any) = a is ScriptInteger
 
-  override fun equals(that: Any?): Boolean {
-    return when {
-      that == null -> return false
-      that is ScriptInteger -> that.canEqual(this) && Arrays.equals(that.value, this.value)
+  override fun equals(other: Any?): Boolean {
+    return when (other) {
+        null -> return false
+        is ScriptInteger -> other.canEqual(this) && other.value.contentEquals(this.value)
       else -> false
     }
   }
 
   override fun hashCode():Int {
-    return Arrays.hashCode(value)
+    return value.contentHashCode()
   }
 }
 
@@ -103,16 +103,16 @@ data class ScriptBytes(val bytesValue:ByteArray) : ScriptValue {
 
   fun canEqual(a: Any) = a is ScriptBytes
 
-  override fun equals(that: Any?): Boolean {
-    return when {
-      that == null -> return false
-      that is ScriptBytes -> that.canEqual(this) && Arrays.equals(that.value, this.value)
+  override fun equals(other: Any?): Boolean {
+    return when (other) {
+        null -> return false
+        is ScriptBytes -> other.canEqual(this) && other.value.contentEquals(this.value)
       else -> false
     }
   }
 
   override fun hashCode():Int {
-    return Arrays.hashCode(value)
+    return value.contentHashCode()
   }
 
 }

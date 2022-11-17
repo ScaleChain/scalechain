@@ -72,7 +72,7 @@ interface BlockStorage : BlockDatabase, BlockIndex, TransactionDescriptorIndex, 
       if (blockInfo == null) {
 
         // case 1.1 : the header does not exist yet.
-        val blockInfo = BlockInfoFactory.create(
+        val newBlockInfo = BlockInfoFactory.create(
           // Pass None for the genesis block.
           prevBlockInfoOption,
           blockHeader,
@@ -81,7 +81,7 @@ interface BlockStorage : BlockDatabase, BlockIndex, TransactionDescriptorIndex, 
           null // block locator
         )
 
-        putBlockInfo(db, blockHash, blockInfo)
+        putBlockInfo(db, blockHash, newBlockInfo)
         // We are not checking if the block is the best block, because we received a header only.
         // We put a block as a best block only if we have the block data as long as the header.
       } else {

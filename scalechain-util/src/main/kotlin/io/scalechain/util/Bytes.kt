@@ -1,6 +1,5 @@
 package io.scalechain.util
 
-import io.netty.buffer.ByteBuf
 import java.lang.Comparable
 import java.util.*
 
@@ -31,7 +30,7 @@ class Bytes(val array : ByteArray) : Comparable<Bytes> {
   override fun compareTo(o: Bytes?): Int {
     if (o == null)
       return 1
-    return ArrayUtil.compare(array, o!!.array)
+    return ArrayUtil.compare(array, o.array)
   }
 
   companion object {

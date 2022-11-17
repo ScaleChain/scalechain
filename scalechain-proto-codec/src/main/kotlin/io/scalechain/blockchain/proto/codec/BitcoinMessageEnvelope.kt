@@ -126,7 +126,7 @@ object BitcoinMessageEnvelopeCodec : Codec<BitcoinMessageEnvelope> {
               decodeCommand(command!!),
               length!!.toInt(),
               checksum!!,
-              payload!!
+              payload
           )
       }
       return null

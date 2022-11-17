@@ -58,16 +58,14 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
       //.setStatsDumpPeriodSec(3)
       // in RocksDB 5.1, setAllowOsBuffer no longer exists.
       //.setAllowOsBuffer(true)
-      .setWriteBufferSize(256 * 1024 * 1024)
+      .setWriteBufferSize(256L * 1024L * 1024L)
       .setMaxWriteBufferNumber(4)
       .setMinWriteBufferNumberToMerge(2)
       .setMaxOpenFiles(5000)
 //      .setCompressionType(CompressionType.LZ4_COMPRESSION)
-      //      .setCompressionType(CompressionType.SNAPPY_COMPRESSION)
-      .setMaxBackgroundCompactions(3) // how many cores to allocate to compaction?
-      .setMaxBackgroundFlushes(1)
+//      .setCompressionType(CompressionType.SNAPPY_COMPRESSION)
 //      .setCompactionStyle(CompactionStyle.LEVEL)
-//            .setMaxTotalWalSize(1024 * 1024 * 1024)
+//       .setMaxTotalWalSize(1024 * 1024 * 1024)
 
   /*
   protected<storage> var bloomFilter = BloomFilter(10);
@@ -148,7 +146,7 @@ open class RocksDatabase(path : File) : KeyValueDatabase {
   }
 
   override fun del(key : ByteArray) : Unit {
-    db!!.remove(key)
+    db!!.delete(key)
   }
 
   /**

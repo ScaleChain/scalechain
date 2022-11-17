@@ -17,7 +17,7 @@ class PolymorphicCodec<typeT, valueT>(private val typeIndicatorCodec : Codec<typ
             val className = (obj!! as Any).javaClass.simpleName!!
             val typeIndicator = typeClassNameToTypeIndicatorMap[className]!!
             typeIndicatorCodec.transcode(io, typeIndicator)
-            typeIndicatorToCodecMap[typeIndicator]!!.transcode(io, obj!!)
+            typeIndicatorToCodecMap[typeIndicator]!!.transcode(io, obj)
             return null
         }
     }
