@@ -27,13 +27,11 @@ object HashCodec : Codec<Hash> {
 
 object LockingScriptCodec : Codec<LockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : LockingScript? ) : LockingScript? {
-    // BUGBUG : Create VariableByteArray instead of using VariableByteBuf
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data?.array))
+    val byteArray = Codecs.VariableByteArray.transcode(io, obj?.data?.array)
 
     if (io.isInput) {
-      //println("${HexUtil.hex(byteBuf!!.toByteArray())}")
       return LockingScript(
-          Bytes(byteBuf!!.toByteArray())
+          Bytes(byteArray!!)
       )
     }
     return null
@@ -42,11 +40,11 @@ object LockingScriptCodec : Codec<LockingScript> {
 
 object UnlockingScriptCodec : Codec<UnlockingScript> {
   override fun transcode(io : CodecInputOutputStream, obj : UnlockingScript? ) : UnlockingScript? {
-    val byteBuf = Codecs.VariableByteBuf.transcode(io, if (obj == null) null else Unpooled.wrappedBuffer(obj?.data?.array))
+    val byteArray = Codecs.VariableByteArray.transcode(io, obj?.data?.array)
 
     if (io.isInput) {
       return UnlockingScript(
-        Bytes(byteBuf!!.toByteArray())
+        Bytes(byteArray!!)
       )
     }
     return null

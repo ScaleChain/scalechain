@@ -43,7 +43,12 @@ object Codecs {
     fun variableByteBuf( lengthCodec : Codec<Long> )
         = VariableByteBufCodec(lengthCodec)
 
+    fun variableByteArray( lengthCodec : Codec<Long> )
+            = VariableByteArrayCodec(lengthCodec)
+
     val VariableByteBuf = variableByteBuf( VariableInt )
+
+    val VariableByteArray = variableByteArray( VariableInt )
 
     fun variableString( lengthCodec : Codec<Long> )
         = VariableStringCodec(lengthCodec)

@@ -92,7 +92,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
             var blockFound = false;
 
             // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-            val requiredHashCalulcations = 1024L
+            val requiredHashCalulcations = 1024L * 1024L
 
             // Try mining with the block template for five seconds.
             val MINING_TRYAL_MILLIS=1000

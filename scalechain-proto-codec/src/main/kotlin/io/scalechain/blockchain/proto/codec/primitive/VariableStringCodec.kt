@@ -7,6 +7,8 @@ import java.nio.charset.Charset
 import io.scalechain.blockchain.proto.codec.Codec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 import io.netty.buffer.Unpooled
+import io.scalechain.util.toByteArray
+
 /**
  * Created by kangmo on 22/11/2016.
  */
@@ -16,7 +18,13 @@ class VariableStringCodec(val lengthCodec : Codec<Long>) : Codec<String> {
     override fun transcode(io : CodecInputOutputStream, obj : String? ) : String? {
         if (io.isInput) {
             val byteBuf : ByteBuf = VariableByteBufCodec.transcode(io, null)!!
-            return byteBuf.toString(Utf8CharSet)
+            val string = byteBuf.toString(Utf8CharSet)
+            if (string.isNotEmpty()) {
+                val fullyReleased = byteBuf.release()
+                assert(fullyReleased)
+                assert(byteBuf.refCnt() == 0)
+            }
+            return string
         } else {
             // BUGBUG : Unnecessary byte array copy happens from string to bytebuf?
             // Need to understand what happens when we write a ByteBuf into another ByteBuf.

@@ -1,7 +1,6 @@
 package io.scalechain.blockchain.proto.codec.primitive
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
 import io.scalechain.blockchain.proto.codec.Codec
 import io.scalechain.blockchain.proto.codec.CodecInputOutputStream
 
