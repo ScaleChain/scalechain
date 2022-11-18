@@ -11,6 +11,7 @@ import io.scalechain.blockchain.storage.index.DatabaseFactory
 import io.scalechain.blockchain.storage.index.KeyValueDatabase
 import io.scalechain.blockchain.transaction.ChainEnvironment
 import io.scalechain.util.Config
+import io.scalechain.util.GlobalEnvironemnt
 import io.scalechain.util.NetUtil
 import io.scalechain.util.PeerAddress
 import io.scalechain.wallet.Wallet
@@ -42,11 +43,16 @@ object ScaleChainPeer {
                          val disableMiner : Boolean = false
                        )
 
-
     val parser = DefaultParser()
     val options = Options()
 
     init {
+        options.addOption(Option.builder("d")
+            .longOpt("homeDirectory")
+            .hasArg()
+            .desc("The home directory of ScaleChain where scalechain.conf exists.")
+            .build())
+
         options.addOption(Option.builder("p")
             .longOpt("p2pPort")
             .hasArg()
@@ -216,9 +222,19 @@ object ScaleChainPeer {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        print("program arguments: ")
+        for (a in args) {
+            print(" $a")
+        }
+        println()
+
         val parser = DefaultParser()
 
         val line = parser.parse(ScaleChainPeer.options, args)
+
+        // Set home directory first so that scalechain.conf can be loaded without any problem.
+        GlobalEnvironemnt.ScaleChainHome = line.getOptionValue("homeDirectory", "./")
+        println("HOME : ${GlobalEnvironemnt.ScaleChainHome}");
 
         val params = ScaleChainPeer.Parameters(
             peerAddress = line.getOptionValue(

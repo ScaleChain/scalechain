@@ -52,5 +52,13 @@ subprojects {
         maxHeapSize = "4096m"
     }
 }
+/*
+copy {
+    from file('config')
+    into projectDir
+    //rename '.*', '.env'
+}
+*/
+
 // Multiproject example from 
 // https://github.com/pkainulainen/gradle-examples/tree/master/multi-project-build 

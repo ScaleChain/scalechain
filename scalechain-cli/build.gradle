@@ -1,6 +1,7 @@
 plugins {
-    id 'application' // enabling the plugin here
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'java'
+    id 'kotlin'
+//    id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 dependencies {
@@ -39,12 +40,34 @@ jar {
 }
 */
 
-application {
-    mainClass.set("io.scalechain.blockchain.cli.ScaleChainPeer")
-}
-
+/*
 shadowJar {
     manifest {
         attributes 'Main-Class': 'io.scalechain.blockchain.cli.ScaleChainPeer'
     }
+}
+*/
+
+task runNode(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.scalechain.blockchain.cli.ScaleChainPeer'
+    args System.getProperty("run.args", "").split()
+    //args 'mrhaki'
+    //systemProperty 'simple.message', 'Hello '
+}
+
+task runExec(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.scalechain.blockchain.cli.command.CommandExecutor'
+    args System.getProperty("run.args", "").split()
+    //args 'mrhaki'
+    //systemProperty 'simple.message', 'Hello '
+}
+
+task runDump(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.scalechain.blockchain.cli.DumpChain'
+    args System.getProperty("run.args", "").split()
+    //args 'mrhaki'
+    //systemProperty 'simple.message', 'Hello '
 }

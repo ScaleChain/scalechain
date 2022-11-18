@@ -318,6 +318,7 @@ object DumpChain {
    *
    * @param args Has only one element, the path to blocks directory.
    */
+  @JvmStatic
   fun main(args:Array<String>) : Unit {
     // Enable printing script operations
     BlockPrinterSetter.initialize()

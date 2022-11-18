@@ -19,8 +19,10 @@ EXCEPTION_FILE="build/ex$1.log"
 
 rm $LOG_FILE
 rm $EXCEPTION_FILE
+SCALECHAIN_HOME=`pwd`
+gradle runNode -Drun.args="-d $SCALECHAIN_HOME -p $P2P_PORT -c $RPC_PORT " | tee $LOG_FILE
 
-tmp/scalechain-cli/bin/scalechain-cli -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
+#tmp/scalechain-cli/bin/scalechain-cli -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
 #java -cp ./scalechain-cli/build/libs/scalechain-cli-all.jar io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
 #java -jar `pwd`/scalechain-cli/build/libs/scalechain-cli.jar -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE
 #java $JAVA_OPTIONS -classpath ./tmp io.scalechain.blockchain.cli.ScaleChainPeer -p $P2P_PORT -c $RPC_PORT  | tee $LOG_FILE

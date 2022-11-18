@@ -7,6 +7,8 @@ import org.apache.commons.cli.Options
 import org.apache.commons.cli.Option
 import kotlin.system.exitProcess
 import io.scalechain.blockchain.cli.CommandArgumentConverter
+import io.scalechain.blockchain.cli.ScaleChainPeer
+import io.scalechain.util.GlobalEnvironemnt
 
 data class RpcParameters(
     val host : String,
@@ -29,6 +31,12 @@ object CommandExecutor {
     val options = Options()
 
     init {
+        options.addOption(Option.builder("d")
+            .longOpt("homeDirectory")
+            .hasArg()
+            .desc("The home directory of ScaleChain where scalechain.conf exists.")
+            .build())
+
         options.addOption(Option.builder("h")
             .longOpt("host")
             .hasArg()
@@ -47,7 +55,7 @@ object CommandExecutor {
             .desc("The user name for RPC authentication")
             .build())
 
-        options.addOption(Option.builder("p")
+        options.addOption(Option.builder("w")
             .longOpt("password")
             .hasArg()
             .desc("The password for RPC authentication")
@@ -73,9 +81,12 @@ object CommandExecutor {
         }
     }
 
+    @JvmStatic
     fun main(args: Array<String>) {
-
         val line = parser.parse(options, args)
+
+        // Set home directory first so that scalechain.conf can be loaded without any problem.
+        GlobalEnvironemnt.ScaleChainHome = line.getOptionValue("homeDirectory", "./")
 
         val rpcParams = RpcParameters(
             host = line.getOptionValue("host", "localhost"),
