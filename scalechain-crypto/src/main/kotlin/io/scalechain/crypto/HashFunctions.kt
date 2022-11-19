@@ -23,21 +23,20 @@ data class Hash256(override val value:Bytes) : HashValue
  * Created by kangmo on 11/11/15.
  */
 object HashFunctions {
-  /**
-   *
-   * @param input
-   * @return
-   */
+
   fun sha1(input: ByteArray) : SHA1 {
     val sha1md = MessageDigest.getInstance("SHA-1")
     return SHA1( Bytes( sha1md.digest(input) ) )
   }
 
-  /**
-   *
-   * @param input
-   * @return
-   */
+  fun sha256(input: ByteBuf) : SHA256 {
+    val sha256md = MessageDigest.getInstance("SHA-256")
+    sha256md.reset()
+    sha256md.update(input.nioBuffer())
+    return SHA256( Bytes( sha256md.digest() ) )
+  }
+
+
   fun sha256(input: ByteArray) : SHA256 {
     val sha256md = MessageDigest.getInstance("SHA-256")
     return SHA256( Bytes( sha256md.digest(input) ) )
@@ -50,11 +49,7 @@ object HashFunctions {
   }
 
 
-  /**
-   *
-   * @param input
-   * @return
-   */
+
   fun ripemd160(input: ByteArray) : RIPEMD160 {
     val md = RIPEMD160Digest()
     md.update(input, 0, input.size)
@@ -83,6 +78,10 @@ object HashFunctions {
 
   fun hash256(input: ByteArray, offset : Int, length : Int) : Hash256 {
     return Hash256( sha256( sha256(input, offset, length).value.array ).value )
+  }
+
+  fun hash256(input: ByteBuf) : Hash256 {
+    return Hash256( sha256( sha256(input).value.array ).value )
   }
 
 }

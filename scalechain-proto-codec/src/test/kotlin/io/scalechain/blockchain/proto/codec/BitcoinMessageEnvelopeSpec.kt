@@ -41,8 +41,7 @@ class BitcoinMessageEnvelopeSpec : FlatSpec(), Matchers {
     }
 
     "checksum" should "calculate the checksum of a byte array" {
-      val payload = envelope.payload.toByteArray()
-      envelope.checksum shouldBe BitcoinMessageEnvelope.checksum(payload, 0, payload.size)
+      envelope.checksum shouldBe BitcoinMessageEnvelope.checksum(envelope.payload)
     }
 
     "build" should "return a message envelope" {

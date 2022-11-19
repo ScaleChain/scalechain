@@ -41,13 +41,11 @@ data class BitcoinMessageEnvelope(
     companion object {
       /**
        * Calculate checksum from a range of a byte array.
-       * @param buffer The byte array to check.
-       * @param offset The start offset of the buffer to calculate the checksum.
-       * @param length The length of bytes starting from the offset to calculate the checksum.
+       * @param buffer The byte buffer to calculate the checksum value.
        */
-      fun checksum(buffer : ByteArray, offset : Int, length : Int) : Checksum {
+      fun checksum(buffer : ByteBuf) : Checksum {
         // OPTIMIZE : Directly calculate hash from the BitVector
-        val hash = HashFunctions.hash256(buffer, offset, length)
+        val hash = HashFunctions.hash256(buffer)
 
         return Checksum(Bytes(hash.value.array.copyOfRange(0,Checksum.VALUE_SIZE)))
       }
@@ -56,13 +54,13 @@ data class BitcoinMessageEnvelope(
         val byteBuf = Unpooled.buffer()
         protocol.encode(byteBuf, message)
 
-        val payload = byteBuf.toByteArray()
+        val payloadSize = byteBuf.readableBytes()
 
         return BitcoinMessageEnvelope(
           BitcoinConfiguration.config.magic,
           protocol.getCommand(message),
-          payload.size,
-          checksum(payload, 0, payload.size),
+          payloadSize,
+          checksum(byteBuf),
           byteBuf
         )
       }
@@ -77,9 +75,7 @@ data class BitcoinMessageEnvelope(
         if ( envelope.length != envelope.payload.readableBytes() )
           throw ProtocolCodecException( ErrorCode.PayloadLengthMismatch)
 
-        // BUGBUG : Try to avoid byte array copy.
-        val payloadBytes = envelope.payload.toByteArray()
-        if ( envelope.checksum != checksum( payloadBytes, 0, payloadBytes.size) )
+        if ( envelope.checksum != checksum( envelope.payload) )
           throw ProtocolCodecException( ErrorCode.PayloadChecksumMismatch)
       }
     }
