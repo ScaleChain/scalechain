@@ -28,7 +28,7 @@ object MultiThreadTestLayers : Command {
   )
 
   override fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
-    val transactionGroupCount = Integer.parseInt(args[1])
+    val transactionGroupCount = Integer.parseInt(args[0])
 
     testCases.forEach { testCase : TestCase ->
       println("Testing ${testCase.name}")

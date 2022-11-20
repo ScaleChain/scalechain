@@ -50,10 +50,10 @@ object GenerateRawTransactions : Command {
   }
 
   override fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
-    val privateKeyString = args[1]
-    val outputSplitCount = Integer.parseInt(args[2])
-    val transactionGroupCount = Integer.parseInt(args[3])
-    val transactionCountPerGroup = Integer.parseInt(args[4])
+    val privateKeyString = args[0]
+    val outputSplitCount = Integer.parseInt(args[1])
+    val transactionGroupCount = Integer.parseInt(args[2])
+    val transactionCountPerGroup = Integer.parseInt(args[3])
 
     val privateKey = PrivateKey.from(privateKeyString)
 

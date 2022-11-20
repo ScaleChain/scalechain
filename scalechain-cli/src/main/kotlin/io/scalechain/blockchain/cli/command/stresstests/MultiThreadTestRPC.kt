@@ -11,9 +11,9 @@ object MultiThreadTestRPC : Command {
 
 
     override fun invoke(command : String, args : Array<String>, rpcParams : RpcParameters) {
-    val nodeCount = Integer.parseInt(args[1])
-    val transactionGroupCount = Integer.parseInt(args[2])
-    val nodeFilterIndexOption = if ( args[3] == "x") null else Integer.parseInt(args[3])
+    val nodeCount = Integer.parseInt(args[0])
+    val transactionGroupCount = Integer.parseInt(args[1])
+    val nodeFilterIndexOption = if ( args[2] == "x") null else Integer.parseInt(args[2])
 
  //   println(s"nodeFilterIndexOption = ${nodeFilterIndexOption}")
 

@@ -25,47 +25,52 @@ data class Parameters(
 
 /**
  * Created by kangmo on 1/24/16.
+ *
+ * The followings are bitcoin-cli command line arguments. Make arguments compatible to bitcoin-cli
+ *
  */
 object CommandExecutor {
     val parser = DefaultParser()
     val options = Options()
 
     init {
-        options.addOption(Option.builder("d")
-            .longOpt("homeDirectory")
+        options.addOption(Option.builder("version")
+            .longOpt("version")
             .hasArg()
-            .desc("The home directory of ScaleChain where scalechain.conf exists.")
+            .desc("Print scalechian-cli command line tool version.")
             .build())
 
-        options.addOption(Option.builder("h")
-            .longOpt("host")
+        options.addOption(Option.builder("homedir")
+            .longOpt("homedir")
             .hasArg()
-            .desc("host of the ScaleChain Json-RPC service")
+            .desc("Specify data directory where data files such as block files are stored")
             .build())
 
-        options.addOption(Option.builder("p")
-            .longOpt("port")
+        options.addOption(Option.builder("rpcconnect")
+            .longOpt("rpcconnect")
             .hasArg()
-            .desc("port of the ScaleChain Json-RPC service")
+            .desc("The host address of the node that runs ScaleChain Json-RPC service")
             .build())
 
-        options.addOption(Option.builder("u")
-            .longOpt("user")
+        // TODO : Need to have constants for ports instead of hard-coding them
+        options.addOption(Option.builder("rpcport")
+            .longOpt("rpcport")
             .hasArg()
-            .desc("The user name for RPC authentication")
+            .desc("The port number of the ScaleChain Json-RPC service. Default mainnet port: 8080, testnet port: 18080")
             .build())
 
-        options.addOption(Option.builder("w")
-            .longOpt("password")
+        options.addOption(Option.builder("rpcuser")
+            .longOpt("rpcuser")
             .hasArg()
-            .desc("The password for RPC authentication")
+            .desc("The user name for Json-RPC authentication")
             .build())
 
-        options.addOption(Option.builder("n")
-            .longOpt("network")
+        options.addOption(Option.builder("rpcpassword")
+            .longOpt("rpcpassword")
             .hasArg()
-            .desc("The network to use. currently 'testnet' is supported. Will support 'mainnet' as well as 'regtest' soon.")
+            .desc("The user password for Json-RPC authentication")
             .build())
+
 
         Commands.all.forEach { command ->
             val desc = command.descriptor
@@ -83,16 +88,22 @@ object CommandExecutor {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        print("program arguments: ")
+        for (a in args) {
+            print(" $a")
+        }
+        println()
+
         val line = parser.parse(options, args)
 
         // Set home directory first so that scalechain.conf can be loaded without any problem.
-        GlobalEnvironemnt.ScaleChainHome = line.getOptionValue("homeDirectory", "./")
+        GlobalEnvironemnt.ScaleChainHome = line.getOptionValue("homedir", "./")
 
         val rpcParams = RpcParameters(
-            host = line.getOptionValue("host", "localhost"),
-            port = CommandArgumentConverter.toInt( "port", line.getOptionValue("port", null ) ) ?: Config.get().getInt("scalechain.api.port"),
-            user = line.getOptionValue("user", Config.get().getString("scalechain.api.user")),
-            password = line.getOptionValue("password", Config.get().getString("scalechain.api.password"))
+            host = line.getOptionValue("rpcconnect", "localhost"),
+            port = CommandArgumentConverter.toInt( "rpcport", line.getOptionValue("port", null ) ) ?: Config.get().getInt("scalechain.api.port"),
+            user = line.getOptionValue("rpcuser", Config.get().getString("scalechain.api.user")),
+            password = line.getOptionValue("rpcpassword", Config.get().getString("scalechain.api.password"))
         )
 
         val command = Commands.all.filter{ line.hasOption(it.descriptor.command) }.map{ it.descriptor.command }.firstOrNull()
@@ -104,7 +115,7 @@ object CommandExecutor {
                 rpcParameters = rpcParams,
                 network = line.getOptionValue("network", "testnet"),
                 command = command,
-                args = line.getOptionValues(command)
+                args = line.getOptionValues(command) ?: arrayOf<String>()
             )
 
             if (ChainEnvironment.create(params.network) == null) {
