@@ -25,9 +25,6 @@ data class Parameters(
 
 /**
  * Created by kangmo on 1/24/16.
- *
- * The followings are bitcoin-cli command line arguments. Make arguments compatible to bitcoin-cli
- *
  */
 object CommandExecutor {
     val parser = DefaultParser()
@@ -71,6 +68,11 @@ object CommandExecutor {
             .desc("The user password for Json-RPC authentication")
             .build())
 
+        options.addOption(Option.builder("network")
+            .longOpt("network")
+            .hasArg()
+            .desc("The network to use. currently 'testnet' is supported. Will support 'mainnet' as well as 'regtest' soon.")
+            .build())
 
         Commands.all.forEach { command ->
             val desc = command.descriptor

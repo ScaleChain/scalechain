@@ -89,7 +89,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
             var blockFound = false;
 
             // TODO : BUGBUG : Need to use chain.getDifficulty instead of using a fixed difficulty
-            val requiredHashCalulcations = 1024L * 1024L
+            val requiredHashCalulcations = 1024L
 
             // Try mining with the block template for five seconds.
             val MINING_TRYAL_MILLIS=1000
@@ -98,10 +98,13 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
             do {
               val miningBlockHeader = blockHeaderTemplate.copy(nonce = nonceValue)
 
+              // TODO : BUGBUG Remove this code : This is for testing purpose, emulate hash calculation hardness.
+              sleep(10)
 
               if (HashEstimation.getHashCalculations(miningBlockHeader.hash().value.array) == requiredHashCalulcations) {
 
                 // Check the best block hash once more.
+                // TODO : BUGBUG Need synchronization with block message handler, which may change the best block.
                 if (bestBlockHash.value == chain.getBestBlockHash(db)!!.value) {
                   // Step 5 : When a block is found, create the block and put it on the blockchain.
                   // Also propate the block to the peer to peer network.
