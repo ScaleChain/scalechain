@@ -208,6 +208,8 @@ class Blockchain(val db : KeyValueDatabase, private val storage : BlockStorage) 
             if (blockInfo.chainWork > theBestBlock!!.chainWork) {
               logger.info("Block reorganization started. Original Best : (${theBestBlock!!.blockHeader.hash()},${theBestBlock}), The Best (${blockInfo.blockHeader.hash()},${blockInfo})")
 
+              // TODO : BUGBUG What happens if the blockInfo or any of its parents is an orphan?
+
               // Step 3.B.2 : Reorganize the blocks.
               // transaction handling, orphan block handling is done in this method.
               blockMagnet.reorganize(db, originalBestBlock = theBestBlock!!, newBestBlock = blockInfo)

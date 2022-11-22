@@ -24,7 +24,7 @@ interface CoinMinerListener {
   fun onCoinMined(block : Block, minerAddress : CoinAddress)
 }
 
-class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : String, private val wallet : Wallet, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator, private val params : CoinMinerParams, private val listener : CoinMinerListener?) {
+class CoinMiner(private val db : KeyValueDatabase, private val minerAddress : String, private val wallet : Wallet, private val chain : Blockchain, private val peerCommunicator: PeerCommunicator, private val params : CoinMinerParams, private val listener : CoinMinerListener?) {
 
   private val logger = LoggerFactory.getLogger(CoinMiner::class.java)
 
@@ -74,7 +74,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
         if (canMine()) {
           //chain.synchronized {
           // Step 2 : Create the block template
-          val minerAddress = wallet.getReceivingAddress(db, minerAccount)
+          val minerAddress = CoinAddress.from( minerAddress )
           val bestBlockHash = chain.getBestBlockHash(db)
           if (bestBlockHash != null) {
             val blockHeight = chain.getBlockInfo(db, bestBlockHash)!!.height
@@ -143,8 +143,8 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
   companion object {
     var theCoinMiner : CoinMiner? = null
 
-    fun create(indexDb : KeyValueDatabase, minerAccount : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) : CoinMiner {
-      theCoinMiner = CoinMiner(indexDb, minerAccount, wallet, chain, peerCommunicator, params, null)
+    fun create(indexDb : KeyValueDatabase, minerAddress : String, wallet : Wallet, chain : Blockchain, peerCommunicator: PeerCommunicator, params : CoinMinerParams) : CoinMiner {
+      theCoinMiner = CoinMiner(indexDb, minerAddress, wallet, chain, peerCommunicator, params, null)
       return theCoinMiner!!
     }
 
@@ -158,7 +158,7 @@ class CoinMiner(private val db : KeyValueDatabase, private val minerAccount : St
     val MINING_TRIAL_WINDOW_MILLIS = 10000
 
     fun coinbaseData(height : Long) : CoinbaseData {
-      return CoinbaseData(Bytes("height:${height}, ScaleChain by Kwanho, Chanwoo, Kangmo.".toByteArray()))
+      return CoinbaseData(Bytes("height:${height}, ScaleChain by Kangmo.".toByteArray()))
     }
   }
 }

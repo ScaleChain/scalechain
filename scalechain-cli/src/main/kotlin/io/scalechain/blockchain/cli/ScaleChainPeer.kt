@@ -37,7 +37,7 @@ object ScaleChainPeer {
                          val peerPort: Int? = null, // The port of the peer we want to connect. If this is set, scalechain.p2p.peers is ignored.
                          val p2pInboundPort: Int = Config.get().getInt("scalechain.p2p.port"),
                          val apiInboundPort: Int = Config.get().getInt("scalechain.api.port"),
-                         val miningAccount: String = Config.get().getString("scalechain.mining.account"),
+                         val miningAddress: String = Config.get().getString("scalechain.mining.address"),
                          val network: String = Config.get().getString("scalechain.network.name"),
                          val maxBlockSize: Int = Config.MAX_BLOCK_SIZE,
                          val disableMiner : Boolean = false
@@ -81,7 +81,7 @@ object ScaleChainPeer {
 
 
         options.addOption(Option.builder("m")
-            .longOpt("miningAccount")
+            .longOpt("miningAddress")
             .hasArg()
             .desc("The account to get the coins mined. The receiving address of the account will get the coins mined.")
             .build())
@@ -214,7 +214,7 @@ object ScaleChainPeer {
     // Step 9 : CLI Layer : Create a miner that gets list of transactions from the Blockchain and create blocks to submmit to the Blockchain.
     val minerParams = CoinMinerParams(P2PPort = params.p2pInboundPort, MaxBlockSize = params.maxBlockSize)
 
-    val miner = CoinMiner.create(db, params.miningAccount, wallet, chain, peerCommunicator, minerParams)
+    val miner = CoinMiner.create(db, params.miningAddress, wallet, chain, peerCommunicator, minerParams)
     if (!params.disableMiner) {
       miner.start()
     }
@@ -249,8 +249,8 @@ object ScaleChainPeer {
                 .getInt("scalechain.p2p.port"),
             apiInboundPort = CommandArgumentConverter.toInt("apiPort", line.getOptionValue("apiPort", null)) ?: Config.get()
                 .getInt("scalechain.api.port"),
-            miningAccount = line.getOptionValue("miningAccount", null) ?: Config.get()
-                .getString("scalechain.mining.account"),
+            miningAddress = line.getOptionValue("miningAddress", null) ?: Config.get()
+                .getString("scalechain.mining.address"),
             network = line.getOptionValue("network", null) ?: Config.get().getString("scalechain.network.name"),
             maxBlockSize = Config.MAX_BLOCK_SIZE,
             disableMiner = line.hasOption("disableMiner")
