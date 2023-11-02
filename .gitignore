@@ -24,3 +24,6 @@ tmp/
 
 initial-split-transaction.txt
 transaction-group-*.txt
+
+*/bin
+.vscode/
