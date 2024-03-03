@@ -1,24 +1,49 @@
-Under construction
-==================
-ScaleChain source code is under construction. Big changes are to come to integrate distributed neural network.
-The latest release does not include the integration of distributed neural network yet.
-
-Current project status
-======================
-Unit tests passed.
-
 Introduction
 ============
-ScaleChain is an altcoin that realizes distributed neural networks on blockchain.
+
+Introducing ScaleChain, the groundbreaking altcoin project designed to revolutionize payment networks between robots and humans. In an era marked by the proliferation of automation and robotics, ScaleChain emerges as the solution to facilitate effortless transactions between intelligent machines and their human counterparts.
+
+Operating on a decentralized blockchain platform, ScaleChain offers unparalleled security and transparency in transactions. Leveraging smart contract technology, ScaleChain enables automated payments for services rendered by robots, spanning from industrial tasks to household chores, while also serving as a convenient payment gateway for humans engaging with automated systems.
+
+With a focus on interoperability and user-friendly features, ScaleChain aims to streamline the exchange of value between robots and humans, fostering a dynamic ecosystem where automation enhances productivity and efficiency. Join us in shaping the future of commerce and collaboration with ScaleChain – where machines and humans unite through seamless transactions.
 
 For the avoidance of doubt, this particular copy of the software is released under the version 3 of the GNU General Public License. It is brought to you by ScaleChain.
 
 Copyright (c) 2015, ScaleChain and/or its affiliates. All rights reserved.
 
-Why ScaleChain?
-===============
-1. No more expensive hardware and electricity for the training process of your deep neural network.
-2. Payment network between robots, which require intelligence for their behavior decisions. 
+How to build
+============
+Create a jar file with all dependencies included.
+```
+gradle clean test shadowJar
+```
+
+Start up the node with the run.sh script.
+```
+# copy the environment template and edit as you want
+cp scripts/.env-template scripts/.env
+
+# run it
+scripts/run.sh
+```
+
+Or you can run ScaleChainPeer class with the created jar included in the classpath.
+```
+java -cp ./scalechain-cli/build/libs/scalechain-cli-all.jar io.scalechain.blockchain.cli.ScaleChainPeer
+```
+How to test
+============
+Run unit tests 
+```
+gradle clean test
+```
+
+Run automated end to end test written in python
+```
+gradle clean test shadowJar
+# kill all ScaleChainPeer java processes, and then run all end to end tests
+scripts/kill-all.sh ; scripts/run-tests.sh
+```
 
 Getting Started
 ===============
@@ -27,7 +52,16 @@ Getting Started
 Supported Features
 ==================
 - Compatible with Bitcoin remote procedure calls and peer-to-peer protocols.
-- (TODO) Integrate neural network.
+
+
+Under construction
+==================
+ScaleChain source code is under construction. Big changes are to come to stablize the code.
+
+Current project status
+======================
+Unit tests passed.
+(Under construction) Automated end-to-end test.
 
 License
 =======
